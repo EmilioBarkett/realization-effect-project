@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run a realization-effect replication experiment with an OpenAI model."""
+"""Run a realization-effect replication experiment with an OpenRouter model."""
 
 import argparse
 import csv
@@ -153,8 +153,55 @@ def _build_prompt_absolute(outcome_type: str, amount: int) -> str:
     raise ValueError(f"Unsupported outcome_type: {outcome_type}")
 
 
+def _build_prompt_balance(outcome_type: str, amount: int) -> str:
+    """Build balance framing prompt text for one trial."""
+    if outcome_type == "paper":
+        if amount > 0:
+            balance_sentence = (
+                f"your current balance on your playing card is {amount} CHF above where you began."
+            )
+        elif amount < 0:
+            balance_sentence = (
+                f"your current balance on your playing card is {abs(amount)} CHF below where you began."
+            )
+        else:
+            balance_sentence = (
+                "your current balance on your playing card is exactly the same as where you began."
+            )
+
+        return (
+            "You are in the middle of a casino visit. Relative to the start of this visit, "
+            f"{balance_sentence}\n\n"
+            "You have not left the casino and your balance is still on the playing card.\n\n"
+            "You are about to start your next slot machine session.\n\n"
+            "How much do you want to wager (in CHF)?\n"
+            "Respond with a single integer between 1 and 500."
+        )
+
+    if outcome_type == "realized":
+        if amount > 0:
+            result_sentence = f"your final result was {amount} CHF above where you started."
+        elif amount < 0:
+            result_sentence = f"your final result was {abs(amount)} CHF below where you started."
+        else:
+            result_sentence = "your final result was exactly the same as where you started."
+
+        return (
+            "On your previous casino visit, "
+            f"{result_sentence}\n\n"
+            "When that visit ended, you cashed out your playing card and settled the balance.\n\n"
+            "That visit is now over.\n\n"
+            "You have returned to the casino and are about to begin your first slot machine session of a new visit.\n\n"
+            "How much do you want to wager (in CHF)?\n"
+            "Respond with a single integer between 1 and 500."
+        )
+
+    raise ValueError(f"Unsupported outcome_type: {outcome_type}")
+
+
 PROMPT_BUILDERS = {
     "absolute": _build_prompt_absolute,
+    "balance": _build_prompt_balance,
 }
 
 
@@ -318,6 +365,9 @@ def run_experiment(
     n_trials: int,
     model: str,
     temperature: float,
+    target_model: Optional[str] = None,
+    target_temperature: Optional[float] = None,
+    target_prompt_version: Optional[str] = None,
     sleep_seconds: float = 0.0,
     prompt_version: str = "absolute",
     shuffle: bool = False,
@@ -331,6 +381,10 @@ def run_experiment(
         raise ValueError("max_retries must be zero or a positive integer")
     if not math.isfinite(temperature) or temperature < 0 or temperature > 2:
         raise ValueError("temperature must be a finite number between 0 and 2")
+    if target_temperature is not None and (
+        not math.isfinite(target_temperature) or target_temperature < 0 or target_temperature > 2
+    ):
+        raise ValueError("target_temperature must be a finite number between 0 and 2")
 
     conditions = load_conditions(conditions_path)
     if seed is not None:
@@ -340,11 +394,74 @@ def run_experiment(
 
     completed_runs, max_trial_id = _load_resume_state(output_path)
     file_exists = output_path.exists() and output_path.stat().st_size > 0
+    temp_key = _normalize_temperature(temperature)
+    target_model_value = target_model.strip() if target_model else model
+    target_temperature_value = temperature if target_temperature is None else target_temperature
+    target_temp_key = _normalize_temperature(target_temperature_value)
+    target_prompt_version_value = (
+        target_prompt_version.strip() if target_prompt_version else prompt_version
+    )
 
-    client = OpenAI()
+    if (
+        target_model is not None
+        or target_temperature is not None
+        or target_prompt_version is not None
+    ) and (
+        model != target_model_value
+        or temp_key != target_temp_key
+        or prompt_version != target_prompt_version_value
+    ):
+        raise ValueError(
+            "Target filters must match --model, --temperature, and --prompt-version "
+            "for safe resume of that experiment block."
+        )
+
+    completed_by_condition: Dict[str, Set[int]] = {
+        str(condition["condition"]): set() for condition in conditions
+    }
+    for condition_name, run_number, row_model, row_temp_key, row_prompt_version in completed_runs:
+        if (
+            row_model == target_model_value
+            and row_temp_key == target_temp_key
+            and row_prompt_version == target_prompt_version_value
+            and condition_name in completed_by_condition
+            and 1 <= run_number <= n_trials
+        ):
+            completed_by_condition[condition_name].add(run_number)
+
+    missing_by_condition: Dict[str, List[int]] = {}
+    print(
+        "Resume summary for block: "
+        f"model={target_model_value}, temperature={target_temperature_value}, "
+        f"prompt_version={target_prompt_version_value}"
+    )
+    for condition in conditions:
+        condition_name = str(condition["condition"])
+        completed_numbers = completed_by_condition[condition_name]
+        missing_run_numbers = [
+            run_number for run_number in range(1, n_trials + 1) if run_number not in completed_numbers
+        ]
+        missing_by_condition[condition_name] = missing_run_numbers
+
+        missing_display = "none" if not missing_run_numbers else str(missing_run_numbers)
+        print(
+            f"  {condition_name}: {len(completed_numbers)} unique completed; "
+            f"missing run_numbers={missing_display}"
+        )
+
+    openrouter_api_key = os.getenv("OPENROUTER_API_KEY", "").strip()
+    if not openrouter_api_key:
+        raise EnvironmentError(
+            "Missing OPENROUTER_API_KEY in environment. "
+            "Set it in your shell before running this script."
+        )
+
+    client = OpenAI(
+        base_url="https://openrouter.ai/api/v1",
+        api_key=openrouter_api_key,
+    )
     trial_id = max_trial_id
     total_new = 0
-    temp_key = _normalize_temperature(temperature)
 
     with output_path.open("a", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=RESULT_FIELDS)
@@ -355,7 +472,8 @@ def run_experiment(
 
         trial_plan: List[Tuple[Dict[str, object], int]] = []
         for condition in conditions:
-            for run_number in range(1, n_trials + 1):
+            condition_name = str(condition["condition"])
+            for run_number in missing_by_condition[condition_name]:
                 trial_plan.append((condition, run_number))
 
         if shuffle:
@@ -420,6 +538,55 @@ def run_experiment(
     print(f"Completed. Added {total_new} new trial rows to {output_path}.")
 
 
+def run_experiment_grid(
+    conditions_path: Path,
+    output_path: Path,
+    n_trials: int,
+    models: List[str],
+    temperatures: List[float],
+    target_model: Optional[str] = None,
+    target_temperature: Optional[float] = None,
+    target_prompt_version: Optional[str] = None,
+    sleep_seconds: float = 0.0,
+    prompt_version: str = "absolute",
+    shuffle: bool = False,
+    max_retries: int = 5,
+    seed: Optional[int] = None,
+) -> None:
+    """Run all model/temperature combinations by delegating to run_experiment."""
+    if not models:
+        raise ValueError("models must contain at least one model")
+    if not temperatures:
+        raise ValueError("temperatures must contain at least one temperature")
+
+    target_temp_key = _normalize_temperature(target_temperature)
+    for model in models:
+        for temperature in temperatures:
+            if target_model is not None and model != target_model:
+                continue
+            if (
+                target_temperature is not None
+                and _normalize_temperature(temperature) != target_temp_key
+            ):
+                continue
+
+            run_experiment(
+                conditions_path=conditions_path,
+                output_path=output_path,
+                n_trials=n_trials,
+                model=model,
+                temperature=temperature,
+                target_model=target_model,
+                target_temperature=target_temperature,
+                target_prompt_version=target_prompt_version,
+                sleep_seconds=sleep_seconds,
+                prompt_version=prompt_version,
+                shuffle=shuffle,
+                max_retries=max_retries,
+                seed=seed,
+            )
+
+
 def main() -> None:
     """Parse CLI arguments and run the experiment."""
     parser = argparse.ArgumentParser(description="Run realization-effect LLM experiment.")
@@ -442,16 +609,49 @@ def main() -> None:
         help="Number of runs per condition (default: 100).",
     )
     parser.add_argument(
+        "--models",
+        type=str,
+        nargs="+",
+        default=None,
+        help="One or more models to query (via OpenRouter).",
+    )
+    parser.add_argument(
+        "--temperatures",
+        type=float,
+        nargs="+",
+        default=None,
+        help="One or more sampling temperatures passed to the API.",
+    )
+    # Backward-compatible single-value aliases.
+    parser.add_argument(
         "--model",
         type=str,
-        default="gpt-4.1-mini",
-        help="OpenAI model to query.",
+        default=None,
+        help=argparse.SUPPRESS,
     )
     parser.add_argument(
         "--temperature",
         type=float,
-        default=1.0,
-        help="Sampling temperature passed to the API (default: 1.0).",
+        default=None,
+        help=argparse.SUPPRESS,
+    )
+    parser.add_argument(
+        "--target-model",
+        type=str,
+        default=None,
+        help="Optional resume filter for model.",
+    )
+    parser.add_argument(
+        "--target-temperature",
+        type=float,
+        default=None,
+        help="Optional resume filter for temperature.",
+    )
+    parser.add_argument(
+        "--target-prompt-version",
+        type=str,
+        default=None,
+        help="Optional resume filter for prompt version.",
     )
     parser.add_argument(
         "--sleep-seconds",
@@ -484,12 +684,20 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    run_experiment(
+    models = args.models if args.models is not None else [args.model or "openai/o4-mini"]
+    temperatures = (
+        args.temperatures if args.temperatures is not None else [args.temperature or 1.0]
+    )
+
+    run_experiment_grid(
         conditions_path=args.conditions,
         output_path=args.output,
         n_trials=args.n_trials,
-        model=args.model,
-        temperature=args.temperature,
+        models=models,
+        temperatures=temperatures,
+        target_model=args.target_model,
+        target_temperature=args.target_temperature,
+        target_prompt_version=args.target_prompt_version,
         sleep_seconds=args.sleep_seconds,
         prompt_version=args.prompt_version,
         shuffle=args.shuffle,
