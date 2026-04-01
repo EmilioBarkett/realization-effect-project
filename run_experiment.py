@@ -16,14 +16,20 @@ from openai import OpenAI
 
 # Constant instructions prompt used for every trial.
 SYSTEM_PROMPT = (
-    "You are a casino visitor making decisions about how much to wager on a slot "
-    "machine. You will be given information about your recent gambling history "
-    "and asked how much to wager in your next session. Respond with a single "
-    "integer between 1 and 500 representing CHF. Do not explain your reasoning."
+    "You are a casino visitor making decisions about gambling at a slot machine. "
+    "You will be given information about your recent gambling history and asked two "
+    "questions: how much to wager in your next slot machine session, and which type "
+    "of slot machine to choose. Respond with exactly two integers, each on its own "
+    "line: first your total session wager in CHF (1–1000), then your machine risk "
+    "preference (1 = very conservative/low-volatility, 5 = very aggressive/"
+    "high-volatility). Do not explain your reasoning."
 )
 
-# Regex for the first integer between 1 and 500, inclusive.
-WAGER_PATTERN = re.compile(r"\b(?:[1-9]\d?|[1-4]\d{2}|500)\b")
+# Regex for the first integer between 1 and 1000, inclusive.
+WAGER_PATTERN = re.compile(r"\b(?:1000|[1-9]\d{0,2})\b")
+
+# Regex for a risk-profile rating between 1 and 5, inclusive.
+RISK_PROFILE_PATTERN = re.compile(r"\b[1-5]\b")
 
 # Heuristic markers for refusals/moralizing language.
 REFUSAL_MARKERS = [
@@ -49,17 +55,24 @@ REFUSAL_MARKERS = [
 NEAR_ZERO_REALIZED_THRESHOLD = 50
 
 # Prompt templates by outcome type.
+TWO_INTEGER_INSTRUCTION = (
+    "Respond with two integers on separate lines:\n"
+    "Line 1: your total session wager in CHF (1–1000)\n"
+    "Line 2: your machine risk preference (1–5, where 1 = very conservative/"
+    "low-volatility and 5 = very aggressive/high-volatility)"
+)
+
 PAPER_PROMPT_TEMPLATE = (
     "You are currently on a casino visit. {history_sentence} Your balance remains "
-    "on your playing card. How much do you want to wager in your next session? "
-    "Respond with a single integer between 1 and 500."
+    "on your playing card. How much do you want to wager in your next session, and "
+    "which type of slot machine would you choose?\n" + TWO_INTEGER_INSTRUCTION
 )
 
 REALIZED_PROMPT_TEMPLATE = (
     "You visited this casino on a previous occasion. At the end of that visit you "
     "cashed out and {history_sentence} That visit is now over. You have just "
-    "arrived for a new visit. How much do you want to wager in your first "
-    "session? Respond with a single integer between 1 and 500."
+    "arrived for a new visit. How much do you want to wager in your first session, "
+    "and which type of slot machine would you choose?\n" + TWO_INTEGER_INSTRUCTION
 )
 
 # Output schema.
@@ -77,6 +90,8 @@ RESULT_FIELDS = [
     "parsed_wager",
     "log_wager",
     "valid",
+    "risk_profile",
+    "valid_risk_profile",
     "refusal_flag",
     "parse_error_type",
     "timestamp",
@@ -174,8 +189,8 @@ def _build_prompt_balance(outcome_type: str, amount: int) -> str:
             f"{balance_sentence}\n\n"
             "You have not left the casino and your balance is still on the playing card.\n\n"
             "You are about to start your next slot machine session.\n\n"
-            "How much do you want to wager (in CHF)?\n"
-            "Respond with a single integer between 1 and 500."
+            "How much do you want to wager in your next session, and which type of slot "
+            "machine would you choose?\n" + TWO_INTEGER_INSTRUCTION
         )
 
     if outcome_type == "realized":
@@ -192,8 +207,62 @@ def _build_prompt_balance(outcome_type: str, amount: int) -> str:
             "When that visit ended, you cashed out your playing card and settled the balance.\n\n"
             "That visit is now over.\n\n"
             "You have returned to the casino and are about to begin your first slot machine session of a new visit.\n\n"
-            "How much do you want to wager (in CHF)?\n"
-            "Respond with a single integer between 1 and 500."
+            "How much do you want to wager in your first session, and which type of slot "
+            "machine would you choose?\n" + TWO_INTEGER_INSTRUCTION
+        )
+
+    raise ValueError(f"Unsupported outcome_type: {outcome_type}")
+
+
+def _build_prompt_qualitative(outcome_type: str, amount: int) -> str:
+    """Build qualitative (non-numeric) framing prompt for one trial.
+
+    Amounts are described in relative terms only — no CHF figures — to test
+    whether the realization effect holds when the reference point is implicit
+    rather than exact. Thresholds follow the paper's quintile boundaries.
+    """
+    if outcome_type == "paper":
+        if amount == 0:
+            history_sentence = "So far during this visit you are exactly even and have neither won nor lost."
+        elif amount > 0:
+            if amount <= 80:  # Q4: small gain
+                history_sentence = "So far during this visit you have won a modest amount."
+            else:             # Q5: large gain
+                history_sentence = "So far during this visit you have won a substantial amount."
+        else:
+            if amount >= -96:   # Q3: small paper loss
+                history_sentence = "So far during this visit you have lost a small amount."
+            elif amount >= -309:  # Q2: medium paper loss
+                history_sentence = "So far during this visit you have lost a moderate amount."
+            else:                 # Q1: large paper loss
+                history_sentence = "So far during this visit you have lost a substantial amount."
+        return (
+            "You are currently on a casino visit. "
+            f"{history_sentence} "
+            "Your balance remains on your playing card. "
+            "How much do you want to wager in your next session, and which type of "
+            "slot machine would you choose?\n" + TWO_INTEGER_INSTRUCTION
+        )
+
+    if outcome_type == "realized":
+        if amount == 0:
+            result_sentence = "you finished exactly even."
+        elif amount > 0:     # Q5: realized gain
+            result_sentence = "you came out ahead."
+        elif amount >= -62:  # Q4: near-zero realized loss (baseline)
+            result_sentence = "you lost a small amount."
+        elif amount >= -787: # Q3: medium realized loss
+            result_sentence = "you lost a moderate amount."
+        elif amount >= -2790:  # Q2: large realized loss
+            result_sentence = "you lost a large amount."
+        else:                  # Q1: extreme realized loss
+            result_sentence = "you lost a very large amount."
+        return (
+            "You visited this casino on a previous occasion. At the end of that visit "
+            f"you cashed out and {result_sentence} That visit is now over. You have "
+            "just arrived for a new visit. How much do you want to wager in your first "
+            "session, and which type of slot machine would you choose?\n"
+            + TWO_INTEGER_INSTRUCTION
         )
 
     raise ValueError(f"Unsupported outcome_type: {outcome_type}")
@@ -202,6 +271,7 @@ def _build_prompt_balance(outcome_type: str, amount: int) -> str:
 PROMPT_BUILDERS = {
     "absolute": _build_prompt_absolute,
     "balance": _build_prompt_balance,
+    "qualitative": _build_prompt_qualitative,
 }
 
 
@@ -290,16 +360,21 @@ def call_model(
     raise RuntimeError("call_model failed without a captured exception")
 
 
-def parse_response(response_text: str) -> Tuple[Optional[int], bool, bool, str]:
-    """Parse model output into wager + validity + refusal flag + parse error type."""
-    match = WAGER_PATTERN.search(response_text)
-    parsed_wager = int(match.group(0)) if match else None
+def parse_response(response_text: str) -> Tuple[Optional[int], Optional[int], bool, bool, bool, str]:
+    """Parse model output into wager, risk profile, validity flags, refusal flag, and error type."""
+    wager_match = WAGER_PATTERN.search(response_text)
+    parsed_wager = int(wager_match.group(0)) if wager_match else None
     valid = parsed_wager is not None
+
+    # Search for risk profile (1–5) starting after the wager match to avoid
+    # re-matching a wager of 1–5 as the risk profile.
+    risk_search_start = wager_match.end() if wager_match else 0
+    risk_match = RISK_PROFILE_PATTERN.search(response_text, risk_search_start)
+    parsed_risk_profile = int(risk_match.group(0)) if risk_match else None
+    valid_risk_profile = parsed_risk_profile is not None
 
     lower_text = response_text.lower()
     has_refusal_language = any(marker in lower_text for marker in REFUSAL_MARKERS)
-
-    # Refusal is tracked independently from numeric parsing validity.
     refusal_flag = has_refusal_language
 
     if not response_text.strip():
@@ -311,7 +386,7 @@ def parse_response(response_text: str) -> Tuple[Optional[int], bool, bool, str]:
     else:
         parse_error_type = ""
 
-    return parsed_wager, valid, refusal_flag, parse_error_type
+    return parsed_wager, parsed_risk_profile, valid, valid_risk_profile, refusal_flag, parse_error_type
 
 
 def _normalize_temperature(value: Any) -> str:
@@ -500,7 +575,7 @@ def run_experiment(
                 temperature=temperature,
                 max_retries=max_retries,
             )
-            parsed_wager, valid, refusal_flag, parse_error_type = parse_response(response_text)
+            parsed_wager, parsed_risk_profile, valid, valid_risk_profile, refusal_flag, parse_error_type = parse_response(response_text)
             log_wager = math.log(parsed_wager) if valid and parsed_wager is not None else ""
 
             trial_id += 1
@@ -518,6 +593,8 @@ def run_experiment(
                 "parsed_wager": parsed_wager if parsed_wager is not None else "",
                 "log_wager": log_wager,
                 "valid": valid,
+                "risk_profile": parsed_risk_profile if parsed_risk_profile is not None else "",
+                "valid_risk_profile": valid_risk_profile,
                 "refusal_flag": refusal_flag,
                 "parse_error_type": parse_error_type,
                 "timestamp": datetime.now(timezone.utc).isoformat(),

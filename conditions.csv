@@ -2,7 +2,8 @@ condition,outcome_type,amount
 paper_even,paper,0
 paper_gain_small,paper,40
 paper_gain_large,paper,150
-paper_loss_small,paper,-200
+paper_loss_small,paper,-60
+paper_loss_medium,paper,-200
 paper_loss_large,paper,-350
 realized_small_loss,realized,-30
 realized_gain,realized,200
