@@ -74,8 +74,11 @@ realization-effect-project/
 │   ├── Merged CSV.ipynb
 │   └── Trial 4 - 8000 rows.ipynb
 └── results/
-    ├── results.csv          # Main results file
-    └── results_temp05.csv   # Results at temperature 0.5
+    ├── results.csv           # Canonical merged dataset used for analysis
+    ├── results_grouped.csv   # Grouped companion refreshed during reconcile
+    ├── blocks/               # Canonical per-block CSVs for all prompt versions
+    ├── balance/              # Sidecar staging outputs for concurrent balance runs
+    └── legacy/               # Legacy/old-prompt rows and partition reports
 ```
 
 ## Workflow
@@ -111,6 +114,23 @@ python run_experiment.py \
 
 Runs are resumable: interrupted experiments can be restarted with the same command and already-completed trials are skipped.
 
+When you run sidecar jobs (for example writing to `results/balance/results.csv`), reconcile them into canonical outputs:
+
+```bash
+./venv/bin/python reconcile_results.py
+```
+
+This command:
+- copies sidecar block files (default: `results/balance/blocks`) into `results/blocks`
+- refreshes canonical `results/results.csv` and `results/results_grouped.csv`
+- partitions legacy prompt-structure rows (including early non-canonical runs such as initial 4.1-style prompts) into `results/legacy/results_legacy.csv`
+
+If you only want partitioning without copying sidecar blocks first:
+
+```bash
+./venv/bin/python partition_results.py
+```
+
 ### 3. Analyse results
 
 ```bash
@@ -126,6 +146,42 @@ python analyze_results.py results/results.csv --prompt-version qualitative
 ```
 
 The analysis script outputs OLS regression tables (condition dummies + model/temperature/prompt_version fixed effects, HC3 robust SEs) for both `log(wager)` and `risk_profile`, and structured hypothesis verdicts for H1a–H4 — mirroring Table 2 of Flepp et al. (2021).
+
+### 4. Monitor Block Progress (Live Dashboard)
+
+```bash
+# Launch local dashboard (default: http://127.0.0.1:8765)
+python block_dashboard.py
+
+# Example for temp sweep phases (n=25 target per condition)
+python block_dashboard.py --target-trials 25 --refresh-seconds 5
+```
+
+If you use a virtual environment, launch with that interpreter (for example `./venv/bin/python block_dashboard.py`) so the Analysis tab can run with the same installed dependencies.
+
+The dashboard reads `results/blocks/*.csv` and shows:
+- per-block model/temperature/prompt version
+- per-condition min/max run counts
+- remaining runs to target
+- active/idle status based on recent file updates
+
+You can override values in the URL directly:
+- `?target=25`
+- `&refresh=5`
+- `&active_window=90`
+
+### 5. Run Analysis From Dashboard
+
+Open the Analysis tab at:
+- `http://127.0.0.1:8765/analyze`
+
+From that page you can:
+- select any `results/**/*.csv` dataset
+- optionally filter by `model` and `prompt_version`
+- toggle `--per-model`
+- choose robust SE type (`HC0`–`HC3`)
+
+Click **Run Analysis** to execute `analyze_results.py` on demand and view output inline.
 
 ## Reference
 
