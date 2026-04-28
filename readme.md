@@ -15,7 +15,7 @@ The **realization effect** predicts that risk-taking differs depending on whethe
 
 Each trial presents an LLM with a casino vignette and asks for two responses: (1) how much to wager in the next slot machine session (1–1000 CHF total session wager), and (2) a slot machine risk preference (1–5 scale). The manipulation is the prior outcome history embedded in the vignette.
 
-### Conditions (`conditions.csv`)
+### Conditions
 
 Conditions map to the quintile structure from Table 2 of the paper:
 
@@ -47,7 +47,7 @@ Conditions map to the quintile structure from Table 2 of the paper:
 
 ### Prompt framing
 
-Two prompt versions are implemented in `run_experiment.py`:
+Prompt versions are implemented in `src/realization_effect/runner.py`:
 
 - `absolute` (default): States win/loss amounts directly ("you have won/lost X CHF").
 - `balance`: Frames outcomes as card balance relative to starting point.
@@ -59,26 +59,16 @@ The key distinction across all versions: **paper** scenarios specify the player 
 
 ```
 realization-effect-project/
-├── conditions.csv          # 11 experimental conditions (mapped to paper's quintiles)
-├── run_experiment.py       # Data collection: calls models via OpenRouter API
-├── analyze_results.py      # Statistical analysis: OLS regressions + hypothesis tests
-├── generate_prompts.py     # Utility: export all prompt texts to CSV for inspection
-├── reorganize_csv.py       # Utility: reorder/split result CSVs by column
-├── llm_eval_list_v2.csv    # Catalogue of LLMs included in the study
-├── notebooks/              # Jupyter notebooks for exploratory analysis
-│   ├── Experiment.ipynb
-│   ├── Multiple models test.ipynb
-│   ├── 5.4mini+haiku.ipynb
-│   ├── Kimi+Grok.ipynb
-│   ├── 7000 row .ipynb
-│   ├── Merged CSV.ipynb
-│   └── Trial 4 - 8000 rows.ipynb
-└── results/
-    ├── results.csv           # Canonical merged dataset used for analysis
-    ├── results_grouped.csv   # Grouped companion refreshed during reconcile
-    ├── blocks/               # Canonical per-block CSVs for all prompt versions
-    ├── balance/              # Sidecar staging outputs for concurrent balance runs
-    └── legacy/               # Legacy/old-prompt rows and partition reports
+├── src/
+│   ├── realization_effect/      # Prompting, running, parsing, analysis, reconciliation
+│   └── interpretability/        # Residual-stream logging for SAE work
+├── scripts/                     # Preferred command-line entrypoints
+├── configs/realization_effect/  # Conditions and model catalogues
+├── notebooks/realization_effect/
+├── reports/                     # Midterm material and source papers
+├── results/                     # Current realization-effect outputs and legacy artifacts
+├── models/                      # Local model weights, gitignored
+└── *.py                         # Thin compatibility wrappers for old commands
 ```
 
 ## Workflow
@@ -87,10 +77,10 @@ realization-effect-project/
 
 ```bash
 # Export every prompt text across all conditions and prompt versions
-python generate_prompts.py --output prompts.csv
+python scripts/export_prompts.py --output prompts.csv
 
 # One version only
-python generate_prompts.py --version qualitative --output prompts_qualitative.csv
+python scripts/export_prompts.py --version qualitative --output prompts_qualitative.csv
 ```
 
 ### 2. Run the experiment
@@ -99,13 +89,13 @@ python generate_prompts.py --version qualitative --output prompts_qualitative.cs
 export OPENROUTER_API_KEY=your_key_here
 
 # Single model, 100 trials per condition
-python run_experiment.py \
+python scripts/run_realization_experiment.py \
   --models openai/gpt-4o \
   --n-trials 100 \
   --prompt-version absolute
 
 # Grid over multiple models and temperatures
-python run_experiment.py \
+python scripts/run_realization_experiment.py \
   --models openai/gpt-4o anthropic/claude-3-5-sonnet \
   --temperatures 0.5 1.0 \
   --n-trials 100 \
@@ -117,7 +107,7 @@ Runs are resumable: interrupted experiments can be restarted with the same comma
 When you run sidecar jobs (for example writing to `results/balance/results.csv`), reconcile them into canonical outputs:
 
 ```bash
-./venv/bin/python reconcile_results.py
+./venv/bin/python scripts/reconcile_realization_results.py
 ```
 
 This command:
@@ -128,36 +118,65 @@ This command:
 If you only want partitioning without copying sidecar blocks first:
 
 ```bash
-./venv/bin/python partition_results.py
+./venv/bin/python scripts/partition_realization_results.py
 ```
 
-### 3. Analyse results
+### 3. Log residual streams for SAE work
+
+The `src/interpretability` package contains a Hugging Face forward-pass adapter
+adapted from the metageniuses extraction code. It registers forward hooks on
+selected transformer blocks and writes residual stream tensors plus prompt
+metadata for later SAE training.
+
+Example smoke run against local Gemma files:
+
+```bash
+./venv/bin/python scripts/log_residual_streams.py \
+  --model-id models/gemma-3-4b-pt \
+  --layers 12,18 \
+  --prompt-version absolute \
+  --batch-size 1 \
+  --limit 2 \
+  --local-files-only \
+  --output-dir results/residual_streams/gemma3_4b_smoke
+```
+
+Outputs:
+
+- `prompts.jsonl` — prompt text and condition metadata.
+- `manifest.json` — model, layer, run, and shard metadata.
+- `activations/layer_XX/batch_*.npy` — float32 tensors shaped
+  `[batch, sequence_length, d_model]`.
+- `activations/layer_XX/batch_*.jsonl` — prompt IDs and token IDs aligned to
+  each batch tensor.
+
+### 4. Analyse results
 
 ```bash
 # Full analysis, pooled across all models
-python analyze_results.py results/results.csv
+python scripts/analyze_realization_results.py results/results.csv
 
 # Separate analysis per model
-python analyze_results.py results/results.csv --per-model
+python scripts/analyze_realization_results.py results/results.csv --per-model
 
 # Filter to one model or one prompt version
-python analyze_results.py results/results.csv --model openai/gpt-4o
-python analyze_results.py results/results.csv --prompt-version qualitative
+python scripts/analyze_realization_results.py results/results.csv --model openai/gpt-4o
+python scripts/analyze_realization_results.py results/results.csv --prompt-version qualitative
 ```
 
 The analysis script outputs OLS regression tables (condition dummies + model/temperature/prompt_version fixed effects, HC3 robust SEs) for both `log(wager)` and `risk_profile`, and structured hypothesis verdicts for H1a–H4 — mirroring Table 2 of Flepp et al. (2021).
 
-### 4. Monitor Block Progress (Live Dashboard)
+### 5. Monitor Block Progress (Live Dashboard)
 
 ```bash
 # Launch local dashboard (default: http://127.0.0.1:8765)
-python block_dashboard.py
+python scripts/block_dashboard.py
 
 # Example for temp sweep phases (n=25 target per condition)
-python block_dashboard.py --target-trials 25 --refresh-seconds 5
+python scripts/block_dashboard.py --target-trials 25 --refresh-seconds 5
 ```
 
-If you use a virtual environment, launch with that interpreter (for example `./venv/bin/python block_dashboard.py`) so the Analysis tab can run with the same installed dependencies.
+If you use a virtual environment, launch with that interpreter (for example `./venv/bin/python scripts/block_dashboard.py`) so the Analysis tab can run with the same installed dependencies.
 
 The dashboard reads `results/blocks/*.csv` and shows:
 - per-block model/temperature/prompt version
@@ -170,7 +189,7 @@ You can override values in the URL directly:
 - `&refresh=5`
 - `&active_window=90`
 
-### 5. Run Analysis From Dashboard
+### 6. Run Analysis From Dashboard
 
 Open the Analysis tab at:
 - `http://127.0.0.1:8765/analyze`
@@ -181,7 +200,7 @@ From that page you can:
 - toggle `--per-model`
 - choose robust SE type (`HC0`–`HC3`)
 
-Click **Run Analysis** to execute `analyze_results.py` on demand and view output inline.
+Click **Run Analysis** to execute the analysis wrapper on demand and view output inline.
 
 ## Reference
 

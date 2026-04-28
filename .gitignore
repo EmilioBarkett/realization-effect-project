@@ -1,0 +1,17 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+venv/
+.venv/
+
+models/
+*.safetensors
+
+results/residual_streams/
+data/interpretability/activations/
+data/interpretability/sae_runs/
+
+.env
+.env.*

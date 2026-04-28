@@ -71,21 +71,21 @@ ABS_T15_MODELS=(
   set -euo pipefail
   echo "[$(date)] Starting ABSOLUTE catch-up"
 
-  ./venv/bin/python run_experiment.py \
+  ./venv/bin/python scripts/run_realization_experiment.py \
     --models "${ABS_T1_MODELS[@]}" \
     --temperatures 1.0 \
     --prompt-version absolute \
     --n-trials 100 \
     --max-workers "${MAXW}"
 
-  ./venv/bin/python run_experiment.py \
+  ./venv/bin/python scripts/run_realization_experiment.py \
     --models "${ABS_T05_MODELS[@]}" \
     --temperatures 0.5 \
     --prompt-version absolute \
     --n-trials 25 \
     --max-workers "${MAXW}"
 
-  ./venv/bin/python run_experiment.py \
+  ./venv/bin/python scripts/run_realization_experiment.py \
     --models "${ABS_T15_MODELS[@]}" \
     --temperatures 1.5 \
     --prompt-version absolute \
@@ -100,7 +100,7 @@ ABS_PID=$!
   set -euo pipefail
   echo "[$(date)] Starting BALANCE t=1.0 n=50 across ${#BAL_MODELS[@]} model(s)"
 
-  ./venv/bin/python run_experiment.py \
+  ./venv/bin/python scripts/run_realization_experiment.py \
     --models "${BAL_MODELS[@]}" \
     --temperatures 1.0 \
     --prompt-version balance \
@@ -130,7 +130,7 @@ fi
   echo "ABS_STATUS=${ABS_STATUS}"
   echo "BAL_STATUS=${BAL_STATUS}"
 
-  ./venv/bin/python reconcile_results.py
+  ./venv/bin/python scripts/reconcile_realization_results.py
 
   echo "[$(date)] Post-run merge finished"
 } >"${MERGE_LOG}" 2>&1

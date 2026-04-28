@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
-"""Compatibility wrapper for `realization_effect.partition`."""
+"""Partition canonical and legacy realization-effect rows."""
 
 from pathlib import Path
 import sys
 
-_SRC = Path(__file__).resolve().parent / "src"
+_SRC = Path(__file__).resolve().parents[1] / "src"
 if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
-from realization_effect.partition import *  # noqa: F401,F403
 from realization_effect.partition import main
 
 
