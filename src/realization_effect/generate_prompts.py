@@ -5,10 +5,10 @@ Writes one row per (condition × prompt_version) combination to a CSV so you
 can review exactly what each model sees before running the experiment.
 
 Usage:
-  python generate_prompts.py                          # all versions, stdout
-  python generate_prompts.py --output prompts.csv     # save to file
-  python generate_prompts.py --version qualitative    # one version only
-  python generate_prompts.py --conditions my_conds.csv --output prompts.csv
+  python scripts/export_prompts.py                          # all versions, stdout
+  python scripts/export_prompts.py --output prompts.csv     # save to file
+  python scripts/export_prompts.py --version qualitative    # one version only
+  python scripts/export_prompts.py --conditions my_conds.csv --output prompts.csv
 """
 
 import argparse

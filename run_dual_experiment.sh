@@ -5,16 +5,14 @@ cd /Users/ciaranwalsh/Documents/GitHub/realization-effect-project
 
 MAXW=7
 TS="$(date +%Y%m%d_%H%M%S)"
-mkdir -p results/logs results/balance/blocks
+mkdir -p results/logs
 
 ABS_LOG="results/logs/absolute_catchup_${TS}.log"
 BAL_LOG="results/logs/balance_t1_n50_${TS}.log"
-MERGE_LOG="results/logs/merge_after_dual_${TS}.log"
 
 echo "[$(date)] Dual run starting (max_workers=${MAXW})"
 echo "Absolute log: ${ABS_LOG}"
 echo "Balance log:  ${BAL_LOG}"
-echo "Merge log:    ${MERGE_LOG}"
 
 # Balance model universe = all models with any absolute block data so far.
 BAL_MODELS=()
@@ -22,7 +20,7 @@ while IFS= read -r _model; do
   if [[ -n "${_model}" ]]; then
     BAL_MODELS+=("${_model}")
   fi
-done < <(python3 - <<'PY'
+done < <(./venv/bin/python - <<'PY'
 import csv
 from pathlib import Path
 models=set()
@@ -93,8 +91,7 @@ ABS_T15_MODELS=(
     --max-workers "${MAXW}"
 
   echo "[$(date)] ABSOLUTE catch-up finished"
-) >"${ABS_LOG}" 2>&1 &
-ABS_PID=$!
+) >"${ABS_LOG}" 2>&1
 
 (
   set -euo pipefail
@@ -105,34 +102,9 @@ ABS_PID=$!
     --temperatures 1.0 \
     --prompt-version balance \
     --n-trials 50 \
-    --max-workers "${MAXW}" \
-    --output results/balance/results.csv
+    --max-workers "${MAXW}"
 
   echo "[$(date)] BALANCE run finished"
-) >"${BAL_LOG}" 2>&1 &
-BAL_PID=$!
-
-echo "ABS_PID=${ABS_PID}"
-echo "BAL_PID=${BAL_PID}"
-
-ABS_STATUS=0
-BAL_STATUS=0
-
-if ! wait "${ABS_PID}"; then
-  ABS_STATUS=$?
-fi
-if ! wait "${BAL_PID}"; then
-  BAL_STATUS=$?
-fi
-
-{
-  echo "[$(date)] Begin post-run merge"
-  echo "ABS_STATUS=${ABS_STATUS}"
-  echo "BAL_STATUS=${BAL_STATUS}"
-
-  ./venv/bin/python scripts/reconcile_realization_results.py
-
-  echo "[$(date)] Post-run merge finished"
-} >"${MERGE_LOG}" 2>&1
+) >"${BAL_LOG}" 2>&1
 
 echo "[$(date)] Dual run complete"

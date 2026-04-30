@@ -2,8 +2,8 @@
 """Live dashboard for monitoring block progress and running analysis on demand.
 
 Usage:
-  python block_dashboard.py
-  python block_dashboard.py --target-trials 25 --refresh-seconds 5
+  python scripts/block_dashboard.py
+  python scripts/block_dashboard.py --target-trials 25 --refresh-seconds 5
 """
 
 import argparse
@@ -749,7 +749,7 @@ def render_analysis_html(
     <div class="header">
       <div>
         <h1>Statistical Analysis</h1>
-        <div class="sub">Run <span class="mono">analyze_results.py</span> on demand and view output here.</div>
+        <div class="sub">Run <span class="mono">scripts/analyze_realization_results.py</span> on demand and view output here.</div>
       </div>
       <div class="sub">{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</div>
     </div>
@@ -1041,7 +1041,7 @@ def main() -> None:
     args = parser.parse_args()
 
     project_root = Path.cwd().resolve()
-    analyze_script = project_root / "analyze_results.py"
+    analyze_script = project_root / "scripts" / "analyze_realization_results.py"
     default_venv_python = project_root / "venv" / "bin" / "python"
     if args.analysis_python.strip():
         analysis_python_executable = args.analysis_python.strip()

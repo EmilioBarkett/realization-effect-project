@@ -2,13 +2,13 @@
 """Reorganize CSV rows by model, temperature, prompt version, or any other columns.
 
 Examples:
-  python reorganize_csv.py results/results_merged.csv \
+  python scripts/reorganize_csv.py results/results_merged.csv \
       --group-by model temperature prompt_version \
       --sort-by run_number trial_id \
       --renumber-column trial_id \
       --output results/results_merged_grouped.csv
 
-  python reorganize_csv.py results/results_merged.csv \
+  python scripts/reorganize_csv.py results/results_merged.csv \
       --group-by model temperature \
       --split-dir results/grouped_by_model_temp
 """

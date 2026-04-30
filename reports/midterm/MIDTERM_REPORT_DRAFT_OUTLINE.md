@@ -23,9 +23,9 @@ Our design is anchored in the realization-effect literature: Imas (2016) disting
 ---
 
 ## Methods (110-200 words) — Draft
-We implemented an 11-condition vignette experiment (`conditions.csv`) with two outcome types: paper outcomes (`paper_even`, three paper losses, two paper gains) and realized outcomes (`realized_small_loss` baseline, two larger realized losses plus extreme loss, and realized gain). Each trial asks the model for two integers: next-session wager (1-1000 CHF) and slot-risk preference (1-5). Prompts are generated in `run_experiment.py` with two active framings in current data (`absolute`, `balance`; `qualitative` is implemented for future runs).  
+We implemented an 11-condition vignette experiment (`conditions.csv`) with two outcome types: paper outcomes (`paper_even`, three paper losses, two paper gains) and realized outcomes (`realized_small_loss` baseline, two larger realized losses plus extreme loss, and realized gain). Each trial asks the model for two integers: next-session wager (1-1000 CHF) and slot-risk preference (1-5). Prompts are generated in `src/realization_effect/runner.py` with two active framings in current data (`absolute`, `balance`; `qualitative` is implemented for future runs).
 
-Current `results/results.csv` includes 12,155 rows, of which 12,138 parse as valid wagers, across 9 models and temperatures {0.5, 1.0, 1.5}. Analysis in `analyze_results.py` estimates OLS regressions for `log_wager` with condition dummies and model/temperature/prompt-version fixed effects, using HC3 robust standard errors. Hypothesis tests mirror H1a-H4 from Flepp et al. with one-sided directional tests where applicable.
+Current `results/results.csv` includes the cleaned canonical dataset. Analysis in `scripts/analyze_realization_results.py` estimates OLS regressions for `log_wager` and `risk_profile` with condition dummies and model/temperature/prompt-version fixed effects, using HC3 robust standard errors. Hypothesis tests mirror H1a-H4 from Flepp et al. with one-sided directional tests where applicable.
 
 ---
 
@@ -78,4 +78,3 @@ This project builds a reproducible LLM replication of the casino realization-eff
 1. Flepp, R., Meier, P., & Franck, E. (2021). *The effect of paper outcomes versus realized outcomes on subsequent risk-taking: Field evidence from casino gambling*. Organizational Behavior and Human Decision Processes, 165, 45-55.
 2. Imas, A. (2016). *The realization effect: Risk-taking after realized versus paper losses*. American Economic Review.
 3. Merkle, C., Muller-Dethard, G., & Weber, M. (2020). [Add full citation used in your lit review].
-

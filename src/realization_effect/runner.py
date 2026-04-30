@@ -9,7 +9,6 @@ import os
 import random
 import re
 import shutil
-import threading
 import time
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -30,11 +29,42 @@ SYSTEM_PROMPT = (
     "high-volatility). Do not explain your reasoning."
 )
 
-# Regex for the first integer between 1 and 1000, inclusive.
-WAGER_PATTERN = re.compile(r"\b(?:1000|[1-9]\d{0,2})\b")
+# Regex for integer tokens in model responses. Range checks happen after
+# extraction so labels such as "Line 1: 500" do not get mistaken for answers.
+INTEGER_PATTERN = re.compile(r"\b\d+\b")
 
-# Regex for a risk-profile rating between 1 and 5, inclusive.
-RISK_PROFILE_PATTERN = re.compile(r"\b[1-5]\b")
+# Regex for stripping common ordered-list / answer labels from response lines.
+LINE_LABEL_PATTERN = re.compile(
+    r"^\s*(?:"
+    r"line\s*[12]"
+    r"|[12]"
+    r"|wager"
+    r"|bet"
+    r"|stake"
+    r"|total(?:\s+session)?\s+wager"
+    r"|risk(?:\s+(?:profile|preference|level))?"
+    r"|machine(?:\s+risk)?(?:\s+(?:profile|preference|level))?"
+    r")\s*[:.)=\-]\s*",
+    re.IGNORECASE,
+)
+
+ANSWER_LABELS = [
+    "total session wager",
+    "machine risk preference",
+    "machine risk level",
+    "machine risk profile",
+    "risk preference",
+    "risk profile",
+    "risk level",
+    "wager",
+    "stake",
+    "risk",
+    "bet",
+]
+ANSWER_LABEL_PATTERN = re.compile(
+    r"\b(?:" + "|".join(re.escape(label) for label in ANSWER_LABELS) + r")\b",
+    re.IGNORECASE,
+)
 
 # Heuristic markers for refusals/moralizing language.
 REFUSAL_MARKERS = [
@@ -364,17 +394,88 @@ def call_model(
     raise RuntimeError("call_model failed without a captured exception")
 
 
+def _integers_in_text(text: str) -> List[int]:
+    """Return integer tokens in order, without applying semantic ranges."""
+    return [int(match.group(0)) for match in INTEGER_PATTERN.finditer(text)]
+
+
+def _line_answer_value(line: str) -> Optional[int]:
+    """Extract the answer value from one response line when possible."""
+    stripped = line.strip()
+    if not stripped:
+        return None
+
+    if ":" in stripped:
+        value_text = stripped.rsplit(":", 1)[1]
+    else:
+        value_text = LINE_LABEL_PATTERN.sub("", stripped, count=1)
+
+    value_text = re.sub(r"\([^)]*\d+[^)]*\)", " ", value_text)
+    values = _integers_in_text(value_text)
+    if values:
+        return values[0]
+    return None
+
+
+def _labeled_answer_value(response_text: str, labels: List[str]) -> Optional[int]:
+    """Extract a value following one of the provided semantic labels."""
+    for label in sorted(labels, key=len, reverse=True):
+        pattern = re.compile(rf"\b{re.escape(label)}\b", re.IGNORECASE)
+        for match in pattern.finditer(response_text):
+            segment = re.split(r"[\n\r]", response_text[match.end() :], maxsplit=1)[0]
+            next_label = ANSWER_LABEL_PATTERN.search(segment)
+            if next_label:
+                segment = segment[: next_label.start()]
+
+            if ":" in segment:
+                value_text = segment.rsplit(":", 1)[1]
+            elif "=" in segment:
+                value_text = segment.rsplit("=", 1)[1]
+            else:
+                value_text = segment
+
+            value_text = re.sub(r"\([^)]*\d+[^)]*\)", " ", value_text)
+            values = _integers_in_text(value_text)
+            if values:
+                return values[0]
+    return None
+
+
+def _extract_response_numbers(response_text: str) -> Tuple[Optional[int], Optional[int]]:
+    """Extract intended wager and risk values from a model response."""
+    line_values = [
+        value
+        for value in (_line_answer_value(line) for line in response_text.splitlines())
+        if value is not None
+    ]
+    if len(line_values) >= 2:
+        return line_values[0], line_values[1]
+
+    wager_value = _labeled_answer_value(
+        response_text,
+        ["wager", "bet", "stake", "total session wager"],
+    )
+    risk_value = _labeled_answer_value(
+        response_text,
+        ["risk", "risk profile", "risk preference", "machine risk preference", "machine risk level"],
+    )
+    if wager_value is not None or risk_value is not None:
+        return wager_value, risk_value
+
+    values = _integers_in_text(response_text)
+    if len(values) >= 2:
+        return values[0], values[1]
+    if len(values) == 1:
+        return values[0], None
+    return None, None
+
+
 def parse_response(response_text: str) -> Tuple[Optional[int], Optional[int], bool, bool, bool, str]:
     """Parse model output into wager, risk profile, validity flags, refusal flag, and error type."""
-    wager_match = WAGER_PATTERN.search(response_text)
-    parsed_wager = int(wager_match.group(0)) if wager_match else None
+    wager_value, risk_value = _extract_response_numbers(response_text)
+    parsed_wager = wager_value if wager_value is not None and 1 <= wager_value <= 1000 else None
+    parsed_risk_profile = risk_value if risk_value is not None and 1 <= risk_value <= 5 else None
     valid = parsed_wager is not None
-
-    # Search for risk profile (1–5) starting after the wager match to avoid
-    # re-matching a wager of 1–5 as the risk profile.
-    risk_search_start = wager_match.end() if wager_match else 0
-    risk_match = RISK_PROFILE_PATTERN.search(response_text, risk_search_start)
-    parsed_risk_profile = int(risk_match.group(0)) if risk_match else None
     valid_risk_profile = parsed_risk_profile is not None
 
     lower_text = response_text.lower()
@@ -703,48 +804,6 @@ def reconcile_merged_outputs(
     return len(block_csv_paths), merged_rows
 
 
-def bootstrap_block_csv_from_merged_output(
-    merged_output_path: Path,
-    block_output_path: Path,
-    model: str,
-    temperature: float,
-    prompt_version: str,
-) -> int:
-    """Seed a missing block CSV from an existing merged output for resume continuity."""
-    if block_output_path.exists() and block_output_path.stat().st_size > 0:
-        return 0
-    if not merged_output_path.exists() or merged_output_path.stat().st_size == 0:
-        return 0
-
-    target_model = model.strip()
-    target_temp_key = _normalize_temperature(temperature)
-    target_prompt_version = prompt_version.strip()
-    copied_rows = 0
-
-    block_output_path.parent.mkdir(parents=True, exist_ok=True)
-    with merged_output_path.open("r", newline="", encoding="utf-8") as merged_handle:
-        reader = csv.DictReader(merged_handle)
-        with block_output_path.open("w", newline="", encoding="utf-8") as block_handle:
-            writer = csv.DictWriter(block_handle, fieldnames=RESULT_FIELDS)
-            writer.writeheader()
-            for row in reader:
-                row_model = (row.get("model") or "").strip()
-                row_temp_key = _normalize_temperature(row.get("temperature"))
-                row_prompt_version = (row.get("prompt_version") or "").strip()
-                if (
-                    row_model == target_model
-                    and row_temp_key == target_temp_key
-                    and row_prompt_version == target_prompt_version
-                ):
-                    writer.writerow({field: row.get(field, "") for field in RESULT_FIELDS})
-                    copied_rows += 1
-
-            block_handle.flush()
-            os.fsync(block_handle.fileno())
-
-    return copied_rows
-
-
 def _load_resume_state(
     results_path: Path,
 ) -> Tuple[Set[Tuple[str, int, str, str, str]], int]:
@@ -990,9 +1049,6 @@ def run_experiment_grid(
     if round_trials_step <= 0:
         raise ValueError("round_trials_step must be a positive integer")
 
-    grouped_output_path = default_grouped_output_path(output_path)
-    reconcile_lock = threading.Lock()
-
     versions = prompt_versions if prompt_versions is not None else [prompt_version]
     cleaned_versions = [version.strip() for version in versions if version and version.strip()]
     if not cleaned_versions:
@@ -1044,24 +1100,17 @@ def run_experiment_grid(
     )
     if not block_specs:
         print("No experiment blocks matched the requested filters.")
+        return
     else:
         print(
             f"Running {len(block_specs)} block(s) with max_workers="
             f"{min(max_workers, len(block_specs))}."
         )
-        for block_model, block_temperature, block_prompt_version, block_output_path in block_specs:
-            seeded_rows = bootstrap_block_csv_from_merged_output(
-                merged_output_path=output_path,
-                block_output_path=block_output_path,
-                model=block_model,
-                temperature=block_temperature,
-                prompt_version=block_prompt_version,
-            )
-            if seeded_rows > 0:
-                print(
-                    "Seeded block resume file from merged output: "
-                    f"{block_output_path} ({seeded_rows} row(s))."
-                )
+        print(
+            "Write process: each block appends to its own CSV under "
+            f"{output_path.parent / 'blocks'}, then all blocks are reconciled once "
+            f"into {output_path} at the end."
+        )
 
     def _run_single_block(block_spec: Tuple[str, float, str, Path]) -> None:
         block_model, block_temperature, block_prompt_version, block_output_path = block_spec
@@ -1089,34 +1138,18 @@ def run_experiment_grid(
             )
         except Exception as error:
             block_error = error
-        finally:
-            with reconcile_lock:
-                merged_block_count, merged_rows = reconcile_merged_outputs(
-                    output_path=output_path,
-                    grouped_output_path=grouped_output_path,
-                    round_trials_step=round_trials_step,
-                )
-            if merged_block_count == 0:
-                print(
-                    "No block CSV files found while reconciling after block completion; "
-                    "skipping merge."
-                )
-            else:
-                print(
-                    "Reconciled after block completion: "
-                    f"model={block_model}, temperature={block_temperature}, "
-                    f"prompt_version={block_prompt_version}. "
-                    f"Merged {merged_block_count} block file(s) into {output_path} "
-                    f"with {merged_rows} total row(s), and refreshed {grouped_output_path}."
-                )
         if block_error is not None:
             raise block_error
 
+    failed_blocks: List[Tuple[Tuple[str, float, str, Path], Exception]] = []
     if len(block_specs) == 1 or max_workers == 1:
         for block_spec in block_specs:
-            _run_single_block(block_spec)
+            try:
+                _run_single_block(block_spec)
+            except Exception as error:
+                failed_blocks.append((block_spec, error))
+                break
     elif block_specs:
-        failed_blocks: List[Tuple[Tuple[str, float, str, Path], Exception]] = []
         worker_count = min(max_workers, len(block_specs))
         with ThreadPoolExecutor(max_workers=worker_count) as executor:
             future_to_block = {
@@ -1130,34 +1163,34 @@ def run_experiment_grid(
                 except Exception as error:
                     failed_blocks.append((block_spec, error))
 
-        if failed_blocks:
-            summary_lines = []
-            for block_spec, error in failed_blocks:
-                block_model, block_temperature, block_prompt_version, _ = block_spec
-                summary_lines.append(
-                    "  - "
-                    f"model={block_model}, temperature={block_temperature}, "
-                    f"prompt_version={block_prompt_version}: {error}"
-                )
-            raise RuntimeError(
-                "One or more experiment blocks failed:\n" + "\n".join(summary_lines)
-            ) from failed_blocks[0][1]
-
-    with reconcile_lock:
-        merged_block_count, merged_rows = reconcile_merged_outputs(
-            output_path=output_path,
-            grouped_output_path=grouped_output_path,
-            round_trials_step=round_trials_step,
-        )
+    grouped_output_path = default_grouped_output_path(output_path)
+    merged_block_count, merged_rows = reconcile_merged_outputs(
+        output_path=output_path,
+        grouped_output_path=grouped_output_path,
+        round_trials_step=round_trials_step,
+    )
     if merged_block_count == 0:
         blocks_dir = output_path.parent / "blocks"
         print(f"No block CSV files found in {blocks_dir}; skipping merge.")
-        return
-    print(
-        "Final reconciliation complete: "
-        f"merged {merged_block_count} block file(s) into {output_path} "
-        f"with {merged_rows} total row(s), and refreshed {grouped_output_path}."
-    )
+    else:
+        print(
+            "Final reconciliation complete: "
+            f"merged {merged_block_count} block file(s) into {output_path} "
+            f"with {merged_rows} total row(s), and refreshed {grouped_output_path}."
+        )
+
+    if failed_blocks:
+        summary_lines = []
+        for block_spec, error in failed_blocks:
+            block_model, block_temperature, block_prompt_version, _ = block_spec
+            summary_lines.append(
+                "  - "
+                f"model={block_model}, temperature={block_temperature}, "
+                f"prompt_version={block_prompt_version}: {error}"
+            )
+        raise RuntimeError(
+            "One or more experiment blocks failed:\n" + "\n".join(summary_lines)
+        ) from failed_blocks[0][1]
 
 
 def main() -> None:

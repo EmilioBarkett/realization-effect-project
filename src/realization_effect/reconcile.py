@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reconcile sidecar block outputs into canonical results and partition legacy rows."""
+"""Reconcile block outputs into canonical results and partition legacy rows."""
 
 import argparse
 import shutil
@@ -10,8 +10,8 @@ from .partition import partition_results
 from .runner import default_grouped_output_path, reconcile_merged_outputs
 
 
-def copy_sidecar_blocks(*, source_dirs: List[Path], destination_blocks_dir: Path) -> Dict[str, int]:
-    """Copy block CSVs from sidecar directories into the canonical blocks directory."""
+def copy_extra_blocks(*, source_dirs: List[Path], destination_blocks_dir: Path) -> Dict[str, int]:
+    """Copy block CSVs from extra directories into the canonical blocks directory."""
     destination_blocks_dir.mkdir(parents=True, exist_ok=True)
     copied_by_dir: Dict[str, int] = {}
 
@@ -29,8 +29,8 @@ def copy_sidecar_blocks(*, source_dirs: List[Path], destination_blocks_dir: Path
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=(
-            "Copy sidecar block files into canonical results/blocks, reconcile results/results.csv, "
-            "and partition legacy rows."
+            "Optionally copy extra block files into canonical results/blocks, "
+            "reconcile results/results.csv, and partition legacy rows."
         )
     )
     parser.add_argument(
@@ -49,10 +49,9 @@ def main() -> None:
         "--extra-blocks-dir",
         type=Path,
         nargs="*",
-        default=[Path("results/balance/blocks")],
+        default=[],
         help=(
-            "Sidecar blocks directories to fold into canonical blocks "
-            "(default: results/balance/blocks)."
+            "Optional extra block directories to fold into canonical blocks."
         ),
     )
     parser.add_argument(
@@ -69,13 +68,13 @@ def main() -> None:
     parser.add_argument(
         "--legacy-output",
         type=Path,
-        default=Path("results/legacy/results_legacy.csv"),
+        default=Path("tests/fixtures/noncanonical/legacy_archive/results_legacy.csv"),
         help="Output path for legacy rows.",
     )
     parser.add_argument(
         "--report-output",
         type=Path,
-        default=Path("results/legacy/partition_report.txt"),
+        default=Path("tests/fixtures/noncanonical/legacy_archive/partition_report.txt"),
         help="Output path for partition summary report.",
     )
     parser.add_argument(
@@ -86,7 +85,7 @@ def main() -> None:
     args = parser.parse_args()
 
     canonical_blocks_dir = args.canonical_output.parent / "blocks"
-    copied_by_dir = copy_sidecar_blocks(
+    copied_by_dir = copy_extra_blocks(
         source_dirs=args.extra_blocks_dir,
         destination_blocks_dir=canonical_blocks_dir,
     )
@@ -99,7 +98,7 @@ def main() -> None:
         round_trials_step=args.round_trials_step,
     )
 
-    print(f"Copied {copied_total} sidecar block file(s) into {canonical_blocks_dir}.")
+    print(f"Copied {copied_total} extra block file(s) into {canonical_blocks_dir}.")
     for source_dir, copied in copied_by_dir.items():
         print(f"  - {source_dir}: {copied}")
     print(

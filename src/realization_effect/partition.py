@@ -87,12 +87,12 @@ def normalize_prompt_text(prompt_text: str) -> str:
 
 
 def load_prompt_builders() -> Tuple[Dict[str, object], object]:
-    """Load prompt builders from run_experiment to compare prompt templates."""
+    """Load prompt builders from runner to compare prompt templates."""
     try:
         from .runner import PROMPT_BUILDERS, build_prompt
     except Exception as error:  # pragma: no cover - defensive for local environments.
         raise RuntimeError(
-            "Unable to import prompt builders from run_experiment.py. "
+            "Unable to import prompt builders from realization_effect.runner. "
             "Install dependencies and run with the project interpreter."
         ) from error
     return PROMPT_BUILDERS, build_prompt

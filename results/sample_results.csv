@@ -1,0 +1,251 @@
+trial_id,condition,outcome_type,amount,run_number,model,temperature,prompt_version,prompt_text,response_text,parsed_wager,log_wager,valid,risk_profile,valid_risk_profile,refusal_flag,parse_error_type,timestamp,request_id
+1,paper_even,paper,0,1,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you are even and have neither won nor lost. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+3",200,5.298317366548036,True,3,True,False,,2026-04-20T01:00:48.013973+00:00,gen-1776646847-e5VnBvq1jVCo3lipLIrN
+2,paper_even,paper,0,2,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you are even and have neither won nor lost. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+3",200,5.298317366548036,True,3,True,False,,2026-04-20T01:00:48.814074+00:00,gen-1776646848-6hJJJaHYpbcv2nn5Xkcg
+3,paper_even,paper,0,3,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you are even and have neither won nor lost. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","250
+3",250,5.521460917862246,True,3,True,False,,2026-04-20T01:00:49.489113+00:00,gen-1776646848-OVzjxbsMBpAQwK05EkqX
+4,paper_even,paper,0,4,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you are even and have neither won nor lost. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+3",200,5.298317366548036,True,3,True,False,,2026-04-20T01:00:50.371067+00:00,gen-1776646849-vv694M9oIRf3JsypcNHP
+5,paper_even,paper,0,5,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you are even and have neither won nor lost. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+2",200,5.298317366548036,True,2,True,False,,2026-04-20T01:00:51.135650+00:00,gen-1776646850-nHytF5SlYuG43vvEZC3J
+6,paper_even,paper,0,6,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you are even and have neither won nor lost. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+3",200,5.298317366548036,True,3,True,False,,2026-04-20T01:00:51.778715+00:00,gen-1776646851-2yre3D8cLYvsr3ptf7bD
+7,paper_even,paper,0,7,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you are even and have neither won nor lost. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+2",200,5.298317366548036,True,2,True,False,,2026-04-20T01:00:52.555303+00:00,gen-1776646851-pfUuNP8dqmDkgjYCd0lW
+8,paper_even,paper,0,8,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you are even and have neither won nor lost. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+3",200,5.298317366548036,True,3,True,False,,2026-04-20T01:00:53.384983+00:00,gen-1776646852-kz0wRDv0PnYFkuLTNx4Z
+9,paper_even,paper,0,9,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you are even and have neither won nor lost. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+2",200,5.298317366548036,True,2,True,False,,2026-04-20T01:00:54.452247+00:00,gen-1776646853-waMxLT1x6lrAlWvWxflg
+10,paper_even,paper,0,10,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you are even and have neither won nor lost. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+2",200,5.298317366548036,True,2,True,False,,2026-04-20T01:00:55.282435+00:00,gen-1776646854-fYSovXXrmJXUpc8Iqhro
+11,paper_even,paper,0,11,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you are even and have neither won nor lost. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+3",200,5.298317366548036,True,3,True,False,,2026-04-20T01:00:55.940400+00:00,gen-1776646855-Ppz2yE0A5rdl8BUPwH1n
+12,paper_even,paper,0,12,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you are even and have neither won nor lost. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+2",200,5.298317366548036,True,2,True,False,,2026-04-20T01:00:56.687699+00:00,gen-1776646855-M6aYRidQ39QcXPN5TAgj
+13,paper_even,paper,0,13,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you are even and have neither won nor lost. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+2",200,5.298317366548036,True,2,True,False,,2026-04-20T01:00:57.546802+00:00,gen-1776646856-Ee3ZFIFVIf4Iuy5MjWYd
+14,paper_even,paper,0,14,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you are even and have neither won nor lost. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+3",200,5.298317366548036,True,3,True,False,,2026-04-20T01:00:58.396098+00:00,gen-1776646857-23pFpHUQMIuimIbI5WO7
+15,paper_even,paper,0,15,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you are even and have neither won nor lost. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+3",200,5.298317366548036,True,3,True,False,,2026-04-20T01:00:59.110036+00:00,gen-1776646858-k3I6Yyh3kM5Xm6aHzjcV
+16,paper_even,paper,0,16,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you are even and have neither won nor lost. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+3",200,5.298317366548036,True,3,True,False,,2026-04-20T01:00:59.998910+00:00,gen-1776646859-lhazuoEgAR4JiQPhwKQ8
+17,paper_even,paper,0,17,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you are even and have neither won nor lost. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+3",200,5.298317366548036,True,3,True,False,,2026-04-20T01:01:00.641664+00:00,gen-1776646860-A6Aix69FPtcsYkrruArt
+18,paper_even,paper,0,18,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you are even and have neither won nor lost. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+3",200,5.298317366548036,True,3,True,False,,2026-04-20T01:01:01.453204+00:00,gen-1776646860-Ks1fjuDTXtUUHbiGqvaT
+19,paper_even,paper,0,19,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you are even and have neither won nor lost. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+3",200,5.298317366548036,True,3,True,False,,2026-04-20T01:01:02.208325+00:00,gen-1776646861-REinKiA9Sw3f32HrqMbR
+20,paper_even,paper,0,20,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you are even and have neither won nor lost. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+3",200,5.298317366548036,True,3,True,False,,2026-04-20T01:01:06.999496+00:00,gen-1776646862-Flv9gNvyd4rkEyhy9xXG
+21,paper_even,paper,0,21,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you are even and have neither won nor lost. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","100
+2",100,4.605170185988092,True,2,True,False,,2026-04-20T01:01:07.783707+00:00,gen-1776646867-AKSkBz5JzRusIxHjwA9H
+22,paper_even,paper,0,22,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you are even and have neither won nor lost. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+3",200,5.298317366548036,True,3,True,False,,2026-04-20T01:01:08.387876+00:00,gen-1776646867-JmZU4EQBBxd7MAnnFMbv
+23,paper_even,paper,0,23,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you are even and have neither won nor lost. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","250
+3",250,5.521460917862246,True,3,True,False,,2026-04-20T01:01:09.014775+00:00,gen-1776646868-5WEbi6xFuaM3iFHU75kT
+24,paper_even,paper,0,24,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you are even and have neither won nor lost. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+2",200,5.298317366548036,True,2,True,False,,2026-04-20T01:01:09.779962+00:00,gen-1776646869-fGRPi1QR3i4fPeJHWBgo
+25,paper_even,paper,0,25,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you are even and have neither won nor lost. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+3",200,5.298317366548036,True,3,True,False,,2026-04-20T01:01:10.859612+00:00,gen-1776646870-8tVIbXrCuTQwv7nhvXNB
+26,paper_gain_large,paper,150,1,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you have won 150 CHF across previous sessions. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+3",200,5.298317366548036,True,3,True,False,,2026-04-20T01:01:31.901305+00:00,gen-1776646891-ygaZNnR4Wg8bYUDOFpdX
+27,paper_gain_large,paper,150,2,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you have won 150 CHF across previous sessions. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","300
+3",300,5.703782474656201,True,3,True,False,,2026-04-20T01:01:32.590753+00:00,gen-1776646891-LdjSIwLH0G2PphMjumVP
+28,paper_gain_large,paper,150,3,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you have won 150 CHF across previous sessions. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+2",200,5.298317366548036,True,2,True,False,,2026-04-20T01:01:33.165765+00:00,gen-1776646892-ZslF6QZmYpzOUa4WDGqT
+29,paper_gain_large,paper,150,4,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you have won 150 CHF across previous sessions. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+3",200,5.298317366548036,True,3,True,False,,2026-04-20T01:01:33.901818+00:00,gen-1776646893-gQa597rMDDv7UZl3tfrH
+30,paper_gain_large,paper,150,5,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you have won 150 CHF across previous sessions. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+3",200,5.298317366548036,True,3,True,False,,2026-04-20T01:01:34.544063+00:00,gen-1776646893-Uoplbnv90AMEZOuI09vI
+31,paper_gain_large,paper,150,6,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you have won 150 CHF across previous sessions. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","300
+3",300,5.703782474656201,True,3,True,False,,2026-04-20T01:01:35.256362+00:00,gen-1776646894-7VHNIMXx9tTnYfJQLEAQ
+32,paper_gain_large,paper,150,7,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you have won 150 CHF across previous sessions. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","300
+3",300,5.703782474656201,True,3,True,False,,2026-04-20T01:01:36.348235+00:00,gen-1776646895-ZrVIVhua4OC1h6LnQss7
+33,paper_gain_large,paper,150,8,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you have won 150 CHF across previous sessions. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","250
+3",250,5.521460917862246,True,3,True,False,,2026-04-20T01:01:36.963091+00:00,gen-1776646896-dXAvLD3ZnQwY2hUxHzDP
+34,paper_gain_large,paper,150,9,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you have won 150 CHF across previous sessions. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+2",200,5.298317366548036,True,2,True,False,,2026-04-20T01:01:37.719384+00:00,gen-1776646896-CPLxU1DzHm4qjjxTBV1g
+35,paper_gain_large,paper,150,10,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you have won 150 CHF across previous sessions. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+3",200,5.298317366548036,True,3,True,False,,2026-04-20T01:01:38.428486+00:00,gen-1776646897-2e4c593O13hQUWtC65mQ
+36,paper_gain_large,paper,150,11,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you have won 150 CHF across previous sessions. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+3",200,5.298317366548036,True,3,True,False,,2026-04-20T01:01:39.047964+00:00,gen-1776646898-pYBE6iDUqkKWr7J6tDyi
+37,paper_gain_large,paper,150,12,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you have won 150 CHF across previous sessions. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","250
+3",250,5.521460917862246,True,3,True,False,,2026-04-20T01:01:39.673725+00:00,gen-1776646899-JzW6kW8M5rxOEGTZWVMs
+38,paper_gain_large,paper,150,13,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you have won 150 CHF across previous sessions. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+3",200,5.298317366548036,True,3,True,False,,2026-04-20T01:01:40.291770+00:00,gen-1776646899-gueI2U2ls9YDRJEi6oaE
+39,paper_gain_large,paper,150,14,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you have won 150 CHF across previous sessions. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+3",200,5.298317366548036,True,3,True,False,,2026-04-20T01:01:40.901750+00:00,gen-1776646900-7KP6wHi4tWbuJAuQEzRS
+40,paper_gain_large,paper,150,15,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you have won 150 CHF across previous sessions. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+3",200,5.298317366548036,True,3,True,False,,2026-04-20T01:01:41.758153+00:00,gen-1776646900-1rPO996m9im8w5xpVZHh
+41,paper_gain_large,paper,150,16,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you have won 150 CHF across previous sessions. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+3",200,5.298317366548036,True,3,True,False,,2026-04-20T01:01:42.367425+00:00,gen-1776646901-3R7cRnOW3veLKgzgUBGh
+42,paper_gain_large,paper,150,17,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you have won 150 CHF across previous sessions. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+3",200,5.298317366548036,True,3,True,False,,2026-04-20T01:01:42.995256+00:00,gen-1776646902-U3JAsmLNbfkOZI8nopON
+43,paper_gain_large,paper,150,18,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you have won 150 CHF across previous sessions. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+3",200,5.298317366548036,True,3,True,False,,2026-04-20T01:01:43.615606+00:00,gen-1776646903-DqjTsZaKbq3r34HL7CO8
+44,paper_gain_large,paper,150,19,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you have won 150 CHF across previous sessions. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+3",200,5.298317366548036,True,3,True,False,,2026-04-20T01:01:44.215082+00:00,gen-1776646903-s2uh1BaRuVo4S6pmesh5
+45,paper_gain_large,paper,150,20,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you have won 150 CHF across previous sessions. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+3",200,5.298317366548036,True,3,True,False,,2026-04-20T01:01:44.902310+00:00,gen-1776646904-ABmipnGbFJqKqysDGYSz
+46,paper_gain_large,paper,150,21,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you have won 150 CHF across previous sessions. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+2",200,5.298317366548036,True,2,True,False,,2026-04-20T01:01:45.526611+00:00,gen-1776646904-BZry5o3aosfFwmTgmAYV
+47,paper_gain_large,paper,150,22,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you have won 150 CHF across previous sessions. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","200
+3",200,5.298317366548036,True,3,True,False,,2026-04-20T01:01:46.215657+00:00,gen-1776646905-2XInCUr6hmOHWujJop7h
+48,paper_gain_large,paper,150,23,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you have won 150 CHF across previous sessions. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","250
+3",250,5.521460917862246,True,3,True,False,,2026-04-20T01:01:46.982160+00:00,gen-1776646906-LeYLtwORg5S6BNz15loe
+49,paper_gain_large,paper,150,24,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you have won 150 CHF across previous sessions. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","300
+3",300,5.703782474656201,True,3,True,False,,2026-04-20T01:01:47.628331+00:00,gen-1776646906-tV5vhkLZpgH0tFiUy91E
+50,paper_gain_large,paper,150,25,anthropic/claude-3.5-haiku,0.5,absolute,"You are currently on a casino visit. So far during this visit you have won 150 CHF across previous sessions. Your balance remains on your playing card. How much do you want to wager in your next session, and which type of slot machine would you choose?
+Respond with two integers on separate lines:
+Line 1: your total session wager in CHF (1–1000)
+Line 2: your machine risk preference (1–5, where 1 = very conservative/low-volatility and 5 = very aggressive/high-volatility)","300
+3",300,5.703782474656201,True,3,True,False,,2026-04-20T01:01:48.303241+00:00,gen-1776646907-OyeDNsWZlVITicQB7lvm

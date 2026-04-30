@@ -32,10 +32,10 @@ Hypotheses (Flepp et al. 2021, Section 3.2):
   H4   Realized gains → no change vs realized_small_loss           (two-sided)
 
 Usage:
-  python analyze_results.py results/results.csv
-  python analyze_results.py results/results.csv --model openai/gpt-4o
-  python analyze_results.py results/results.csv --per-model
-  python analyze_results.py results/results.csv --prompt-version qualitative
+  python scripts/analyze_realization_results.py results/results.csv
+  python scripts/analyze_realization_results.py results/results.csv --model openai/gpt-4o
+  python scripts/analyze_realization_results.py results/results.csv --per-model
+  python scripts/analyze_realization_results.py results/results.csv --prompt-version qualitative
 """
 
 import argparse
@@ -46,7 +46,6 @@ from typing import Dict, List, Optional, Tuple
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
-from scipy import stats as scipy_stats
 
 # ── Condition ordering and reference categories ───────────────────────────────
 
@@ -140,7 +139,14 @@ def _build_design_matrix(
 
     y_df contains log_wager and (if available) risk_profile.
     """
-    present = [c for c in conditions if c in df["condition"].unique()]
+    unique_conditions = set(df["condition"].unique())
+    if reference not in unique_conditions:
+        raise ValueError(
+            f"Reference condition '{reference}' is not present in this dataset subset. "
+            "The regression baseline would be ambiguous."
+        )
+
+    present = [c for c in conditions if c in unique_conditions]
     cond_dummies = pd.get_dummies(df["condition"], prefix="", prefix_sep="")[present].astype(float)
 
     model_dummies = pd.get_dummies(df["model"], prefix="model", drop_first=True).astype(float)
@@ -180,7 +186,7 @@ def wald_test_difference(
     R = np.zeros((1, len(params)))
     R[0, params.index(name_a)] = 1.0
     R[0, params.index(name_b)] = -1.0
-    wald = result.wald_test(R, use_f=True)
+    wald = result.wald_test(R, use_f=True, scalar=True)
     f_stat = float(np.squeeze(wald.statistic))
     p_val = float(wald.pvalue)
     return f_stat, p_val
@@ -249,10 +255,11 @@ def test_hypotheses(
     for dv in dvs:
         pr = paper_results[dv]
         rr = realized_results[dv]
+        dv_label = "log-wager" if dv == "log_wager" else dv
         print(f"\n── DV: {dv} ──")
 
         # H1a: paper losses ↑ risk-taking
-        print("\n  H1a  Paper losses ↑ log-wager vs paper_even (one-sided)")
+        print(f"\n  H1a  Paper losses ↑ {dv_label} vs paper_even (one-sided)")
         for cond in ["paper_loss_small", "paper_loss_medium", "paper_loss_large"]:
             coef, p2 = _coef_and_p(pr, cond)
             if np.isnan(coef):
@@ -275,7 +282,7 @@ def test_hypotheses(
             print(f"    {a} − {b}:  Δcoef={diff:+.4f}  F={f:.2f}  p(one-sided)={p1:.4f}  {significance_stars(p1)}")
 
         # H2a: paper gains ↑ risk-taking
-        print("\n  H2a  Paper gains ↑ log-wager vs paper_even (one-sided)")
+        print(f"\n  H2a  Paper gains ↑ {dv_label} vs paper_even (one-sided)")
         for cond in ["paper_gain_small", "paper_gain_large"]:
             coef, p2 = _coef_and_p(pr, cond)
             if np.isnan(coef):
@@ -294,7 +301,7 @@ def test_hypotheses(
             print(f"    gain_large − gain_small:  Δcoef={diff:+.4f}  F={f:.2f}  p(one-sided)={p1:.4f}  {significance_stars(p1)}")
 
         # H3a: realized losses ↓ risk-taking
-        print("\n  H3a  Realized losses ↓ log-wager vs realized_small_loss (one-sided)")
+        print(f"\n  H3a  Realized losses ↓ {dv_label} vs realized_small_loss (one-sided)")
         for cond in ["realized_medium_loss", "realized_large_loss", "realized_extreme_loss"]:
             coef, p2 = _coef_and_p(rr, cond)
             if np.isnan(coef):
@@ -406,7 +413,7 @@ def main() -> None:
     parser.add_argument(
         "results_csv",
         type=Path,
-        help="Path to the results CSV produced by run_experiment.py.",
+        help="Path to the results CSV produced by scripts/run_realization_experiment.py.",
     )
     parser.add_argument(
         "--model",

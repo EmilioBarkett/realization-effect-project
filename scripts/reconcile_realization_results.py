@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reconcile realization-effect sidecar result files."""
+"""Reconcile realization-effect block files into canonical results."""
 
 from pathlib import Path
 import sys
