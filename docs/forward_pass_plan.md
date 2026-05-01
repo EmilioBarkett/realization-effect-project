@@ -34,7 +34,10 @@ The main entrypoint is:
   --model-id models/gemma-3-4b-pt \
   --layers 12,18 \
   --prompt-version absolute \
+  --activation-site resid_post \
   --token-mode nonpad \
+  --token-region-strategy auto \
+  --storage-dtype float16 \
   --batch-size 1 \
   --limit 2 \
   --local-files-only \
@@ -67,17 +70,25 @@ results/residual_streams/<run_name>/
 
 `manifest.json` records the model, tokenizer, selected layers, batch size,
 maximum token length, local-files-only mode, dtype, device, total prompt count,
-resolved transformer block path, token mode, behavioral-results source, and
-activation shard list.
+resolved transformer block path, activation site, token mode,
+behavioral-results source, and activation shard list.
 
 Each `.npy` activation shard is expected to have shape
-`[batch, sequence_length, d_model]` and be saved as float32. The paired `.jsonl`
-file stores prompt IDs, token IDs, token positions, and prompt metadata for each
-row in the tensor.
+`[batch, sequence_length, d_model]`. New runs default to float16 storage to
+reduce disk use; use `--storage-dtype float32` if full-precision local storage
+is needed. The paired `.jsonl` file stores prompt IDs, token IDs, token
+positions, token regions, and prompt metadata for each row in the tensor.
 
 The paired metadata can include condition-level behavioral summaries from
 `results/results.csv`. This join is enabled by default and can be disabled with
 `--no-results-join`.
+
+With `--token-region-strategy auto`, each saved token also receives a region
+label in the paired `.jsonl` file. Realization-effect prompts are labeled with
+regions such as `scenario`, `decision_question`, and `response_instruction`.
+Emotion-probe prompts are labeled with regions such as `wrapper`, `scenario`,
+and `processing_instruction`. These labels do not filter the activations; they
+make later vector extraction and SAE dataset construction easier to slice.
 
 ## Guardrails
 
@@ -85,15 +96,27 @@ The paired metadata can include condition-level behavioral summaries from
 - Requested layers must be present in the model.
 - Hook placement can be forced with `--block-path`, for example
   `--block-path model.layers`.
+- `--activation-site resid_post` names the current hook contract: residual
+  stream activations after each selected transformer block.
+- `--activation-site block_output` is retained as an explicit alias for the
+  current hook while the project is still pre-SAE.
 - `prompts` and `prompt_ids` must have the same length.
 - The workflow should fail loudly if it cannot resolve transformer blocks.
 - `--token-mode all` saves every padded sequence position.
 - `--token-mode nonpad` saves all non-padding prompt tokens and pads within the
   activation shard only as needed for rectangular tensors.
 - `--token-mode final` saves only the final non-padding token for each prompt.
+- `--token-region-strategy auto` should be used for research runs so broad
+  non-padding activations remain available while region-specific analyses can
+  still exclude boilerplate later.
+- `--storage-dtype float16` is the default for new runs. Compute-sensitive
+  downstream code should cast loaded vectors to float32 when aggregating or
+  training.
 - Full extraction outputs stay gitignored under `results/residual_streams/`.
 - Small tests should cover parsing, prompt metadata loading, manifest shape, and
   shard-writing structure without requiring a real model download.
+- `scripts/validate_activation_run.py <run_dir>` should pass before using an
+  activation run for vector extraction or SAE prep.
 
 ## Next Implementation Work
 

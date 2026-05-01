@@ -15,7 +15,7 @@ import numpy as np
 from realization_effect.runner import build_prompt, load_conditions
 
 from .emotion_probes import load_emotion_probe_records
-from .residual_streams import BatchResiduals, ResidualStreamLogger
+from .residual_streams import BatchResiduals, ResidualStreamLogger, SUPPORTED_ACTIVATION_SITES
 
 
 @dataclass(frozen=True)
@@ -85,6 +85,67 @@ def _load_prompt_records(args: argparse.Namespace) -> list[PromptRecord]:
             )
         )
     return records
+
+
+def _with_token_regions(record: PromptRecord, strategy: str) -> PromptRecord:
+    if strategy == "none":
+        return record
+    if strategy != "auto":
+        raise ValueError("token region strategy must be one of: auto, none.")
+    metadata = dict(record.metadata)
+    metadata.setdefault("prompt_regions", _infer_prompt_regions(record.prompt_text, metadata))
+    return PromptRecord(
+        prompt_id=record.prompt_id,
+        prompt_text=record.prompt_text,
+        metadata=metadata,
+    )
+
+
+def _infer_prompt_regions(prompt_text: str, metadata: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+    metadata = metadata or {}
+    if "emotion" in metadata:
+        return _infer_emotion_prompt_regions(prompt_text)
+    return _infer_realization_prompt_regions(prompt_text)
+
+
+def _region(label: str, start: int, end: int) -> dict[str, Any]:
+    return {"label": label, "start": start, "end": end}
+
+
+def _infer_emotion_prompt_regions(prompt_text: str) -> list[dict[str, Any]]:
+    regions: list[dict[str, Any]] = []
+    scenario_marker = "Scenario:\n"
+    processing_marker = "\n\nDo not answer yet."
+    scenario_start = prompt_text.find(scenario_marker)
+    processing_start = prompt_text.find(processing_marker)
+
+    if scenario_start == -1 or processing_start == -1:
+        return [_region("prompt", 0, len(prompt_text))]
+
+    scenario_content_start = scenario_start + len(scenario_marker)
+    if scenario_start > 0:
+        regions.append(_region("wrapper", 0, scenario_content_start))
+    regions.append(_region("scenario", scenario_content_start, processing_start))
+    regions.append(_region("processing_instruction", processing_start, len(prompt_text)))
+    return regions
+
+
+def _infer_realization_prompt_regions(prompt_text: str) -> list[dict[str, Any]]:
+    decision_marker = "How much do you want"
+    response_marker = "\nRespond with"
+    decision_start = prompt_text.find(decision_marker)
+    response_start = prompt_text.find(response_marker)
+
+    if decision_start == -1:
+        return [_region("prompt", 0, len(prompt_text))]
+
+    regions = [_region("scenario", 0, decision_start)]
+    if response_start == -1:
+        regions.append(_region("decision_question", decision_start, len(prompt_text)))
+    else:
+        regions.append(_region("decision_question", decision_start, response_start))
+        regions.append(_region("response_instruction", response_start, len(prompt_text)))
+    return regions
 
 
 def _load_prompt_csv(
@@ -204,27 +265,33 @@ def _write_batch(
     records: list[PromptRecord],
     batch: BatchResiduals,
     layers: list[int],
+    storage_dtype: str = "float16",
 ) -> list[dict[str, Any]]:
     shard_records: list[dict[str, Any]] = []
+    np_storage_dtype = _numpy_storage_dtype(storage_dtype)
     for layer in layers:
         layer_dir = output_dir / "activations" / f"layer_{layer:02d}"
         layer_dir.mkdir(parents=True, exist_ok=True)
         tensor_path = layer_dir / f"batch_{batch_index:06d}.npy"
         index_path = layer_dir / f"batch_{batch_index:06d}.jsonl"
 
-        np.save(tensor_path, batch.hidden_states_by_layer[layer].numpy())
+        array = batch.hidden_states_by_layer[layer].numpy().astype(np_storage_dtype, copy=False)
+        np.save(tensor_path, array)
         with index_path.open("w", encoding="utf-8") as handle:
-            for record, token_ids, token_positions in zip(
+            for record, token_ids, token_positions, token_regions in zip(
                 records,
                 batch.token_ids,
                 batch.token_positions,
+                batch.token_regions,
                 strict=True,
             ):
                 row = {
                     "prompt_id": record.prompt_id,
+                    "activation_site": batch.activation_site,
                     "token_mode": batch.token_mode,
                     "token_ids": token_ids,
                     "token_positions": token_positions,
+                    "token_regions": token_regions,
                     "num_tokens": len(token_ids),
                     "metadata": record.metadata,
                 }
@@ -235,10 +302,19 @@ def _write_batch(
                 "layer": layer,
                 "tensor_file": str(tensor_path.relative_to(output_dir)),
                 "index_file": str(index_path.relative_to(output_dir)),
-                "shape": list(batch.hidden_states_by_layer[layer].shape),
+                "shape": list(array.shape),
+                "dtype": str(array.dtype),
             }
         )
     return shard_records
+
+
+def _numpy_storage_dtype(value: str) -> np.dtype:
+    if value == "float16":
+        return np.dtype(np.float16)
+    if value == "float32":
+        return np.dtype(np.float32)
+    raise ValueError("storage_dtype must be one of: float16, float32.")
 
 
 def _write_manifest(
@@ -263,7 +339,10 @@ def _write_manifest(
             "layers": layers,
             "max_length": args.max_length,
             "batch_size": args.batch_size,
+            "activation_site": args.activation_site,
             "token_mode": args.token_mode,
+            "token_region_strategy": args.token_region_strategy,
+            "storage_dtype": args.storage_dtype,
             "block_path": args.block_path,
             "resolved_block_path": logger.resolved_block_path,
             "local_files_only": args.local_files_only,
@@ -311,6 +390,9 @@ def _build_run_name(args: argparse.Namespace, records: list[PromptRecord]) -> st
         "revision": args.revision,
         "layers": args.layers,
         "token_mode": args.token_mode,
+        "activation_site": args.activation_site,
+        "token_region_strategy": args.token_region_strategy,
+        "storage_dtype": args.storage_dtype,
         "prompt_source": prompt_source,
         "prompt_version": args.prompt_version,
         "prompt_ids": [record.prompt_id for record in records],
@@ -326,7 +408,11 @@ def _build_run_name(args: argparse.Namespace, records: list[PromptRecord]) -> st
         prompt_name = _sanitize_run_part(Path(args.emotion_config).stem)
     else:
         prompt_name = _sanitize_run_part(args.prompt_version if not args.prompt_csv else Path(args.prompt_csv).stem)
-    return f"{model_name}__prompt-{prompt_name}__layers-{layers}__tokens-{args.token_mode}__{digest}"
+    return (
+        f"{model_name}__prompt-{prompt_name}__layers-{layers}"
+        f"__site-{args.activation_site}__tokens-{args.token_mode}"
+        f"__store-{args.storage_dtype}__{digest}"
+    )
 
 
 def main() -> None:
@@ -353,7 +439,29 @@ def main() -> None:
     parser.add_argument("--id-column", default=None)
     parser.add_argument("--batch-size", type=int, default=2)
     parser.add_argument("--max-length", type=int, default=512)
+    parser.add_argument(
+        "--activation-site",
+        default="resid_post",
+        choices=sorted(SUPPORTED_ACTIVATION_SITES),
+        help=(
+            "Activation site to log. 'resid_post' is the residual stream after "
+            "the transformer block; 'block_output' is an alias for the same "
+            "current hook."
+        ),
+    )
     parser.add_argument("--token-mode", default="nonpad", choices=["all", "nonpad", "final"], help="Which token activations to save.")
+    parser.add_argument(
+        "--storage-dtype",
+        default="float16",
+        choices=["float16", "float32"],
+        help="Numeric dtype used for saved activation .npy shards.",
+    )
+    parser.add_argument(
+        "--token-region-strategy",
+        default="auto",
+        choices=["auto", "none"],
+        help="How to label selected tokens in metadata without filtering saved activations.",
+    )
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--revision", default=None)
     parser.add_argument("--local-files-only", action="store_true")
@@ -374,6 +482,7 @@ def main() -> None:
         records = records[: args.limit]
     if not records:
         raise ValueError("No prompts selected for extraction.")
+    records = [_with_token_regions(record, args.token_region_strategy) for record in records]
 
     args.run_name = args.run_name or _build_run_name(args, records)
     output_dir = Path(args.output_dir) if args.output_dir else Path("results/residual_streams") / args.run_name
@@ -409,8 +518,19 @@ def main() -> None:
             args.layers,
             max_length=args.max_length,
             token_mode=args.token_mode,
+            activation_site=args.activation_site,
+            token_region_spans=[record.metadata.get("prompt_regions", []) for record in batch_records],
         )
-        shards.extend(_write_batch(output_dir, batch_index, batch_records, batch, args.layers))
+        shards.extend(
+            _write_batch(
+                output_dir,
+                batch_index,
+                batch_records,
+                batch,
+                args.layers,
+                storage_dtype=args.storage_dtype,
+            )
+        )
         print(f"wrote batch {batch_index + 1} ({len(batch_records)} prompts)", flush=True)
 
     _write_manifest(output_dir, args, logger, args.layers, shards, total_prompts=len(records))

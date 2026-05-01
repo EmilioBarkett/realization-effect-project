@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+SUPPORTED_ACTIVATION_SITES = {"resid_post", "block_output"}
+
 
 class _EarlyStopForward(RuntimeError):
     """Internal control-flow exception used to stop after the final requested layer."""
@@ -14,8 +16,10 @@ class BatchResiduals:
     prompt_ids: list[str]
     token_ids: list[list[int]]
     token_positions: list[list[int]]
+    token_regions: list[list[str]]
     hidden_states_by_layer: dict[int, Any]
     token_mode: str = "nonpad"
+    activation_site: str = "resid_post"
 
 
 class ResidualStreamLogger:
@@ -223,6 +227,8 @@ class ResidualStreamLogger:
         *,
         max_length: int = 512,
         token_mode: str = "nonpad",
+        activation_site: str = "resid_post",
+        token_region_spans: list[list[dict[str, Any]]] | None = None,
     ) -> BatchResiduals:
         if len(prompts) != len(prompt_ids):
             raise ValueError("prompts and prompt_ids must have the same length.")
@@ -230,6 +236,9 @@ class ResidualStreamLogger:
             raise ValueError("At least one layer is required.")
         if token_mode not in {"all", "nonpad", "final"}:
             raise ValueError("token_mode must be one of: all, nonpad, final.")
+        if activation_site not in SUPPORTED_ACTIVATION_SITES:
+            supported = ", ".join(sorted(SUPPORTED_ACTIVATION_SITES))
+            raise ValueError(f"activation_site must be one of: {supported}.")
 
         blocks = self._resolve_transformer_blocks()
         max_layer = max(layers)
@@ -240,13 +249,8 @@ class ResidualStreamLogger:
                 f"Requested layer {max_layer}, but model has only {len(blocks)} blocks."
             )
 
-        encoded = self.tokenizer(
-            prompts,
-            padding=True,
-            truncation=True,
-            max_length=max_length,
-            return_tensors="pt",
-        )
+        encoded = self._tokenize(prompts, max_length=max_length)
+        offset_mapping = encoded.pop("offset_mapping", None)
         encoded = {key: value.to(self.device) for key, value in encoded.items()}
 
         captured_layers: dict[int, Any] = {}
@@ -284,7 +288,13 @@ class ResidualStreamLogger:
 
         input_ids = encoded["input_ids"].detach().cpu()
         attention_mask = encoded["attention_mask"].detach().cpu()
-        token_ids, token_positions = self._token_metadata(input_ids, attention_mask, token_mode)
+        token_ids, token_positions, token_regions = self._token_metadata(
+            input_ids,
+            attention_mask,
+            token_mode,
+            offset_mapping=offset_mapping,
+            token_region_spans=token_region_spans,
+        )
 
         missing_layers = [layer for layer in layers if layer not in captured_layers]
         if missing_layers:
@@ -299,18 +309,40 @@ class ResidualStreamLogger:
             prompt_ids=prompt_ids,
             token_ids=token_ids,
             token_positions=token_positions,
+            token_regions=token_regions,
             hidden_states_by_layer=selected_hidden_states,
             token_mode=token_mode,
+            activation_site=activation_site,
         )
+
+    def _tokenize(self, prompts: list[str], *, max_length: int) -> dict[str, Any]:
+        kwargs = {
+            "padding": True,
+            "truncation": True,
+            "max_length": max_length,
+            "return_tensors": "pt",
+        }
+        try:
+            return self.tokenizer(
+                prompts,
+                return_offsets_mapping=True,
+                **kwargs,
+            )
+        except (NotImplementedError, TypeError, ValueError):
+            return self.tokenizer(prompts, **kwargs)
 
     def _token_metadata(
         self,
         input_ids: Any,
         attention_mask: Any,
         token_mode: str,
-    ) -> tuple[list[list[int]], list[list[int]]]:
+        *,
+        offset_mapping: Any | None = None,
+        token_region_spans: list[list[dict[str, Any]]] | None = None,
+    ) -> tuple[list[list[int]], list[list[int]], list[list[str]]]:
         token_ids: list[list[int]] = []
         token_positions: list[list[int]] = []
+        token_regions: list[list[str]] = []
         for batch_idx in range(input_ids.shape[0]):
             if token_mode == "all":
                 positions = self._torch.arange(input_ids.shape[1])
@@ -320,7 +352,39 @@ class ResidualStreamLogger:
                     positions = positions[-1:]
             token_positions.append(positions.tolist())
             token_ids.append(input_ids[batch_idx, positions].tolist())
-        return token_ids, token_positions
+            token_regions.append(
+                self._token_regions_for_positions(
+                    batch_idx,
+                    positions.tolist(),
+                    offset_mapping=offset_mapping,
+                    token_region_spans=token_region_spans,
+                )
+            )
+        return token_ids, token_positions, token_regions
+
+    def _token_regions_for_positions(
+        self,
+        batch_idx: int,
+        positions: list[int],
+        *,
+        offset_mapping: Any | None,
+        token_region_spans: list[list[dict[str, Any]]] | None,
+    ) -> list[str]:
+        if offset_mapping is None or token_region_spans is None:
+            return ["unknown"] * len(positions)
+
+        spans = token_region_spans[batch_idx] if batch_idx < len(token_region_spans) else []
+        if not spans:
+            return ["unknown"] * len(positions)
+
+        regions: list[str] = []
+        for position in positions:
+            start, end = offset_mapping[batch_idx, position].tolist()
+            if start == end:
+                regions.append("special")
+                continue
+            regions.append(_label_for_char_span(int(start), int(end), spans))
+        return regions
 
     def _select_tokens(self, tensor: Any, token_positions: list[list[int]]) -> Any:
         if not token_positions:
@@ -334,3 +398,17 @@ class ResidualStreamLogger:
             index = self._torch.tensor(positions, dtype=self._torch.long)
             selected[batch_idx, : len(positions), :] = tensor[batch_idx, index, :]
         return selected
+
+
+def _label_for_char_span(start: int, end: int, spans: list[dict[str, Any]]) -> str:
+    best_label = "other"
+    best_overlap = 0
+    for span in spans:
+        label = str(span.get("label", "other"))
+        span_start = int(span.get("start", 0))
+        span_end = int(span.get("end", 0))
+        overlap = max(0, min(end, span_end) - max(start, span_start))
+        if overlap > best_overlap:
+            best_label = label
+            best_overlap = overlap
+    return best_label

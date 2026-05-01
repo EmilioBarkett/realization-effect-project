@@ -42,9 +42,19 @@ Run a small activation extraction:
   --model-id models/gemma-3-4b-pt \
   --emotion-config configs/emotion_activation/emotions_initial.json \
   --layers 12,18 \
+  --activation-site resid_post \
   --token-mode final \
+  --token-region-strategy auto \
+  --storage-dtype float16 \
   --local-files-only \
   --run-name emotion_probe_smoke
+```
+
+Validate the output before using it for vector extraction:
+
+```bash
+./venv/bin/python scripts/validate_activation_run.py \
+  results/residual_streams/emotion_probe_smoke
 ```
 
 You can also use the exported CSV directly:

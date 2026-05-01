@@ -1,6 +1,19 @@
 # Realization Effect Replication — LLM Study
 
-Replication of Flepp, Meier & Franck (2021) *"The effect of paper outcomes versus realized outcomes on subsequent risk-taking: Field evidence from casino gambling"* (OBHDP 165, 45–55), substituting language models for human subjects.
+Replication of Flepp, Meier & Franck (2021) *"The effect of paper outcomes
+versus realized outcomes on subsequent risk-taking: Field evidence from casino
+gambling"* (OBHDP 165, 45–55), substituting language models for human
+subjects.
+
+The project now has two connected goals:
+
+1. Measure whether LLMs reproduce realization-effect gambling behavior.
+2. Use local residual-stream logging to study whether loss/emotion-related
+   internal states can be identified, compared, and eventually steered.
+
+The SAE work is **not implemented yet**. The repo currently has the pre-SAE
+infrastructure: validated activation logging, token-region metadata, and a
+dataset boundary that can turn activation runs into token-level vectors.
 
 ## What this study tests
 
@@ -61,13 +74,15 @@ The key distinction across all versions: **paper** scenarios specify the player 
 realization-effect-project/
 ├── src/
 │   ├── realization_effect/      # Prompting, running, parsing, analysis, reconciliation
-│   └── emotion_activation/      # Emotion probes, residual streams, steering prep
+│   ├── emotion_activation/      # Emotion probes, residual streams, steering prep
+│   └── sae/                     # Activation datasets and future SAE utilities
 ├── scripts/                     # Preferred command-line entrypoints
 ├── tests/                       # Regression tests for parsing and analysis checks
 │   └── fixtures/noncanonical/   # Local ignored archive of non-canonical CSVs
 ├── configs/
 │   ├── realization_effect/      # Conditions and model catalogues
-│   └── emotion_activation/      # Emotion contrast definitions
+│   ├── emotion_activation/      # Emotion contrast definitions
+│   └── sae/                     # Local/experimental SAE dataset selections
 ├── experiments/
 │   └── emotion_activation/      # Reviewable emotion-probe prompts
 ├── notebooks/realization_effect/ # Ordered exploratory notebooks
@@ -93,6 +108,9 @@ The current cleaned-results summary is in
 The emotion-vector extension is documented in
 `experiments/emotion_activation/README.md` and
 `docs/emotion_probe_design.md`.
+
+The SAE dataset boundary is documented in `docs/sae_architecture.md`.
+Open SAE implementation choices are tracked in `docs/sae_decisions.md`.
 
 ## Workflow
 
@@ -188,7 +206,7 @@ This path uses the tracked canonical dataset at `results/results.csv`.
 `make audit` checks that the parsed wager/risk columns still match the current
 parser without re-querying any model.
 
-### 3. Log residual streams for SAE work
+### 3. Log residual streams for emotion and SAE prep
 
 The `src/emotion_activation` package contains a Hugging Face forward-pass
 adapter adapted from the metageniuses extraction code. It registers forward
@@ -205,7 +223,10 @@ Example smoke run against local Gemma files:
   --model-id models/gemma-3-4b-pt \
   --layers 12,18 \
   --prompt-version absolute \
+  --activation-site resid_post \
   --token-mode nonpad \
+  --token-region-strategy auto \
+  --storage-dtype float16 \
   --batch-size 1 \
   --limit 2 \
   --local-files-only \
@@ -216,23 +237,67 @@ Outputs:
 
 - `prompts.jsonl` — prompt text and condition metadata.
 - `manifest.json` — model, layer, run, and shard metadata.
-- `activations/layer_XX/batch_*.npy` — float32 tensors shaped
+- `activations/layer_XX/batch_*.npy` — float16 tensors by default, shaped
   `[batch, sequence_length, d_model]`.
 - `activations/layer_XX/batch_*.jsonl` — prompt IDs and token IDs aligned to
   each batch tensor.
+
+Validate a completed run before using it downstream:
+
+```bash
+./venv/bin/python scripts/validate_activation_run.py \
+  results/residual_streams/gemma3_4b_smoke
+```
+
+Inspect a validated run as an SAE/vector dataset. This does not train an SAE;
+it only counts the vectors available for later analysis:
+
+```bash
+./venv/bin/python scripts/inspect_sae_dataset.py \
+  results/residual_streams/gemma3_4b_smoke \
+  --layers 12 \
+  --token-regions scenario,decision_question
+```
 
 Useful extraction options:
 
 - `--block-path model.layers` forces hook placement when automatic model
   architecture detection is not enough.
+- `--activation-site resid_post` records the current hook contract: residual
+  stream output after a selected transformer block. `block_output` is an alias
+  for the same current hook.
 - `--token-mode all|nonpad|final` chooses whether to save every padded token,
   all non-padding tokens, or only the final non-padding token.
+- `--token-region-strategy auto` labels saved tokens as regions such as
+  `scenario`, `decision_question`, `response_instruction`, or
+  `processing_instruction` without filtering out the broader activation data.
+- `--storage-dtype float16|float32` controls saved tensor precision. The
+  default is `float16` to reduce local storage; downstream analysis can cast
+  vectors back to float32 when averaging or training.
 - `--results-csv results/results.csv` attaches condition-level behavioral
   summaries to prompt metadata; use `--no-results-join` to skip this.
 - If `--output-dir` is omitted, the script creates a deterministic run
   directory under `results/residual_streams/`.
 
-### 4. Analyse results
+### 4. SAE scaffolding status
+
+The current SAE package is intentionally limited to dataset and planning
+interfaces:
+
+```text
+src/sae/
+├── config.py       # Dataset selection configs
+├── dataset.py      # Iterates activation runs into token vectors + metadata
+├── metrics.py      # Planned metric names
+├── features.py     # Placeholder feature-analysis interface
+└── training.py     # Explicit not-implemented training placeholder
+```
+
+Before training an SAE, decide the backend, layer, token-region mix, activation
+distribution, storage precision, and evaluation criteria. Those open decisions
+are listed in `docs/sae_decisions.md`.
+
+### 5. Analyse results
 
 ```bash
 # Full analysis, pooled across all models
@@ -248,7 +313,7 @@ Useful extraction options:
 
 The analysis script outputs OLS regression tables (condition dummies + model/temperature/prompt_version fixed effects, HC3 robust SEs) for both `log(wager)` and `risk_profile`, and structured hypothesis verdicts for H1a–H4 — mirroring Table 2 of Flepp et al. (2021).
 
-### 5. Monitor Block Progress (Live Dashboard)
+### 6. Monitor Block Progress (Live Dashboard)
 
 ```bash
 # Launch local dashboard (default: http://127.0.0.1:8765)

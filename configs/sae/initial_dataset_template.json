@@ -1,0 +1,14 @@
+{
+  "schema_version": "0.1.0",
+  "description": "Template for the first real SAE/vector dataset. Fill activation_runs after validated extraction runs exist.",
+  "activation_runs": [],
+  "layers": [
+    18
+  ],
+  "token_regions": [
+    "scenario",
+    "decision_question"
+  ],
+  "activation_site": "resid_post",
+  "max_vectors": null
+}

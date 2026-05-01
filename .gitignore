@@ -1,4 +1,5 @@
 .DS_Store
+AGENTS.local.md
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -16,6 +17,7 @@ results/residual_streams/
 results/blocks/
 results/balance/
 results/logs/
+results/sae/
 results/results_grouped.csv
 results/results_canonical.csv
 results/legacy/results.before_*.csv

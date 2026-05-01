@@ -13,10 +13,12 @@ from emotion_activation.log_residuals import (
     _load_behavioral_summaries,
     _load_prompt_csv,
     _parse_layers,
+    _with_token_regions,
     _write_batch,
     _write_manifest,
     PromptRecord,
 )
+from emotion_activation.activation_store import load_activation_run, validate_activation_run
 from emotion_activation.emotion_probes import (
     load_emotion_probe_records,
     write_emotion_probe_csv,
@@ -71,6 +73,50 @@ def test_load_behavioral_summaries_groups_results_by_condition(tmp_path: Path) -
     assert summaries["paper_even"]["models"] == ["model-a", "model-b"]
 
 
+def test_with_token_regions_labels_emotion_prompt_spans() -> None:
+    record = PromptRecord(
+        prompt_id="regret__positive",
+        prompt_text=(
+            "Read the following short scenario.\n\n"
+            "Scenario:\n"
+            "A visitor regrets a costly choice.\n\n"
+            "Do not answer yet. Continue processing the scenario."
+        ),
+        metadata={"emotion": "regret"},
+    )
+
+    annotated = _with_token_regions(record, "auto")
+
+    regions = annotated.metadata["prompt_regions"]
+    assert [region["label"] for region in regions] == [
+        "wrapper",
+        "scenario",
+        "processing_instruction",
+    ]
+    scenario = regions[1]
+    assert annotated.prompt_text[scenario["start"] : scenario["end"]] == "A visitor regrets a costly choice."
+
+
+def test_with_token_regions_labels_realization_prompt_spans() -> None:
+    record = PromptRecord(
+        prompt_id="paper_even",
+        prompt_text=(
+            "You are currently on a casino visit. "
+            "How much do you want to wager in your next session?"
+            "\nRespond with two integers on separate lines."
+        ),
+        metadata={"condition": "paper_even"},
+    )
+
+    annotated = _with_token_regions(record, "auto")
+
+    assert [region["label"] for region in annotated.metadata["prompt_regions"]] == [
+        "scenario",
+        "decision_question",
+        "response_instruction",
+    ]
+
+
 def test_batched_returns_indexed_chunks() -> None:
     records = [
         PromptRecord(str(index), f"prompt {index}", {})
@@ -100,7 +146,9 @@ def test_write_batch_creates_activation_and_index_files(tmp_path: Path) -> None:
         prompt_ids=["prompt_a", "prompt_b"],
         token_ids=[[101, 102], [201, 202, 203]],
         token_positions=[[0, 1], [0, 1, 2]],
+        token_regions=[["scenario", "decision_question"], ["scenario", "scenario", "response_instruction"]],
         hidden_states_by_layer={2: FakeTensor(tensor)},
+        activation_site="resid_post",
     )
 
     shards = _write_batch(tmp_path, 0, records, batch, layers=[2])
@@ -111,16 +159,20 @@ def test_write_batch_creates_activation_and_index_files(tmp_path: Path) -> None:
             "tensor_file": "activations/layer_02/batch_000000.npy",
             "index_file": "activations/layer_02/batch_000000.jsonl",
             "shape": [2, 3, 4],
+            "dtype": "float16",
         }
     ]
     saved_tensor = np.load(tmp_path / shards[0]["tensor_file"])
     assert saved_tensor.shape == (2, 3, 4)
+    assert saved_tensor.dtype == np.float16
 
     index_rows = [
         json.loads(line)
         for line in (tmp_path / shards[0]["index_file"]).read_text(encoding="utf-8").splitlines()
     ]
     assert index_rows[0]["prompt_id"] == "prompt_a"
+    assert index_rows[0]["activation_site"] == "resid_post"
+    assert index_rows[0]["token_regions"] == ["scenario", "decision_question"]
     assert index_rows[1]["token_ids"] == [201, 202, 203]
 
 
@@ -129,7 +181,10 @@ def test_write_manifest_records_extraction_contract(tmp_path: Path) -> None:
         run_name="tiny-run",
         max_length=128,
         batch_size=2,
+        activation_site="resid_post",
         token_mode="final",
+        token_region_strategy="auto",
+        storage_dtype="float16",
         block_path="model.layers",
         local_files_only=True,
         dtype="float32",
@@ -166,10 +221,84 @@ def test_write_manifest_records_extraction_contract(tmp_path: Path) -> None:
     assert manifest["schema_version"] == "0.1.0"
     assert manifest["model"]["model_id"] == "local/model"
     assert manifest["extraction"]["layers"] == [1, 3]
+    assert manifest["extraction"]["activation_site"] == "resid_post"
     assert manifest["extraction"]["token_mode"] == "final"
+    assert manifest["extraction"]["token_region_strategy"] == "auto"
+    assert manifest["extraction"]["storage_dtype"] == "float16"
     assert manifest["extraction"]["block_path"] == "model.layers"
     assert manifest["input"]["results_csv"] == "results/results.csv"
     assert manifest["stats"] == {"total_prompts": 3, "total_shards": 2}
+
+
+def test_activation_store_validates_written_run(tmp_path: Path) -> None:
+    class FakeTensor:
+        def __init__(self, array: np.ndarray) -> None:
+            self._array = array
+            self.shape = array.shape
+
+        def numpy(self) -> np.ndarray:
+            return self._array
+
+    records = [PromptRecord("prompt_a", "Prompt A", {"condition": "paper_even"})]
+    batch = BatchResiduals(
+        prompt_ids=["prompt_a"],
+        token_ids=[[101, 102]],
+        token_positions=[[0, 1]],
+        token_regions=[["scenario", "decision_question"]],
+        hidden_states_by_layer={2: FakeTensor(np.ones((1, 2, 4), dtype=np.float32))},
+        token_mode="nonpad",
+        activation_site="resid_post",
+    )
+    shards = _write_batch(tmp_path, 0, records, batch, layers=[2])
+    (tmp_path / "prompts.jsonl").write_text(
+        "\n".join(json.dumps(record.__dict__, ensure_ascii=True) for record in records) + "\n",
+        encoding="utf-8",
+    )
+    args = argparse.Namespace(
+        run_name="tiny-run",
+        max_length=128,
+        batch_size=1,
+        activation_site="resid_post",
+        token_mode="nonpad",
+        token_region_strategy="auto",
+        storage_dtype="float16",
+        block_path="model.layers",
+        local_files_only=True,
+        dtype="float32",
+        device="cpu",
+        conditions_csv="configs/realization_effect/conditions.csv",
+        emotion_config=None,
+        prompt_csv=None,
+        results_csv="results/results.csv",
+        no_results_join=False,
+        prompt_version="absolute",
+        prompt_column="prompt_text",
+        id_column=None,
+        limit=1,
+    )
+    logger = argparse.Namespace(
+        model_id="local/model",
+        tokenizer_id="local/tokenizer",
+        num_transformer_layers=2,
+        d_model=4,
+        resolved_block_path="model.layers",
+        device="cpu",
+    )
+    _write_manifest(
+        tmp_path,
+        args,
+        logger,  # type: ignore[arg-type]
+        layers=[2],
+        shards=shards,
+        total_prompts=1,
+    )
+
+    run = load_activation_run(tmp_path)
+
+    assert validate_activation_run(tmp_path) == []
+    assert run.shards[0].shape == (1, 2, 4)
+    assert run.shards[0].dtype == "float16"
+    assert next(run.iter_layer_arrays(2))[1].shape == (1, 2, 4)
 
 
 def test_build_run_name_is_deterministic() -> None:
@@ -178,7 +307,10 @@ def test_build_run_name_is_deterministic() -> None:
         tokenizer_id=None,
         revision=None,
         layers=[1, 3],
+        activation_site="resid_post",
         token_mode="nonpad",
+        token_region_strategy="auto",
+        storage_dtype="float16",
         prompt_csv=None,
         emotion_config=None,
         conditions_csv="configs/realization_effect/conditions.csv",
@@ -187,7 +319,9 @@ def test_build_run_name_is_deterministic() -> None:
     records = [PromptRecord("paper_even", "Prompt text", {})]
 
     assert _build_run_name(args, records) == _build_run_name(args, records)
-    assert _build_run_name(args, records).startswith("tiny-model__prompt-absolute__layers-1-3__tokens-nonpad__")
+    assert _build_run_name(args, records).startswith(
+        "tiny-model__prompt-absolute__layers-1-3__site-resid_post__tokens-nonpad__store-float16__"
+    )
 
 
 def test_build_run_name_uses_emotion_config_when_present() -> None:
@@ -196,7 +330,10 @@ def test_build_run_name_uses_emotion_config_when_present() -> None:
         tokenizer_id=None,
         revision=None,
         layers=[12],
+        activation_site="resid_post",
         token_mode="final",
+        token_region_strategy="auto",
+        storage_dtype="float16",
         prompt_csv=None,
         emotion_config="configs/emotion_activation/emotions_initial.json",
         conditions_csv="configs/realization_effect/conditions.csv",
@@ -206,7 +343,9 @@ def test_build_run_name_uses_emotion_config_when_present() -> None:
 
     run_name = _build_run_name(args, records)
 
-    assert run_name.startswith("tiny-model__prompt-emotions_initial__layers-12__tokens-final__")
+    assert run_name.startswith(
+        "tiny-model__prompt-emotions_initial__layers-12__site-resid_post__tokens-final__store-float16__"
+    )
 
 
 def test_emotion_probe_config_exports_positive_and_control_rows(tmp_path: Path) -> None:
@@ -311,6 +450,7 @@ def test_residual_stream_logger_smoke_extracts_from_fake_torch_model() -> None:
     )
 
     assert logger.resolved_block_path == "model.layers"
+    assert batch.activation_site == "resid_post"
     assert batch.token_ids == [[4, 4], [6]]
     assert batch.token_positions == [[0, 1], [0]]
     assert batch.hidden_states_by_layer[1].shape == (2, 2, 4)
@@ -326,7 +466,8 @@ def test_residual_stream_logger_final_token_mode() -> None:
 
     input_ids = torch.tensor([[9, 8, 0], [7, 6, 5]])
     attention_mask = torch.tensor([[1, 1, 0], [1, 1, 1]])
-    token_ids, token_positions = logger._token_metadata(input_ids, attention_mask, "final")
+    token_ids, token_positions, token_regions = logger._token_metadata(input_ids, attention_mask, "final")
 
     assert token_ids == [[8], [5]]
     assert token_positions == [[1], [2]]
+    assert token_regions == [["unknown"], ["unknown"]]
