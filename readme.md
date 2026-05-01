@@ -1,6 +1,19 @@
 # Realization Effect Replication — LLM Study
 
-Replication of Flepp, Meier & Franck (2021) *"The effect of paper outcomes versus realized outcomes on subsequent risk-taking: Field evidence from casino gambling"* (OBHDP 165, 45–55), substituting language models for human subjects.
+Replication of Flepp, Meier & Franck (2021) *"The effect of paper outcomes
+versus realized outcomes on subsequent risk-taking: Field evidence from casino
+gambling"* (OBHDP 165, 45–55), substituting language models for human
+subjects.
+
+The project now has two connected goals:
+
+1. Measure whether LLMs reproduce realization-effect gambling behavior.
+2. Use local residual-stream logging to study whether loss/emotion-related
+   internal states can be identified, compared, and eventually steered.
+
+The SAE work is **not implemented yet**. The repo currently has the pre-SAE
+infrastructure: validated activation logging, token-region metadata, and a
+dataset boundary that can turn activation runs into token-level vectors.
 
 ## What this study tests
 
@@ -15,7 +28,7 @@ The **realization effect** predicts that risk-taking differs depending on whethe
 
 Each trial presents an LLM with a casino vignette and asks for two responses: (1) how much to wager in the next slot machine session (1–1000 CHF total session wager), and (2) a slot machine risk preference (1–5 scale). The manipulation is the prior outcome history embedded in the vignette.
 
-### Conditions (`conditions.csv`)
+### Conditions
 
 Conditions map to the quintile structure from Table 2 of the paper:
 
@@ -47,7 +60,7 @@ Conditions map to the quintile structure from Table 2 of the paper:
 
 ### Prompt framing
 
-Two prompt versions are implemented in `run_experiment.py`:
+Prompt versions are implemented in `src/realization_effect/runner.py`:
 
 - `absolute` (default): States win/loss amounts directly ("you have won/lost X CHF").
 - `balance`: Frames outcomes as card balance relative to starting point.
@@ -59,38 +72,68 @@ The key distinction across all versions: **paper** scenarios specify the player 
 
 ```
 realization-effect-project/
-├── conditions.csv          # 11 experimental conditions (mapped to paper's quintiles)
-├── run_experiment.py       # Data collection: calls models via OpenRouter API
-├── analyze_results.py      # Statistical analysis: OLS regressions + hypothesis tests
-├── generate_prompts.py     # Utility: export all prompt texts to CSV for inspection
-├── reorganize_csv.py       # Utility: reorder/split result CSVs by column
-├── llm_eval_list_v2.csv    # Catalogue of LLMs included in the study
-├── notebooks/              # Jupyter notebooks for exploratory analysis
-│   ├── Experiment.ipynb
-│   ├── Multiple models test.ipynb
-│   ├── 5.4mini+haiku.ipynb
-│   ├── Kimi+Grok.ipynb
-│   ├── 7000 row .ipynb
-│   ├── Merged CSV.ipynb
-│   └── Trial 4 - 8000 rows.ipynb
-└── results/
-    ├── results.csv           # Canonical merged dataset used for analysis
-    ├── results_grouped.csv   # Grouped companion refreshed during reconcile
-    ├── blocks/               # Canonical per-block CSVs for all prompt versions
-    ├── balance/              # Sidecar staging outputs for concurrent balance runs
-    └── legacy/               # Legacy/old-prompt rows and partition reports
+├── src/
+│   ├── realization_effect/      # Prompting, running, parsing, analysis, reconciliation
+│   ├── emotion_activation/      # Emotion probes, residual streams, steering prep
+│   └── sae/                     # Activation datasets and future SAE utilities
+├── scripts/                     # Preferred command-line entrypoints
+├── tests/                       # Regression tests for parsing and analysis checks
+│   └── fixtures/noncanonical/   # Local ignored archive of non-canonical CSVs
+├── configs/
+│   ├── realization_effect/      # Conditions and model catalogues
+│   ├── emotion_activation/      # Emotion contrast definitions
+│   └── sae/                     # Local/experimental SAE dataset selections
+├── experiments/
+│   └── emotion_activation/      # Reviewable emotion-probe prompts
+├── notebooks/realization_effect/ # Ordered exploratory notebooks
+├── reports/                     # Current findings, midterm material, source papers
+├── results/                     # Active canonical CSVs plus resumable block CSVs
+└── models/                      # Local model weights, gitignored
 ```
 
+The exploratory notebooks are numbered in the order they are most useful to
+read:
+
+- `01_experiment_design.ipynb`
+- `02_results_merge_and_cleaning.ipynb`
+- `03_multi_model_pilot.ipynb`
+- `04_large_sample_7000_rows.ipynb`
+- `05_large_sample_8000_rows.ipynb`
+- `06_gpt54mini_haiku_comparison.ipynb`
+- `07_kimi_grok_comparison.ipynb`
+
+The current cleaned-results summary is in
+`reports/current_findings.md`.
+
+The emotion-vector extension is documented in
+`experiments/emotion_activation/README.md` and
+`docs/emotion_probe_design.md`.
+
+The SAE dataset boundary is documented in `docs/sae_architecture.md`.
+Open SAE implementation choices are tracked in `docs/sae_decisions.md`.
+
 ## Workflow
+
+Examples below use `./venv/bin/python`, which works from a fresh shell in this
+checkout. If you have activated the virtual environment, `python` is equivalent.
+
+Common checks are available through `make`:
+
+```bash
+make test
+make compile
+make audit
+make analyze
+```
 
 ### 1. Inspect prompts before running
 
 ```bash
 # Export every prompt text across all conditions and prompt versions
-python generate_prompts.py --output prompts.csv
+./venv/bin/python scripts/export_prompts.py --output prompts.csv
 
 # One version only
-python generate_prompts.py --version qualitative --output prompts_qualitative.csv
+./venv/bin/python scripts/export_prompts.py --version qualitative --output prompts_qualitative.csv
 ```
 
 ### 2. Run the experiment
@@ -99,13 +142,13 @@ python generate_prompts.py --version qualitative --output prompts_qualitative.cs
 export OPENROUTER_API_KEY=your_key_here
 
 # Single model, 100 trials per condition
-python run_experiment.py \
+./venv/bin/python scripts/run_realization_experiment.py \
   --models openai/gpt-4o \
   --n-trials 100 \
   --prompt-version absolute
 
 # Grid over multiple models and temperatures
-python run_experiment.py \
+./venv/bin/python scripts/run_realization_experiment.py \
   --models openai/gpt-4o anthropic/claude-3-5-sonnet \
   --temperatures 0.5 1.0 \
   --n-trials 100 \
@@ -114,50 +157,173 @@ python run_experiment.py \
 
 Runs are resumable: interrupted experiments can be restarted with the same command and already-completed trials are skipped.
 
-When you run sidecar jobs (for example writing to `results/balance/results.csv`), reconcile them into canonical outputs:
+The run script has one canonical write process:
+
+1. Each model / temperature / prompt-version block writes to its own resumable CSV in `results/blocks/`.
+2. After all selected blocks finish, the script performs one final reconciliation into `results/results.csv`.
+3. `results/results_grouped.csv` is refreshed as the grouped companion file.
+
+Avoid sidecar outputs for ordinary runs. Keep the default `--output results/results.csv`
+unless you are intentionally creating a separate scratch dataset.
+
+Current active data files:
+
+- `results/results.csv` is the canonical analysis dataset.
+- `results/sample_results.csv` is a small schema/sample extract for quick review.
+- `results/results_grouped.csv` is generated by reconciliation for dashboard/analysis compatibility and is not tracked.
+- `results/blocks/*.csv` are resumable per-block raw outputs used to rebuild the canonical CSV.
+- Non-canonical historical CSVs are archived locally under `tests/fixtures/noncanonical/`.
+
+If parser logic changes, audit or repair existing parsed columns without
+re-querying models:
 
 ```bash
-./venv/bin/python reconcile_results.py
+# Dry-run audit
+./venv/bin/python scripts/reparse_realization_results.py results/results.csv results/blocks
+
+# Rewrite parsed_wager, log_wager, risk_profile, and validity metadata
+./venv/bin/python scripts/reparse_realization_results.py --write results/results.csv results/blocks
 ```
 
-This command:
-- copies sidecar block files (default: `results/balance/blocks`) into `results/blocks`
-- refreshes canonical `results/results.csv` and `results/results_grouped.csv`
-- partitions legacy prompt-structure rows (including early non-canonical runs such as initial 4.1-style prompts) into `results/legacy/results_legacy.csv`
-
-If you only want partitioning without copying sidecar blocks first:
+If you need to rebuild the canonical CSV from existing blocks without querying
+models, run:
 
 ```bash
-./venv/bin/python partition_results.py
+./venv/bin/python scripts/reconcile_realization_results.py
 ```
 
-### 3. Analyse results
+### Fresh clone to analysis
+
+```bash
+python -m venv venv
+./venv/bin/python -m pip install -e ".[dev]"
+make test
+make audit
+make analyze
+```
+
+This path uses the tracked canonical dataset at `results/results.csv`.
+`make audit` checks that the parsed wager/risk columns still match the current
+parser without re-querying any model.
+
+### 3. Log residual streams for emotion and SAE prep
+
+The `src/emotion_activation` package contains a Hugging Face forward-pass
+adapter adapted from the metageniuses extraction code. It registers forward
+hooks on selected transformer blocks and writes residual stream tensors plus
+prompt metadata for later emotion-vector and SAE work.
+
+See `docs/forward_pass_plan.md` for the intended extraction contract before
+expanding the SAE-facing logic.
+
+Example smoke run against local Gemma files:
+
+```bash
+./venv/bin/python scripts/log_residual_streams.py \
+  --model-id models/gemma-3-4b-pt \
+  --layers 12,18 \
+  --prompt-version absolute \
+  --activation-site resid_post \
+  --token-mode nonpad \
+  --token-region-strategy auto \
+  --storage-dtype float16 \
+  --batch-size 1 \
+  --limit 2 \
+  --local-files-only \
+  --run-name gemma3_4b_smoke
+```
+
+Outputs:
+
+- `prompts.jsonl` — prompt text and condition metadata.
+- `manifest.json` — model, layer, run, and shard metadata.
+- `activations/layer_XX/batch_*.npy` — float16 tensors by default, shaped
+  `[batch, sequence_length, d_model]`.
+- `activations/layer_XX/batch_*.jsonl` — prompt IDs and token IDs aligned to
+  each batch tensor.
+
+Validate a completed run before using it downstream:
+
+```bash
+./venv/bin/python scripts/validate_activation_run.py \
+  results/residual_streams/gemma3_4b_smoke
+```
+
+Inspect a validated run as an SAE/vector dataset. This does not train an SAE;
+it only counts the vectors available for later analysis:
+
+```bash
+./venv/bin/python scripts/inspect_sae_dataset.py \
+  results/residual_streams/gemma3_4b_smoke \
+  --layers 12 \
+  --token-regions scenario,decision_question
+```
+
+Useful extraction options:
+
+- `--block-path model.layers` forces hook placement when automatic model
+  architecture detection is not enough.
+- `--activation-site resid_post` records the current hook contract: residual
+  stream output after a selected transformer block. `block_output` is an alias
+  for the same current hook.
+- `--token-mode all|nonpad|final` chooses whether to save every padded token,
+  all non-padding tokens, or only the final non-padding token.
+- `--token-region-strategy auto` labels saved tokens as regions such as
+  `scenario`, `decision_question`, `response_instruction`, or
+  `processing_instruction` without filtering out the broader activation data.
+- `--storage-dtype float16|float32` controls saved tensor precision. The
+  default is `float16` to reduce local storage; downstream analysis can cast
+  vectors back to float32 when averaging or training.
+- `--results-csv results/results.csv` attaches condition-level behavioral
+  summaries to prompt metadata; use `--no-results-join` to skip this.
+- If `--output-dir` is omitted, the script creates a deterministic run
+  directory under `results/residual_streams/`.
+
+### 4. SAE scaffolding status
+
+The current SAE package is intentionally limited to dataset and planning
+interfaces:
+
+```text
+src/sae/
+├── config.py       # Dataset selection configs
+├── dataset.py      # Iterates activation runs into token vectors + metadata
+├── metrics.py      # Planned metric names
+├── features.py     # Placeholder feature-analysis interface
+└── training.py     # Explicit not-implemented training placeholder
+```
+
+Before training an SAE, decide the backend, layer, token-region mix, activation
+distribution, storage precision, and evaluation criteria. Those open decisions
+are listed in `docs/sae_decisions.md`.
+
+### 5. Analyse results
 
 ```bash
 # Full analysis, pooled across all models
-python analyze_results.py results/results.csv
+./venv/bin/python scripts/analyze_realization_results.py results/results.csv
 
 # Separate analysis per model
-python analyze_results.py results/results.csv --per-model
+./venv/bin/python scripts/analyze_realization_results.py results/results.csv --per-model
 
 # Filter to one model or one prompt version
-python analyze_results.py results/results.csv --model openai/gpt-4o
-python analyze_results.py results/results.csv --prompt-version qualitative
+./venv/bin/python scripts/analyze_realization_results.py results/results.csv --model openai/gpt-4o
+./venv/bin/python scripts/analyze_realization_results.py results/results.csv --prompt-version qualitative
 ```
 
 The analysis script outputs OLS regression tables (condition dummies + model/temperature/prompt_version fixed effects, HC3 robust SEs) for both `log(wager)` and `risk_profile`, and structured hypothesis verdicts for H1a–H4 — mirroring Table 2 of Flepp et al. (2021).
 
-### 4. Monitor Block Progress (Live Dashboard)
+### 6. Monitor Block Progress (Live Dashboard)
 
 ```bash
 # Launch local dashboard (default: http://127.0.0.1:8765)
-python block_dashboard.py
+./venv/bin/python scripts/block_dashboard.py
 
 # Example for temp sweep phases (n=25 target per condition)
-python block_dashboard.py --target-trials 25 --refresh-seconds 5
+./venv/bin/python scripts/block_dashboard.py --target-trials 25 --refresh-seconds 5
 ```
 
-If you use a virtual environment, launch with that interpreter (for example `./venv/bin/python block_dashboard.py`) so the Analysis tab can run with the same installed dependencies.
+If you use a virtual environment, launch with that interpreter (for example `./venv/bin/python scripts/block_dashboard.py`) so the Analysis tab can run with the same installed dependencies.
 
 The dashboard reads `results/blocks/*.csv` and shows:
 - per-block model/temperature/prompt version
@@ -170,7 +336,7 @@ You can override values in the URL directly:
 - `&refresh=5`
 - `&active_window=90`
 
-### 5. Run Analysis From Dashboard
+### 6. Run Analysis From Dashboard
 
 Open the Analysis tab at:
 - `http://127.0.0.1:8765/analyze`
@@ -181,7 +347,7 @@ From that page you can:
 - toggle `--per-model`
 - choose robust SE type (`HC0`–`HC3`)
 
-Click **Run Analysis** to execute `analyze_results.py` on demand and view output inline.
+Click **Run Analysis** to execute the analysis wrapper on demand and view output inline.
 
 ## Reference
 
