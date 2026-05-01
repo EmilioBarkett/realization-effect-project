@@ -61,11 +61,15 @@ The key distinction across all versions: **paper** scenarios specify the player 
 realization-effect-project/
 ├── src/
 │   ├── realization_effect/      # Prompting, running, parsing, analysis, reconciliation
-│   └── interpretability/        # Residual-stream logging for SAE work
+│   └── emotion_activation/      # Emotion probes, residual streams, steering prep
 ├── scripts/                     # Preferred command-line entrypoints
 ├── tests/                       # Regression tests for parsing and analysis checks
 │   └── fixtures/noncanonical/   # Local ignored archive of non-canonical CSVs
-├── configs/realization_effect/  # Conditions and model catalogues
+├── configs/
+│   ├── realization_effect/      # Conditions and model catalogues
+│   └── emotion_activation/      # Emotion contrast definitions
+├── experiments/
+│   └── emotion_activation/      # Reviewable emotion-probe prompts
 ├── notebooks/realization_effect/ # Ordered exploratory notebooks
 ├── reports/                     # Current findings, midterm material, source papers
 ├── results/                     # Active canonical CSVs plus resumable block CSVs
@@ -85,6 +89,10 @@ read:
 
 The current cleaned-results summary is in
 `reports/current_findings.md`.
+
+The emotion-vector extension is documented in
+`experiments/emotion_activation/README.md` and
+`docs/emotion_probe_design.md`.
 
 ## Workflow
 
@@ -182,10 +190,10 @@ parser without re-querying any model.
 
 ### 3. Log residual streams for SAE work
 
-The `src/interpretability` package contains a Hugging Face forward-pass adapter
-adapted from the metageniuses extraction code. It registers forward hooks on
-selected transformer blocks and writes residual stream tensors plus prompt
-metadata for later SAE training.
+The `src/emotion_activation` package contains a Hugging Face forward-pass
+adapter adapted from the metageniuses extraction code. It registers forward
+hooks on selected transformer blocks and writes residual stream tensors plus
+prompt metadata for later emotion-vector and SAE work.
 
 See `docs/forward_pass_plan.md` for the intended extraction contract before
 expanding the SAE-facing logic.
@@ -197,10 +205,11 @@ Example smoke run against local Gemma files:
   --model-id models/gemma-3-4b-pt \
   --layers 12,18 \
   --prompt-version absolute \
+  --token-mode nonpad \
   --batch-size 1 \
   --limit 2 \
   --local-files-only \
-  --output-dir results/residual_streams/gemma3_4b_smoke
+  --run-name gemma3_4b_smoke
 ```
 
 Outputs:
@@ -211,6 +220,17 @@ Outputs:
   `[batch, sequence_length, d_model]`.
 - `activations/layer_XX/batch_*.jsonl` — prompt IDs and token IDs aligned to
   each batch tensor.
+
+Useful extraction options:
+
+- `--block-path model.layers` forces hook placement when automatic model
+  architecture detection is not enough.
+- `--token-mode all|nonpad|final` chooses whether to save every padded token,
+  all non-padding tokens, or only the final non-padding token.
+- `--results-csv results/results.csv` attaches condition-level behavioral
+  summaries to prompt metadata; use `--no-results-join` to skip this.
+- If `--output-dir` is omitted, the script creates a deterministic run
+  directory under `results/residual_streams/`.
 
 ### 4. Analyse results
 

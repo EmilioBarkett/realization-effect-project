@@ -4,8 +4,9 @@ This project has two halves:
 
 1. The behavioral realization-effect experiment, which produces
    `results/results.csv`.
-2. The forward-pass interpretability workflow, which will log residual stream
-   activations for the same prompt set and prepare them for later SAE analysis.
+2. The emotion-activation workflow, which will log residual stream activations,
+   estimate emotion vectors, and prepare them for later steering and SAE
+   analysis.
 
 The second half is intentionally still in progress. This note defines the
 expected process before the implementation gets larger.
@@ -33,15 +34,20 @@ The main entrypoint is:
   --model-id models/gemma-3-4b-pt \
   --layers 12,18 \
   --prompt-version absolute \
+  --token-mode nonpad \
   --batch-size 1 \
   --limit 2 \
   --local-files-only \
-  --output-dir results/residual_streams/gemma3_4b_smoke
+  --run-name gemma3_4b_smoke
 ```
 
 The script should support a tiny smoke run before any full extraction. The
 smoke run should verify that tokenizer loading, model loading, hook placement,
 activation writing, and manifest writing all work for the selected local model.
+If `--output-dir` is omitted, the script writes to
+`results/residual_streams/<deterministic-run-name>`. The automatic run name is
+derived from model, prompt source, selected layers, token mode, and a prompt
+fingerprint. Pass `--overwrite` to reuse a non-empty output directory.
 
 ## Outputs
 
@@ -61,19 +67,30 @@ results/residual_streams/<run_name>/
 
 `manifest.json` records the model, tokenizer, selected layers, batch size,
 maximum token length, local-files-only mode, dtype, device, total prompt count,
-and activation shard list.
+resolved transformer block path, token mode, behavioral-results source, and
+activation shard list.
 
 Each `.npy` activation shard is expected to have shape
 `[batch, sequence_length, d_model]` and be saved as float32. The paired `.jsonl`
 file stores prompt IDs, token IDs, token positions, and prompt metadata for each
 row in the tensor.
 
+The paired metadata can include condition-level behavioral summaries from
+`results/results.csv`. This join is enabled by default and can be disabled with
+`--no-results-join`.
+
 ## Guardrails
 
 - Layer numbers are 1-based transformer block indices.
 - Requested layers must be present in the model.
+- Hook placement can be forced with `--block-path`, for example
+  `--block-path model.layers`.
 - `prompts` and `prompt_ids` must have the same length.
 - The workflow should fail loudly if it cannot resolve transformer blocks.
+- `--token-mode all` saves every padded sequence position.
+- `--token-mode nonpad` saves all non-padding prompt tokens and pads within the
+  activation shard only as needed for rectangular tensors.
+- `--token-mode final` saves only the final non-padding token for each prompt.
 - Full extraction outputs stay gitignored under `results/residual_streams/`.
 - Small tests should cover parsing, prompt metadata loading, manifest shape, and
   shard-writing structure without requiring a real model download.
@@ -82,8 +99,7 @@ row in the tensor.
 
 Before larger SAE logic, tighten the forward-pass adapter around:
 
-- model architecture support and clearer errors,
-- optional extraction of final token positions only,
-- deterministic run naming,
-- metadata joins back to `results/results.csv`,
-- lightweight smoke fixtures for one tiny local or mocked model path.
+- choosing the precise activation site for the first serious SAE run,
+- model-family-specific block paths for the first target model,
+- metadata joins from prompt-level activations to row-level behavioral outputs,
+- optional answer-span extraction once generated responses enter the pipeline.
