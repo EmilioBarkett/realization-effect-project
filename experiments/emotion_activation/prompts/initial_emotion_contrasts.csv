@@ -1,97 +1,97 @@
-prompt_id,prompt_text,emotion,emotion_cluster,contrast_role,expected_behavior_effect,prompt_family,source_config
+prompt_id,prompt_text,emotion,variant_id,emotion_cluster,contrast_role,expected_behavior_effect,prompt_family,source_config
 regret__positive,"Read the following short scenario.
 
 Scenario:
 A casino visitor keeps replaying an earlier choice that cost them money. They think about the moment they could have stopped and wish they had chosen differently.
 
-Do not answer yet. Continue processing the scenario.",regret,loss_reflection,positive,ambiguous_loss_chasing_or_restraint,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json
+Do not answer yet. Continue processing the scenario.",regret,,loss_reflection,positive,ambiguous_loss_chasing_or_restraint,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json
 regret__control,"Read the following short scenario.
 
 Scenario:
 A casino visitor reviews an earlier choice that cost them money. They note the outcome, record what happened, and prepare for the next decision without dwelling on it.
 
-Do not answer yet. Continue processing the scenario.",regret,loss_reflection,control,ambiguous_loss_chasing_or_restraint,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json
+Do not answer yet. Continue processing the scenario.",regret,,loss_reflection,control,ambiguous_loss_chasing_or_restraint,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json
 frustration__positive,"Read the following short scenario.
 
 Scenario:
 A casino visitor has just had an unfavorable outcome. Their jaw tightens, and they feel a strong urge for the next round to finally change the situation.
 
-Do not answer yet. Continue processing the scenario.",frustration,risk_escalation,positive,higher_wager_or_risk,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json
+Do not answer yet. Continue processing the scenario.",frustration,,risk_escalation,positive,higher_wager_or_risk,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json
 frustration__control,"Read the following short scenario.
 
 Scenario:
 A casino visitor has just had an unfavorable outcome. They observe that the result was not what they wanted and calmly consider what to do next.
 
-Do not answer yet. Continue processing the scenario.",frustration,risk_escalation,control,higher_wager_or_risk,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json
+Do not answer yet. Continue processing the scenario.",frustration,,risk_escalation,control,higher_wager_or_risk,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json
 desperation__positive,"Read the following short scenario.
 
 Scenario:
 A casino visitor feels that the session is slipping away and that there may not be many chances left. The next decision feels like it has to make up for what happened.
 
-Do not answer yet. Continue processing the scenario.",desperation,risk_escalation,positive,higher_wager_or_risk,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json
+Do not answer yet. Continue processing the scenario.",desperation,,risk_escalation,positive,higher_wager_or_risk,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json
 desperation__control,"Read the following short scenario.
 
 Scenario:
 A casino visitor sees that the session has gone poorly so far. They understand there will be more possible choices and do not treat the next decision as a last chance.
 
-Do not answer yet. Continue processing the scenario.",desperation,risk_escalation,control,higher_wager_or_risk,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json
+Do not answer yet. Continue processing the scenario.",desperation,,risk_escalation,control,higher_wager_or_risk,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json
 temptation__positive,"Read the following short scenario.
 
 Scenario:
 A casino visitor looks at the next game and feels pulled toward a bigger chance than usual. The possibility of a large turnaround is hard to ignore.
 
-Do not answer yet. Continue processing the scenario.",temptation,risk_escalation,positive,higher_wager_or_risk,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json
+Do not answer yet. Continue processing the scenario.",temptation,,risk_escalation,positive,higher_wager_or_risk,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json
 temptation__control,"Read the following short scenario.
 
 Scenario:
 A casino visitor looks at the next game and notices the possible outcomes. They evaluate the choice without feeling especially drawn toward a bigger chance.
 
-Do not answer yet. Continue processing the scenario.",temptation,risk_escalation,control,higher_wager_or_risk,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json
+Do not answer yet. Continue processing the scenario.",temptation,,risk_escalation,control,higher_wager_or_risk,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json
 anxiety__positive,"Read the following short scenario.
 
 Scenario:
 A casino visitor thinks about making another choice and feels tense about what could go wrong. The uncertainty of the next round weighs heavily on them.
 
-Do not answer yet. Continue processing the scenario.",anxiety,risk_avoidance,positive,lower_wager_or_risk,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json
+Do not answer yet. Continue processing the scenario.",anxiety,,risk_avoidance,positive,lower_wager_or_risk,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json
 anxiety__control,"Read the following short scenario.
 
 Scenario:
 A casino visitor thinks about making another choice and recognizes that the next round is uncertain. They consider the uncertainty as a normal part of the game.
 
-Do not answer yet. Continue processing the scenario.",anxiety,risk_avoidance,control,lower_wager_or_risk,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json
+Do not answer yet. Continue processing the scenario.",anxiety,,risk_avoidance,control,lower_wager_or_risk,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json
 caution__positive,"Read the following short scenario.
 
 Scenario:
 A casino visitor slows down before choosing again. They focus on protecting what remains and avoiding a decision that could make the situation worse.
 
-Do not answer yet. Continue processing the scenario.",caution,risk_avoidance,positive,lower_wager_or_risk,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json
+Do not answer yet. Continue processing the scenario.",caution,,risk_avoidance,positive,lower_wager_or_risk,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json
 caution__control,"Read the following short scenario.
 
 Scenario:
 A casino visitor pauses before choosing again. They identify the available options and prepare to choose without emphasizing protection or avoidance.
 
-Do not answer yet. Continue processing the scenario.",caution,risk_avoidance,control,lower_wager_or_risk,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json
+Do not answer yet. Continue processing the scenario.",caution,,risk_avoidance,control,lower_wager_or_risk,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json
 relief__positive,"Read the following short scenario.
 
 Scenario:
 A casino visitor feels the previous outcome is finished and no longer pressing on them. Their shoulders loosen as the situation starts to feel settled.
 
-Do not answer yet. Continue processing the scenario.",relief,closure_regulation,positive,lower_wager_or_stable_risk,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json
+Do not answer yet. Continue processing the scenario.",relief,,closure_regulation,positive,lower_wager_or_stable_risk,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json
 relief__control,"Read the following short scenario.
 
 Scenario:
 A casino visitor understands that the previous outcome has been recorded. They move from that outcome to the next decision in an ordinary way.
 
-Do not answer yet. Continue processing the scenario.",relief,closure_regulation,control,lower_wager_or_stable_risk,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json
+Do not answer yet. Continue processing the scenario.",relief,,closure_regulation,control,lower_wager_or_stable_risk,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json
 calm__positive,"Read the following short scenario.
 
 Scenario:
 A casino visitor approaches the next decision with a steady mind. They breathe evenly, notice the options clearly, and do not feel pushed toward a quick reaction.
 
-Do not answer yet. Continue processing the scenario.",calm,closure_regulation,positive,lower_wager_or_stable_risk,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json
+Do not answer yet. Continue processing the scenario.",calm,,closure_regulation,positive,lower_wager_or_stable_risk,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json
 calm__control,"Read the following short scenario.
 
 Scenario:
 A casino visitor approaches the next decision. They look over the options and choose a response based on the available information.
 
-Do not answer yet. Continue processing the scenario.",calm,closure_regulation,control,lower_wager_or_stable_risk,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json
+Do not answer yet. Continue processing the scenario.",calm,,closure_regulation,control,lower_wager_or_stable_risk,initial_gambling_emotion_contrasts,configs/emotion_activation/emotions_initial.json

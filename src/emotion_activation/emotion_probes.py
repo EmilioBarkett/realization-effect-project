@@ -25,6 +25,32 @@ def _require_string(row: dict[str, Any], key: str) -> str:
     return value.strip()
 
 
+def _iter_prompt_variants(row: dict[str, Any]) -> Iterable[tuple[str | None, str, str]]:
+    variants = row.get("variants")
+    if variants is None:
+        yield (
+            None,
+            _require_string(row, "positive_prompt"),
+            _require_string(row, "control_prompt"),
+        )
+        return
+
+    if not isinstance(variants, list) or not variants:
+        raise ValueError("'variants' must be a non-empty list when provided.")
+
+    for index, variant in enumerate(variants, start=1):
+        if not isinstance(variant, dict):
+            raise ValueError("Each emotion prompt variant must be an object.")
+        variant_id = str(variant.get("variant_id") or f"{index:02d}").strip()
+        if not variant_id:
+            raise ValueError("Emotion prompt variant_id must be non-empty.")
+        yield (
+            variant_id,
+            _require_string(variant, "positive_prompt"),
+            _require_string(variant, "control_prompt"),
+        )
+
+
 def load_emotion_probe_records(path: Path = DEFAULT_EMOTION_CONFIG) -> list[EmotionProbeRecord]:
     data = json.loads(path.read_text(encoding="utf-8"))
     template = data.get("template")
@@ -42,26 +68,33 @@ def load_emotion_probe_records(path: Path = DEFAULT_EMOTION_CONFIG) -> list[Emot
         emotion = _require_string(row, "emotion")
         cluster = _require_string(row, "cluster")
         expected_behavior_effect = _require_string(row, "expected_behavior_effect")
-        for contrast_role, scenario_key in (
-            ("positive", "positive_prompt"),
-            ("control", "control_prompt"),
-        ):
-            scenario = _require_string(row, scenario_key)
-            prompt_id = f"{emotion}__{contrast_role}"
-            records.append(
-                EmotionProbeRecord(
-                    prompt_id=prompt_id,
-                    prompt_text=template.format(scenario=scenario),
-                    metadata={
-                        "prompt_family": data.get("name", "emotion_probe"),
-                        "emotion": emotion,
-                        "emotion_cluster": cluster,
-                        "contrast_role": contrast_role,
-                        "expected_behavior_effect": expected_behavior_effect,
-                        "source_config": str(path),
-                    },
+        for variant_id, positive_prompt, control_prompt in _iter_prompt_variants(row):
+            for contrast_role, scenario in (
+                ("positive", positive_prompt),
+                ("control", control_prompt),
+            ):
+                prompt_id = (
+                    f"{emotion}__{contrast_role}"
+                    if variant_id is None
+                    else f"{emotion}__{variant_id}__{contrast_role}"
                 )
-            )
+                metadata = {
+                    "prompt_family": data.get("name", "emotion_probe"),
+                    "emotion": emotion,
+                    "emotion_cluster": cluster,
+                    "contrast_role": contrast_role,
+                    "expected_behavior_effect": expected_behavior_effect,
+                    "source_config": str(path),
+                }
+                if variant_id is not None:
+                    metadata["variant_id"] = variant_id
+                records.append(
+                    EmotionProbeRecord(
+                        prompt_id=prompt_id,
+                        prompt_text=template.format(scenario=scenario),
+                        metadata=metadata,
+                    )
+                )
 
     return records
 
@@ -72,6 +105,7 @@ def write_emotion_probe_csv(records: Iterable[EmotionProbeRecord], output_path: 
         "prompt_id",
         "prompt_text",
         "emotion",
+        "variant_id",
         "emotion_cluster",
         "contrast_role",
         "expected_behavior_effect",
@@ -87,6 +121,7 @@ def write_emotion_probe_csv(records: Iterable[EmotionProbeRecord], output_path: 
                     "prompt_id": record.prompt_id,
                     "prompt_text": record.prompt_text,
                     "emotion": record.metadata["emotion"],
+                    "variant_id": record.metadata.get("variant_id", ""),
                     "emotion_cluster": record.metadata["emotion_cluster"],
                     "contrast_role": record.metadata["contrast_role"],
                     "expected_behavior_effect": record.metadata["expected_behavior_effect"],

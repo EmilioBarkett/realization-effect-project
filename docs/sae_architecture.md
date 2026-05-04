@@ -1,7 +1,8 @@
 # SAE Architecture
 
-The SAE layer is intentionally separate from residual-stream logging. It is
-currently scaffolding only: no SAE model is trained here yet.
+The SAE layer is intentionally separate from residual-stream logging. It now
+has an executable local PyTorch training scaffold, but the data collection and
+research settings are still expected to be chosen before a serious run.
 
 `src/emotion_activation/` owns prompt construction, forward passes, activation
 capture, and run validation. `src/sae/` starts from completed activation run
@@ -26,9 +27,10 @@ src/sae/
 ├── __init__.py
 ├── config.py       # Dataset config objects for activation-run selection
 ├── dataset.py      # Iterator from activation shards to token-level vectors
-├── metrics.py      # Planned metric names for future training/evaluation
+├── metrics.py      # Planned metric names for training/evaluation
+├── model.py        # Small local sparse autoencoder module
 ├── features.py     # Placeholder feature-analysis interfaces
-└── training.py     # Placeholder for the future SAE backend
+└── training.py     # Local training loop over activation vectors
 ```
 
 The first stable API is:
@@ -37,7 +39,7 @@ The first stable API is:
 from sae.dataset import iter_activation_vectors
 
 for record in iter_activation_vectors(
-    "results/residual_streams/test_gemma3_4b_regions_smoke",
+    "results/test/residual_streams/test_gemma3_4b_regions_smoke",
     layers={12},
     token_regions={"scenario", "decision_question"},
 ):
@@ -61,8 +63,31 @@ over all vectors while still slicing later by:
 - layer
 - activation site
 
-The immediate next step is not full training. It is to collect enough validated
+The immediate next step for a real SAE is still to collect enough validated
 activation runs and inspect whether the dataset contains the right vector counts
-by layer and token region.
+by layer and token region. The training scaffold exists so that once those runs
+are available, the project can move directly from a dataset config to a saved
+checkpoint.
+
+## Training Scaffold
+
+The first backend is deliberately small and local:
+
+- a single-layer encoder/decoder SAE in `sae.model`
+- `relu` or `topk` feature activations
+- MSE reconstruction loss plus optional L1 penalty
+- checkpoint and JSON manifest output under ignored `results/final/sae/`
+  for current reference runs or `results/test/sae/` for smoke runs
+
+Example command after filling `configs/sae/initial_dataset_template.json`:
+
+```bash
+./venv/bin/python scripts/train_sae.py \
+  --dataset-config configs/sae/initial_dataset_template.json \
+  --training-config configs/sae/initial_training_template.json
+```
+
+This is meant to validate the full post-inference path before committing to a
+larger SAE library or a more expensive training run.
 
 Implementation decisions are tracked in `docs/sae_decisions.md`.

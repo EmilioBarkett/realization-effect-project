@@ -6,10 +6,9 @@ dataset boundary, but no trained SAE.
 
 ## Backend
 
-Decision needed: use a small local PyTorch SAE, an external library, or both.
-
-Current bias: keep the first version readable and local unless an external
-library clearly improves reliability.
+Initial scaffold: a small local PyTorch SAE. Decision still needed before
+serious training: keep this backend, replace it with an external library, or
+support both.
 
 ## Training Data
 

@@ -24,6 +24,20 @@ results/legacy/results.before_*.csv
 results/legacy/results_legacy_gpt-4.1-mini.csv
 results/legacy/results_temp05.csv
 results/legacy/top_level_cleanup_*/
+results/test/**
+!results/test/
+!results/test/README.md
+!results/test/residual_streams/
+!results/test/residual_streams/README.md
+!results/test/sae/
+!results/test/sae/README.md
+results/final/**
+!results/final/
+!results/final/README.md
+!results/final/residual_streams/
+!results/final/residual_streams/README.md
+!results/final/sae/
+!results/final/sae/README.md
 data/interpretability/activations/
 data/interpretability/sae_runs/
 

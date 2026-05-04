@@ -4,12 +4,14 @@ import json
 from pathlib import Path
 
 import numpy as np
+import pytest
 
-from sae.config import SAEDatasetConfig
+from sae.config import SAEDatasetConfig, SAETrainingConfig
 from sae.dataset import iter_activation_vectors, summarize_activation_dataset
 from sae.features import SAEFeatureAnalysisNotImplementedError, top_activating_examples
 from sae.metrics import planned_metric_names
-from sae.training import SAETrainingNotImplementedError, train_sae
+from sae.model import load_sae_model
+from sae.training import train_sae
 
 
 def _write_jsonl(path: Path, rows: list[dict]) -> None:
@@ -139,13 +141,48 @@ def test_sae_dataset_config_round_trips_paths(tmp_path: Path) -> None:
     assert config.to_json_dict()["max_vectors"] == 100
 
 
-def test_train_sae_placeholder_is_explicit() -> None:
-    try:
-        train_sae()
-    except SAETrainingNotImplementedError as exc:
-        assert "not implemented yet" in str(exc)
-    else:  # pragma: no cover - defensive.
-        raise AssertionError("train_sae should be an explicit placeholder")
+def test_sae_training_config_derives_model_width() -> None:
+    config = SAETrainingConfig(expansion_factor=4, activation="topk", top_k=3)
+
+    model_config = config.model_config_for_input(8)
+
+    assert model_config.d_in == 8
+    assert model_config.d_sae == 32
+    assert model_config.activation == "topk"
+    assert model_config.top_k == 3
+
+
+def test_train_sae_writes_checkpoint_and_manifest(tmp_path: Path) -> None:
+    pytest.importorskip("torch")
+    run_dir = _make_activation_run(tmp_path)
+    dataset_config = SAEDatasetConfig(
+        activation_runs=(run_dir,),
+        layers=(12,),
+        token_regions=("scenario", "decision_question", "response_instruction"),
+        activation_site="resid_post",
+    )
+    training_config = SAETrainingConfig(
+        d_sae=16,
+        activation="topk",
+        top_k=4,
+        batch_size=2,
+        max_steps=3,
+        output_dir=tmp_path / "sae_out",
+        device="cpu",
+    )
+
+    result = train_sae(dataset_config, training_config)
+
+    assert result.steps == 3
+    assert result.model_config.d_in == 8
+    assert result.model_config.d_sae == 16
+    assert result.checkpoint_path.exists()
+    assert result.manifest_path.exists()
+    manifest = json.loads(result.manifest_path.read_text(encoding="utf-8"))
+    assert manifest["final_metrics"]["reconstruction_mse"] >= 0.0
+    assert manifest["dataset_config"]["activation_runs"] == [str(run_dir)]
+    loaded = load_sae_model(result.checkpoint_path)
+    assert loaded.config.d_in == 8
 
 
 def test_sae_metric_plan_names_future_metrics() -> None:

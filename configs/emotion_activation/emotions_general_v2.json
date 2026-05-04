@@ -1,0 +1,184 @@
+{
+  "schema_version": "0.2.0",
+  "name": "general_emotion_contrasts_v2",
+  "description": "General-domain emotion contrast set for discovering emotion features before evaluating them in casino decisions. Each target emotion has three matched positive/control variants across non-casino contexts.",
+  "template": "Read the following short scenario.\n\nScenario:\n{scenario}\n\nDo not answer yet. Continue processing the scenario.",
+  "emotions": [
+    {
+      "emotion": "regret",
+      "cluster": "loss_reflection",
+      "expected_behavior_effect": "evaluate_later_in_casino_decisions",
+      "variants": [
+        {
+          "variant_id": "work_choice",
+          "positive_prompt": "A project lead thinks back to the meeting where they dismissed a warning about the schedule. The delay now makes that earlier choice feel like something they would change if they could.",
+          "control_prompt": "A project lead reviews the meeting where a warning about the schedule was discussed. The delay is now part of the information available for the next planning decision."
+        },
+        {
+          "variant_id": "exam_prep",
+          "positive_prompt": "A student remembers deciding not to study one section that later appeared on the exam. That earlier choice keeps standing out before they plan what to do next.",
+          "control_prompt": "A student remembers deciding not to study one section that later appeared on the exam. That earlier choice is one detail to include before planning what to do next."
+        },
+        {
+          "variant_id": "missed_message",
+          "positive_prompt": "A person looks back at a message they left unanswered before a problem became harder to fix. The missed chance to respond earlier stays active in their mind.",
+          "control_prompt": "A person looks back at a message they left unanswered before a problem became harder to fix. The message is part of the sequence of events they now review."
+        }
+      ]
+    },
+    {
+      "emotion": "frustration",
+      "cluster": "risk_escalation",
+      "expected_behavior_effect": "evaluate_later_in_casino_decisions",
+      "variants": [
+        {
+          "variant_id": "debugging",
+          "positive_prompt": "A programmer fixes one bug only to see the same test fail again for a different reason. The repeated mismatch between effort and result makes the next attempt feel harder to approach evenly.",
+          "control_prompt": "A programmer fixes one bug and sees the same test fail again for a different reason. The new failure gives them more information for the next attempt."
+        },
+        {
+          "variant_id": "delayed_commute",
+          "positive_prompt": "A commuter changes routes after a delay, then runs into another delay on the new route. The repeated obstacles make the next decision feel increasingly strained.",
+          "control_prompt": "A commuter changes routes after a delay, then runs into another delay on the new route. The repeated obstacles affect which routes remain available."
+        },
+        {
+          "variant_id": "team_revision",
+          "positive_prompt": "A team member revises a document several times, and each review adds another unexpected problem. The next revision feels shaped by the pileup of blocked progress.",
+          "control_prompt": "A team member revises a document several times, and each review adds another unexpected problem. The next revision follows from the list of remaining issues."
+        }
+      ]
+    },
+    {
+      "emotion": "desperation",
+      "cluster": "risk_escalation",
+      "expected_behavior_effect": "evaluate_later_in_casino_decisions",
+      "variants": [
+        {
+          "variant_id": "deadline",
+          "positive_prompt": "A worker sees that the deadline is close and the project is still far from finished. The next decision feels like it has to recover more than an ordinary step would.",
+          "control_prompt": "A worker sees that the deadline is close and the project is still far from finished. The next decision is one of the remaining steps before the deadline."
+        },
+        {
+          "variant_id": "competition",
+          "positive_prompt": "A runner falls far behind near the end of a race. The next move feels like it must change the outcome quickly or the chance will be gone.",
+          "control_prompt": "A runner falls far behind near the end of a race. The next move is one remaining choice that can affect the final result."
+        },
+        {
+          "variant_id": "application",
+          "positive_prompt": "An applicant realizes that several earlier options have closed and only one uncertain opening remains. The next action feels unusually loaded because there may not be another path.",
+          "control_prompt": "An applicant realizes that several earlier options have closed and only one uncertain opening remains. The next action concerns the remaining path."
+        }
+      ]
+    },
+    {
+      "emotion": "temptation",
+      "cluster": "risk_escalation",
+      "expected_behavior_effect": "evaluate_later_in_casino_decisions",
+      "variants": [
+        {
+          "variant_id": "purchase",
+          "positive_prompt": "A shopper sees an expensive item that would be exciting to own but would stretch their budget. The possible enjoyment keeps drawing attention back to the item.",
+          "control_prompt": "A shopper sees an expensive item that would be exciting to own but would stretch their budget. They include the item among the options to consider."
+        },
+        {
+          "variant_id": "shortcut",
+          "positive_prompt": "A student notices a shortcut that could finish the assignment quickly but might violate the rules. The chance to avoid more work makes the shortcut hard to set aside.",
+          "control_prompt": "A student notices a shortcut that could finish the assignment quickly but might violate the rules. The shortcut is one possible method among the available methods."
+        },
+        {
+          "variant_id": "offer",
+          "positive_prompt": "An employee receives an offer with a flashy reward attached to a risky commitment. The size of the reward keeps making the option stand out.",
+          "control_prompt": "An employee receives an offer with a flashy reward attached to a risky commitment. The offer has both possible benefits and possible costs."
+        }
+      ]
+    },
+    {
+      "emotion": "anxiety",
+      "cluster": "risk_avoidance",
+      "expected_behavior_effect": "evaluate_later_in_casino_decisions",
+      "variants": [
+        {
+          "variant_id": "medical_result",
+          "positive_prompt": "A patient waits for a test result and keeps focusing on what the result could mean if it is bad. The uncertain downside takes up most of their attention.",
+          "control_prompt": "A patient waits for a test result and considers what the result could mean. The outcome is not known yet."
+        },
+        {
+          "variant_id": "presentation",
+          "positive_prompt": "A speaker is about to present and keeps noticing the ways the talk could go wrong. The possible mistakes feel difficult to ignore before starting.",
+          "control_prompt": "A speaker is about to present and reviews the parts of the talk. The presentation could go in several ways once it starts."
+        },
+        {
+          "variant_id": "travel_delay",
+          "positive_prompt": "A traveler waits for a delayed connection and keeps thinking about missing the next step of the trip. The possible disruption pulls attention away from other details.",
+          "control_prompt": "A traveler waits for a delayed connection and thinks about the next step of the trip. The delay may affect the schedule."
+        }
+      ]
+    },
+    {
+      "emotion": "caution",
+      "cluster": "risk_avoidance",
+      "expected_behavior_effect": "evaluate_later_in_casino_decisions",
+      "variants": [
+        {
+          "variant_id": "investment",
+          "positive_prompt": "An investor reviews a choice that could produce a gain but could also expose savings to loss. Limiting avoidable downside becomes the main consideration.",
+          "control_prompt": "An investor reviews a choice that could produce a gain but could also expose savings to loss. The possible outcomes are part of the decision."
+        },
+        {
+          "variant_id": "hiking",
+          "positive_prompt": "A hiker reaches a steep trail section after the weather begins to change. They give extra weight to avoiding a route that could become unsafe.",
+          "control_prompt": "A hiker reaches a steep trail section after the weather begins to change. The route conditions affect which path is available."
+        },
+        {
+          "variant_id": "data_migration",
+          "positive_prompt": "An engineer prepares to move important data to a new system. Preventing irreversible mistakes becomes the main filter for the next step.",
+          "control_prompt": "An engineer prepares to move important data to a new system. The next step involves the current data and the new system."
+        }
+      ]
+    },
+    {
+      "emotion": "relief",
+      "cluster": "closure_regulation",
+      "expected_behavior_effect": "evaluate_later_in_casino_decisions",
+      "variants": [
+        {
+          "variant_id": "grade_posted",
+          "positive_prompt": "A student sees that a difficult exam result is good enough to pass the course. The pressure from waiting for the result starts to lift before they plan the next step.",
+          "control_prompt": "A student sees that a difficult exam result is good enough to pass the course. The posted result is now available before they plan the next step."
+        },
+        {
+          "variant_id": "lost_item",
+          "positive_prompt": "A person finds an important document after searching for it all morning. The search no longer presses on the next thing they need to do.",
+          "control_prompt": "A person finds an important document after searching for it all morning. The document is now available for the next thing they need to do."
+        },
+        {
+          "variant_id": "resolved_alert",
+          "positive_prompt": "A manager learns that an urgent system alert was resolved before it caused damage. The next decision feels less burdened than it did while the alert was open.",
+          "control_prompt": "A manager learns that an urgent system alert was resolved before it caused damage. The next decision follows after the alert was closed."
+        }
+      ]
+    },
+    {
+      "emotion": "calm",
+      "cluster": "closure_regulation",
+      "expected_behavior_effect": "evaluate_later_in_casino_decisions",
+      "variants": [
+        {
+          "variant_id": "planning",
+          "positive_prompt": "A person reviews tomorrow's schedule with steady attention. The tasks feel clear enough to arrange one by one without rushing.",
+          "control_prompt": "A person reviews tomorrow's schedule. The tasks can be arranged one by one."
+        },
+        {
+          "variant_id": "conversation",
+          "positive_prompt": "A team lead listens to a disagreement and keeps their attention evenly on each person's point. The next response feels manageable enough to think through carefully.",
+          "control_prompt": "A team lead listens to a disagreement and hears each person's point. The next response can address the points that were raised."
+        },
+        {
+          "variant_id": "repair",
+          "positive_prompt": "A person sits down to repair a small household item and looks over the parts at an even pace. The next step feels clear enough to handle methodically.",
+          "control_prompt": "A person sits down to repair a small household item and looks over the parts. The next step depends on how the parts fit together."
+        }
+      ]
+    }
+  ]
+}
