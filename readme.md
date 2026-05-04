@@ -226,6 +226,7 @@ Example smoke run against local Gemma files:
   --activation-site resid_post \
   --token-mode nonpad \
   --token-region-strategy auto \
+  --include-token-regions scenario,decision_question \
   --storage-dtype float16 \
   --batch-size 1 \
   --limit 2 \
@@ -246,7 +247,7 @@ Validate a completed run before using it downstream:
 
 ```bash
 ./venv/bin/python scripts/validate_activation_run.py \
-  results/residual_streams/gemma3_4b_smoke
+  results/test/residual_streams/gemma3_4b_smoke
 ```
 
 Inspect a validated run as an SAE/vector dataset. This does not train an SAE;
@@ -254,7 +255,7 @@ it only counts the vectors available for later analysis:
 
 ```bash
 ./venv/bin/python scripts/inspect_sae_dataset.py \
-  results/residual_streams/gemma3_4b_smoke \
+  results/test/residual_streams/gemma3_4b_smoke \
   --layers 12 \
   --token-regions scenario,decision_question
 ```
@@ -271,31 +272,47 @@ Useful extraction options:
 - `--token-region-strategy auto` labels saved tokens as regions such as
   `scenario`, `decision_question`, `response_instruction`, or
   `processing_instruction` without filtering out the broader activation data.
+- `--include-token-regions scenario,decision_question` filters written activation
+  shards to only those region labels, reducing storage for SAE-focused runs.
 - `--storage-dtype float16|float32` controls saved tensor precision. The
   default is `float16` to reduce local storage; downstream analysis can cast
   vectors back to float32 when averaging or training.
 - `--results-csv results/results.csv` attaches condition-level behavioral
   summaries to prompt metadata; use `--no-results-join` to skip this.
 - If `--output-dir` is omitted, the script creates a deterministic run
-  directory under `results/residual_streams/`.
+  directory under `results/test/residual_streams/` unless `--output-dir` is provided.
+  Use `results/test/residual_streams/` for disposable smoke runs and
+  `results/final/residual_streams/` for current reference activation datasets.
 
 ### 4. SAE scaffolding status
 
-The current SAE package is intentionally limited to dataset and planning
-interfaces:
+The current SAE package has the dataset boundary plus a small local PyTorch
+training scaffold:
 
 ```text
 src/sae/
 ├── config.py       # Dataset selection configs
 ├── dataset.py      # Iterates activation runs into token vectors + metadata
 ├── metrics.py      # Planned metric names
+├── model.py        # Single-layer sparse autoencoder module
 ├── features.py     # Placeholder feature-analysis interface
-└── training.py     # Explicit not-implemented training placeholder
+└── training.py     # Local training loop over activation vectors
 ```
 
-Before training an SAE, decide the backend, layer, token-region mix, activation
-distribution, storage precision, and evaluation criteria. Those open decisions
-are listed in `docs/sae_decisions.md`.
+After validated activation runs exist, fill `configs/sae/initial_dataset_template.json`
+and run:
+
+```bash
+./venv/bin/python scripts/train_sae.py \
+  --dataset-config configs/sae/initial_dataset_template.json \
+  --training-config configs/sae/initial_training_template.json
+```
+
+The scaffold trains a simple `relu` or `topk` SAE, writes a checkpoint and
+manifest under `results/final/sae/`, and keeps the backend small enough to replace
+later. Before trusting a serious SAE, still decide the layer, token-region mix,
+activation distribution, storage precision, evaluation criteria, and validation
+split listed in `docs/sae_decisions.md`.
 
 ### 5. Analyse results
 

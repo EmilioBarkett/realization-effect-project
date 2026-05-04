@@ -2,7 +2,7 @@
   "schema_version": "0.1.0",
   "description": "Local smoke-test SAE dataset config. The referenced activation run is gitignored and must be generated locally.",
   "activation_runs": [
-    "results/residual_streams/test_gemma3_4b_regions_smoke"
+    "results/test/residual_streams/test_gemma3_4b_regions_smoke"
   ],
   "layers": [
     12
@@ -11,4 +11,3 @@
   "activation_site": "resid_post",
   "max_vectors": null
 }
-

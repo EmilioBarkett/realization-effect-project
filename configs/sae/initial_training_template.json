@@ -1,0 +1,17 @@
+{
+  "schema_version": "0.1.0",
+  "description": "Template training settings for the first local SAE scaffold. Pair with a dataset config after validated activation runs exist.",
+  "expansion_factor": 8,
+  "d_sae": null,
+  "activation": "topk",
+  "top_k": 32,
+  "l1_coefficient": 0.0,
+  "learning_rate": 0.0003,
+  "batch_size": 256,
+  "max_steps": 1000,
+  "seed": 0,
+  "device": "auto",
+  "normalization": "mean_center_global_norm",
+  "normalization_eps": 1e-8,
+  "output_dir": "results/final/sae/initial_local_sae"
+}

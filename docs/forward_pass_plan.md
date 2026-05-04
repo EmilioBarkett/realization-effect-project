@@ -37,6 +37,7 @@ The main entrypoint is:
   --activation-site resid_post \
   --token-mode nonpad \
   --token-region-strategy auto \
+  --include-token-regions scenario,decision_question \
   --storage-dtype float16 \
   --batch-size 1 \
   --limit 2 \
@@ -48,7 +49,7 @@ The script should support a tiny smoke run before any full extraction. The
 smoke run should verify that tokenizer loading, model loading, hook placement,
 activation writing, and manifest writing all work for the selected local model.
 If `--output-dir` is omitted, the script writes to
-`results/residual_streams/<deterministic-run-name>`. The automatic run name is
+`results/test/residual_streams/<deterministic-run-name>`. The automatic run name is
 derived from model, prompt source, selected layers, token mode, and a prompt
 fingerprint. Pass `--overwrite` to reuse a non-empty output directory.
 
@@ -57,7 +58,7 @@ fingerprint. Pass `--overwrite` to reuse a non-empty output directory.
 Each run writes a self-contained directory:
 
 ```text
-results/residual_streams/<run_name>/
+results/test/residual_streams/<run_name>/
 ├── prompts.jsonl
 ├── manifest.json
 └── activations/
@@ -109,10 +110,15 @@ make later vector extraction and SAE dataset construction easier to slice.
 - `--token-region-strategy auto` should be used for research runs so broad
   non-padding activations remain available while region-specific analyses can
   still exclude boilerplate later.
+- `--include-token-regions` can be used for SAE-focused extraction runs to
+  write only selected region labels, such as `scenario,decision_question`,
+  instead of storing answer-format or wrapper tokens.
 - `--storage-dtype float16` is the default for new runs. Compute-sensitive
   downstream code should cast loaded vectors to float32 when aggregating or
   training.
-- Full extraction outputs stay gitignored under `results/residual_streams/`.
+- Smoke extraction outputs stay gitignored under `results/test/residual_streams/`.
+  Current reference activation datasets should be moved or written under
+  `results/final/residual_streams/`.
 - Small tests should cover parsing, prompt metadata loading, manifest shape, and
   shard-writing structure without requiring a real model download.
 - `scripts/validate_activation_run.py <run_dir>` should pass before using an

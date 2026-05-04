@@ -14,7 +14,7 @@ from emotion_activation.activation_store import load_activation_run, validate_ac
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Validate residual-stream activation run files.")
-    parser.add_argument("run_dir", help="Path to a results/residual_streams/<run_name> directory.")
+    parser.add_argument("run_dir", help="Path to a residual-stream activation run directory.")
     args = parser.parse_args()
 
     run = load_activation_run(args.run_dir)

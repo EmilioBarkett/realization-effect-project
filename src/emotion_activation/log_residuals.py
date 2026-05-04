@@ -38,6 +38,15 @@ def _parse_layers(value: str) -> list[int]:
     return layers
 
 
+def _parse_token_region_filter(value: str | None) -> set[str] | None:
+    if value is None:
+        return None
+    regions = {part.strip() for part in value.split(",") if part.strip()}
+    if not regions:
+        raise argparse.ArgumentTypeError("At least one token region must be provided.")
+    return regions
+
+
 def _load_prompt_records(args: argparse.Namespace) -> list[PromptRecord]:
     if args.emotion_config:
         return [
@@ -103,7 +112,7 @@ def _with_token_regions(record: PromptRecord, strategy: str) -> PromptRecord:
 
 def _infer_prompt_regions(prompt_text: str, metadata: dict[str, Any] | None = None) -> list[dict[str, Any]]:
     metadata = metadata or {}
-    if "emotion" in metadata:
+    if str(metadata.get("emotion", "")).strip():
         return _infer_emotion_prompt_regions(prompt_text)
     return _infer_realization_prompt_regions(prompt_text)
 
@@ -266,33 +275,40 @@ def _write_batch(
     batch: BatchResiduals,
     layers: list[int],
     storage_dtype: str = "float16",
+    include_token_regions: set[str] | None = None,
 ) -> list[dict[str, Any]]:
     shard_records: list[dict[str, Any]] = []
     np_storage_dtype = _numpy_storage_dtype(storage_dtype)
+    token_keep_indices = _token_keep_indices(batch.token_regions, include_token_regions)
     for layer in layers:
         layer_dir = output_dir / "activations" / f"layer_{layer:02d}"
         layer_dir.mkdir(parents=True, exist_ok=True)
         tensor_path = layer_dir / f"batch_{batch_index:06d}.npy"
         index_path = layer_dir / f"batch_{batch_index:06d}.jsonl"
 
-        array = batch.hidden_states_by_layer[layer].numpy().astype(np_storage_dtype, copy=False)
+        source_array = batch.hidden_states_by_layer[layer].numpy()
+        array = _filter_activation_array(source_array, token_keep_indices).astype(np_storage_dtype, copy=False)
         np.save(tensor_path, array)
         with index_path.open("w", encoding="utf-8") as handle:
-            for record, token_ids, token_positions, token_regions in zip(
+            for record, token_ids, token_positions, token_regions, keep_indices in zip(
                 records,
                 batch.token_ids,
                 batch.token_positions,
                 batch.token_regions,
+                token_keep_indices,
                 strict=True,
             ):
+                filtered_token_ids = [token_ids[index] for index in keep_indices]
+                filtered_token_positions = [token_positions[index] for index in keep_indices]
+                filtered_token_regions = [token_regions[index] for index in keep_indices]
                 row = {
                     "prompt_id": record.prompt_id,
                     "activation_site": batch.activation_site,
                     "token_mode": batch.token_mode,
-                    "token_ids": token_ids,
-                    "token_positions": token_positions,
-                    "token_regions": token_regions,
-                    "num_tokens": len(token_ids),
+                    "token_ids": filtered_token_ids,
+                    "token_positions": filtered_token_positions,
+                    "token_regions": filtered_token_regions,
+                    "num_tokens": len(filtered_token_ids),
                     "metadata": record.metadata,
                 }
                 handle.write(json.dumps(row, ensure_ascii=True) + "\n")
@@ -307,6 +323,26 @@ def _write_batch(
             }
         )
     return shard_records
+
+
+def _token_keep_indices(token_regions: list[list[str]], include_token_regions: set[str] | None) -> list[list[int]]:
+    if include_token_regions is None:
+        return [list(range(len(regions))) for regions in token_regions]
+    return [
+        [index for index, region in enumerate(regions) if region in include_token_regions]
+        for regions in token_regions
+    ]
+
+
+def _filter_activation_array(array: np.ndarray, keep_indices_by_row: list[list[int]]) -> np.ndarray:
+    if array.shape[0] != len(keep_indices_by_row):
+        raise ValueError("Token-region filter row count does not match activation batch size.")
+    max_selected = max((len(indices) for indices in keep_indices_by_row), default=0)
+    filtered = np.zeros((array.shape[0], max_selected, array.shape[2]), dtype=array.dtype)
+    for batch_row, keep_indices in enumerate(keep_indices_by_row):
+        if keep_indices:
+            filtered[batch_row, : len(keep_indices), :] = array[batch_row, keep_indices, :]
+    return filtered
 
 
 def _numpy_storage_dtype(value: str) -> np.dtype:
@@ -342,6 +378,7 @@ def _write_manifest(
             "activation_site": args.activation_site,
             "token_mode": args.token_mode,
             "token_region_strategy": args.token_region_strategy,
+            "include_token_regions": sorted(args.include_token_regions) if args.include_token_regions else None,
             "storage_dtype": args.storage_dtype,
             "block_path": args.block_path,
             "resolved_block_path": logger.resolved_block_path,
@@ -393,6 +430,7 @@ def _build_run_name(args: argparse.Namespace, records: list[PromptRecord]) -> st
         "activation_site": args.activation_site,
         "token_region_strategy": args.token_region_strategy,
         "storage_dtype": args.storage_dtype,
+        "include_token_regions": sorted(args.include_token_regions) if args.include_token_regions else None,
         "prompt_source": prompt_source,
         "prompt_version": args.prompt_version,
         "prompt_ids": [record.prompt_id for record in records],
@@ -424,7 +462,7 @@ def main() -> None:
     parser.add_argument(
         "--output-dir",
         default=None,
-        help="Exact output directory. If omitted, writes to results/residual_streams/<deterministic-run-name>.",
+        help="Exact output directory. If omitted, writes to results/test/residual_streams/<deterministic-run-name>.",
     )
     parser.add_argument("--run-name", default=None, help="Optional deterministic run directory name.")
     parser.add_argument("--overwrite", action="store_true", help="Allow writing into a non-empty output directory.")
@@ -462,6 +500,15 @@ def main() -> None:
         choices=["auto", "none"],
         help="How to label selected tokens in metadata without filtering saved activations.",
     )
+    parser.add_argument(
+        "--include-token-regions",
+        type=_parse_token_region_filter,
+        default=None,
+        help=(
+            "Comma-separated token region labels to keep when writing activation shards, "
+            "for example scenario,decision_question. Defaults to writing all selected tokens."
+        ),
+    )
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--revision", default=None)
     parser.add_argument("--local-files-only", action="store_true")
@@ -485,7 +532,7 @@ def main() -> None:
     records = [_with_token_regions(record, args.token_region_strategy) for record in records]
 
     args.run_name = args.run_name or _build_run_name(args, records)
-    output_dir = Path(args.output_dir) if args.output_dir else Path("results/residual_streams") / args.run_name
+    output_dir = Path(args.output_dir) if args.output_dir else Path("results/test/residual_streams") / args.run_name
     if output_dir.exists() and any(output_dir.iterdir()) and not args.overwrite:
         raise FileExistsError(
             f"Output directory already exists and is not empty: {output_dir}. "
@@ -529,6 +576,7 @@ def main() -> None:
                 batch,
                 args.layers,
                 storage_dtype=args.storage_dtype,
+                include_token_regions=args.include_token_regions,
             )
         )
         print(f"wrote batch {batch_index + 1} ({len(batch_records)} prompts)", flush=True)

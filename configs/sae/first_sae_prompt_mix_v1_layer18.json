@@ -1,0 +1,16 @@
+{
+  "schema_version": "0.1.0",
+  "description": "First SAE-ready activation dataset from the mixed general-emotion + realization-effect prompt set. Uses the validated float32 local extraction with corrected token-region labels.",
+  "activation_runs": [
+    "results/test/residual_streams/first_sae_prompt_mix_v1_layers_12_18_float32_regions_fixed"
+  ],
+  "layers": [
+    18
+  ],
+  "token_regions": [
+    "scenario",
+    "decision_question"
+  ],
+  "activation_site": "resid_post",
+  "max_vectors": null
+}

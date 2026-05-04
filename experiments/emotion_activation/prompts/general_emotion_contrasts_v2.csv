@@ -1,0 +1,289 @@
+prompt_id,prompt_text,emotion,variant_id,emotion_cluster,contrast_role,expected_behavior_effect,prompt_family,source_config
+regret__work_choice__positive,"Read the following short scenario.
+
+Scenario:
+A project lead thinks back to the meeting where they dismissed a warning about the schedule. The delay now makes that earlier choice feel like something they would change if they could.
+
+Do not answer yet. Continue processing the scenario.",regret,work_choice,loss_reflection,positive,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+regret__work_choice__control,"Read the following short scenario.
+
+Scenario:
+A project lead reviews the meeting where a warning about the schedule was discussed. The delay is now part of the information available for the next planning decision.
+
+Do not answer yet. Continue processing the scenario.",regret,work_choice,loss_reflection,control,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+regret__exam_prep__positive,"Read the following short scenario.
+
+Scenario:
+A student remembers deciding not to study one section that later appeared on the exam. That earlier choice keeps standing out before they plan what to do next.
+
+Do not answer yet. Continue processing the scenario.",regret,exam_prep,loss_reflection,positive,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+regret__exam_prep__control,"Read the following short scenario.
+
+Scenario:
+A student remembers deciding not to study one section that later appeared on the exam. That earlier choice is one detail to include before planning what to do next.
+
+Do not answer yet. Continue processing the scenario.",regret,exam_prep,loss_reflection,control,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+regret__missed_message__positive,"Read the following short scenario.
+
+Scenario:
+A person looks back at a message they left unanswered before a problem became harder to fix. The missed chance to respond earlier stays active in their mind.
+
+Do not answer yet. Continue processing the scenario.",regret,missed_message,loss_reflection,positive,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+regret__missed_message__control,"Read the following short scenario.
+
+Scenario:
+A person looks back at a message they left unanswered before a problem became harder to fix. The message is part of the sequence of events they now review.
+
+Do not answer yet. Continue processing the scenario.",regret,missed_message,loss_reflection,control,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+frustration__debugging__positive,"Read the following short scenario.
+
+Scenario:
+A programmer fixes one bug only to see the same test fail again for a different reason. The repeated mismatch between effort and result makes the next attempt feel harder to approach evenly.
+
+Do not answer yet. Continue processing the scenario.",frustration,debugging,risk_escalation,positive,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+frustration__debugging__control,"Read the following short scenario.
+
+Scenario:
+A programmer fixes one bug and sees the same test fail again for a different reason. The new failure gives them more information for the next attempt.
+
+Do not answer yet. Continue processing the scenario.",frustration,debugging,risk_escalation,control,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+frustration__delayed_commute__positive,"Read the following short scenario.
+
+Scenario:
+A commuter changes routes after a delay, then runs into another delay on the new route. The repeated obstacles make the next decision feel increasingly strained.
+
+Do not answer yet. Continue processing the scenario.",frustration,delayed_commute,risk_escalation,positive,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+frustration__delayed_commute__control,"Read the following short scenario.
+
+Scenario:
+A commuter changes routes after a delay, then runs into another delay on the new route. The repeated obstacles affect which routes remain available.
+
+Do not answer yet. Continue processing the scenario.",frustration,delayed_commute,risk_escalation,control,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+frustration__team_revision__positive,"Read the following short scenario.
+
+Scenario:
+A team member revises a document several times, and each review adds another unexpected problem. The next revision feels shaped by the pileup of blocked progress.
+
+Do not answer yet. Continue processing the scenario.",frustration,team_revision,risk_escalation,positive,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+frustration__team_revision__control,"Read the following short scenario.
+
+Scenario:
+A team member revises a document several times, and each review adds another unexpected problem. The next revision follows from the list of remaining issues.
+
+Do not answer yet. Continue processing the scenario.",frustration,team_revision,risk_escalation,control,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+desperation__deadline__positive,"Read the following short scenario.
+
+Scenario:
+A worker sees that the deadline is close and the project is still far from finished. The next decision feels like it has to recover more than an ordinary step would.
+
+Do not answer yet. Continue processing the scenario.",desperation,deadline,risk_escalation,positive,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+desperation__deadline__control,"Read the following short scenario.
+
+Scenario:
+A worker sees that the deadline is close and the project is still far from finished. The next decision is one of the remaining steps before the deadline.
+
+Do not answer yet. Continue processing the scenario.",desperation,deadline,risk_escalation,control,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+desperation__competition__positive,"Read the following short scenario.
+
+Scenario:
+A runner falls far behind near the end of a race. The next move feels like it must change the outcome quickly or the chance will be gone.
+
+Do not answer yet. Continue processing the scenario.",desperation,competition,risk_escalation,positive,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+desperation__competition__control,"Read the following short scenario.
+
+Scenario:
+A runner falls far behind near the end of a race. The next move is one remaining choice that can affect the final result.
+
+Do not answer yet. Continue processing the scenario.",desperation,competition,risk_escalation,control,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+desperation__application__positive,"Read the following short scenario.
+
+Scenario:
+An applicant realizes that several earlier options have closed and only one uncertain opening remains. The next action feels unusually loaded because there may not be another path.
+
+Do not answer yet. Continue processing the scenario.",desperation,application,risk_escalation,positive,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+desperation__application__control,"Read the following short scenario.
+
+Scenario:
+An applicant realizes that several earlier options have closed and only one uncertain opening remains. The next action concerns the remaining path.
+
+Do not answer yet. Continue processing the scenario.",desperation,application,risk_escalation,control,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+temptation__purchase__positive,"Read the following short scenario.
+
+Scenario:
+A shopper sees an expensive item that would be exciting to own but would stretch their budget. The possible enjoyment keeps drawing attention back to the item.
+
+Do not answer yet. Continue processing the scenario.",temptation,purchase,risk_escalation,positive,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+temptation__purchase__control,"Read the following short scenario.
+
+Scenario:
+A shopper sees an expensive item that would be exciting to own but would stretch their budget. They include the item among the options to consider.
+
+Do not answer yet. Continue processing the scenario.",temptation,purchase,risk_escalation,control,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+temptation__shortcut__positive,"Read the following short scenario.
+
+Scenario:
+A student notices a shortcut that could finish the assignment quickly but might violate the rules. The chance to avoid more work makes the shortcut hard to set aside.
+
+Do not answer yet. Continue processing the scenario.",temptation,shortcut,risk_escalation,positive,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+temptation__shortcut__control,"Read the following short scenario.
+
+Scenario:
+A student notices a shortcut that could finish the assignment quickly but might violate the rules. The shortcut is one possible method among the available methods.
+
+Do not answer yet. Continue processing the scenario.",temptation,shortcut,risk_escalation,control,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+temptation__offer__positive,"Read the following short scenario.
+
+Scenario:
+An employee receives an offer with a flashy reward attached to a risky commitment. The size of the reward keeps making the option stand out.
+
+Do not answer yet. Continue processing the scenario.",temptation,offer,risk_escalation,positive,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+temptation__offer__control,"Read the following short scenario.
+
+Scenario:
+An employee receives an offer with a flashy reward attached to a risky commitment. The offer has both possible benefits and possible costs.
+
+Do not answer yet. Continue processing the scenario.",temptation,offer,risk_escalation,control,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+anxiety__medical_result__positive,"Read the following short scenario.
+
+Scenario:
+A patient waits for a test result and keeps focusing on what the result could mean if it is bad. The uncertain downside takes up most of their attention.
+
+Do not answer yet. Continue processing the scenario.",anxiety,medical_result,risk_avoidance,positive,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+anxiety__medical_result__control,"Read the following short scenario.
+
+Scenario:
+A patient waits for a test result and considers what the result could mean. The outcome is not known yet.
+
+Do not answer yet. Continue processing the scenario.",anxiety,medical_result,risk_avoidance,control,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+anxiety__presentation__positive,"Read the following short scenario.
+
+Scenario:
+A speaker is about to present and keeps noticing the ways the talk could go wrong. The possible mistakes feel difficult to ignore before starting.
+
+Do not answer yet. Continue processing the scenario.",anxiety,presentation,risk_avoidance,positive,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+anxiety__presentation__control,"Read the following short scenario.
+
+Scenario:
+A speaker is about to present and reviews the parts of the talk. The presentation could go in several ways once it starts.
+
+Do not answer yet. Continue processing the scenario.",anxiety,presentation,risk_avoidance,control,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+anxiety__travel_delay__positive,"Read the following short scenario.
+
+Scenario:
+A traveler waits for a delayed connection and keeps thinking about missing the next step of the trip. The possible disruption pulls attention away from other details.
+
+Do not answer yet. Continue processing the scenario.",anxiety,travel_delay,risk_avoidance,positive,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+anxiety__travel_delay__control,"Read the following short scenario.
+
+Scenario:
+A traveler waits for a delayed connection and thinks about the next step of the trip. The delay may affect the schedule.
+
+Do not answer yet. Continue processing the scenario.",anxiety,travel_delay,risk_avoidance,control,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+caution__investment__positive,"Read the following short scenario.
+
+Scenario:
+An investor reviews a choice that could produce a gain but could also expose savings to loss. Limiting avoidable downside becomes the main consideration.
+
+Do not answer yet. Continue processing the scenario.",caution,investment,risk_avoidance,positive,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+caution__investment__control,"Read the following short scenario.
+
+Scenario:
+An investor reviews a choice that could produce a gain but could also expose savings to loss. The possible outcomes are part of the decision.
+
+Do not answer yet. Continue processing the scenario.",caution,investment,risk_avoidance,control,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+caution__hiking__positive,"Read the following short scenario.
+
+Scenario:
+A hiker reaches a steep trail section after the weather begins to change. They give extra weight to avoiding a route that could become unsafe.
+
+Do not answer yet. Continue processing the scenario.",caution,hiking,risk_avoidance,positive,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+caution__hiking__control,"Read the following short scenario.
+
+Scenario:
+A hiker reaches a steep trail section after the weather begins to change. The route conditions affect which path is available.
+
+Do not answer yet. Continue processing the scenario.",caution,hiking,risk_avoidance,control,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+caution__data_migration__positive,"Read the following short scenario.
+
+Scenario:
+An engineer prepares to move important data to a new system. Preventing irreversible mistakes becomes the main filter for the next step.
+
+Do not answer yet. Continue processing the scenario.",caution,data_migration,risk_avoidance,positive,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+caution__data_migration__control,"Read the following short scenario.
+
+Scenario:
+An engineer prepares to move important data to a new system. The next step involves the current data and the new system.
+
+Do not answer yet. Continue processing the scenario.",caution,data_migration,risk_avoidance,control,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+relief__grade_posted__positive,"Read the following short scenario.
+
+Scenario:
+A student sees that a difficult exam result is good enough to pass the course. The pressure from waiting for the result starts to lift before they plan the next step.
+
+Do not answer yet. Continue processing the scenario.",relief,grade_posted,closure_regulation,positive,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+relief__grade_posted__control,"Read the following short scenario.
+
+Scenario:
+A student sees that a difficult exam result is good enough to pass the course. The posted result is now available before they plan the next step.
+
+Do not answer yet. Continue processing the scenario.",relief,grade_posted,closure_regulation,control,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+relief__lost_item__positive,"Read the following short scenario.
+
+Scenario:
+A person finds an important document after searching for it all morning. The search no longer presses on the next thing they need to do.
+
+Do not answer yet. Continue processing the scenario.",relief,lost_item,closure_regulation,positive,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+relief__lost_item__control,"Read the following short scenario.
+
+Scenario:
+A person finds an important document after searching for it all morning. The document is now available for the next thing they need to do.
+
+Do not answer yet. Continue processing the scenario.",relief,lost_item,closure_regulation,control,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+relief__resolved_alert__positive,"Read the following short scenario.
+
+Scenario:
+A manager learns that an urgent system alert was resolved before it caused damage. The next decision feels less burdened than it did while the alert was open.
+
+Do not answer yet. Continue processing the scenario.",relief,resolved_alert,closure_regulation,positive,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+relief__resolved_alert__control,"Read the following short scenario.
+
+Scenario:
+A manager learns that an urgent system alert was resolved before it caused damage. The next decision follows after the alert was closed.
+
+Do not answer yet. Continue processing the scenario.",relief,resolved_alert,closure_regulation,control,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+calm__planning__positive,"Read the following short scenario.
+
+Scenario:
+A person reviews tomorrow's schedule with steady attention. The tasks feel clear enough to arrange one by one without rushing.
+
+Do not answer yet. Continue processing the scenario.",calm,planning,closure_regulation,positive,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+calm__planning__control,"Read the following short scenario.
+
+Scenario:
+A person reviews tomorrow's schedule. The tasks can be arranged one by one.
+
+Do not answer yet. Continue processing the scenario.",calm,planning,closure_regulation,control,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+calm__conversation__positive,"Read the following short scenario.
+
+Scenario:
+A team lead listens to a disagreement and keeps their attention evenly on each person's point. The next response feels manageable enough to think through carefully.
+
+Do not answer yet. Continue processing the scenario.",calm,conversation,closure_regulation,positive,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+calm__conversation__control,"Read the following short scenario.
+
+Scenario:
+A team lead listens to a disagreement and hears each person's point. The next response can address the points that were raised.
+
+Do not answer yet. Continue processing the scenario.",calm,conversation,closure_regulation,control,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+calm__repair__positive,"Read the following short scenario.
+
+Scenario:
+A person sits down to repair a small household item and looks over the parts at an even pace. The next step feels clear enough to handle methodically.
+
+Do not answer yet. Continue processing the scenario.",calm,repair,closure_regulation,positive,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json
+calm__repair__control,"Read the following short scenario.
+
+Scenario:
+A person sits down to repair a small household item and looks over the parts. The next step depends on how the parts fit together.
+
+Do not answer yet. Continue processing the scenario.",calm,repair,closure_regulation,control,evaluate_later_in_casino_decisions,general_emotion_contrasts_v2,configs/emotion_activation/emotions_general_v2.json

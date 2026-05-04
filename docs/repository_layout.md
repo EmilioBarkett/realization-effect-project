@@ -30,5 +30,6 @@ Active generated outputs live in `results/`: `results/results.csv` is
 canonical, and `results/sample_results.csv` is a small review sample.
 Generated grouped outputs and resumable blocks are rebuildable and ignored by
 git.
-SAE outputs should live under ignored `results/sae/`.
+Generated SAE outputs should live under ignored `results/final/sae/` for
+current reference runs or `results/test/sae/` for disposable smoke runs.
 Local model weights live in `models/` and are intentionally gitignored.

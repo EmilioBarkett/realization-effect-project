@@ -1,0 +1,16 @@
+{
+  "schema_version": "0.1.0",
+  "description": "First larger local SAE activation dataset. Contains the 81-prompt mix repeated 62 times for 5,022 prompts, extracted at layer 18 with only scenario and decision_question token regions written.",
+  "activation_runs": [
+    "results/final/residual_streams/first_sae_prompt_mix_v1_repeated_5022_layer18_regions_float32"
+  ],
+  "layers": [
+    18
+  ],
+  "token_regions": [
+    "scenario",
+    "decision_question"
+  ],
+  "activation_site": "resid_post",
+  "max_vectors": null
+}

@@ -1,6 +1,6 @@
-"""SAE dataset and analysis scaffolding for activation runs.
+"""SAE dataset, model, and training scaffolding for activation runs.
 
-This package intentionally does not train an SAE yet. It currently defines the
-dataset, config, metric, and feature-analysis boundaries needed before choosing
-a concrete SAE backend.
+The first training backend is a small local PyTorch SAE. It is meant to make the
+post-inference path executable while keeping the public boundary simple enough to
+swap in a larger SAE library later.
 """
