@@ -112,6 +112,8 @@ def _with_token_regions(record: PromptRecord, strategy: str) -> PromptRecord:
 
 def _infer_prompt_regions(prompt_text: str, metadata: dict[str, Any] | None = None) -> list[dict[str, Any]]:
     metadata = metadata or {}
+    if "Scenario:\n" in prompt_text and "\n\nDo not answer yet." in prompt_text:
+        return _infer_emotion_prompt_regions(prompt_text)
     if str(metadata.get("emotion", "")).strip():
         return _infer_emotion_prompt_regions(prompt_text)
     return _infer_realization_prompt_regions(prompt_text)

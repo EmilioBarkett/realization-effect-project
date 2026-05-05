@@ -89,6 +89,14 @@ def _iter_numpy_batches(
             run_dir,
             layers=set(dataset_config.layers),
             token_regions=set(dataset_config.token_regions) if dataset_config.token_regions else None,
+            prompt_metadata_filters=(
+                {
+                    key: set(value)
+                    for key, value in dataset_config.prompt_metadata_filters.items()
+                }
+                if dataset_config.prompt_metadata_filters
+                else None
+            ),
             activation_site=dataset_config.activation_site,
             max_vectors=remaining,
         ):

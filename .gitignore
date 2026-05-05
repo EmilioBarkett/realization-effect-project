@@ -20,6 +20,7 @@ results/logs/
 results/sae/
 results/results_grouped.csv
 results/results_canonical.csv
+results/legacy/**
 results/legacy/results.before_*.csv
 results/legacy/results_legacy_gpt-4.1-mini.csv
 results/legacy/results_temp05.csv
@@ -40,6 +41,8 @@ results/final/**
 !results/final/sae/README.md
 data/interpretability/activations/
 data/interpretability/sae_runs/
+
+experiments/emotion_activation/prompts/final/*.bak
 
 .env
 .env.*

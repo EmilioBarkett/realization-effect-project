@@ -11,9 +11,11 @@ The project now has two connected goals:
 2. Use local residual-stream logging to study whether loss/emotion-related
    internal states can be identified, compared, and eventually steered.
 
-The SAE work is **not implemented yet**. The repo currently has the pre-SAE
-infrastructure: validated activation logging, token-region metadata, and a
-dataset boundary that can turn activation runs into token-level vectors.
+The SAE path now has an executable local scaffold: validated activation
+logging, token-region metadata, dataset configs, mean/global-norm
+normalization, and a small PyTorch `relu`/`topk` SAE training loop. The next
+research step is to generate and audit the larger final inference prompt set
+before collecting a more diverse activation dataset.
 
 ## What this study tests
 
@@ -74,17 +76,17 @@ The key distinction across all versions: **paper** scenarios specify the player 
 realization-effect-project/
 ├── src/
 │   ├── realization_effect/      # Prompting, running, parsing, analysis, reconciliation
-│   ├── emotion_activation/      # Emotion probes, residual streams, steering prep
-│   └── sae/                     # Activation datasets and future SAE utilities
+│   ├── emotion_activation/      # Emotion probes, residual streams, prompt generation
+│   └── sae/                     # Activation datasets, SAE model, training utilities
 ├── scripts/                     # Preferred command-line entrypoints
 ├── tests/                       # Regression tests for parsing and analysis checks
 │   └── fixtures/noncanonical/   # Local ignored archive of non-canonical CSVs
 ├── configs/
 │   ├── realization_effect/      # Conditions and model catalogues
-│   ├── emotion_activation/      # Emotion contrast definitions
-│   └── sae/                     # Local/experimental SAE dataset selections
+│   ├── emotion_activation/      # Emotion and prompt-generation definitions
+│   └── sae/                     # Template, test, and final/reference SAE configs
 ├── experiments/
-│   └── emotion_activation/      # Reviewable emotion-probe prompts
+│   └── emotion_activation/      # Reviewable prompt CSVs for activation work
 ├── notebooks/realization_effect/ # Ordered exploratory notebooks
 ├── reports/                     # Current findings, midterm material, source papers
 ├── results/                     # Active canonical CSVs plus resumable block CSVs
@@ -109,8 +111,8 @@ The emotion-vector extension is documented in
 `experiments/emotion_activation/README.md` and
 `docs/emotion_probe_design.md`.
 
-The SAE dataset boundary is documented in `docs/sae_architecture.md`.
-Open SAE implementation choices are tracked in `docs/sae_decisions.md`.
+The SAE scaffold is documented in `docs/sae_architecture.md`.
+Open research choices are tracked in `docs/sae_decisions.md`.
 
 ## Workflow
 
@@ -192,6 +194,24 @@ models, run:
 ./venv/bin/python scripts/reconcile_realization_results.py
 ```
 
+### 3. Generate prompts for final SAE inference
+
+The same experiment runner has a generation mode for creating reviewable SAE
+inference prompts through OpenRouter. This mode does not write behavioral
+results to `results/results.csv`; it writes prompt CSVs under
+`experiments/emotion_activation/prompts/final/`.
+
+Run a small pilot before spending credits on the full prompt set:
+
+```bash
+export OPENROUTER_API_KEY=your_key_here
+
+./venv/bin/python scripts/run_realization_experiment.py \
+  --prompt-version generation \
+  --generation-pilot-all-cells \
+  --generation-output experiments/emotion_activation/prompts/final/final_inference_prompts_v1_pilot.csv
+```
+
 ### Fresh clone to analysis
 
 ```bash
@@ -206,7 +226,7 @@ This path uses the tracked canonical dataset at `results/results.csv`.
 `make audit` checks that the parsed wager/risk columns still match the current
 parser without re-querying any model.
 
-### 3. Log residual streams for emotion and SAE prep
+### 4. Log residual streams for emotion and SAE prep
 
 The `src/emotion_activation` package contains a Hugging Face forward-pass
 adapter adapted from the metageniuses extraction code. It registers forward
@@ -284,10 +304,11 @@ Useful extraction options:
   Use `results/test/residual_streams/` for disposable smoke runs and
   `results/final/residual_streams/` for current reference activation datasets.
 
-### 4. SAE scaffolding status
+### 5. SAE training status
 
-The current SAE package has the dataset boundary plus a small local PyTorch
-training scaffold:
+The current SAE package has the dataset boundary, a small local PyTorch
+training backend, and trained local comparison SAEs for the general
+emotion/risk direction:
 
 ```text
 src/sae/
@@ -299,22 +320,55 @@ src/sae/
 └── training.py     # Local training loop over activation vectors
 ```
 
-After validated activation runs exist, fill `configs/sae/initial_dataset_template.json`
-and run:
+Current checked-in configs:
+
+- `configs/sae/final/general_emotion_risk_v1_layer18.json`
+  selects the full 3,060-prompt general non-casino emotion/risk/realization
+  activation run at layer 18.
+- `configs/sae/final/general_emotion_risk_v1_training.json`
+  trains the full general SAE.
+- `configs/sae/final/general_emotion_only_v1_layer18.json`
+  selects only `emotion_positive` and `emotion_control` prompt families from
+  the same activation run.
+- `configs/sae/final/general_emotion_only_v1_training.json`
+  trains the emotion-only comparison SAE.
+
+Current local outputs are intentionally ignored by git:
+
+- `results/final/residual_streams/general_emotion_risk_v1_layer18_regions_float32/`
+  contains the fp32 layer-18 scenario-token activation run.
+- `results/final/sae/general_emotion_risk_v1_layer18_normalized/`
+  contains the full emotion/risk/realization SAE checkpoint, normalization
+  stats, manifest, and feature inspection.
+- `results/final/sae/general_emotion_only_v1_layer18_normalized/`
+  contains the emotion-only comparison SAE and feature inspection.
+
+The full SAE currently shows the strongest associations for risk-oriented
+features. The emotion-only comparison SAE gives a clearer broad
+emotion-vs-control feature, while individual emotion features remain weaker and
+need follow-up interpretation.
+
+To retrain the full current SAE:
 
 ```bash
 ./venv/bin/python scripts/train_sae.py \
-  --dataset-config configs/sae/initial_dataset_template.json \
-  --training-config configs/sae/initial_training_template.json
+  --dataset-config configs/sae/final/general_emotion_risk_v1_layer18.json \
+  --training-config configs/sae/final/general_emotion_risk_v1_training.json
 ```
 
-The scaffold trains a simple `relu` or `topk` SAE, writes a checkpoint and
-manifest under `results/final/sae/`, and keeps the backend small enough to replace
-later. Before trusting a serious SAE, still decide the layer, token-region mix,
-activation distribution, storage precision, evaluation criteria, and validation
-split listed in `docs/sae_decisions.md`.
+To retrain the emotion-only comparison SAE:
 
-### 5. Analyse results
+```bash
+./venv/bin/python scripts/train_sae.py \
+  --dataset-config configs/sae/final/general_emotion_only_v1_layer18.json \
+  --training-config configs/sae/final/general_emotion_only_v1_training.json
+```
+
+The training backend supports `relu` or `topk` SAEs, writes checkpoints and
+manifests under ignored `results/final/sae/`, and remains small enough to
+replace later with a larger SAE library.
+
+### 6. Analyse results
 
 ```bash
 # Full analysis, pooled across all models
@@ -330,7 +384,7 @@ split listed in `docs/sae_decisions.md`.
 
 The analysis script outputs OLS regression tables (condition dummies + model/temperature/prompt_version fixed effects, HC3 robust SEs) for both `log(wager)` and `risk_profile`, and structured hypothesis verdicts for H1a–H4 — mirroring Table 2 of Flepp et al. (2021).
 
-### 6. Monitor Block Progress (Live Dashboard)
+### 7. Monitor Block Progress (Live Dashboard)
 
 ```bash
 # Launch local dashboard (default: http://127.0.0.1:8765)
@@ -353,7 +407,7 @@ You can override values in the URL directly:
 - `&refresh=5`
 - `&active_window=90`
 
-### 6. Run Analysis From Dashboard
+### 8. Run Analysis From Dashboard
 
 Open the Analysis tab at:
 - `http://127.0.0.1:8765/analyze`

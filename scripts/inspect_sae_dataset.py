@@ -38,12 +38,18 @@ def main() -> None:
         run_dirs = [str(path) for path in config.activation_runs]
         layers = set(config.layers)
         token_regions = set(config.token_regions) if config.token_regions is not None else None
+        prompt_metadata_filters = (
+            {key: set(value) for key, value in config.prompt_metadata_filters.items()}
+            if config.prompt_metadata_filters is not None
+            else None
+        )
         activation_site = args.activation_site if args.activation_site is not None else config.activation_site
         max_vectors = args.max_vectors if args.max_vectors is not None else config.max_vectors
     else:
         run_dirs = args.run_dirs
         layers = None
         token_regions = None
+        prompt_metadata_filters = None
         activation_site = args.activation_site or "resid_post"
         max_vectors = args.max_vectors
 
@@ -58,6 +64,7 @@ def main() -> None:
         run_dirs,
         layers=layers,
         token_regions=token_regions,
+        prompt_metadata_filters=prompt_metadata_filters,
         activation_site=activation_site,
         max_vectors=max_vectors,
     )
@@ -66,4 +73,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

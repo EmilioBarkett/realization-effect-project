@@ -1,0 +1,25 @@
+{
+  "schema_version": "0.1.0",
+  "description": "Template SAE dataset config for training on general non-casino emotion/risk prompts while holding realization-style prompt families out for evaluation.",
+  "activation_runs": [
+    "results/final/residual_streams/general_emotion_risk_v1_layer18_regions_float32"
+  ],
+  "layers": [
+    18
+  ],
+  "token_regions": [
+    "scenario"
+  ],
+  "activation_site": "resid_post",
+  "prompt_metadata_filters": {
+    "prompt_family": [
+      "emotion_positive",
+      "emotion_control",
+      "risk_positive",
+      "risk_control",
+      "emotion_risk_mixed",
+      "neutral_baseline"
+    ]
+  },
+  "max_vectors": null
+}

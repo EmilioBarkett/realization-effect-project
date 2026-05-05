@@ -1,0 +1,307 @@
+{
+  "name": "general_emotion_risk_generation_v1",
+  "description": "OpenRouter generation plan for a non-casino emotion/risk SAE training dataset. Realization-style cells are generated as modular prompt families so they can be included or held out at SAE training time.",
+  "default_count_per_cell_per_model": 8,
+  "models": [
+    {
+      "alias": "gpt54",
+      "model": "openai/gpt-5.4"
+    },
+    {
+      "alias": "sonnet",
+      "model": "anthropic/claude-sonnet-4.6"
+    },
+    {
+      "alias": "qwen32",
+      "model": "qwen/qwen3-32b"
+    }
+  ],
+  "generation": {
+    "temperature": 0.85,
+    "max_tokens": 8000,
+    "seed": 11,
+    "timeout": 90,
+    "retries": 2,
+    "validation_retries": 2,
+    "max_prompts_per_request": 1,
+    "retry_delay": 5,
+    "http_referer": "https://github.com/EmilioBarkett/realization-effect-project",
+    "x_title": "General Emotion Risk SAE Prompt Generation"
+  },
+  "prompt_template": "Read the following short scenario.\n\nScenario:\n{scenario}\n\nDo not answer yet. Continue processing the scenario.",
+  "forbidden_terms": [
+    "casino",
+    "gambling",
+    "gamble",
+    "gambler",
+    "gamblers",
+    "wager",
+    "wagers",
+    "wagering",
+    "bet",
+    "bets",
+    "betting",
+    "roulette",
+    "blackjack",
+    "poker",
+    "slot machine",
+    "slot machines",
+    "craps",
+    "baccarat",
+    "keno",
+    "chips",
+    "jackpot",
+    "bookmaker"
+  ],
+  "design_rules": [
+    "Generate implicit scenarios, not labels. Prefer observable attention, decision framing, counterfactual structure, urgency, option weighting, or variance preference over explicit statements like 'they feel anxious'.",
+    "Do not include casino, gambling, wager, card-table, slot-machine, roulette, or betting language. This dataset is for discovering general emotion and risk features outside gambling.",
+    "Except for lexical adversarial controls, never include explicit emotion words in prompt_text, including regret, frustrated, desperation, tempted, anxiety, cautious, relieved, or calm. Evoke the concept through the situation instead.",
+    "Use third-person scenario narration only. Do not write first-person monologue, direct internal monologue, or dialogue.",
+    "Keep each scenario between 35 and 70 words unless a cell explicitly asks otherwise.",
+    "Vary non-casino domains across work, school, travel, health scheduling, household decisions, marketplaces, investing, refunds, applications, social choices, and project deadlines.",
+    "For desperation, use genuine narrowing-options pressure: a time-sensitive or resource-constrained situation where ordinary options are running out and the person must act soon. Do not write mere inconvenience, mild social pressure, ordinary effort, or generic busyness.",
+    "Keep emotion separate from risk orientation unless the cell explicitly combines them: anxiety should not automatically imply risk avoidance, and desperation or temptation should not automatically imply risk seeking.",
+    "Keep risk-seeking separate from loss, and loss separate from risk-seeking, unless the cell explicitly combines them.",
+    "For cells with emotion set to none, keep affective tone flat. Do not use words such as hope, fear, worried, nervous, panic, dread, upset, or manic.",
+    "For matched controls, preserve topic, structure, length, and concrete details while removing the target latent concept.",
+    "For realization framing, use non-casino settings such as investments, invoices, refunds, auctions, resale, project budgets, grades, or applications. Open/paper means the outcome is visible but not settled; closed/realized means the outcome has been cashed out, submitted, finalized, or otherwise closed.",
+    "Do not mention sparse autoencoders, vectors, features, labels, datasets, or this experiment."
+  ],
+  "cells": [
+    {
+      "cell_id": "emotion_positive",
+      "prompt_family": "emotion_positive",
+      "domain": "general_noncasino",
+      "concept_axis": "emotion",
+      "emotions": [
+        "regret",
+        "frustration",
+        "desperation",
+        "temptation",
+        "anxiety",
+        "caution",
+        "relief",
+        "calm"
+      ],
+      "emotion_intensity": "medium",
+      "risk_orientation": "neutral",
+      "risk_intensity": "none",
+      "realization_frame": "none",
+      "outcome_valence": "none",
+      "casino_context": "none",
+      "behavior_target": "none",
+      "control_type": "none",
+      "contrast_role": "positive",
+      "expected_feature": "emotion",
+      "count_per_model": 18,
+      "instructions": "Generate general non-casino scenarios that evoke the target emotion through structure and attention, without naming the emotion. Keep risk preference neutral and avoid outcome-settlement framing."
+    },
+    {
+      "cell_id": "emotion_matched_control",
+      "prompt_family": "emotion_control",
+      "domain": "general_noncasino",
+      "concept_axis": "emotion_control",
+      "emotions": [
+        "regret",
+        "frustration",
+        "desperation",
+        "temptation",
+        "anxiety",
+        "caution",
+        "relief",
+        "calm"
+      ],
+      "emotion_intensity": "none",
+      "risk_orientation": "neutral",
+      "risk_intensity": "none",
+      "realization_frame": "none",
+      "outcome_valence": "none",
+      "casino_context": "none",
+      "behavior_target": "none",
+      "control_type": "matched",
+      "contrast_role": "control",
+      "expected_feature": "none",
+      "count_per_model": 18,
+      "instructions": "Generate matched controls for the target emotion: similar domain, concrete situation, and length, but remove the target emotional/cognitive pattern. Keep the scenario ordinary and affectively flat."
+    },
+    {
+      "cell_id": "risk_positive",
+      "prompt_family": "risk_positive",
+      "domain": "general_noncasino",
+      "concept_axis": "risk",
+      "emotion": "none",
+      "emotion_intensity": "none",
+      "risk_orientations": [
+        "risk_seeking",
+        "risk_avoidance"
+      ],
+      "risk_intensity": "medium",
+      "realization_frame": "none",
+      "outcome_valence": "none",
+      "casino_context": "none",
+      "behavior_target": "non_gambling_choice",
+      "control_type": "none",
+      "contrast_role": "positive",
+      "expected_feature": "risk_orientation",
+      "count_per_model": 36,
+      "instructions": "Generate non-casino scenarios that isolate a preference for higher-variance upside or lower-variance preservation. Keep emotion neutral and do not imply that losses or feelings are driving the choice."
+    },
+    {
+      "cell_id": "risk_matched_control",
+      "prompt_family": "risk_control",
+      "domain": "general_noncasino",
+      "concept_axis": "risk_control",
+      "emotion": "none",
+      "emotion_intensity": "none",
+      "risk_orientations": [
+        "risk_seeking",
+        "risk_avoidance"
+      ],
+      "risk_intensity": "none",
+      "realization_frame": "none",
+      "outcome_valence": "none",
+      "casino_context": "none",
+      "behavior_target": "non_gambling_choice",
+      "control_type": "matched",
+      "contrast_role": "control",
+      "expected_feature": "none",
+      "count_per_model": 36,
+      "instructions": "Generate matched controls for risk-orientation prompts: similar decision topic and structure, but no preference for variance, safety, upside, or preservation. Keep affect flat."
+    },
+    {
+      "cell_id": "emotion_risk_mixed",
+      "prompt_family": "emotion_risk_mixed",
+      "domain": "general_noncasino",
+      "concept_axis": "emotion_risk",
+      "emotions": [
+        "desperation",
+        "temptation",
+        "anxiety",
+        "caution"
+      ],
+      "emotion_intensity": "medium",
+      "risk_orientations": [
+        "risk_seeking",
+        "risk_avoidance"
+      ],
+      "risk_intensity": "medium",
+      "realization_frame": "none",
+      "outcome_valence": "none",
+      "casino_context": "none",
+      "behavior_target": "non_gambling_choice",
+      "control_type": "none",
+      "contrast_role": "positive",
+      "expected_feature": "emotion_plus_risk",
+      "count_per_model": 12,
+      "instructions": "Generate non-casino scenarios that explicitly combine the target emotion pattern with the requested risk orientation. Keep both components separable: do not make the risk orientation merely a synonym for the emotion."
+    },
+    {
+      "cell_id": "neutral_baseline",
+      "prompt_family": "neutral_baseline",
+      "domain": "general_noncasino",
+      "concept_axis": "neutral",
+      "emotion": "none",
+      "emotion_intensity": "none",
+      "risk_orientation": "neutral",
+      "risk_intensity": "none",
+      "realization_frame": "none",
+      "outcome_valence": "none",
+      "casino_context": "none",
+      "behavior_target": "none",
+      "control_types": [
+        "factual_description",
+        "procedural_steps",
+        "neutral_decision_reasoning"
+      ],
+      "contrast_role": "baseline",
+      "expected_feature": "neutral_text",
+      "count_per_model": 36,
+      "instructions": "Generate ordinary non-casino prompts with no target emotion, no risk orientation, and no realization framing. Keep them concrete but affectively flat."
+    },
+    {
+      "cell_id": "realization_frame_noncasino",
+      "prompt_family": "realization_frame",
+      "domain": "general_noncasino",
+      "concept_axis": "realization_framing",
+      "emotion": "none",
+      "emotion_intensity": "none",
+      "risk_orientation": "neutral",
+      "risk_intensity": "none",
+      "realization_frames": [
+        "paper_open",
+        "realized_closed"
+      ],
+      "outcome_valences": [
+        "loss",
+        "gain",
+        "even"
+      ],
+      "casino_context": "none",
+      "behavior_target": "none",
+      "control_type": "none",
+      "contrast_role": "positive",
+      "expected_feature": "realization_framing",
+      "count_per_model": 24,
+      "instructions": "Generate non-casino realization-framing scenarios. Use finance, resale, invoices, refunds, grades, applications, or project budgets. Keep emotion and risk preference neutral; only vary whether the outcome is still open/paper or finalized/closed and whether it is a gain, loss, or even outcome."
+    },
+    {
+      "cell_id": "realization_emotion_noncasino",
+      "prompt_family": "realization_emotion",
+      "domain": "general_noncasino",
+      "concept_axis": "realization_emotion",
+      "emotions": [
+        "regret",
+        "temptation",
+        "anxiety",
+        "relief"
+      ],
+      "emotion_intensity": "medium",
+      "risk_orientation": "neutral",
+      "risk_intensity": "none",
+      "realization_frames": [
+        "paper_open",
+        "realized_closed"
+      ],
+      "outcome_valences": [
+        "loss",
+        "gain"
+      ],
+      "casino_context": "none",
+      "behavior_target": "none",
+      "control_type": "none",
+      "contrast_role": "positive",
+      "expected_feature": "realization_framing_plus_emotion",
+      "count_per_model": 9,
+      "instructions": "Generate non-casino scenarios combining realization framing with the target emotion. Keep risk orientation neutral. Do not name the emotion."
+    },
+    {
+      "cell_id": "realization_risk_noncasino",
+      "prompt_family": "realization_risk",
+      "domain": "general_noncasino",
+      "concept_axis": "realization_risk",
+      "emotion": "none",
+      "emotion_intensity": "none",
+      "risk_orientations": [
+        "risk_seeking",
+        "risk_avoidance"
+      ],
+      "risk_intensity": "medium",
+      "realization_frames": [
+        "paper_open",
+        "realized_closed"
+      ],
+      "outcome_valences": [
+        "loss",
+        "gain"
+      ],
+      "casino_context": "none",
+      "behavior_target": "non_gambling_choice",
+      "control_type": "none",
+      "contrast_role": "positive",
+      "expected_feature": "realization_framing_plus_risk",
+      "count_per_model": 12,
+      "instructions": "Generate non-casino scenarios combining realization framing with a risk-seeking or risk-avoidance choice. Keep affective tone flat; do not imply that loss alone causes risk seeking."
+    }
+  ]
+}

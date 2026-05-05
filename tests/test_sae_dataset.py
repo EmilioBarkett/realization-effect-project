@@ -41,7 +41,7 @@ def _make_activation_run(tmp_path: Path) -> Path:
                 "token_positions": [0, 1, 2],
                 "token_regions": ["scenario", "decision_question", "response_instruction"],
                 "num_tokens": 3,
-                "metadata": {"condition": "paper_even"},
+                "metadata": {"condition": "paper_even", "prompt_family": "realization_frame"},
             }
         ],
     )
@@ -101,6 +101,28 @@ def test_iter_activation_vectors_filters_by_layer_and_region(tmp_path: Path) -> 
     assert records[1].metadata["token_position"] == 1
 
 
+def test_iter_activation_vectors_filters_by_prompt_metadata(tmp_path: Path) -> None:
+    run_dir = _make_activation_run(tmp_path)
+
+    excluded = list(
+        iter_activation_vectors(
+            run_dir,
+            layers={12},
+            prompt_metadata_filters={"prompt_family": {"emotion_positive"}},
+        )
+    )
+    included = list(
+        iter_activation_vectors(
+            run_dir,
+            layers={12},
+            prompt_metadata_filters={"prompt_family": {"realization_frame"}},
+        )
+    )
+
+    assert excluded == []
+    assert len(included) == 3
+
+
 def test_summarize_activation_dataset_counts_vectors(tmp_path: Path) -> None:
     run_dir = _make_activation_run(tmp_path)
 
@@ -127,6 +149,9 @@ def test_sae_dataset_config_round_trips_paths(tmp_path: Path) -> None:
                 "layers": [12, 18],
                 "token_regions": ["scenario"],
                 "activation_site": "resid_post",
+                "prompt_metadata_filters": {
+                    "prompt_family": ["emotion_positive", "emotion_control"]
+                },
                 "max_vectors": 100,
             }
         ),
@@ -138,6 +163,9 @@ def test_sae_dataset_config_round_trips_paths(tmp_path: Path) -> None:
     assert config.activation_runs == (Path("results/residual_streams/example"),)
     assert config.layers == (12, 18)
     assert config.token_regions == ("scenario",)
+    assert config.prompt_metadata_filters == {
+        "prompt_family": ("emotion_positive", "emotion_control")
+    }
     assert config.to_json_dict()["max_vectors"] == 100
 
 

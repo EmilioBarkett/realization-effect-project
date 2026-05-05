@@ -134,7 +134,7 @@ def write_emotion_probe_csv(records: Iterable[EmotionProbeRecord], output_path: 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Export emotion contrast prompts for activation extraction.")
     parser.add_argument("--config", default=str(DEFAULT_EMOTION_CONFIG))
-    parser.add_argument("--output", default="experiments/emotion_activation/prompts/initial_emotion_contrasts.csv")
+    parser.add_argument("--output", default="experiments/emotion_activation/prompts/archive/initial_emotion_contrasts.csv")
     args = parser.parse_args()
 
     records = load_emotion_probe_records(Path(args.config))

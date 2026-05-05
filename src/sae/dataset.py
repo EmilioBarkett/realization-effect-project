@@ -33,6 +33,7 @@ def iter_activation_vectors(
     *,
     layers: set[int] | None = None,
     token_regions: set[str] | None = None,
+    prompt_metadata_filters: dict[str, set[str]] | None = None,
     activation_site: str | None = "resid_post",
     max_vectors: int | None = None,
 ) -> Iterator[ActivationVectorRecord]:
@@ -54,6 +55,13 @@ def iter_activation_vectors(
         for batch_row, row in enumerate(index_rows):
             if activation_site is not None and row.get("activation_site", activation_site) != activation_site:
                 continue
+            prompt_metadata = row.get("metadata", {})
+            if prompt_metadata_filters is not None:
+                if any(
+                    str(prompt_metadata.get(key, "")).strip() not in allowed_values
+                    for key, allowed_values in prompt_metadata_filters.items()
+                ):
+                    continue
 
             token_ids = row.get("token_ids", [])
             token_positions = row.get("token_positions", [])
@@ -90,7 +98,7 @@ def iter_activation_vectors(
                         token_positions[token_index] if token_index < len(token_positions) else None
                     ),
                     "token_region": region,
-                    "prompt_metadata": row.get("metadata", {}),
+                    "prompt_metadata": prompt_metadata,
                 }
                 yield ActivationVectorRecord(
                     vector=np.asarray(array[batch_row, token_index, :]),
@@ -106,6 +114,7 @@ def summarize_activation_dataset(
     *,
     layers: set[int] | None = None,
     token_regions: set[str] | None = None,
+    prompt_metadata_filters: dict[str, set[str]] | None = None,
     activation_site: str | None = "resid_post",
     max_vectors: int | None = None,
 ) -> dict[str, Any]:
@@ -121,6 +130,7 @@ def summarize_activation_dataset(
             run_dir,
             layers=layers,
             token_regions=token_regions,
+            prompt_metadata_filters=prompt_metadata_filters,
             activation_site=activation_site,
             max_vectors=None if max_vectors is None else max_vectors - total_vectors,
         ):

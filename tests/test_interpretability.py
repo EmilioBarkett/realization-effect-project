@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 from pathlib import Path
 
@@ -23,7 +24,20 @@ from emotion_activation.emotion_probes import (
     load_emotion_probe_records,
     write_emotion_probe_csv,
 )
+from emotion_activation.openrouter_prompt_generation import (
+    generate_prompt_csv,
+    iter_generation_jobs,
+    load_generation_plan,
+    pilot_plan_one_job_per_cell,
+    rows_for_job,
+    validate_unique_prompt_ids,
+)
 from emotion_activation.residual_streams import BatchResiduals, ResidualStreamLogger
+from realization_effect.runner import (
+    DEFAULT_GENERATION_OUTPUT,
+    GENERATION_PROMPT_VERSION,
+    build_prompt,
+)
 
 
 def test_parse_layers_sorts_deduplicates_and_rejects_invalid() -> None:
@@ -73,6 +87,16 @@ def test_load_behavioral_summaries_groups_results_by_condition(tmp_path: Path) -
     assert summaries["paper_even"]["models"] == ["model-a", "model-b"]
 
 
+def test_generation_prompt_version_is_reserved_for_prompt_generation() -> None:
+    assert GENERATION_PROMPT_VERSION == "generation"
+    assert DEFAULT_GENERATION_OUTPUT == Path(
+        "experiments/emotion_activation/prompts/final/final_inference_prompts_v1.csv"
+    )
+
+    with pytest.raises(ValueError, match="Unsupported prompt_version"):
+        build_prompt("paper", 0, prompt_version=GENERATION_PROMPT_VERSION)
+
+
 def test_with_token_regions_labels_emotion_prompt_spans() -> None:
     record = PromptRecord(
         prompt_id="regret__positive",
@@ -95,6 +119,33 @@ def test_with_token_regions_labels_emotion_prompt_spans() -> None:
     ]
     scenario = regions[1]
     assert annotated.prompt_text[scenario["start"] : scenario["end"]] == "A visitor regrets a costly choice."
+
+
+def test_with_token_regions_labels_generated_scenario_without_emotion_metadata() -> None:
+    record = PromptRecord(
+        prompt_id="neutral_baseline",
+        prompt_text=(
+            "Read the following short scenario.\n\n"
+            "Scenario:\n"
+            "A city employee compares two vendor quotes before preparing a summary.\n\n"
+            "Do not answer yet. Continue processing the scenario."
+        ),
+        metadata={"emotion": "", "concept_axis": "neutral"},
+    )
+
+    annotated = _with_token_regions(record, "auto")
+
+    regions = annotated.metadata["prompt_regions"]
+    assert [region["label"] for region in regions] == [
+        "wrapper",
+        "scenario",
+        "processing_instruction",
+    ]
+    scenario = regions[1]
+    assert (
+        annotated.prompt_text[scenario["start"] : scenario["end"]]
+        == "A city employee compares two vendor quotes before preparing a summary."
+    )
 
 
 def test_with_token_regions_labels_realization_prompt_spans() -> None:
@@ -462,6 +513,338 @@ def test_general_emotion_probe_config_exports_variants(tmp_path: Path) -> None:
     exported = output_path.read_text(encoding="utf-8")
     assert "variant_id" in exported
     assert "anxiety__travel_delay__control" in exported
+
+
+def test_final_prompt_generation_plan_expands_balanced_model_jobs() -> None:
+    plan = load_generation_plan(Path("configs/emotion_activation/final_inference_prompt_generation_v1.json"))
+
+    jobs = list(iter_generation_jobs(plan, limit_jobs=12))
+
+    assert jobs
+    assert {job.model_alias for job in jobs} == {"codex"}
+    assert jobs[0].metadata["emotion"] == "regret"
+    assert jobs[0].metadata["risk_orientation"] == "neutral"
+    assert jobs[0].count == 10
+    assert jobs[0].batch_id.startswith("final_inference_prompt_generation_v1__codex__")
+
+
+def test_final_prompt_generation_plan_can_sample_all_cells() -> None:
+    plan = load_generation_plan(Path("configs/emotion_activation/final_inference_prompt_generation_v1.json"))
+
+    pilot = pilot_plan_one_job_per_cell(plan)
+    jobs = list(iter_generation_jobs(pilot))
+
+    assert len(jobs) == len(plan["models"]) * len(plan["cells"])
+    assert {job.count for job in jobs} == {1}
+    assert {job.cell["cell_id"] for job in jobs} == {cell["cell_id"] for cell in plan["cells"]}
+
+
+def test_openrouter_prompt_generation_writes_csv_with_fake_client(tmp_path: Path) -> None:
+    plan = {
+        "name": "tiny_plan",
+        "default_count_per_cell_per_model": 2,
+        "models": [{"alias": "model_a", "model": "provider/model-a"}],
+        "generation": {"temperature": 0.7, "seed": 11},
+        "cells": [
+            {
+                "cell_id": "general_risk",
+                "prompt_family": "tiny_family",
+                "domain": "general",
+                "concept_axis": "risk",
+                "emotion": "none",
+                "risk_orientation": "risk_seeking",
+                "risk_intensity": "medium",
+                "casino_context": "none",
+                "control_type": "none",
+                "contrast_role": "positive",
+                "expected_feature": "risk_orientation",
+            }
+        ],
+    }
+
+    def fake_request(model_id, messages, options):
+        assert model_id == "provider/model-a"
+        assert options["api_key"] == "test-key"
+        assert "general_risk" in messages[1]["content"]
+        return {
+            "choices": [
+                {
+                    "message": {
+                        "content": json.dumps(
+                            {
+                                "prompts": [
+                                    {
+                                        "variant_id": "variance_choice",
+                                        "prompt_text": (
+                                            "Read the following short scenario.\n\n"
+                                            "Scenario:\n"
+                                            "A planner chooses the option with the wider range of outcomes.\n\n"
+                                            "Do not answer yet. Continue processing the scenario."
+                                        ),
+                                        "notes": "risk-seeking without loss",
+                                    },
+                                    {
+                                        "variant_id": "upside_focus",
+                                        "prompt_text": (
+                                            "Read the following short scenario.\n\n"
+                                            "Scenario:\n"
+                                            "A designer selects the prototype with the largest possible upside "
+                                            "after comparing equal averages.\n\n"
+                                            "Do not answer yet. Continue processing the scenario."
+                                        ),
+                                        "notes": "upside salience",
+                                    },
+                                ]
+                            }
+                        )
+                    }
+                }
+            ]
+        }
+
+    output = tmp_path / "generated.csv"
+    written = generate_prompt_csv(plan, output, request_fn=fake_request, api_key="test-key")
+
+    rows = list(csv.DictReader(output.open("r", newline="", encoding="utf-8")))
+    assert written == 2
+    assert len(rows) == 2
+    assert rows[0]["source"] == "openrouter_generated"
+    assert rows[0]["source_llm"] == "model_a"
+    assert rows[0]["risk_orientation"] == "risk_seeking"
+    assert rows[0]["realization_frame"] == "none"
+    assert rows[0]["outcome_valence"] == "none"
+    assert rows[0]["behavior_target"] == "none"
+    assert rows[0]["prompt_family"] == "tiny_family"
+
+
+def test_openrouter_prompt_generation_can_chunk_large_jobs(tmp_path: Path) -> None:
+    plan = {
+        "name": "tiny_plan",
+        "default_count_per_cell_per_model": 5,
+        "models": [{"alias": "model_a", "model": "provider/model-a"}],
+        "generation": {"max_prompts_per_request": 2},
+        "cells": [
+            {
+                "cell_id": "neutral_baseline",
+                "prompt_family": "neutral_baseline",
+                "domain": "general",
+                "concept_axis": "neutral",
+                "emotion": "none",
+                "risk_orientation": "neutral",
+                "contrast_role": "baseline",
+            }
+        ],
+    }
+    calls: list[int] = []
+
+    def fake_request(_model_id, messages, _options):
+        payload = json.loads(messages[1]["content"])
+        count = int(payload["count"])
+        calls.append(count)
+        return {
+            "choices": [
+                {
+                    "message": {
+                        "content": json.dumps(
+                            {
+                                "prompts": [
+                                    {
+                                        "variant_id": f"variant_{len(calls)}_{index}",
+                                        "prompt_text": (
+                                            "Read the following short scenario.\n\n"
+                                            "Scenario:\n"
+                                            f"A clerk files report {len(calls)}-{index} before the office closes.\n\n"
+                                            "Do not answer yet. Continue processing the scenario."
+                                        ),
+                                        "notes": "neutral chunk",
+                                    }
+                                    for index in range(count)
+                                ]
+                            }
+                        )
+                    }
+                }
+            ]
+        }
+
+    output = tmp_path / "generated.csv"
+    written = generate_prompt_csv(plan, output, request_fn=fake_request, api_key="test-key")
+
+    rows = list(csv.DictReader(output.open("r", newline="", encoding="utf-8")))
+    assert calls == [2, 2, 1]
+    assert written == 5
+    assert len(rows) == 5
+    assert len({row["prompt_id"] for row in rows}) == 5
+    assert rows[0]["generation_batch_id"].endswith("__part_001")
+    assert rows[-1]["generation_batch_id"].endswith("__part_003")
+
+
+def test_openrouter_prompt_generation_rejects_duplicate_prompt_ids() -> None:
+    plan = {
+        "name": "tiny_plan",
+        "default_count_per_cell_per_model": 2,
+        "models": [{"alias": "model_a", "model": "provider/model-a"}],
+        "cells": [
+            {
+                "cell_id": "neutral_baseline",
+                "domain": "general",
+                "concept_axis": "neutral",
+                "emotion": "none",
+                "risk_orientation": "neutral",
+                "contrast_role": "baseline",
+            }
+        ],
+    }
+    job = next(iter_generation_jobs(plan))
+
+    def fake_request(_model_id, _messages, _options):
+        return {
+            "choices": [
+                {
+                    "message": {
+                        "content": json.dumps(
+                            {
+                                "prompts": [
+                                    {
+                                        "variant_id": "non_casino",
+                                        "prompt_text": (
+                                            "Read the following short scenario.\n\n"
+                                            "Scenario:\n"
+                                            "A clerk compares two filing schedules before the afternoon meeting.\n\n"
+                                            "Do not answer yet. Continue processing the scenario."
+                                        ),
+                                        "notes": "neutral",
+                                    },
+                                    {
+                                        "variant_id": "non_casino",
+                                        "prompt_text": (
+                                            "Read the following short scenario.\n\n"
+                                            "Scenario:\n"
+                                            "A manager reviews two supply lists before placing the order.\n\n"
+                                            "Do not answer yet. Continue processing the scenario."
+                                        ),
+                                        "notes": "neutral",
+                                    },
+                                ]
+                            }
+                        )
+                    }
+                }
+            ]
+        }
+
+    with pytest.raises(ValueError, match="duplicate prompt_id"):
+        rows_for_job(plan, job, request_fn=fake_request, options={"api_key": "test-key"})
+
+
+def test_openrouter_prompt_generation_rejects_duplicate_resume_csv(tmp_path: Path) -> None:
+    output = tmp_path / "generated.csv"
+    output.write_text(
+        "prompt_id,prompt_text\n"
+        "duplicate,Prompt A\n"
+        "duplicate,Prompt B\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="duplicate prompt_id"):
+        validate_unique_prompt_ids(output)
+
+
+def test_openrouter_prompt_generation_rejects_label_leakage() -> None:
+    plan = {
+        "name": "tiny_plan",
+        "default_count_per_cell_per_model": 1,
+        "models": [{"alias": "model_a", "model": "provider/model-a"}],
+        "cells": [
+            {
+                "cell_id": "general_emotion",
+                "domain": "general",
+                "concept_axis": "emotion",
+                "emotion": "regret",
+                "risk_orientation": "neutral",
+                "contrast_role": "positive",
+            }
+        ],
+    }
+    job = next(iter_generation_jobs(plan))
+
+    def fake_request(_model_id, _messages, _options):
+        return {
+            "choices": [
+                {
+                    "message": {
+                        "content": json.dumps(
+                            {
+                                "prompts": [
+                                    {
+                                        "variant_id": "leaky",
+                                        "prompt_text": (
+                                            "Read the following short scenario.\n\n"
+                                            "Scenario:\n"
+                                            "A speaker regretted skipping the final rehearsal.\n\n"
+                                            "Do not answer yet. Continue processing the scenario."
+                                        ),
+                                        "notes": "leaky",
+                                    }
+                                ]
+                            }
+                        )
+                    }
+                }
+            ]
+        }
+
+    with pytest.raises(ValueError, match="explicit emotion label"):
+        rows_for_job(plan, job, request_fn=fake_request, options={"api_key": "test-key"})
+
+
+def test_openrouter_prompt_generation_rejects_plan_forbidden_terms() -> None:
+    plan = {
+        "name": "general_emotion_risk",
+        "default_count_per_cell_per_model": 1,
+        "forbidden_terms": ["casino", "wager"],
+        "models": [{"alias": "model_a", "model": "provider/model-a"}],
+        "cells": [
+            {
+                "cell_id": "neutral_baseline",
+                "domain": "general",
+                "concept_axis": "neutral",
+                "emotion": "none",
+                "risk_orientation": "neutral",
+                "contrast_role": "baseline",
+            }
+        ],
+    }
+    job = next(iter_generation_jobs(plan))
+
+    def fake_request(_model_id, _messages, _options):
+        return {
+            "choices": [
+                {
+                    "message": {
+                        "content": json.dumps(
+                            {
+                                "prompts": [
+                                    {
+                                        "variant_id": "bad_domain",
+                                        "prompt_text": (
+                                            "Read the following short scenario.\n\n"
+                                            "Scenario:\n"
+                                            "A planner compares two casino schedules before a meeting.\n\n"
+                                            "Do not answer yet. Continue processing the scenario."
+                                        ),
+                                        "notes": "forbidden domain term",
+                                    }
+                                ]
+                            }
+                        )
+                    }
+                }
+            ]
+        }
+
+    with pytest.raises(ValueError, match="forbidden term"):
+        rows_for_job(plan, job, request_fn=fake_request, options={"api_key": "test-key"})
 
 
 def test_residual_stream_logger_validates_batch_inputs_without_model_init() -> None:

@@ -7,7 +7,7 @@ research settings are still expected to be chosen before a serious run.
 `src/emotion_activation/` owns prompt construction, forward passes, activation
 capture, and run validation. `src/sae/` starts from completed activation run
 directories and turns those tensors into vector datasets for contrast analysis,
-future SAE training, and feature interpretation.
+local SAE training, and future feature interpretation.
 
 ## Current Boundary
 
@@ -79,12 +79,12 @@ The first backend is deliberately small and local:
 - checkpoint and JSON manifest output under ignored `results/final/sae/`
   for current reference runs or `results/test/sae/` for smoke runs
 
-Example command after filling `configs/sae/initial_dataset_template.json`:
+Example command after filling `configs/sae/templates/initial_dataset_template.json`:
 
 ```bash
 ./venv/bin/python scripts/train_sae.py \
-  --dataset-config configs/sae/initial_dataset_template.json \
-  --training-config configs/sae/initial_training_template.json
+  --dataset-config configs/sae/templates/initial_dataset_template.json \
+  --training-config configs/sae/templates/initial_training_template.json
 ```
 
 This is meant to validate the full post-inference path before committing to a

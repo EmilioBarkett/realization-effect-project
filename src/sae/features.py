@@ -6,7 +6,7 @@ from typing import Any
 
 @dataclass(frozen=True)
 class FeatureExample:
-    """Metadata for a future top-activating SAE feature example."""
+    """Metadata for one top-activating SAE feature example."""
 
     feature_id: int
     activation_value: float
@@ -17,12 +17,18 @@ class FeatureExample:
 
 
 class SAEFeatureAnalysisNotImplementedError(NotImplementedError):
-    """Raised until feature scoring exists."""
+    """Raised until feature-ranking utilities are implemented."""
 
 
 def top_activating_examples(*_args, **_kwargs) -> list[FeatureExample]:
-    """Future hook for ranking dataset examples by SAE feature activation."""
+    """Future hook for ranking dataset examples by trained SAE feature activation.
+
+    The project now has a local SAE training backend. This module is the next
+    layer above training: loading a checkpoint, scoring activation records, and
+    returning the highest-activating prompt/token examples for interpretation.
+    """
 
     raise SAEFeatureAnalysisNotImplementedError(
-        "Feature analysis is not implemented yet. Decide the SAE backend first."
+        "Feature analysis is not implemented yet. Train/load an SAE checkpoint "
+        "and add feature-ranking logic here."
     )

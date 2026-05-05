@@ -6,9 +6,9 @@ The project is split into three active code areas:
   construction, OpenRouter collection, parsing, reconciliation, dashboarding,
   and statistical analysis.
 - `src/emotion_activation/` contains residual-stream logging, emotion probes,
-  vector extraction, and later steering utilities.
-- `src/sae/` contains the activation-dataset boundary and future SAE training
-  and feature-analysis utilities.
+  OpenRouter prompt-generation helpers, and activation-run validation.
+- `src/sae/` contains the activation-dataset boundary, local SAE model/training
+  scaffold, and future feature-analysis utilities.
 
 Preferred command-line entrypoints live in `scripts/`. The root-level Python
 compatibility wrappers have been removed so each command has a single obvious
@@ -22,9 +22,9 @@ so they stay out of the active `results/` workflow.
 Static inputs live under `configs/`: realization-effect conditions stay in
 `configs/realization_effect/`, while emotion-vector contrast definitions live
 in `configs/emotion_activation/`, and SAE dataset selections live in
-`configs/sae/`. Reviewable experiment material that is not package code lives
-under `experiments/`, currently
-`experiments/emotion_activation/`.
+`configs/sae/`, split into `templates/`, `test/`, and `final/`. Reviewable
+experiment material that is not package code lives under `experiments/`,
+currently `experiments/emotion_activation/`.
 
 Active generated outputs live in `results/`: `results/results.csv` is
 canonical, and `results/sample_results.csv` is a small review sample.
