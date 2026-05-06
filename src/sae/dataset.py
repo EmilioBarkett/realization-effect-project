@@ -7,7 +7,7 @@ from typing import Any, Iterator
 
 import numpy as np
 
-from emotion_activation.activation_store import ActivationRun, load_activation_run
+from activation_analysis.activation_store import ActivationRun, load_activation_run
 
 
 @dataclass(frozen=True)

@@ -14,6 +14,8 @@ from realization_effect.runner import parse_response
         ("Wager: 250\nRisk profile (1-5): 4", 250, 4, True, True),
         ("Wager: 250 Risk profile (1-5): 4", 250, 4, True, True),
         ("I would wager 300 CHF.\nRisk preference: 2", 300, 2, True, True),
+        ("The allocation amount is 1000 and the risk preference is 5.", 1000, 5, True, True),
+        ("Allocation amount: 620\nRisk preference: 3", 620, 3, True, True),
         ("1500\n3", None, 3, False, True),
         ("500\n7", 500, None, True, False),
     ],

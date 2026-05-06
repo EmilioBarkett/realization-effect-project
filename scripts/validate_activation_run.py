@@ -9,7 +9,7 @@ _SRC = Path(__file__).resolve().parents[1] / "src"
 if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
-from emotion_activation.activation_store import load_activation_run, validate_activation_run
+from activation_analysis.activation_store import load_activation_run, validate_activation_run
 
 
 def main() -> None:

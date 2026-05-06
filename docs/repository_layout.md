@@ -5,10 +5,10 @@ The project is split into three active code areas:
 - `src/realization_effect/` contains the behavioral experiment: prompt
   construction, OpenRouter collection, parsing, reconciliation, dashboarding,
   and statistical analysis.
-- `src/emotion_activation/` contains residual-stream logging, emotion probes,
+- `src/activation_analysis/` contains residual-stream logging, emotion probes,
   OpenRouter prompt-generation helpers, and activation-run validation.
-- `src/sae/` contains the activation-dataset boundary, local SAE model/training
-  scaffold, and future feature-analysis utilities.
+- `src/sae/` contains archived/supporting SAE utilities. The current
+  interpretability path is activation-vector analysis rather than SAE training.
 
 Preferred command-line entrypoints live in `scripts/`. The root-level Python
 compatibility wrappers have been removed so each command has a single obvious
@@ -20,16 +20,15 @@ Ignored non-canonical CSV archives live under `tests/fixtures/noncanonical/`
 so they stay out of the active `results/` workflow.
 
 Static inputs live under `configs/`: realization-effect conditions stay in
-`configs/realization_effect/`, while emotion-vector contrast definitions live
-in `configs/emotion_activation/`, and SAE dataset selections live in
-`configs/sae/`, split into `templates/`, `test/`, and `final/`. Reviewable
-experiment material that is not package code lives under `experiments/`,
-currently `experiments/emotion_activation/`.
+`configs/realization_effect/`, while emotion/realization activation-vector
+generation plans live in `configs/activation_analysis/`. Archived SAE dataset
+selections live under `configs/sae/archive/`. Reviewable experiment material
+that is not package code lives under `experiments/`, currently
+`experiments/activation_analysis/`.
 
 Active generated outputs live in `results/`: `results/results.csv` is
 canonical, and `results/sample_results.csv` is a small review sample.
 Generated grouped outputs and resumable blocks are rebuildable and ignored by
 git.
-Generated SAE outputs should live under ignored `results/final/sae/` for
-current reference runs or `results/test/sae/` for disposable smoke runs.
+Archived SAE outputs live under ignored `results/legacy/`.
 Local model weights live in `models/` and are intentionally gitignored.

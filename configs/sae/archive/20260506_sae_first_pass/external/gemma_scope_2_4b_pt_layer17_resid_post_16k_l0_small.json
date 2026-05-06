@@ -1,0 +1,21 @@
+{
+  "schema_version": "0.1.0",
+  "description": "Metadata config for the imported Gemma Scope 2 Gemma-3-4B model.layers.17 resid_post SAE baseline.",
+  "provider": "google",
+  "repo_id": "google/gemma-scope-2-4b-pt",
+  "repo_path": "resid_post_all/layer_17_width_16k_l0_small",
+  "local_dir": "external/archive/20260506_sae_first_pass/saes/gemma_scope_2_4b_pt/layer_17_resid_post_16k_l0_small",
+  "config_file": "external/archive/20260506_sae_first_pass/saes/gemma_scope_2_4b_pt/layer_17_resid_post_16k_l0_small/resid_post_all/layer_17_width_16k_l0_small/config.json",
+  "params_file": "external/archive/20260506_sae_first_pass/saes/gemma_scope_2_4b_pt/layer_17_resid_post_16k_l0_small/resid_post_all/layer_17_width_16k_l0_small/params.safetensors",
+  "target_model": "google/gemma-3-4b-pt",
+  "hook_point": "model.layers.17.output",
+  "activation_site": "resid_post",
+  "layer": 17,
+  "project_logger_layer": 18,
+  "architecture": "jump_relu",
+  "d_in": 2560,
+  "d_sae": 16384,
+  "l0": 20,
+  "comparison_activation_run": "results/final/residual_streams/general_emotion_risk_v1_layer18_regions_float32",
+  "notes": "Project residual logging uses user-facing 1-based layer numbers and hooks blocks[layer - 1]. This external SAE's model.layers.17 hook aligns with the existing project logger layer-18 activation run."
+}

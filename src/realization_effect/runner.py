@@ -16,11 +16,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
+from activation_analysis.generation_cli import run_generation_prompt_mode
 from openai import OpenAI
 
 GENERATION_PROMPT_VERSION = "generation"
-DEFAULT_GENERATION_PLAN = Path("configs/emotion_activation/final_inference_prompt_generation_v1.json")
-DEFAULT_GENERATION_OUTPUT = Path("experiments/emotion_activation/prompts/final/final_inference_prompts_v1.csv")
+DEFAULT_GENERATION_PLAN = Path("configs/activation_analysis/realization_vector_generation_v1.json")
+DEFAULT_GENERATION_OUTPUT = Path("experiments/activation_analysis/prompts/activation_vectors/realization_vector_v1.csv")
 
 # Constant instructions prompt used for every trial.
 SYSTEM_PROMPT = (
@@ -42,6 +43,8 @@ LINE_LABEL_PATTERN = re.compile(
     r"^\s*(?:"
     r"line\s*[12]"
     r"|[12]"
+    r"|allocation(?:\s+amount)?"
+    r"|amount(?:\s+to\s+allocate)?"
     r"|wager"
     r"|bet"
     r"|stake"
@@ -53,6 +56,9 @@ LINE_LABEL_PATTERN = re.compile(
 )
 
 ANSWER_LABELS = [
+    "allocation amount",
+    "amount to allocate",
+    "amount",
     "total session wager",
     "machine risk preference",
     "machine risk level",
@@ -324,47 +330,6 @@ def build_prompt(outcome_type: str, amount: int, prompt_version: str = "absolute
     return builder(outcome_type=outcome_type, amount=amount)
 
 
-def _run_generation_prompt_mode(args: argparse.Namespace) -> None:
-    """Route `--prompt-version generation` to the OpenRouter prompt generator."""
-
-    from emotion_activation.openrouter_prompt_generation import (
-        generate_prompt_csv,
-        load_generation_plan,
-        pilot_plan_one_job_per_cell,
-    )
-
-    api_key = os.environ.get(args.api_key_env)
-    if not api_key:
-        raise SystemExit(f"Set {args.api_key_env} before generating prompts.")
-
-    plan = load_generation_plan(args.generation_plan)
-    if args.generation_pilot_all_cells:
-        plan = pilot_plan_one_job_per_cell(
-            plan,
-            count_per_model=args.generation_pilot_count_per_cell,
-        )
-    model_aliases = set(args.models) if args.models is not None else None
-    output_path = (
-        args.generation_output
-        if args.generation_output is not None
-        else (
-            DEFAULT_GENERATION_OUTPUT
-            if args.output == Path("results/results.csv")
-            else args.output
-        )
-    )
-
-    written = generate_prompt_csv(
-        plan,
-        output_path,
-        api_key=api_key,
-        model_aliases=model_aliases,
-        limit_jobs=args.generation_limit_jobs,
-        resume=args.generation_resume,
-    )
-    print(f"wrote {written} generated prompts to {output_path}")
-
-
 def _extract_response_text(response: Any) -> str:
     """Extract plain text from a Responses API object."""
     output_text = getattr(response, "output_text", None)
@@ -498,7 +463,7 @@ def _extract_response_numbers(response_text: str) -> Tuple[Optional[int], Option
 
     wager_value = _labeled_answer_value(
         response_text,
-        ["wager", "bet", "stake", "total session wager"],
+        ["allocation amount", "amount to allocate", "wager", "bet", "stake", "total session wager"],
     )
     risk_value = _labeled_answer_value(
         response_text,
@@ -1316,7 +1281,7 @@ def main() -> None:
         default="absolute",
         help=(
             "Prompt wording version (default: absolute). Use 'generation' to "
-            "generate SAE inference prompts instead of behavioral results."
+            "generate activation-analysis prompts instead of behavioral results."
         ),
     )
     parser.add_argument(
@@ -1370,7 +1335,7 @@ def main() -> None:
         default=None,
         help=(
             "Generated prompt CSV path. Defaults to "
-            "experiments/emotion_activation/prompts/final/final_inference_prompts_v1.csv "
+            "the generation plan's default_output, or realization_vector_v1.csv "
             "when --prompt-version generation."
         ),
     )
@@ -1414,7 +1379,10 @@ def main() -> None:
             raise SystemExit("--prompt-version generation cannot be mixed with behavioral prompt versions.")
         if args.model is not None:
             args.models = [args.model]
-        _run_generation_prompt_mode(args)
+        run_generation_prompt_mode(
+            args,
+            default_generation_output=DEFAULT_GENERATION_OUTPUT,
+        )
         return
 
     models = args.models if args.models is not None else [args.model or "openai/o4-mini"]

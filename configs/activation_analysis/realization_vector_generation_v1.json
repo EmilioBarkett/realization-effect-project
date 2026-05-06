@@ -1,0 +1,188 @@
+{
+  "name": "realization_vector_generation_v1",
+  "description": "OpenRouter generation plan for Anthropic-style paired activation-vector data. It generates matched paper/open vs realized/closed prompts with metadata for direction building, validation, confound controls, and behavioral evaluation.",
+  "generation_mode": "paired_contrast",
+  "prompt_framing": "scenario_continuation",
+  "default_output": "experiments/activation_analysis/prompts/activation_vectors/realization_vector_v1.csv",
+  "default_count_per_cell_per_model": 2,
+  "models": [
+    {
+      "alias": "gpt54",
+      "model": "openai/gpt-5.4"
+    },
+    {
+      "alias": "sonnet",
+      "model": "anthropic/claude-sonnet-4.6"
+    },
+    {
+      "alias": "grok_fast",
+      "model": "x-ai/grok-4-fast"
+    }
+  ],
+  "generation": {
+    "temperature": 0.8,
+    "max_tokens": 8000,
+    "seed": 17,
+    "timeout": 120,
+    "retries": 2,
+    "validation_retries": 3,
+    "max_prompts_per_request": 2,
+    "retry_delay": 5,
+    "http_referer": "https://github.com/EmilioBarkett/realization-effect-project",
+    "x_title": "Realization Vector Prompt Generation"
+  },
+  "prompt_template": "Read the following short scenario.\n\nScenario:\n{scenario}\n\nDo not answer yet. Continue processing the scenario.",
+  "design_rules": [
+    "Generate matched pairs, not independent prompts. The paper/open and realized/closed versions must preserve the same actor, domain, amount bucket, outcome valence, and event structure.",
+    "Do not use the labels paper_open, realized_closed, realization, unrealized, feature, vector, or dataset inside prompt_text.",
+    "Keep each scenario between 35 and 75 words unless a cell explicitly asks otherwise.",
+    "Use third-person scenario narration only. Do not write first-person monologue, direct internal monologue, or dialogue.",
+    "Do not make risk-seeking a synonym for loss or desperation. Keep realization framing, risk orientation, and emotion separable unless a cell explicitly combines them.",
+    "For finance/investments, use held position versus sold position framing without giving investment advice.",
+    "For casino/gambling, use balance/chips/card still in play versus cashed out/paid/received framing.",
+    "For non-money control domains, make finality clear without payment or casino vocabulary.",
+    "Avoid repeated catchphrases across prompts. Vary syntax and concrete details while preserving the paired contrast."
+  ],
+  "cells": [
+    {
+      "cell_id": "direction_realization_money",
+      "prompt_family": "realization_pair",
+      "splits": [
+        "direction_train",
+        "direction_val"
+      ],
+      "domains": [
+        "finance_investments",
+        "refund_reimbursement",
+        "budget_spending",
+        "compensation_bonus"
+      ],
+      "concept_axis": "realization",
+      "emotion": "none",
+      "emotion_intensity": "none",
+      "risk_orientation": "neutral",
+      "risk_intensity": "none",
+      "risk_context": "none",
+      "realization_frame": "paired",
+      "outcome_valences": [
+        "gain",
+        "loss",
+        "neutral"
+      ],
+      "amount_buckets": [
+        "small",
+        "medium",
+        "large"
+      ],
+      "casino_context": "none",
+      "behavior_target": "none",
+      "asks_for_behavior": "false",
+      "control_type": "none",
+      "contrast_role": "paired",
+      "expected_feature": "realization_framing",
+      "expected_direction": "realized_closed_minus_paper_open",
+      "count_per_model": 6,
+      "instructions": "Generate paired money-domain realization prompts. Paper/open means the outcome is visible, expected, pending, held, or not settled. Realized/closed means the same outcome has been sold, paid, received, spent, posted, or finalized. Keep affect and risk preference neutral."
+    },
+    {
+      "cell_id": "direction_realization_nonmoney",
+      "prompt_family": "realization_pair",
+      "splits": [
+        "direction_train",
+        "direction_val"
+      ],
+      "domains": [
+        "academic_grades",
+        "project_outcomes"
+      ],
+      "concept_axis": "realization",
+      "emotion": "none",
+      "emotion_intensity": "none",
+      "risk_orientation": "neutral",
+      "risk_intensity": "none",
+      "risk_context": "none",
+      "realization_frame": "paired",
+      "outcome_valences": [
+        "gain",
+        "loss",
+        "neutral"
+      ],
+      "amount_bucket": "none",
+      "casino_context": "none",
+      "behavior_target": "none",
+      "asks_for_behavior": "false",
+      "control_type": "none",
+      "contrast_role": "paired",
+      "expected_feature": "realization_framing",
+      "expected_direction": "realized_closed_minus_paper_open",
+      "count_per_model": 6,
+      "instructions": "Generate paired non-money finality prompts. Use provisional/visible-but-not-final versus officially posted/submitted/closed framing. Do not use money, casino, wager, investment, or payment language."
+    },
+    {
+      "cell_id": "behavior_realization_casino",
+      "prompt_family": "behavior_eval_realization",
+      "split": "behavior_eval",
+      "domain": "casino_gambling",
+      "concept_axis": "realization_behavior",
+      "emotion": "none",
+      "emotion_intensity": "none",
+      "risk_orientation": "neutral",
+      "risk_intensity": "none",
+      "risk_context": "gambling_choice",
+      "realization_frame": "paired",
+      "outcome_valences": [
+        "gain",
+        "loss",
+        "neutral"
+      ],
+      "amount_buckets": [
+        "small",
+        "medium",
+        "large"
+      ],
+      "casino_context": "casino",
+      "behavior_target": "wager_and_machine_risk",
+      "asks_for_behavior": "true",
+      "expected_output_format": "two integers: wager_chf_1_to_1000 then machine_risk_1_to_5",
+      "control_type": "none",
+      "contrast_role": "paired",
+      "expected_feature": "realization_behavior",
+      "expected_direction": "realized_closed_minus_paper_open",
+      "count_per_model": 6,
+      "instructions": "Generate paired casino behavior-evaluation prompts. Each prompt should include the scenario plus an instruction to answer with exactly two integers on separate lines: total session wager in CHF from 1 to 1000, then machine risk preference from 1 to 5. Keep the pair identical except that one version leaves the outcome open/on-card/in-play and the other closes it through cash-out/payment/receipt."
+    },
+    {
+      "cell_id": "behavior_realization_finance",
+      "prompt_family": "behavior_eval_realization",
+      "split": "behavior_eval",
+      "domain": "finance_investments",
+      "concept_axis": "realization_behavior",
+      "emotion": "none",
+      "emotion_intensity": "none",
+      "risk_orientation": "neutral",
+      "risk_intensity": "none",
+      "risk_context": "portfolio_choice",
+      "realization_frame": "paired",
+      "outcome_valences": [
+        "gain",
+        "loss",
+        "neutral"
+      ],
+      "amount_buckets": [
+        "small",
+        "medium",
+        "large"
+      ],
+      "casino_context": "none",
+      "behavior_target": "investment_risk_choice",
+      "asks_for_behavior": "true",
+      "expected_output_format": "two integers: allocation_amount_1_to_1000 then risk_preference_1_to_5",
+      "control_type": "none",
+      "contrast_role": "paired",
+      "expected_feature": "realization_behavior",
+      "expected_direction": "realized_closed_minus_paper_open",
+      "count_per_model": 6,
+      "instructions": "Generate paired finance behavior-evaluation prompts. Each prompt should ask for exactly two integers on separate lines: allocation amount from 1 to 1000, then risk preference from 1 to 5. Avoid financial advice language; this is a stylized decision prompt."
+    }
+  ]
+}

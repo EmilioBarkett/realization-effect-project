@@ -44,5 +44,8 @@ data/interpretability/sae_runs/
 
 experiments/emotion_activation/prompts/final/*.bak
 
+external/saes/**/.cache/
+external/archive/**/.cache/
+
 .env
 .env.*

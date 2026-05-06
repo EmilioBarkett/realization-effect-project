@@ -1,11 +1,9 @@
-# Final SAE Runs
+# Archived SAE Runs
 
-This folder is reserved for future SAE runs intended to be reference outputs for
-the project.
+The SAE-first approach is archived for now. Current interpretability work should
+write activation-vector outputs elsewhere under `results/final/`.
 
-The current normalized SAE is still a smoke/test artifact and now lives under:
+Archived SAE outputs live under:
 
-- `results/test/sae/first_sae_prompt_mix_v1_layer18_normalized_smoke`
-
-Use this folder for the first serious SAE checkpoint trained from the larger
-inference dataset.
+- `results/legacy/20260506_sae_first_pass/`
+- `results/legacy/20260505_previous_sae/`

@@ -8,7 +8,7 @@ _SRC = Path(__file__).resolve().parents[1] / "src"
 if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
-from emotion_activation.log_residuals import main
+from activation_analysis.log_residuals import main
 
 
 if __name__ == "__main__":

@@ -1,0 +1,17 @@
+{
+  "schema_version": "0.1.0",
+  "description": "Current SAE training config for the general non-casino emotion/risk/realization feature-discovery run. Uses mean-centering/global-norm scaling computed from the exact layer-18 scenario-token training slice.",
+  "expansion_factor": 8,
+  "d_sae": 4096,
+  "activation": "topk",
+  "top_k": 32,
+  "l1_coefficient": 0.0,
+  "learning_rate": 0.0001,
+  "batch_size": 512,
+  "max_steps": 1000,
+  "seed": 0,
+  "device": "auto",
+  "normalization": "mean_center_global_norm",
+  "normalization_eps": 1e-8,
+  "output_dir": "results/legacy/20260506_sae_first_pass/general_emotion_risk_v1_layer18_normalized"
+}
