@@ -1,0 +1,170 @@
+% SPAR Final Report Draft
+% To compile in an environment with TeX Live:
+%   latexmk -pdf report.tex
+
+\documentclass[final]{sparreport}
+
+\title{Representation Without Control: Testing the Realization Effect in Language Models}
+
+\author{
+  \textbf{[Author Name]}\\
+  \texttt{[email@example.com]}
+}
+
+\sparround{Spring 2026}
+
+\graphicspath{{figures/}{../../results/final/report_realization_v1/figures/}{results/final/report_realization_v1/figures/}}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Large language models are increasingly used as behavioral simulators, but it remains unclear when their choices reflect human-like cognitive mechanisms rather than prompt-sensitive surface patterns. We study the realization effect, a behavioral-economics finding in which risk-taking differs after paper versus realized gains and losses. We adapt casino and investment-style realization scenarios into prompts that elicit a wager and risk preference. Initial prompt-only results showed systematic condition sensitivity, but follow-up analyses did not support a clean replication of the human realization-effect pattern. We then analyzed Gemma residual-stream activations and found a linear direction separating realized/closed outcomes from paper/open outcomes. However, activation steering along this direction at layer 18 did not reliably shift downstream risk choices, including in a negative sign-symmetry run. These results suggest a representation-behavior dissociation: models may encode semantically meaningful state variables without those variables being sufficient causal levers for the measured behavior.
+\end{abstract}
+
+\keywords{language models \and behavioral evaluation \and mechanistic interpretability \and activation steering \and risk-taking}
+
+\section{Introduction}
+
+Large language models (LLMs) are often used, implicitly or explicitly, as behavioral subjects. They answer survey questions, simulate agents, generate forecasts, and stand in for human respondents in early-stage social-science or policy experiments. This creates a methodological problem for AI safety and behavioral modeling: a model may produce responses that look psychologically meaningful without implementing anything like the human mechanism that originally motivated the task.
+
+We study this problem through the realization effect. In human decision-making, risk-taking can depend on whether prior gains or losses are still paper outcomes in an open account or have been realized by closing the account. Imas~\cite{imas2016realization} showed that realized versus paper losses can induce different subsequent risk attitudes. Flepp, Meier, and Franck~\cite{flepp2021paper} studied related dynamics in casino gambling, and Merkle, M{\"u}ller-Dethard, and Weber~\cite{merkle2021closing} extended the question to gains as well as losses.
+
+Our original question was behavioral: do LLMs reproduce the realization effect? As the project developed, the more informative question became mechanistic: if realization status matters in behavior, can we find a corresponding internal representation, and does intervening on that representation change risk choices?
+
+We test three linked questions. First, do prompt-only LLM responses show sensitivity to paper/open versus realized/closed framing? Second, is realization status linearly readable from model activations? Third, does steering along such a realization direction causally change wager or risk preference? The answer we find is mixed. Prompt-only behavior is condition-sensitive but does not robustly match the human realization-effect predictions. Gemma contains a readable realization direction in its residual stream. Yet steering that direction does not reliably move downstream risk behavior. The final contribution is therefore not a successful behavioral replication, but a case study in representation without control.
+
+\section{Related Work}
+
+\subsection{The realization effect}
+
+The realization effect distinguishes paper outcomes from realized outcomes. A paper loss or gain remains inside an open mental account; a realized loss or gain has been closed out. Imas~\cite{imas2016realization} uses this distinction to reconcile conflicting findings about whether prior losses increase or decrease risk-taking. Flepp et al.~\cite{flepp2021paper} provide field evidence from casino gambling, a setting in which within-visit paper outcomes and across-visit realized outcomes can be separated. Merkle et al.~\cite{merkle2021closing} study whether similar mental-account closure effects apply to both gains and losses.
+
+This literature gives a useful benchmark for LLM behavioral evaluation because it makes directional predictions about a subtle latent variable: the same monetary outcome should have different implications depending on whether it is still open or has been realized.
+
+\subsection{LLMs as behavioral subjects}
+
+LLM behavioral experiments are attractive because they are cheap, reproducible, and easy to scale across conditions. But the same properties make them fragile. A model response may reflect instruction-following priors, formatting artifacts, learned associations in text, or numeric anchors rather than a stable decision mechanism. For that reason, behavioral prompting alone is weak evidence that a model represents, uses, or reasons with the intended latent variable.
+
+\subsection{Activation readout and steering}
+
+Mechanistic interpretability offers a way to move beyond prompt-level behavior. Linear probes and contrastive activation directions can identify variables represented in a model's hidden states. Activation steering methods then test whether adding such a direction during inference changes behavior~\cite{turner2023activation,zou2023representation}. This is a stronger causal test than readout alone. At the same time, linear representation is not automatically behavioral control: a direction can encode information without being the relevant downstream policy variable~\cite{park2024linear}. Our experiment is designed around this gap.
+
+\section{Methods}
+
+\subsection{Prompt-only behavioral task}
+
+We constructed vignette prompts modeled on the realization-effect literature. The original prompt-only dataset uses 11 conditions spanning paper outcomes and realized outcomes. The model is asked to return two integers: a next-session wager from 1 to 1000 CHF and a slot-machine risk preference from 1 to 5. The cleaned dataset contains 32,576 rows, of which 32,251 have valid parsed wagers and 28,097 have valid risk-profile responses.
+
+We analyze two outcomes: log wager and risk profile. The main regressions use condition indicators with model, temperature, and prompt-version fixed effects, and HC3 robust standard errors. Paper conditions are compared against a paper-even baseline, while realized conditions are compared against a small realized-loss baseline.
+
+\subsection{Activation-vector prompt set}
+
+For the mechanistic pass, we generated paired prompts contrasting \texttt{paper\_open} and \texttt{realized\_closed} framings across casino and finance domains. The prompt set includes direction-training rows, held-out validation rows, and behavior-evaluation rows. We logged Gemma residual-stream activations and constructed a mean-difference direction:
+\[
+v_{\mathrm{realization}} = \mu_{\mathrm{realized\_closed}} - \mu_{\mathrm{paper\_open}}.
+\]
+The main artifact used for steering is the layer-18 direction from local Gemma 3 4B.
+
+\subsection{Steering intervention}
+
+We implemented a local residual-stream steering runner for Gemma. During generation, a forward hook adds a scaled, normalized realization direction at a selected layer. The full pilots reported here steer layer 18 at the final active token position using scales \(-50\), \(+50\), \(+75\), \(+100\), and \(+150\). Positive scales point toward \texttt{realized\_closed}; negative scales point toward \texttt{paper\_open}. Each steering run uses the same 648 behavior-evaluation prompts and is compared to the unsteered Gemma behavior baseline on matched prompt IDs.
+
+We report both all matched valid rows and a strict subset where the response contains exactly two integers. The strict subset is important because steering sometimes perturbs output format, and format failures can create misleading parsed outcomes.
+
+\section{Results}
+
+\subsection{Prompt-only behavior is condition-sensitive but not a clean realization-effect replication}
+
+The prompt-only behavioral data show systematic responses to outcome framing, but not in the clean pattern predicted by the human realization-effect literature. In the cleaned regular prompting dataset, paper-outcome effects on \texttt{risk\_profile} are mostly positive relative to the paper baseline: paper medium losses, paper small losses, paper small gains, and paper large gains all increase the risk-profile measure. However, wager effects are mixed. For \texttt{log\_wager}, paper large losses increase wagers, while paper small losses and paper gains decrease wagers.
+
+The realized-outcome results diverge more sharply from the original human prediction. Realized losses increase rather than decrease both log wager and risk profile relative to the small realized-loss baseline. Realized gains also differ significantly from baseline. These patterns suggest that LLMs are sensitive to outcome magnitude and framing, but the response is not well described as a faithful realization-effect replication.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{behavioral_coefficients.pdf}
+  \caption{Prompt-only behavioral coefficients from the cleaned realization-effect dataset. Points show OLS condition coefficients; error bars show approximate 95\% intervals using HC3 robust standard errors. The model is condition-sensitive, but the coefficient pattern does not cleanly match the original human realization-effect predictions.}
+  \label{fig:behavioral-coefficients}
+\end{figure}
+
+\subsection{Gemma has a readable realization representation}
+
+The activation analysis gives the positive mechanistic result. Along the layer-18 mean-difference direction, \texttt{paper\_open} and \texttt{realized\_closed} prompts separate on held-out direction prompts and on the behavior-evaluation prompt set. The direction is therefore not merely memorizing the exact prompts used to construct it; it captures a semantic distinction that transfers to the behavior prompts used later for steering.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{activation_projection_layer18.pdf}
+  \caption{Gemma layer-18 projections on the realization direction. Projections are centered within split for readability. Realized/closed prompts shift upward relative to paper/open prompts, supporting the claim that realization status is linearly readable in the residual stream.}
+  \label{fig:activation-projection}
+\end{figure}
+
+\subsection{Steering does not robustly control risk behavior}
+
+If the layer-18 realization direction were a simple causal lever for risk-taking, steering toward \texttt{realized\_closed} should move behavior in one direction and steering toward \texttt{paper\_open} should move it in the opposite direction. We do not observe this pattern.
+
+Across positive scales \(+50\), \(+75\), \(+100\), and \(+150\), mean wager deltas are small and positive, but median deltas are zero. Mean risk-profile deltas fluctuate around zero. The negative sign-symmetry run at \(-50\) also fails to reverse the pattern: it has a strict matched mean wager delta of \(+14.75\), a strict matched mean risk delta of \(+0.074\), and median deltas of zero for both outcomes. This makes it difficult to interpret the steering response as directional control over risk behavior.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Matched steering deltas relative to the unsteered Gemma behavior baseline. The table reports all valid matched rows. Strict-valid rows show the same qualitative result: small mean shifts and zero median shifts.}
+  \label{tab:steering-deltas}
+  \begin{tabular}{rrrrr}
+    \toprule
+    Scale & Matched rows & Mean wager delta & Mean risk delta & Median deltas \\
+    \midrule
+    -50 & 483 & 12.80 & 0.068 & 0 / 0 \\
+     50 & 475 & 18.33 & 0.013 & 0 / 0 \\
+     75 & 480 & 13.02 & 0.010 & 0 / 0 \\
+    100 & 482 & 14.52 & -0.039 & 0 / 0 \\
+    150 & 475 & 9.13 & -0.046 & 0 / 0 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{steering_dose_response.pdf}
+  \caption{Dose-response plot for Gemma layer-18 realization steering on the strict matched subset. The negative scale does not reverse the positive-scale pattern, and median matched deltas remain zero across wager and risk outcomes.}
+  \label{fig:steering-dose}
+\end{figure}
+
+\subsection{Compliance artifacts matter}
+
+Steering also affects format compliance. The task asks for exactly two integers, but many responses contain extra text or malformed output. This matters because parsed numeric outcomes are only meaningful when the answer contract is followed. Noncompliance is concentrated in prompts generated from the Sonnet source, which fail strict formatting at much higher rates than the GPT-5.4 or Grok-fast prompt sources. At \(-50\), for example, Sonnet-derived prompts have 101 noncompliant responses out of 216, compared with 46/216 for GPT-5.4-derived prompts and 44/216 for Grok-fast-derived prompts.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.92\textwidth]{compliance_by_scale.pdf}
+  \caption{Strict-format noncompliance by steering scale and prompt source. The Sonnet-derived prompt subset has substantially higher failure rates, motivating strict-compliance analyses and caution in interpreting small mean shifts.}
+  \label{fig:compliance}
+\end{figure}
+
+\section{Discussion}
+
+The strongest conclusion is a representation-behavior dissociation. Gemma appears to encode whether an outcome is realized/closed or paper/open, but the corresponding activation direction does not reliably control downstream risk choices in our assay. This distinction matters for both behavioral evaluation and mechanistic interpretability.
+
+For behavioral evaluation, the prompt-only results warn against interpreting LLM condition sensitivity as human-like cognition. The models react to prior outcomes, but the direction and outcome dependence do not reproduce the intended mental-accounting pattern. For mechanistic interpretability, the steering results warn against treating linear decodability as explanation. A feature can be readable in residual activations while still failing to act as a simple causal control variable for the behavior of interest.
+
+There are several possible interpretations. The realization direction may encode semantic status without connecting to the model's numeric decision policy. Risk choices may be dominated by other factors such as instruction following, learned defaults for conservative or aggressive gambling advice, prompt-source artifacts, or numeric anchors. The layer-18 intervention may also be too narrow: a different layer, position mode, or multi-layer intervention could have stronger effects. However, the sign-symmetry result makes the simplest causal story less plausible. Pushing in the negative direction did not produce an opposite behavioral shift.
+
+\section{Limitations}
+
+This report should not be read as proving that realization status never causally affects LLM risk behavior. The intervention is limited to local Gemma 3 4B, layer 18, a normalized mean-difference direction, and final-token steering. We have not completed a full layer sweep, a position-mode sweep, or multi-layer steering. Hosted Qwen behavior runs can test prompt-only replication, but they cannot support residual-stream steering through API access because hidden states and generation hooks are not exposed.
+
+The behavioral assay is also indirect. Wager and risk-profile answers are constrained numeric outputs, which makes the task easy to score but may amplify format and parsing artifacts. Strict two-integer compliance is imperfect, especially for Sonnet-derived prompts. Finally, the activation direction is built from paired realization prompts, but it may encode a broad semantic contrast rather than the exact decision-relevant variable that would change risk-taking.
+
+\section{Future Work}
+
+The most important next step is a positive-control steering task. Instead of asking for a wager, the model should be asked directly whether a scenario is realized/closed or paper/open. If steering shifts that direct judgment while still failing to shift risk behavior, the representation-without-control interpretation becomes much stronger. If steering also fails on the direct judgment task, the current direction should be treated as readable but not causally usable under the implemented hook.
+
+Additional follow-up work should run layer sweeps around layers 14, 16, 18, 20, and 22; test \texttt{position\_mode=all}; and build a local Qwen activation pipeline so behavioral replication and activation steering can be compared within the same model family. The report-facing data package should also be extended with finalized figure scripts, positive-control outputs, and appendix tables for prompt-source robustness.
+
+\section{Conclusion}
+
+We began by asking whether LLMs reproduce the realization effect in risk-taking. The answer from the current evidence is no, at least not robustly. Prompt-only behavior is condition-sensitive, but it does not cleanly match the human realization-effect predictions. Gemma contains a readable realization representation in its layer-18 residual stream, but steering along that direction does not reliably change wager or risk choices. This makes the project useful as a negative result: it clarifies the gap between observing behavior, decoding an internal representation, and demonstrating causal control. In this case, realization status is represented, but representation is not enough.
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}
