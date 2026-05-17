@@ -8,6 +8,7 @@ import pytest
 
 from sae.config import SAEDatasetConfig, SAETrainingConfig
 from sae.dataset import iter_activation_vectors, summarize_activation_dataset
+from sae.external import ExternalSAEConfig
 from sae.features import SAEFeatureAnalysisNotImplementedError, top_activating_examples
 from sae.metrics import planned_metric_names
 from sae.model import load_sae_model
@@ -41,7 +42,7 @@ def _make_activation_run(tmp_path: Path) -> Path:
                 "token_positions": [0, 1, 2],
                 "token_regions": ["scenario", "decision_question", "response_instruction"],
                 "num_tokens": 3,
-                "metadata": {"condition": "paper_even"},
+                "metadata": {"condition": "paper_even", "prompt_family": "realization_frame"},
             }
         ],
     )
@@ -101,6 +102,28 @@ def test_iter_activation_vectors_filters_by_layer_and_region(tmp_path: Path) -> 
     assert records[1].metadata["token_position"] == 1
 
 
+def test_iter_activation_vectors_filters_by_prompt_metadata(tmp_path: Path) -> None:
+    run_dir = _make_activation_run(tmp_path)
+
+    excluded = list(
+        iter_activation_vectors(
+            run_dir,
+            layers={12},
+            prompt_metadata_filters={"prompt_family": {"emotion_positive"}},
+        )
+    )
+    included = list(
+        iter_activation_vectors(
+            run_dir,
+            layers={12},
+            prompt_metadata_filters={"prompt_family": {"realization_frame"}},
+        )
+    )
+
+    assert excluded == []
+    assert len(included) == 3
+
+
 def test_summarize_activation_dataset_counts_vectors(tmp_path: Path) -> None:
     run_dir = _make_activation_run(tmp_path)
 
@@ -127,6 +150,9 @@ def test_sae_dataset_config_round_trips_paths(tmp_path: Path) -> None:
                 "layers": [12, 18],
                 "token_regions": ["scenario"],
                 "activation_site": "resid_post",
+                "prompt_metadata_filters": {
+                    "prompt_family": ["emotion_positive", "emotion_control"]
+                },
                 "max_vectors": 100,
             }
         ),
@@ -138,6 +164,9 @@ def test_sae_dataset_config_round_trips_paths(tmp_path: Path) -> None:
     assert config.activation_runs == (Path("results/residual_streams/example"),)
     assert config.layers == (12, 18)
     assert config.token_regions == ("scenario",)
+    assert config.prompt_metadata_filters == {
+        "prompt_family": ("emotion_positive", "emotion_control")
+    }
     assert config.to_json_dict()["max_vectors"] == 100
 
 
@@ -150,6 +179,35 @@ def test_sae_training_config_derives_model_width() -> None:
     assert model_config.d_sae == 32
     assert model_config.activation == "topk"
     assert model_config.top_k == 3
+
+
+def test_external_sae_config_parses_gemma_scope_metadata() -> None:
+    config = ExternalSAEConfig.from_json(
+        "configs/sae/archive/20260506_sae_first_pass/external/gemma_scope_2_4b_pt_layer17_resid_post_16k_l0_small.json"
+    )
+
+    assert config.repo_id == "google/gemma-scope-2-4b-pt"
+    assert config.target_model == "google/gemma-3-4b-pt"
+    assert config.hook_point == "model.layers.17.output"
+    assert config.layer == 17
+    assert config.project_logger_layer == 18
+    assert config.architecture == "jump_relu"
+    assert config.d_in == 2560
+    assert config.d_sae == 16384
+    assert config.comparison_activation_run == Path(
+        "results/final/residual_streams/general_emotion_risk_v1_layer18_regions_float32"
+    )
+    assert config.params_file.name == "params.safetensors"
+
+
+def test_external_sae_config_marks_adjacent_layer_alignment() -> None:
+    config = ExternalSAEConfig.from_json(
+        "configs/sae/archive/20260506_sae_first_pass/external/gemma_scope_2_4b_pt_layer18_resid_post_16k_l0_small.json"
+    )
+
+    assert config.hook_point == "model.layers.18.output"
+    assert config.project_logger_layer == 19
+    assert config.comparison_activation_run is None
 
 
 def test_train_sae_writes_checkpoint_and_manifest(tmp_path: Path) -> None:

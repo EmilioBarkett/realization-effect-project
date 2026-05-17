@@ -14,6 +14,7 @@ class SAEDatasetConfig:
     layers: tuple[int, ...]
     token_regions: tuple[str, ...] | None = None
     activation_site: str | None = "resid_post"
+    prompt_metadata_filters: dict[str, tuple[str, ...]] | None = None
     max_vectors: int | None = None
 
     @classmethod
@@ -25,6 +26,14 @@ class SAEDatasetConfig:
             layers=tuple(int(value) for value in data["layers"]),
             token_regions=tuple(data["token_regions"]) if data.get("token_regions") else None,
             activation_site=data.get("activation_site", "resid_post"),
+            prompt_metadata_filters=(
+                {
+                    str(key): tuple(str(item) for item in value)
+                    for key, value in data["prompt_metadata_filters"].items()
+                }
+                if data.get("prompt_metadata_filters")
+                else None
+            ),
             max_vectors=int(data["max_vectors"]) if data.get("max_vectors") is not None else None,
         )
 
@@ -34,6 +43,11 @@ class SAEDatasetConfig:
             "layers": list(self.layers),
             "token_regions": list(self.token_regions) if self.token_regions is not None else None,
             "activation_site": self.activation_site,
+            "prompt_metadata_filters": (
+                {key: list(value) for key, value in self.prompt_metadata_filters.items()}
+                if self.prompt_metadata_filters is not None
+                else None
+            ),
             "max_vectors": self.max_vectors,
         }
 

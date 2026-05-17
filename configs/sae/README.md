@@ -1,8 +1,13 @@
-# SAE Configs
+# SAE Config Archive
 
-This folder stores small, reviewable configs for selecting activation runs and
-filters for SAE/vector work, plus lightweight training templates. It should not
-contain trained model weights or large generated artifacts.
+The SAE-first interpretability pass is archived for now. The active research
+path is activation-vector analysis for realization framing, risk, and behavior.
 
-Generated SAE outputs should go under ignored `results/final/sae/` for current
-reference runs or `results/test/sae/` for disposable smoke runs.
+Archived SAE configs live under:
+
+- `archive/20260506_sae_first_pass/`
+- `legacy/20260505_previous_sae/`
+
+The reusable `src/sae/` code remains available in case SAEs return later as a
+supporting analysis tool, but new current-run configs should not be added here
+unless we intentionally reactivate the SAE path.

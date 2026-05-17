@@ -1,19 +1,17 @@
 # Final Results
 
-This folder is reserved for future reference generated outputs.
+This folder is for current reference generated outputs.
 
-- `residual_streams/` will hold activation runs intended for SAE training or
-  evaluation.
-- `sae/` will hold reference SAE checkpoints and normalization stats.
+- `residual_streams/` holds residual activation runs.
+- `activation_vectors/` holds activation-vector directions and evaluations.
+- `sae/` is archived/inactive for now; current SAE outputs live under
+  `results/legacy/`.
 
-The current small SAE and activation artifacts are still smoke/test outputs and
-live under `results/test/`.
+The next active reference run should be built from:
 
-When we run the larger inference pass, its dataset config should point into this
-folder. The current smoke dataset config is:
-
-- `configs/sae/first_sae_prompt_mix_v1_layer18.json`
-
-The current normalized SAE training config is:
-
-- `configs/sae/first_sae_prompt_mix_v1_training_smoke.json`
+- prompts:
+  `experiments/activation_analysis/prompts/activation_vectors/realization_vector_v1.csv`
+- activations:
+  `results/final/residual_streams/realization_vector_v1_layer18_regions_float32/`
+- vector outputs:
+  `results/final/activation_vectors/realization_vector_v1_layer18/`

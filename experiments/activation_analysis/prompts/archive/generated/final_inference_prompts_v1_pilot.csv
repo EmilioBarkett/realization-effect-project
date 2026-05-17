@@ -1,0 +1,253 @@
+prompt_id,prompt_text,prompt_family,source,source_llm,source_model,generation_cell_id,generation_batch_id,domain,concept_axis,emotion,emotion_intensity,risk_orientation,risk_intensity,casino_context,realization_frame,outcome_valence,behavior_target,control_type,contrast_role,variant_id,model_temperature,model_seed,expected_feature,notes
+final_inference_prompt_generation_v1__codex__general_emotion_positive__regret__neutral__none__none__none__positive__positive_1,"Read the following short scenario.
+
+Scenario:
+After choosing a cheaper apartment across town, he now spends two crowded hours commuting each day. While standing on another delayed train, his attention keeps circling back to the unit he passed on near the office, picturing the extra rent against the evenings he keeps losing.
+
+Do not answer yet. Continue processing the scenario.",final_general_emotion,openrouter_generated,codex,openai/gpt-5.4,general_emotion_positive,final_inference_prompt_generation_v1__codex__general_emotion_positive__regret__neutral__none__none__none__positive,general,emotion,regret,medium,neutral,none,none,none,none,none,none,positive,positive_1,0.85,7,emotion,"Implicit medium-intensity regret via counterfactual focus on a past choice; non-casino, no explicit emotion labels, neutral risk."
+final_inference_prompt_generation_v1__codex__general_emotion_matched_control__regret__neutral__none__none__matched__control__matched_control_1,"Read the following short scenario.
+
+Scenario:
+After comparing several apartments online, he signed a lease for a unit near his office. A week later, while sorting utility forms and moving boxes, he noticed another listing in the same building with a larger kitchen and a similar monthly rent, then returned to setting up his new place.
+
+Do not answer yet. Continue processing the scenario.",final_general_emotion_control,openrouter_generated,codex,openai/gpt-5.4,general_emotion_matched_control,final_inference_prompt_generation_v1__codex__general_emotion_matched_control__regret__neutral__none__none__matched__control,general,emotion_control,regret,none,neutral,none,none,none,none,none,matched,control,matched_control_1,0.85,7,none,"Non-casino matched control for regret-like setting: choice between similar options with a later comparison, but no counterfactual fixation or explicit emotion language."
+final_inference_prompt_generation_v1__codex__general_neutral_baseline__none__neutral__none__none__factual_description__baseline__baseline_routine_review,"Read the following short scenario.
+
+Scenario:
+A staff member receives three vendor invoices, checks each total against a spreadsheet, notes one date mismatch, and updates the record after confirming the order number. The remaining forms are filed in the usual folder, and the desk is cleared before the next task on the schedule.
+
+Do not answer yet. Continue processing the scenario.",final_general_neutral,openrouter_generated,codex,openai/gpt-5.4,general_neutral_baseline,final_inference_prompt_generation_v1__codex__general_neutral_baseline__none__neutral__none__none__factual_description__baseline,general,neutral,,none,neutral,none,none,none,none,none,factual_description,baseline,baseline_routine_review,0.85,7,neutral_text,"Emotionally flat workplace procedure with routine verification and no casino, urgency, reward, or loss framing."
+final_inference_prompt_generation_v1__codex__general_risk_isolated__none__risk_seeking__none__none__none__positive__general_risk_isolated_1,"Read the following short scenario.
+
+Scenario:
+At a product meeting, Jordan can either launch a familiar update with steady but limited upside or devote the quarter to an untested feature that could reshape the market if it works. With no recent setback pushing the choice, Jordan keeps returning to the bigger swing and starts mapping how to make it happen.
+
+Do not answer yet. Continue processing the scenario.",final_general_risk,openrouter_generated,codex,openai/gpt-5.4,general_risk_isolated,final_inference_prompt_generation_v1__codex__general_risk_isolated__none__risk_seeking__none__none__none__positive,general,risk,,none,risk_seeking,medium,none,none,none,none,none,positive,general_risk_isolated_1,0.85,7,risk_orientation,"Non-casino, neutral-outcome scenario centered on medium risk-seeking through attention to higher-variance upside; avoids explicit emotion and gambling cues."
+final_inference_prompt_generation_v1__codex__general_risk_matched_control__none__risk_seeking__none__none__matched__control__control_compare_options,"Read the following short scenario.
+
+Scenario:
+Before submitting a proposal, she lays out three vendor plans in a spreadsheet, noting price ranges, delivery times, maintenance terms, and contract length. She marks which details are fixed and which would need follow-up, then keeps the page open while preparing a summary for her manager without indicating a preferred direction.
+
+Do not answer yet. Continue processing the scenario.",final_general_risk_control,openrouter_generated,codex,openai/gpt-5.4,general_risk_matched_control,final_inference_prompt_generation_v1__codex__general_risk_matched_control__none__risk_seeking__none__none__matched__control,general,risk_control,,none,risk_seeking,none,none,none,none,none,matched,control,control_compare_options,0.85,7,none,"Matched neutral control for risk-preference settings: compares multiple options with structured evaluation but no tilt toward volatility, safety, upside, or downside."
+final_inference_prompt_generation_v1__codex__casino_neutral_context__none__neutral__none__none__rules__baseline__casino_rules_baseline_01,"Read the following short scenario.
+
+Scenario:
+At a blackjack table, he stacks red chips in groups of five while the dealer explains that insurance is offered only when the upcard is an ace. The overhead screen shows table minimums, his remaining chips stay beside the rail, and the next hand has not started.
+
+Do not answer yet. Continue processing the scenario.",final_casino_neutral,openrouter_generated,codex,openai/gpt-5.4,casino_neutral_context,final_inference_prompt_generation_v1__codex__casino_neutral_context__none__neutral__none__none__rules__baseline,casino,casino_context,,none,neutral,none,present,none,none,none,rules,baseline,casino_rules_baseline_01,0.85,7,casino_context,"Neutral casino baseline focused on rules, chip counts, and table state with no emotion, realization framing, or behavior cue."
+final_inference_prompt_generation_v1__codex__casino_risk_isolated__none__risk_seeking__none__none__none__positive__casino_risk_isolated_1,"Read the following short scenario.
+
+Scenario:
+At a casino roulette table, he studies two betting patterns before the next spin. One spreads chips across several outside bets for a steadier return, while the other stacks the same total on a narrow set of numbers with a much larger payout swing. His attention stays on the higher-variance layout.
+
+Do not answer yet. Continue processing the scenario.",final_casino_risk,openrouter_generated,codex,openai/gpt-5.4,casino_risk_isolated,final_inference_prompt_generation_v1__codex__casino_risk_isolated__none__risk_seeking__none__none__none__positive,casino,risk,,none,risk_seeking,medium,present,none,none,none,none,positive,casino_risk_isolated_1,0.85,7,casino_risk_orientation,"Neutral casino scenario centered on medium risk-seeking via preference for higher-variance wagering; no emotion, loss history, or behavior outcome cues."
+final_inference_prompt_generation_v1__codex__casino_emotion_no_risk__regret__neutral__none__none__none__positive__casino_emotion_no_risk_1,"Read the following short scenario.
+
+Scenario:
+At a roulette table late in the evening, a man keeps glancing at the stack of chips he traded away two spins earlier for a small side bet that went nowhere. The dealer pushes the game along, and he lingers on how those same chips would still be in front of him if he had left that option alone.
+
+Do not answer yet. Continue processing the scenario.",final_casino_emotion,openrouter_generated,codex,openai/gpt-5.4,casino_emotion_no_risk,final_inference_prompt_generation_v1__codex__casino_emotion_no_risk__regret__neutral__none__none__none__positive,casino,emotion,regret,medium,neutral,none,present,none,none,none,none,positive,casino_emotion_no_risk_1,0.85,7,casino_emotion,"Casino setting with implicit medium regret via counterfactual focus on a prior choice; no explicit emotion words, no next-wager cue, and risk orientation remains unspecified."
+final_inference_prompt_generation_v1__codex__mixed_emotion_risk__desperation__risk_seeking__none__none__none__positive__mixed_emotion_risk_1,"Read the following short scenario.
+
+Scenario:
+With rent due by midnight, his account nearly empty, and the only lender still answering set to stop applications in twenty minutes, he ignores the safer part-time offer and puts his last available cash into a rushed shipment of discounted phones from an unverified seller, hoping one resale will cover everything.
+
+Do not answer yet. Continue processing the scenario.",final_mixed_emotion_risk,openrouter_generated,codex,openai/gpt-5.4,mixed_emotion_risk,final_inference_prompt_generation_v1__codex__mixed_emotion_risk__desperation__risk_seeking__none__none__none__positive,general,emotion_risk,desperation,medium,risk_seeking,medium,none,none,none,none,none,positive,mixed_emotion_risk_1,0.85,7,emotion_plus_risk,"Concrete narrowing-options pressure plus a clearly risky choice; non-casino, third-person, no explicit emotion labels."
+final_inference_prompt_generation_v1__codex__casino_mixed_emotion_risk__desperation__risk_seeking__none__none__none__positive__casino_mixed_emotion_risk_1,"Read the following short scenario.
+
+Scenario:
+At a roulette table near midnight, his room key stops working at 12:15 unless he settles the desk charge in cash. He has $48 in chips left and no card on file. Instead of breaking it into small bets, he pushes $30 onto a single outside wager, watching the dealer's hands and the wall clock.
+
+Do not answer yet. Continue processing the scenario.",final_casino_mixed,openrouter_generated,codex,openai/gpt-5.4,casino_mixed_emotion_risk,final_inference_prompt_generation_v1__codex__casino_mixed_emotion_risk__desperation__risk_seeking__none__none__none__positive,casino,emotion_risk,desperation,medium,risk_seeking,medium,present,none,none,none,none,positive,casino_mixed_emotion_risk_1,0.85,7,casino_emotion_plus_risk,"Combines concrete narrowing-options pressure with a medium risk-seeking choice in a clear casino setting, keeping emotion implicit and separable from the wager decision."
+final_inference_prompt_generation_v1__codex__realization_frame_neutral__none__neutral__paper_open__loss__none__positive__realization_frame_neutral_1,"Read the following short scenario.
+
+Scenario:
+At a blackjack table late in the evening, a player looks at the casino card balance after a losing stretch earlier in the same visit. The remaining funds are still on that active card, and the dealer begins shuffling for the next hand while the player considers the upcoming wager amount.
+
+Do not answer yet. Continue processing the scenario.",final_realization_frame,openrouter_generated,codex,openai/gpt-5.4,realization_frame_neutral,final_inference_prompt_generation_v1__codex__realization_frame_neutral__none__neutral__paper_open__loss__none__positive,casino,realization_framing,,none,neutral,none,present,paper_open,loss,upcoming_wager_context,none,positive,realization_frame_neutral_1,0.85,7,realization_framing,"Open paper loss within the same casino visit; neutral tone, casino context present, and upcoming wager cue without implying emotion or risk preference."
+final_inference_prompt_generation_v1__codex__realization_emotion_link__regret__neutral__paper_open__loss__none__positive__realization_open_01,"Read the following short scenario.
+
+Scenario:
+At a blackjack table late in the evening, his stack is down from earlier in the session, but the remaining chips still come from the same running balance. As the dealer reshuffles, he keeps replaying a hand he could have folded on, glancing from the discard tray to the chips he has left before the next bet window opens.
+
+Do not answer yet. Continue processing the scenario.",final_realization_emotion,openrouter_generated,codex,openai/gpt-5.4,realization_emotion_link,final_inference_prompt_generation_v1__codex__realization_emotion_link__regret__neutral__paper_open__loss__none__positive,casino,realization_emotion,regret,medium,neutral,none,present,paper_open,loss,upcoming_wager_context,none,positive,realization_open_01,0.85,7,realization_framing_plus_emotion,"Open paper-loss framing in a casino with implicit counterfactual focus and upcoming wager context; emotion is evoked without explicit labels, and risk orientation remains neutral."
+final_inference_prompt_generation_v1__codex__realization_risk_link__none__risk_seeking__paper_open__loss__none__positive__realization_risk_link_1,"Read the following short scenario.
+
+Scenario:
+At a blackjack table late in the evening, his stack is down from where it started, but the remaining chips are still on the felt and part of the same session. While scanning the minimums on nearby tables, he turns toward a game with wider swings and a higher next bet than the one he has been playing.
+
+Do not answer yet. Continue processing the scenario.",final_realization_risk,openrouter_generated,codex,openai/gpt-5.4,realization_risk_link,final_inference_prompt_generation_v1__codex__realization_risk_link__none__risk_seeking__paper_open__loss__none__positive,casino,realization_risk,,none,risk_seeking,medium,present,paper_open,loss,wager_or_volatility_choice,none,positive,realization_risk_link_1,0.85,7,realization_framing_plus_risk,"Open paper loss within the same casino visit, neutral tone, explicit upcoming move toward higher volatility and larger wager without emotion language."
+final_inference_prompt_generation_v1__codex__adversarial_surface_emotion__regret__neutral__none__none__lexical_adversarial__control__lexmissedchance,"Read the following short scenario.
+
+Scenario:
+During a team planning session, he noted that the earlier draft had left out a small outreach opportunity. He marked it as a missed chance in the project log, added it to next quarter's checklist, and moved on to the budget table without revisiting alternative versions of the decision.
+
+Do not answer yet. Continue processing the scenario.",final_adversarial_controls,openrouter_generated,codex,openai/gpt-5.4,adversarial_surface_emotion,final_inference_prompt_generation_v1__codex__adversarial_surface_emotion__regret__neutral__none__none__lexical_adversarial__control,general,adversarial_control,regret,none,neutral,none,none,none,none,none,lexical_adversarial,control,lexmissedchance,0.85,7,surface_form_without_latent_emotion,Lexical adversarial control using 'missed chance' while keeping tone flat and avoiding counterfactual fixation or latent regret structure.
+final_inference_prompt_generation_v1__sonnet__general_emotion_positive__regret__neutral__none__none__none__positive__gen_emo_pos_regret_001,"Read the following short scenario.
+
+Scenario:
+After declining a job offer last spring, Marcus watched the role grow into a division leadership position. He still has the original offer email saved in a separate folder, unopened. Colleagues who joined at the same time now manage teams he once considered his own trajectory. His attention returns to that folder more often than to his current workload.
+
+Do not answer yet. Continue processing the scenario.",final_general_emotion,openrouter_generated,sonnet,anthropic/claude-sonnet-4.6,general_emotion_positive,final_inference_prompt_generation_v1__sonnet__general_emotion_positive__regret__neutral__none__none__none__positive,general,emotion,regret,medium,neutral,none,none,none,none,none,none,positive,gen_emo_pos_regret_001,0.85,7,emotion,"Evokes medium-intensity regret via counterfactual focus on a past choice (declined job offer) with concrete downstream evidence of the unchosen path's value. No explicit emotion words, no casino context, no risk orientation. Third-person narration, 62 words."
+final_inference_prompt_generation_v1__sonnet__general_emotion_matched_control__regret__neutral__none__none__matched__control__gemc_regret_ctrl_01,"Read the following short scenario.
+
+Scenario:
+A graphic designer submits a project to a client on a Tuesday afternoon. The client reviews it, requests minor adjustments, and the designer makes the changes before the end of the week. The project is marked complete and filed. The designer moves on to the next assignment without reviewing the previous submission again.
+
+Do not answer yet. Continue processing the scenario.",final_general_emotion_control,openrouter_generated,sonnet,anthropic/claude-sonnet-4.6,general_emotion_matched_control,final_inference_prompt_generation_v1__sonnet__general_emotion_matched_control__regret__neutral__none__none__matched__control,general,emotion_control,regret,none,neutral,none,none,none,none,none,matched,control,gemc_regret_ctrl_01,0.85,7,none,"Matched control for regret in a general professional setting. Preserves topic structure and approximate length of a decision-and-outcome scenario but removes counterfactual fixation entirely. No alternate-path consideration, no backward attention to what could have been different, flat affective tone throughout."
+final_inference_prompt_generation_v1__sonnet__general_neutral_baseline__none__neutral__none__none__factual_description__baseline__general_neutral_baseline_001,"Read the following short scenario.
+
+Scenario:
+A librarian updates the catalog system each Tuesday, cross-referencing new acquisitions with existing holdings. She notes any duplicate entries, flags items needing rebinding, and forwards a summary to the collections manager. The process takes roughly two hours and follows the same sequence each week.
+
+Do not answer yet. Continue processing the scenario.",final_general_neutral,openrouter_generated,sonnet,anthropic/claude-sonnet-4.6,general_neutral_baseline,final_inference_prompt_generation_v1__sonnet__general_neutral_baseline__none__neutral__none__none__factual_description__baseline,general,neutral,,none,neutral,none,none,none,none,none,factual_description,baseline,general_neutral_baseline_001,0.85,7,neutral_text,"Emotionally flat routine procedure with no reward salience, loss framing, risk orientation, or casino context. Serves as a clean factual-description baseline with no target latent concepts active."
+final_inference_prompt_generation_v1__sonnet__general_risk_isolated__none__risk_seeking__none__none__none__positive__general_risk_isolated_01,"Read the following short scenario.
+
+Scenario:
+A software contractor receives two project offers simultaneously. One pays a fixed hourly rate for eighteen months of steady work. The other is a short-term equity arrangement with an early-stage startup, where the payout depends entirely on whether the product launches successfully. The contractor sets aside the salaried offer and begins reviewing the startup's technical roadmap.
+
+Do not answer yet. Continue processing the scenario.",final_general_risk,openrouter_generated,sonnet,anthropic/claude-sonnet-4.6,general_risk_isolated,final_inference_prompt_generation_v1__sonnet__general_risk_isolated__none__risk_seeking__none__none__none__positive,general,risk,,none,risk_seeking,medium,none,none,none,none,none,positive,general_risk_isolated_01,0.85,7,risk_orientation,"Depicts risk-seeking preference through observable choice behavior — bypassing the stable option to engage the high-variance one. No casino context, no emotion words, no outcome valence stated, no realization frame. Medium risk intensity via plausible but genuinely uncertain equity upside."
+final_inference_prompt_generation_v1__sonnet__general_risk_matched_control__none__risk_seeking__none__none__matched__control__general_risk_matched_ctrl_01,"Read the following short scenario.
+
+Scenario:
+A logistics coordinator lists three shipping routes for an upcoming delivery: one with a fixed transit time, one with a shorter average time but variable delays, and one with a longer average time but consistent scheduling. She records the estimated costs and durations for each option in a spreadsheet, noting no preference for any particular column before forwarding the comparison to her supervisor.
+
+Do not answer yet. Continue processing the scenario.",final_general_risk_control,openrouter_generated,sonnet,anthropic/claude-sonnet-4.6,general_risk_matched_control,final_inference_prompt_generation_v1__sonnet__general_risk_matched_control__none__risk_seeking__none__none__matched__control,general,risk_control,,none,risk_seeking,none,none,none,none,none,matched,control,general_risk_matched_ctrl_01,0.85,7,none,"Matched control for risk-preference scenarios. Preserves comparison structure and option enumeration without any variance preference, safety lean, upside pull, or downside weighting. Affective tone is flat; no forbidden emotion words used. Third-person narration, 35–70 words, non-casino domain."
+final_inference_prompt_generation_v1__sonnet__casino_neutral_context__none__neutral__none__none__rules__baseline__casino_neutral_context_01,"Read the following short scenario.
+
+Scenario:
+A dealer at a blackjack table announces a shuffle before the next hand. The player in seat three glances at the placard listing the table minimum and maximum bets. A stack of green chips sits in front of the player, and the digital scoreboard above the pit displays the current count of active tables on the floor.
+
+Do not answer yet. Continue processing the scenario.",final_casino_neutral,openrouter_generated,sonnet,anthropic/claude-sonnet-4.6,casino_neutral_context,final_inference_prompt_generation_v1__sonnet__casino_neutral_context__none__neutral__none__none__rules__baseline,casino,casino_context,,none,neutral,none,present,none,none,none,rules,baseline,casino_neutral_context_01,0.85,7,casino_context,"Neutral casino context: describes table rules, chip presence, and floor state without emotional tone, risk orientation, or behavior cue. Varies from slot/roulette defaults by anchoring to blackjack table mechanics and a dealer action."
+final_inference_prompt_generation_v1__sonnet__casino_risk_isolated__none__risk_seeking__none__none__none__positive__casino_risk_isolated_01,"Read the following short scenario.
+
+Scenario:
+At the craps table, a player reviews the payout structure for a hardways bet versus a pass-line wager. The pass-line offers modest, steady returns, while the hardways carries a substantially higher multiplier against longer odds. The player sets two stacks of chips side by side, weighing the difference in variance before the next roll is called.
+
+Do not answer yet. Continue processing the scenario.",final_casino_risk,openrouter_generated,sonnet,anthropic/claude-sonnet-4.6,casino_risk_isolated,final_inference_prompt_generation_v1__sonnet__casino_risk_isolated__none__risk_seeking__none__none__none__positive,casino,risk,,none,risk_seeking,medium,present,none,none,none,none,positive,casino_risk_isolated_01,0.85,7,casino_risk_orientation,"Neutral-tone casino scenario isolating risk preference via explicit variance comparison between two wager types. No emotion, realization frame, or behavior cue. Craps setting for variety."
+final_inference_prompt_generation_v1__sonnet__casino_emotion_no_risk__regret__neutral__none__none__none__positive__casino_emotion_no_risk_regret_med_01,"Read the following short scenario.
+
+Scenario:
+At the blackjack table, Marcus keeps glancing back at the seat he left an hour earlier, just before the dealer ran a seven-card streak that would have paid out his full buy-in three times over. He sets his remaining chips in a neat stack and stares at the felt, turning his room key over and over in his hand.
+
+Do not answer yet. Continue processing the scenario.",final_casino_emotion,openrouter_generated,sonnet,anthropic/claude-sonnet-4.6,casino_emotion_no_risk,final_inference_prompt_generation_v1__sonnet__casino_emotion_no_risk__regret__neutral__none__none__none__positive,casino,emotion,regret,medium,neutral,none,present,none,none,none,none,positive,casino_emotion_no_risk_regret_med_01,0.85,7,casino_emotion,"Evokes medium-intensity regret through counterfactual attention (glancing back at the vacated seat, timing of departure) and a fidgeting behavioral cue. No explicit emotion words used. Risk orientation left unspecified; no next-wager implication. Casino context present via blackjack table, chips, and dealer streak."
+final_inference_prompt_generation_v1__sonnet__mixed_emotion_risk__desperation__risk_seeking__none__none__none__positive__mixed_emotion_risk_001,"Read the following short scenario.
+
+Scenario:
+With two mortgage payments already missed and the lender's final notice set to expire in forty-eight hours, Marcus calls a contractor willing to start the repair job that same afternoon — the one condition that might keep the bank from filing. The contractor's quote runs higher than Marcus has on hand, so he wires the last of a small retirement account, accepting the early-withdrawal penalty without asking for a second estimate.
+
+Do not answer yet. Continue processing the scenario.",final_mixed_emotion_risk,openrouter_generated,sonnet,anthropic/claude-sonnet-4.6,mixed_emotion_risk,final_inference_prompt_generation_v1__sonnet__mixed_emotion_risk__desperation__risk_seeking__none__none__none__positive,general,emotion_risk,desperation,medium,risk_seeking,medium,none,none,none,none,none,positive,mixed_emotion_risk_001,0.85,7,emotion_plus_risk,"Non-casino scenario. Desperation is grounded in a hard deadline (lender's notice expiring in 48 hours) and genuine resource scarcity (missed payments, last retirement funds). Risk-seeking is implicit: Marcus bypasses due diligence (no second estimate), absorbs a concrete financial penalty, and commits all remaining reserves in a single irreversible move. No explicit emotion labels used. Third-person narration maintained."
+final_inference_prompt_generation_v1__sonnet__casino_mixed_emotion_risk__desperation__risk_seeking__none__none__none__positive__casino_mixed_emotion_risk_001,"Read the following short scenario.
+
+Scenario:
+Marco's landlord has given him until Friday to cover three months of overdue rent or vacate the apartment. Tonight is Thursday. He has forty dollars left and stands at a Caribbean stud table, studying the dealer's face-up card before deciding how much to push into the optional progressive side bet, which pays out at long odds.
+
+Do not answer yet. Continue processing the scenario.",final_casino_mixed,openrouter_generated,sonnet,anthropic/claude-sonnet-4.6,casino_mixed_emotion_risk,final_inference_prompt_generation_v1__sonnet__casino_mixed_emotion_risk__desperation__risk_seeking__none__none__none__positive,casino,emotion_risk,desperation,medium,risk_seeking,medium,present,none,none,none,none,positive,casino_mixed_emotion_risk_001,0.85,7,casino_emotion_plus_risk,"Desperation is conveyed through a concrete, time-bounded housing crisis with a named deadline and a specific remaining resource ($40, Thursday night). Risk-seeking is shown through the progressive side bet framing, which offers long-odds upside. The two concepts are structurally distinct in the text: the closing-options pressure appears in the first two sentences, and the risk-oriented decision appears in the third. No forbidden emotion words are used. Word count is within the 35–70 word target."
+final_inference_prompt_generation_v1__sonnet__realization_frame_neutral__none__neutral__paper_open__loss__none__positive__realization_frame_neutral_01,"Read the following short scenario.
+
+Scenario:
+At the baccarat table, Marcus still holds the same chips he carried in two hours earlier. The running tally on the table display reflects a net loss from earlier rounds, but no transaction has been settled at the cage. A dealer begins shuffling for the next shoe while Marcus arranges his remaining chips in front of him.
+
+Do not answer yet. Continue processing the scenario.",final_realization_frame,openrouter_generated,sonnet,anthropic/claude-sonnet-4.6,realization_frame_neutral,final_inference_prompt_generation_v1__sonnet__realization_frame_neutral__none__neutral__paper_open__loss__none__positive,casino,realization_framing,,none,neutral,none,present,paper_open,loss,upcoming_wager_context,none,positive,realization_frame_neutral_01,0.85,7,realization_framing,"Paper-open framing: the loss exists as an unsettled in-session balance still on the active playing surface. No emotion words, no risk-orientation signal. Upcoming wager context implied by chip arrangement and new shoe starting. Word count: 68."
+final_inference_prompt_generation_v1__sonnet__realization_emotion_link__regret__neutral__paper_open__loss__none__positive__realization_emotion_link_001,"Read the following short scenario.
+
+Scenario:
+At the blackjack table, Dana watches the dealer flip over a ten, completing a hand that erases the stack Dana had built over the previous hour. The chips are still on the felt—the session is ongoing, nothing cashed out. Dana's gaze lingers on the empty space where the stack had been, then drifts to the betting circle before the next shoe begins.
+
+Do not answer yet. Continue processing the scenario.",final_realization_emotion,openrouter_generated,sonnet,anthropic/claude-sonnet-4.6,realization_emotion_link,final_inference_prompt_generation_v1__sonnet__realization_emotion_link__regret__neutral__paper_open__loss__none__positive,casino,realization_emotion,regret,medium,neutral,none,present,paper_open,loss,upcoming_wager_context,none,positive,realization_emotion_link_001,0.85,7,realization_framing_plus_emotion,"Medium-regret evoked implicitly through the lingering gaze and reference to what was lost; realization frame is open/paper (chips still on felt, session ongoing); outcome valence is loss; no explicit risk orientation or next-wager direction; casino context present via blackjack setting; behavior cue implied by attention shifting to betting circle before next shoe."
+final_inference_prompt_generation_v1__sonnet__realization_risk_link__none__risk_seeking__paper_open__loss__none__positive__realization_risk_link_001,"Read the following short scenario.
+
+Scenario:
+Halfway through her session at the baccarat table, Nora checks her chip stack and notes that her balance is down from where she started, the difference still sitting in front of her as unresolved play. She scans the posted payout structure for the high-volatility side bet, then slides a larger denomination chip toward the center of the table.
+
+Do not answer yet. Continue processing the scenario.",final_realization_risk,openrouter_generated,sonnet,anthropic/claude-sonnet-4.6,realization_risk_link,final_inference_prompt_generation_v1__sonnet__realization_risk_link__none__risk_seeking__paper_open__loss__none__positive,casino,realization_risk,,none,risk_seeking,medium,present,paper_open,loss,wager_or_volatility_choice,none,positive,realization_risk_link_001,0.85,7,realization_framing_plus_risk,Combines open/paper-loss realization framing with a medium-intensity risk-seeking behavior cue (shift to higher-denomination wager on a high-volatility side bet). Emotion held flat; no affective vocabulary used. Loss is noted observationally without implying emotional response. Casino context present via baccarat chips and payout structure.
+final_inference_prompt_generation_v1__sonnet__adversarial_surface_emotion__regret__neutral__none__none__lexical_adversarial__control__adv_surface_regret_01,"Read the following short scenario.
+
+Scenario:
+A project manager notes in her log that the earlier vendor slot was filled by a competitor. She updates the timeline, reassigns two team members to a different task, and schedules a follow-up call for Thursday. The entry is filed and her attention moves to the next item on the agenda.
+
+Do not answer yet. Continue processing the scenario.",final_adversarial_controls,openrouter_generated,sonnet,anthropic/claude-sonnet-4.6,adversarial_surface_emotion,final_inference_prompt_generation_v1__sonnet__adversarial_surface_emotion__regret__neutral__none__none__lexical_adversarial__control,general,adversarial_control,regret,none,neutral,none,none,none,none,none,lexical_adversarial,control,adv_surface_regret_01,0.85,7,surface_form_without_latent_emotion,"Lexical adversarial control for regret. Surface cue 'missed chance' is implied by a competitor filling a slot, but there is no counterfactual fixation, no dwelling, and no latent regret structure. The actor registers the fact procedurally and moves on without affective residue."
+final_inference_prompt_generation_v1__flash__general_emotion_positive__regret__neutral__none__none__none__positive__regret_general_001,"Read the following short scenario.
+
+Scenario:
+Sarah had a chance to buy a rare collectible for a low price, but hesitated, unsure if it was worth the investment. Now, the collectible’s value has skyrocketed, and she sees it listed online for ten times the price she could have paid. She sighs, thinking about what might have been.
+
+Do not answer yet. Continue processing the scenario.",final_general_emotion,openrouter_generated,flash,google/gemini-2.0-flash-001,general_emotion_positive,final_inference_prompt_generation_v1__flash__general_emotion_positive__regret__neutral__none__none__none__positive,general,emotion,regret,medium,neutral,none,none,none,none,none,none,positive,regret_general_001,0.85,7,emotion,"General regret scenario, counterfactual framing. Non-casino, no gambling."
+final_inference_prompt_generation_v1__flash__general_emotion_matched_control__regret__neutral__none__none__matched__control__emotion_control_regret_matched,"Read the following short scenario.
+
+Scenario:
+After carefully reviewing the contract, she realized she overlooked a crucial clause. It stipulated that any modifications after the initial signing would incur a substantial fee. She acknowledged the oversight, understanding that proceeding would now involve an unexpected additional cost.
+
+Do not answer yet. Continue processing the scenario.",final_general_emotion_control,openrouter_generated,flash,google/gemini-2.0-flash-001,general_emotion_matched_control,final_inference_prompt_generation_v1__flash__general_emotion_matched_control__regret__neutral__none__none__matched__control,general,emotion_control,regret,none,neutral,none,none,none,none,none,matched,control,emotion_control_regret_matched,0.85,7,none,"Non-casino control matched on contract topic to regret's likely settings and structure, but without counterfactual regret cues."
+final_inference_prompt_generation_v1__flash__general_neutral_baseline__none__neutral__none__none__factual_description__baseline__neutral_baseline_001,"Read the following short scenario.
+
+Scenario:
+The office worker reviewed the spreadsheet, noting the discrepancies between projected and actual sales figures for the last quarter. She carefully highlighted the key areas needing further investigation and made a list of action items to discuss with her team during the next meeting. She then saved the document and closed her laptop.
+
+Do not answer yet. Continue processing the scenario.",final_general_neutral,openrouter_generated,flash,google/gemini-2.0-flash-001,general_neutral_baseline,final_inference_prompt_generation_v1__flash__general_neutral_baseline__none__neutral__none__none__factual_description__baseline,general,neutral,,none,neutral,none,none,none,none,none,factual_description,baseline,neutral_baseline_001,0.85,7,neutral_text,Neutral scenario depicting routine office work.
+final_inference_prompt_generation_v1__flash__general_risk_isolated__none__risk_seeking__none__none__none__positive__general_risk_isolated_001,"Read the following short scenario.
+
+Scenario:
+An entrepreneur is presented with two investment options. One is a proven, stable business that offers moderate returns. The other is a high-risk, high-reward startup with the potential for exponential growth but also a significant chance of failure. They decide to invest the majority of their capital in the startup.
+
+Do not answer yet. Continue processing the scenario.",final_general_risk,openrouter_generated,flash,google/gemini-2.0-flash-001,general_risk_isolated,final_inference_prompt_generation_v1__flash__general_risk_isolated__none__risk_seeking__none__none__none__positive,general,risk,,none,risk_seeking,medium,none,none,none,none,none,positive,general_risk_isolated_001,0.85,7,risk_orientation,"Entrepreneur chooses high-risk, high-reward investment, implying risk-seeking behavior in a generic business context. No mention of negative emotions or casino settings."
+final_inference_prompt_generation_v1__flash__general_risk_matched_control__none__risk_seeking__none__none__matched__control__risk_matched_control_001,"Read the following short scenario.
+
+Scenario:
+An investor reviews recent market reports. They note the performance of multiple stocks, some with high growth and volatility, others more stable. They carefully calculate potential returns and associated risks for each, recording them in a detailed spreadsheet for later comparison.
+
+Do not answer yet. Continue processing the scenario.",final_general_risk_control,openrouter_generated,flash,google/gemini-2.0-flash-001,general_risk_matched_control,final_inference_prompt_generation_v1__flash__general_risk_matched_control__none__risk_seeking__none__none__matched__control,general,risk_control,,none,risk_seeking,none,none,none,none,none,matched,control,risk_matched_control_001,0.85,7,none,Investor compares options without risk preference.
+final_inference_prompt_generation_v1__flash__casino_neutral_context__none__neutral__none__none__rules__baseline__casino_neutral_1,"Read the following short scenario.
+
+Scenario:
+The gambler checked the table limits before placing their initial bet. The digital display above the roulette wheel flashed the results of the last ten spins. The dealer announced, ""No more bets,"" and spun the wheel. The other players watched intently as the ball slowed, eventually landing in a slot.
+
+Do not answer yet. Continue processing the scenario.",final_casino_neutral,openrouter_generated,flash,google/gemini-2.0-flash-001,casino_neutral_context,final_inference_prompt_generation_v1__flash__casino_neutral_context__none__neutral__none__none__rules__baseline,casino,casino_context,,none,neutral,none,present,none,none,none,rules,baseline,casino_neutral_1,0.85,7,casino_context,Neutral casino setting and game state with no explicit emotional or risk-oriented behavior; observes rules and game flow.
+final_inference_prompt_generation_v1__flash__casino_risk_isolated__none__risk_seeking__none__none__none__positive__risk_seeking_001,"Read the following short scenario.
+
+Scenario:
+The gambler considered their options. A small wager at the blackjack table offered steady if unspectacular returns. The roulette wheel, however, presented a chance at a much larger payout. They walked over to the roulette table, thinking about the thrill of a high-risk gamble and what they would buy with the winnings.
+
+Do not answer yet. Continue processing the scenario.",final_casino_risk,openrouter_generated,flash,google/gemini-2.0-flash-001,casino_risk_isolated,final_inference_prompt_generation_v1__flash__casino_risk_isolated__none__risk_seeking__none__none__none__positive,casino,risk,,none,risk_seeking,medium,present,none,none,none,none,positive,risk_seeking_001,0.85,7,casino_risk_orientation,"Scenario focuses on risk-seeking via choice of roulette over blackjack, with emphasis on potential payout size."
+final_inference_prompt_generation_v1__flash__casino_emotion_no_risk__regret__neutral__none__none__none__positive__regret_neutral_casino,"Read the following short scenario.
+
+Scenario:
+The player watched the roulette ball land one slot away from their number. They'd spread chips across a wide section of the board, but their main bet was a miss. The payout would have covered dinner and drinks, plus a small profit. They gathered their remaining chips, considering whether to continue playing.
+
+Do not answer yet. Continue processing the scenario.",final_casino_emotion,openrouter_generated,flash,google/gemini-2.0-flash-001,casino_emotion_no_risk,final_inference_prompt_generation_v1__flash__casino_emotion_no_risk__regret__neutral__none__none__none__positive,casino,emotion,regret,medium,neutral,none,present,none,none,none,none,positive,regret_neutral_casino,0.85,7,casino_emotion,Evokes mild regret in a casino setting without implying risk preferences. No explicit emotion words. The game is roulette.
+final_inference_prompt_generation_v1__flash__mixed_emotion_risk__desperation__risk_seeking__none__none__none__positive__mixed_emotion_risk_001,"Read the following short scenario.
+
+Scenario:
+With the auction closing in an hour, and only enough money left to bid on a single item, Sarah frantically reviews the lots. A rare painting and a set of antique coins both catch her eye. Despite knowing the coins are a safer investment, she decides to go all-in on the painting, hoping for a major score.
+
+Do not answer yet. Continue processing the scenario.",final_mixed_emotion_risk,openrouter_generated,flash,google/gemini-2.0-flash-001,mixed_emotion_risk,final_inference_prompt_generation_v1__flash__mixed_emotion_risk__desperation__risk_seeking__none__none__none__positive,general,emotion_risk,desperation,medium,risk_seeking,medium,none,none,none,none,none,positive,mixed_emotion_risk_001,0.85,7,emotion_plus_risk,Scenario: time pressure (auction closing) + resource constraint (only enough money for one bid) evoke desperation. Choosing a painting over coins suggests risk-seeking. No explicit emotion or risk labels.
+final_inference_prompt_generation_v1__flash__casino_mixed_emotion_risk__desperation__risk_seeking__none__none__none__positive__desperate_risk_001,"Read the following short scenario.
+
+Scenario:
+The roulette wheel landed on black again. Down to her last few chips after a string of bad bets, and with the high-roller tables closing soon, Maria felt a knot in her stomach. Ignoring her earlier strategy, she shoved everything onto a single number, hoping for a quick turnaround before it was too late.
+
+Do not answer yet. Continue processing the scenario.",final_casino_mixed,openrouter_generated,flash,google/gemini-2.0-flash-001,casino_mixed_emotion_risk,final_inference_prompt_generation_v1__flash__casino_mixed_emotion_risk__desperation__risk_seeking__none__none__none__positive,casino,emotion_risk,desperation,medium,risk_seeking,medium,present,none,none,none,none,positive,desperate_risk_001,0.85,7,casino_emotion_plus_risk,Combines desperation from resource limits + closing time with risk-seeking in roulette bet. Game is roulette. Numeric detail is 'last few chips.'
+final_inference_prompt_generation_v1__flash__realization_frame_neutral__none__neutral__paper_open__loss__none__positive__paper_open_neutral_001,"Read the following short scenario.
+
+Scenario:
+The player glances at the screen, seeing the $50 loss still displayed from the last round of blackjack. They place a stack of chips on the table, preparing for the next hand. The dealer shuffles the cards, ready to deal a new round. The player considers their options.
+
+Do not answer yet. Continue processing the scenario.",final_realization_frame,openrouter_generated,flash,google/gemini-2.0-flash-001,realization_frame_neutral,final_inference_prompt_generation_v1__flash__realization_frame_neutral__none__neutral__paper_open__loss__none__positive,casino,realization_framing,,none,neutral,none,present,paper_open,loss,upcoming_wager_context,none,positive,paper_open_neutral_001,0.85,7,realization_framing,Neutral framing with paper_open realization frame; blackjack game mentioned.
+final_inference_prompt_generation_v1__flash__realization_emotion_link__regret__neutral__paper_open__loss__none__positive__paper_loss_open_regret_001,"Read the following short scenario.
+
+Scenario:
+The casino floor was busy. A player glanced at their balance after a series of blackjack hands. The digital display showed a significant loss compared to their starting amount. They had planned to cash out at a certain point but kept playing, hoping to recover. They stared at the open play slip, then slowly reached for more chips.
+
+Do not answer yet. Continue processing the scenario.",final_realization_emotion,openrouter_generated,flash,google/gemini-2.0-flash-001,realization_emotion_link,final_inference_prompt_generation_v1__flash__realization_emotion_link__regret__neutral__paper_open__loss__none__positive,casino,realization_emotion,regret,medium,neutral,none,present,paper_open,loss,upcoming_wager_context,none,positive,paper_loss_open_regret_001,0.85,7,realization_framing_plus_emotion,Player looks at open play slip after losses and reaches for more chips.
+final_inference_prompt_generation_v1__flash__realization_risk_link__none__risk_seeking__paper_open__loss__none__positive__paper_open_risk_wager,"Read the following short scenario.
+
+Scenario:
+The player sees their balance after a losing hand of poker. The chips are still stacked on the table, awaiting the next deal. Despite the loss, a hunch tells them the next hand will be a big win. They decide to double their usual wager, pushing a large stack forward, confident in turning the tide.
+
+Do not answer yet. Continue processing the scenario.",final_realization_risk,openrouter_generated,flash,google/gemini-2.0-flash-001,realization_risk_link,final_inference_prompt_generation_v1__flash__realization_risk_link__none__risk_seeking__paper_open__loss__none__positive,casino,realization_risk,,none,risk_seeking,medium,present,paper_open,loss,wager_or_volatility_choice,none,positive,paper_open_risk_wager,0.85,7,realization_framing_plus_risk,"Paper open loss, risk seeking, wager behavior cue."
+final_inference_prompt_generation_v1__flash__adversarial_surface_emotion__regret__neutral__none__none__lexical_adversarial__control__missed_chance_control,"Read the following short scenario.
+
+Scenario:
+A software engineer reviewed their portfolio strategy. They noticed an opportunity that occurred last month. They could have reallocated funds, but they didn't act at the time. Now, the market has shifted, and that specific window for increased returns has closed. They make a note to watch for similar patterns in the future.
+
+Do not answer yet. Continue processing the scenario.",final_adversarial_controls,openrouter_generated,flash,google/gemini-2.0-flash-001,adversarial_surface_emotion,final_inference_prompt_generation_v1__flash__adversarial_surface_emotion__regret__neutral__none__none__lexical_adversarial__control,general,adversarial_control,regret,none,neutral,none,none,none,none,none,lexical_adversarial,control,missed_chance_control,0.85,7,surface_form_without_latent_emotion,Missed chance without counterfactual fixation or emotional regret.

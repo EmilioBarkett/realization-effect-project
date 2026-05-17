@@ -1,0 +1,15 @@
+{
+  "schema_version": "0.1.0",
+  "description": "Final generated SAE activation dataset. Contains 2,004 balanced prompts generated across Codex, Sonnet, and GPT-4.1-mini, extracted at layer 18 with scenario token-region activations stored as float32.",
+  "activation_runs": [
+    "results/final/residual_streams/final_inference_prompts_v1_layer18_regions_float32"
+  ],
+  "layers": [
+    18
+  ],
+  "token_regions": [
+    "scenario"
+  ],
+  "activation_site": "resid_post",
+  "max_vectors": null
+}

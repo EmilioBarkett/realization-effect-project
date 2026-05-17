@@ -16,7 +16,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
+from activation_analysis.generation_cli import run_generation_prompt_mode
 from openai import OpenAI
+
+GENERATION_PROMPT_VERSION = "generation"
+DEFAULT_GENERATION_PLAN = Path("configs/activation_analysis/realization_vector_generation_v1.json")
+DEFAULT_GENERATION_OUTPUT = Path("experiments/activation_analysis/prompts/activation_vectors/realization_vector_v1.csv")
 
 # Constant instructions prompt used for every trial.
 SYSTEM_PROMPT = (
@@ -38,6 +43,8 @@ LINE_LABEL_PATTERN = re.compile(
     r"^\s*(?:"
     r"line\s*[12]"
     r"|[12]"
+    r"|allocation(?:\s+amount)?"
+    r"|amount(?:\s+to\s+allocate)?"
     r"|wager"
     r"|bet"
     r"|stake"
@@ -49,6 +56,9 @@ LINE_LABEL_PATTERN = re.compile(
 )
 
 ANSWER_LABELS = [
+    "allocation amount",
+    "amount to allocate",
+    "amount",
     "total session wager",
     "machine risk preference",
     "machine risk level",
@@ -453,7 +463,7 @@ def _extract_response_numbers(response_text: str) -> Tuple[Optional[int], Option
 
     wager_value = _labeled_answer_value(
         response_text,
-        ["wager", "bet", "stake", "total session wager"],
+        ["allocation amount", "amount to allocate", "wager", "bet", "stake", "total session wager"],
     )
     risk_value = _labeled_answer_value(
         response_text,
@@ -1269,7 +1279,10 @@ def main() -> None:
         "--prompt-version",
         type=str,
         default="absolute",
-        help="Prompt wording version (default: absolute).",
+        help=(
+            "Prompt wording version (default: absolute). Use 'generation' to "
+            "generate activation-analysis prompts instead of behavioral results."
+        ),
     )
     parser.add_argument(
         "--prompt-versions",
@@ -1310,14 +1323,71 @@ def main() -> None:
             "(default: 1, disabled; use values >1 to round down)."
         ),
     )
+    parser.add_argument(
+        "--generation-plan",
+        type=Path,
+        default=DEFAULT_GENERATION_PLAN,
+        help="Prompt-generation plan JSON used when --prompt-version generation.",
+    )
+    parser.add_argument(
+        "--generation-output",
+        type=Path,
+        default=None,
+        help=(
+            "Generated prompt CSV path. Defaults to "
+            "the generation plan's default_output, or realization_vector_v1.csv "
+            "when --prompt-version generation."
+        ),
+    )
+    parser.add_argument(
+        "--generation-limit-jobs",
+        type=int,
+        default=None,
+        help="Limit generation jobs for a small pilot.",
+    )
+    parser.add_argument(
+        "--generation-pilot-all-cells",
+        action="store_true",
+        help=(
+            "Run one representative job per generation cell and selected model. "
+            "This samples the full taxonomy instead of the first expanded jobs."
+        ),
+    )
+    parser.add_argument(
+        "--generation-pilot-count-per-cell",
+        type=int,
+        default=1,
+        help="Prompts per sampled cell when --generation-pilot-all-cells is set.",
+    )
+    parser.add_argument(
+        "--generation-resume",
+        action="store_true",
+        help="Append missing prompt-generation batches to an existing CSV.",
+    )
+    parser.add_argument(
+        "--api-key-env",
+        default="OPENROUTER_API_KEY",
+        help="Environment variable containing the OpenRouter API key.",
+    )
     args = parser.parse_args()
+
+    prompt_versions = (
+        args.prompt_versions if args.prompt_versions is not None else [args.prompt_version]
+    )
+    if GENERATION_PROMPT_VERSION in prompt_versions:
+        if len(prompt_versions) != 1:
+            raise SystemExit("--prompt-version generation cannot be mixed with behavioral prompt versions.")
+        if args.model is not None:
+            args.models = [args.model]
+        run_generation_prompt_mode(
+            args,
+            default_generation_output=DEFAULT_GENERATION_OUTPUT,
+        )
+        return
 
     models = args.models if args.models is not None else [args.model or "openai/o4-mini"]
     temperatures = (
         args.temperatures if args.temperatures is not None else [args.temperature or 1.0]
-    )
-    prompt_versions = (
-        args.prompt_versions if args.prompt_versions is not None else [args.prompt_version]
     )
 
     run_experiment_grid(

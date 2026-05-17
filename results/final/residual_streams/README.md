@@ -1,25 +1,27 @@
-# Final Activation Runs
+# Final Residual Stream Runs
 
-This folder contains activation runs intended to feed SAE training or evaluation
-configs.
+This folder contains reference residual activation runs used by downstream
+activation-vector analysis.
 
-Current larger local SAE-training run:
+Current active target for the next run:
 
-- `first_sae_prompt_mix_v1_repeated_5022_layer18_regions_float32`
+- prompts:
+  `experiments/activation_analysis/prompts/activation_vectors/realization_vector_v1.csv`
+- expected output:
+  `results/final/residual_streams/realization_vector_v1_layer18_regions_float32/`
 
-Properties:
+Cloud/open-model runs should use model-specific directory names and include the
+model, prompt set, layer, token regions, and storage dtype, for example:
 
-- 5,022 prompts from `experiments/emotion_activation/prompts/first_sae_prompt_mix_v1_repeated_5022.csv`
-- layer `18`
-- activation site `resid_post`
-- token mode `nonpad`
-- stored token regions `scenario,decision_question`
-- storage dtype `float32`
-- 218,674 activation vectors
+```text
+qwen3_32b_instruct_realization_v1_layer32_regions_float16/
+```
 
-The matching SAE dataset config is:
+Every run must validate with:
 
-- `configs/sae/first_sae_prompt_mix_v1_repeated_5022_layer18.json`
+```bash
+./venv/bin/python scripts/validate_activation_run.py <run_dir>
+```
 
-Note: this run repeats the current 81-prompt mix 62 times. It is larger for SAE
-pipeline scale, but it does not add semantic prompt diversity.
+Archived SAE-first activation runs remain local/ignored or live under
+`results/legacy/`.

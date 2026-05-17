@@ -1,0 +1,21 @@
+{
+  "schema_version": "0.1.0",
+  "description": "Comparison SAE dataset config using only general non-casino emotion prompts and matched emotion controls. Excludes risk, emotion-risk mixed, and realization prompt families.",
+  "activation_runs": [
+    "results/final/residual_streams/general_emotion_risk_v1_layer18_regions_float32"
+  ],
+  "layers": [
+    18
+  ],
+  "token_regions": [
+    "scenario"
+  ],
+  "activation_site": "resid_post",
+  "prompt_metadata_filters": {
+    "prompt_family": [
+      "emotion_positive",
+      "emotion_control"
+    ]
+  },
+  "max_vectors": null
+}

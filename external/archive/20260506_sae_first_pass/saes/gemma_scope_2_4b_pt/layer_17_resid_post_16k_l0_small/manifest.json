@@ -1,0 +1,45 @@
+{
+  "schema_version": "0.1.0",
+  "source": "huggingface",
+  "repo_id": "google/gemma-scope-2-4b-pt",
+  "repo_path": "resid_post_all/layer_17_width_16k_l0_small",
+  "downloaded_files": [
+    "resid_post_all/layer_17_width_16k_l0_small/config.json",
+    "resid_post_all/layer_17_width_16k_l0_small/params.safetensors"
+  ],
+  "local_weight_file": "resid_post_all/layer_17_width_16k_l0_small/params.safetensors",
+  "local_config_file": "resid_post_all/layer_17_width_16k_l0_small/config.json",
+  "target_model": "google/gemma-3-4b-pt",
+  "hook_point": "model.layers.17.output",
+  "project_activation_alignment": {
+    "activation_run": "results/final/residual_streams/general_emotion_risk_v1_layer18_regions_float32",
+    "project_logger_layer": 18,
+    "activation_site": "resid_post",
+    "token_region": "scenario",
+    "notes": "Project residual logging uses user-facing 1-based layer numbers and hooks blocks[layer - 1], so model.layers.17.output aligns with project logger layer 18."
+  },
+  "architecture": "jump_relu",
+  "d_in": 2560,
+  "d_sae": 16384,
+  "l0": 20,
+  "parameter_shapes": {
+    "b_dec": [
+      2560
+    ],
+    "b_enc": [
+      16384
+    ],
+    "threshold": [
+      16384
+    ],
+    "w_dec": [
+      16384,
+      2560
+    ],
+    "w_enc": [
+      2560,
+      16384
+    ]
+  },
+  "notes": "Imported as the layer-aligned general pretrained SAE baseline for comparing the curated synthetic emotion/risk/realization activation run against a broad Gemma Scope SAE."
+}

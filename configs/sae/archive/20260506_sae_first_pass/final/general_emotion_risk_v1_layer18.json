@@ -1,0 +1,28 @@
+{
+  "schema_version": "0.1.0",
+  "description": "Current SAE dataset config for the general non-casino emotion/risk/realization prompt set. Uses layer-18 scenario-token activations from the validated 3,060-prompt fp32 residual-stream run.",
+  "activation_runs": [
+    "results/final/residual_streams/general_emotion_risk_v1_layer18_regions_float32"
+  ],
+  "layers": [
+    18
+  ],
+  "token_regions": [
+    "scenario"
+  ],
+  "activation_site": "resid_post",
+  "prompt_metadata_filters": {
+    "prompt_family": [
+      "emotion_positive",
+      "emotion_control",
+      "risk_positive",
+      "risk_control",
+      "emotion_risk_mixed",
+      "neutral_baseline",
+      "realization_frame",
+      "realization_emotion",
+      "realization_risk"
+    ]
+  },
+  "max_vectors": null
+}

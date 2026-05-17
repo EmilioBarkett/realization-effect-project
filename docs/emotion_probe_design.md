@@ -53,10 +53,10 @@ The current target emotions are:
 
 There are now two prompt sets:
 
-- `configs/emotion_activation/emotions_general_v2.json` contains 48
+- `configs/activation_analysis/emotions_general_v2.json` contains 48
   general-domain emotion discovery prompts: 8 emotions x 3 variants x
   positive/control.
-- `configs/emotion_activation/emotions_initial.json` contains the earlier
+- `configs/activation_analysis/emotions_initial.json` contains the earlier
   casino-domain contrast prompts. These are still useful for casino-specific
   evaluation and sanity checks, but should not be the whole discovery set.
 
