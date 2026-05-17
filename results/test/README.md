@@ -3,6 +3,8 @@
 This folder contains disposable generated outputs.
 
 - `residual_streams/` holds activation extraction smoke runs.
+- `activation_vectors/behavior_runs/` holds exploratory behavior probes.
+- `activation_vectors/steering_runs/` holds activation-steering smoke runs.
 - `sae/` holds SAE training smoke runs.
 
 These artifacts are useful for checking that the pipeline works, but they should

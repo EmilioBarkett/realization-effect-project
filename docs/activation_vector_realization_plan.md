@@ -80,3 +80,14 @@ Each generated prompt row should include:
 
 SAEs are archived for now and should be treated as optional supporting analysis,
 not the main method.
+
+## Steering Pass
+
+The active causal follow-up is documented in `docs/steering_architecture.md`.
+Start with local Gemma because the current realization vector is a Gemma layer-18
+direction. The steering runner injects the saved direction during behavior
+generation and logs same-prompt changes from the unsteered baseline under
+`results/test/activation_vectors/steering_runs/`.
+
+Qwen steering should use the same runner architecture only after a Qwen-specific
+residual activation run and Qwen-specific realization direction exist.

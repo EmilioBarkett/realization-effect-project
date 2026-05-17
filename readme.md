@@ -166,6 +166,8 @@ The next planned test is activation steering on local Gemma using the existing
 realization direction. If steering moves wager/risk behavior, the project can
 claim that the representation is causally usable even when ordinary prompting
 does not recruit it.
+The steering architecture is documented in `docs/steering_architecture.md`; smoke
+runs write to ignored `results/test/activation_vectors/steering_runs/`.
 See `docs/cloud_open_model_behavior.md` for the cloud behavior-run process.
 See `docs/cloud_open_model_activations.md` for the matching cloud activation
 logging process.
