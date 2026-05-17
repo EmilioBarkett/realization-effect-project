@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Log residual streams for emotion-activation experiments."""
+"""Log residual streams for activation-analysis experiments."""
 
 from pathlib import Path
 import sys

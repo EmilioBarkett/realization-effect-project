@@ -32,6 +32,7 @@ results/test/**
 !results/test/residual_streams/README.md
 !results/test/sae/
 !results/test/sae/README.md
+results/test/activation_vectors/behavior_runs/**
 results/final/**
 !results/final/
 !results/final/README.md
@@ -39,6 +40,7 @@ results/final/**
 !results/final/residual_streams/README.md
 !results/final/sae/
 !results/final/sae/README.md
+results/final/activation_vectors/behavior_runs/**
 data/interpretability/activations/
 data/interpretability/sae_runs/
 

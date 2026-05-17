@@ -52,7 +52,9 @@ def _group_means(pair_deltas: list[dict[str, str]], key: str) -> dict[str, dict[
             "pairs": len(rows),
             "mean_amount_delta": _mean([float(row["amount_delta"]) for row in rows]),
             "mean_risk_delta": _mean([float(row["risk_delta"]) for row in rows]),
-            "mean_projection_delta": _mean([float(row["projection_delta"]) for row in rows]),
+            "mean_projection_delta": _mean(
+                [float(row["projection_delta"]) for row in rows if row["projection_delta"]]
+            ),
         }
         for group, rows in sorted(groups.items())
     }
@@ -107,8 +109,13 @@ def main() -> None:
         realized_amount = float(realized["parsed_amount"])
         paper_risk = float(paper["risk_profile"])
         realized_risk = float(realized["risk_profile"])
-        paper_projection = float(paper["projection"])
-        realized_projection = float(realized["projection"])
+        paper_projection = _float_or_none(paper.get("projection", ""))
+        realized_projection = _float_or_none(realized.get("projection", ""))
+        projection_delta = (
+            realized_projection - paper_projection
+            if paper_projection is not None and realized_projection is not None
+            else None
+        )
         pair_deltas.append(
             {
                 "pair_id": pair_id,
@@ -116,9 +123,9 @@ def main() -> None:
                 "outcome_valence": paper.get("outcome_valence", ""),
                 "amount_bucket": paper.get("amount_bucket", ""),
                 "source_llm": paper.get("source_llm", ""),
-                "paper_projection": str(paper_projection),
-                "realized_projection": str(realized_projection),
-                "projection_delta": str(realized_projection - paper_projection),
+                "paper_projection": "" if paper_projection is None else str(paper_projection),
+                "realized_projection": "" if realized_projection is None else str(realized_projection),
+                "projection_delta": "" if projection_delta is None else str(projection_delta),
                 "paper_amount": str(paper_amount),
                 "realized_amount": str(realized_amount),
                 "amount_delta": str(realized_amount - paper_amount),
@@ -135,20 +142,24 @@ def main() -> None:
         for row in rows
         if _is_true(row.get("valid_amount", "")) and _is_true(row.get("valid_risk_profile", ""))
     ]
-    projection_amount = [
-        (float(row["projection"]), float(row["parsed_amount"]))
-        for row in both_valid_rows
-        if _float_or_none(row.get("projection", "")) is not None
-    ]
-    projection_risk = [
-        (float(row["projection"]), float(row["risk_profile"]))
-        for row in both_valid_rows
-        if _float_or_none(row.get("projection", "")) is not None
-    ]
+    projection_amount = []
+    projection_risk = []
+    for row in both_valid_rows:
+        projection = _float_or_none(row.get("projection", ""))
+        if projection is None:
+            continue
+        projection_amount.append((projection, float(row["parsed_amount"])))
+        projection_risk.append((projection, float(row["risk_profile"])))
 
     amount_deltas = [float(row["amount_delta"]) for row in pair_deltas]
     risk_deltas = [float(row["risk_delta"]) for row in pair_deltas]
-    projection_deltas = [float(row["projection_delta"]) for row in pair_deltas]
+    projection_deltas = [float(row["projection_delta"]) for row in pair_deltas if row["projection_delta"]]
+    amount_deltas_with_projection = [
+        float(row["amount_delta"]) for row in pair_deltas if row["projection_delta"]
+    ]
+    risk_deltas_with_projection = [
+        float(row["risk_delta"]) for row in pair_deltas if row["projection_delta"]
+    ]
     summary = {
         "input": str(args.input),
         "rows": len(rows),
@@ -167,8 +178,14 @@ def main() -> None:
             [item[0] for item in projection_risk],
             [item[1] for item in projection_risk],
         ),
-        "pair_projection_delta_amount_delta_correlation": _pearson(projection_deltas, amount_deltas),
-        "pair_projection_delta_risk_delta_correlation": _pearson(projection_deltas, risk_deltas),
+        "pair_projection_delta_amount_delta_correlation": _pearson(
+            projection_deltas,
+            amount_deltas_with_projection,
+        ),
+        "pair_projection_delta_risk_delta_correlation": _pearson(
+            projection_deltas,
+            risk_deltas_with_projection,
+        ),
         "by_domain": _group_means(pair_deltas, "domain"),
         "by_outcome_valence": _group_means(pair_deltas, "outcome_valence"),
         "by_amount_bucket": _group_means(pair_deltas, "amount_bucket"),

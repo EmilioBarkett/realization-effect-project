@@ -5,19 +5,42 @@ versus realized outcomes on subsequent risk-taking: Field evidence from casino
 gambling"* (OBHDP 165, 45–55), substituting language models for human
 subjects.
 
-The project now has two connected goals:
+The project now has three connected goals:
 
-1. Measure whether LLMs reproduce realization-effect gambling behavior.
+1. Measure whether LLMs reproduce realization-effect gambling behavior or
+   related condition sensitivity.
 2. Use residual-stream logging and activation-vector methods to test whether
-   realization framing is internally represented and whether that representation
-   predicts or can steer risk-taking behavior.
+   realization framing is internally represented.
+3. Test whether that representation predicts or can causally steer risk-taking
+   behavior.
 
 The active interpretability path is no longer SAE-first. The earlier SAE work is
 archived as supporting infrastructure, while the current experiment follows an
 Anthropic-style paired activation-vector approach: build a direction from
 matched `paper_open` versus `realized_closed` prompts, evaluate projection on
 held-out prompts, then test whether the same direction relates to generated
-wager/risk behavior.
+wager/risk behavior or can steer that behavior.
+
+## Current Project Direction
+
+The current result is best understood as a dissociation rather than a clean
+behavioral replication. Local Gemma residual-stream activations strongly
+separate matched `paper_open` and `realized_closed` prompts, but matched-pair
+free-generation behavior is weak or null across local Gemma and larger
+OpenRouter Qwen probes. Larger Qwen models still often anchor on salient prompt
+numbers and default to middle risk choices.
+
+The active report claim should therefore be:
+
+> LLMs represent realization/finality, but the representation is not reliably
+> recruited for spontaneous risk-taking behavior in the current matched-pair
+> decision assay.
+
+The next experiment should test causality rather than simply scaling behavior
+runs: apply the Gemma realization direction during generation and compare
+unsteered, `+realized_closed`, and `-realized_closed` behavior outputs. A useful
+secondary check is an anchor-free qualitative prompt set, but steering is the
+stronger mechanistic follow-up.
 
 ## What this study tests
 
@@ -132,10 +155,20 @@ Current activation-vector status:
   prompts, with paired summaries in
   `results/final/activation_vectors/realization_vector_v1_layer18/evaluation/behavior_eval_summary.json`.
 
-The local Gemma-3-4B behavior link is currently weak: the realization direction
-separates prompt representations, but generated wager/risk changes are small.
-The next planned test is to repeat behavior generation and, if promising,
-residual logging on a larger open model using cloud compute.
+The behavior link is currently weak: the realization direction separates prompt
+representations, but generated wager/risk changes are small. Behavior-only
+OpenRouter probes of Qwen 32B and Qwen3.5 397B are treated as exploratory smoke
+artifacts and kept under ignored `results/test/activation_vectors/behavior_runs/`
+rather than the canonical `results/final/` tree. They did not rescue a strong
+matched-pair behavioral effect.
+
+The next planned test is activation steering on local Gemma using the existing
+realization direction. If steering moves wager/risk behavior, the project can
+claim that the representation is causally usable even when ordinary prompting
+does not recruit it.
+See `docs/cloud_open_model_behavior.md` for the cloud behavior-run process.
+See `docs/cloud_open_model_activations.md` for the matching cloud activation
+logging process.
 
 ## Workflow
 
@@ -341,6 +374,10 @@ Useful extraction options:
 
 - `--block-path model.layers` forces hook placement when automatic model
   architecture detection is not enough.
+- `--device-map auto` lets Hugging Face shard larger cloud models across
+  available devices.
+- `--attn-implementation flash_attention_2` can be used on cloud images with
+  FlashAttention installed.
 - `--activation-site resid_post` records the current hook contract: residual
   stream output after a selected transformer block. `block_output` is an alias
   for the same current hook.
@@ -383,20 +420,43 @@ Run and summarize free-generated behavior outputs for the behavior-evaluation
 prompt split:
 
 ```bash
+./venv/bin/python scripts/validate_behavior_prompts.py --fail-on-issues
+
 ./venv/bin/python scripts/run_behavior_vector_eval.py \
   --model-id models/gemma-3-4b-pt \
   --local-files-only \
+  --run-name gemma3_4b_behavior_v1 \
+  --output-dir results/test/activation_vectors/behavior_runs \
   --max-new-tokens 32 \
-  --min-new-tokens 4 \
-  --output results/final/activation_vectors/realization_vector_v1_layer18/behavior_eval.csv
+  --min-new-tokens 4
 
-./venv/bin/python scripts/reparse_behavior_vector_eval.py
+./venv/bin/python scripts/reparse_behavior_vector_eval.py \
+  --input results/test/activation_vectors/behavior_runs/gemma3_4b_behavior_v1/behavior_eval.csv
 
-./venv/bin/python scripts/analyze_behavior_vector_eval.py
+./venv/bin/python scripts/analyze_behavior_vector_eval.py \
+  --input results/test/activation_vectors/behavior_runs/gemma3_4b_behavior_v1/behavior_eval.csv \
+  --summary-output results/test/activation_vectors/behavior_runs/gemma3_4b_behavior_v1/behavior_eval_summary.json \
+  --pair-output results/test/activation_vectors/behavior_runs/gemma3_4b_behavior_v1/behavior_pair_deltas.csv
 ```
 
 This behavior pass uses free numeric generation. It does not force the model to
-choose from discrete wager/risk buckets.
+choose from discrete wager/risk buckets, although prompt numbers can still act
+as anchors. Keep exploratory behavior-generation outputs under
+`results/test/activation_vectors/behavior_runs/`; they are ignored by git and
+should not be treated as final reference artifacts.
+
+For OpenRouter instruction models, use chat prompting, one run directory per
+model, and API-level reasoning suppression for reasoning-capable models:
+
+```bash
+./venv/bin/python scripts/run_behavior_vector_eval.py \
+  --backend openrouter \
+  --model-id qwen/qwen3.5-397b-a17b \
+  --prompt-format chat \
+  --openrouter-reasoning-effort none \
+  --run-name qwen3_5_397b_a17b_behavior_probe \
+  --output-dir results/test/activation_vectors/behavior_runs
+```
 
 Current local Gemma summary:
 
@@ -408,9 +468,9 @@ Current local Gemma summary:
 - Mean realized-minus-paper risk delta: `-0.03`.
 - Mean realized-minus-paper projection delta: `+149.14`.
 
-Interpretation: the representation result is promising, but local Gemma-3-4B is
-not yet strong behavioral evidence. Larger cloud-run open models are the next
-check before making a causal claim.
+Interpretation: the representation result is promising, but free-generated
+behavior is not yet strong behavioral evidence. The next check before making a
+causal claim is steering with the existing Gemma realization direction.
 
 ### 5. Archived SAE-first pass
 

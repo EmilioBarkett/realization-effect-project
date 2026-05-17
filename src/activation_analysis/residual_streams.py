@@ -40,6 +40,8 @@ class ResidualStreamLogger:
         trust_remote_code: bool = False,
         device: str = "auto",
         dtype: str = "auto",
+        device_map: str | None = None,
+        attn_implementation: str | None = None,
         block_path: str | None = None,
         stop_after_last_requested_layer: bool = True,
     ) -> None:
@@ -67,9 +69,20 @@ class ResidualStreamLogger:
             "torch_dtype": model_dtype,
             "low_cpu_mem_usage": True,
         }
+        if device_map:
+            model_kwargs["device_map"] = device_map
+        if attn_implementation:
+            model_kwargs["attn_implementation"] = attn_implementation
         self.model = self._load_model(model_kwargs)
-        self.device = self._resolve_device(device)
-        self.model = self.model.to(self.device)
+        self.device_map = device_map
+        self.attn_implementation = attn_implementation
+        if device_map:
+            self.device = str(next(self.model.parameters()).device)
+            self.resolved_device = f"device_map:{device_map}; input_device:{self.device}"
+        else:
+            self.device = self._resolve_device(device)
+            self.resolved_device = self.device
+            self.model = self.model.to(self.device)
         self.model.eval()
 
         self.num_transformer_layers = int(self._config_value("num_hidden_layers"))
@@ -98,6 +111,8 @@ class ResidualStreamLogger:
     def _resolve_dtype(self, requested: str):
         if requested == "auto":
             if self._torch.cuda.is_available():
+                return self._torch.bfloat16
+            if getattr(self._torch.backends, "mps", None) and self._torch.backends.mps.is_available():
                 return self._torch.bfloat16
             return self._torch.float32
         requested = requested.lower()
@@ -395,7 +410,7 @@ class ResidualStreamLogger:
         for batch_idx, positions in enumerate(token_positions):
             if not positions:
                 continue
-            index = self._torch.tensor(positions, dtype=self._torch.long)
+            index = self._torch.tensor(positions, dtype=self._torch.long, device=tensor.device)
             selected[batch_idx, : len(positions), :] = tensor[batch_idx, index, :]
         return selected
 

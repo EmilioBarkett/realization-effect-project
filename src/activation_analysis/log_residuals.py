@@ -387,7 +387,9 @@ def _write_manifest(
             "local_files_only": args.local_files_only,
             "dtype": args.dtype,
             "device": args.device,
-            "resolved_device": logger.device,
+            "device_map": getattr(args, "device_map", None),
+            "attn_implementation": getattr(args, "attn_implementation", None),
+            "resolved_device": getattr(logger, "resolved_device", logger.device),
         },
         "input": {
             "conditions_csv": args.conditions_csv,
@@ -443,7 +445,7 @@ def _build_run_name(args: argparse.Namespace, records: list[PromptRecord]) -> st
     digest = hashlib.sha256(
         json.dumps(fingerprint_payload, sort_keys=True, ensure_ascii=True).encode("utf-8")
     ).hexdigest()[:10]
-    model_name = _sanitize_run_part(Path(str(args.model_id)).name)
+    model_name = _sanitize_run_part(str(args.model_id).rstrip("/").split("/")[-1])
     if args.emotion_config:
         prompt_name = _sanitize_run_part(Path(args.emotion_config).stem)
     else:
@@ -456,9 +458,7 @@ def _build_run_name(args: argparse.Namespace, records: list[PromptRecord]) -> st
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Log selected residual stream layers for realization-effect prompts."
-    )
+    parser = argparse.ArgumentParser(description="Log selected residual stream layers for activation-analysis prompts.")
     parser.add_argument("--model-id", required=True, help="HF model id or local model directory")
     parser.add_argument("--tokenizer-id", help="Optional tokenizer id or local tokenizer directory")
     parser.add_argument(
@@ -517,6 +517,8 @@ def main() -> None:
     parser.add_argument("--trust-remote-code", action="store_true")
     parser.add_argument("--device", default="auto")
     parser.add_argument("--dtype", default="auto")
+    parser.add_argument("--device-map", default=None, help="Optional HF device_map, e.g. auto for cloud multi-GPU runs.")
+    parser.add_argument("--attn-implementation", default=None, help="Optional HF attention implementation, e.g. flash_attention_2.")
     parser.add_argument("--block-path", default=None, help="Dotted path to transformer blocks, e.g. model.layers.")
     parser.add_argument("--no-early-stop", action="store_true")
     args = parser.parse_args()
@@ -550,6 +552,8 @@ def main() -> None:
         trust_remote_code=args.trust_remote_code,
         device=args.device,
         dtype=args.dtype,
+        device_map=args.device_map,
+        attn_implementation=args.attn_implementation,
         block_path=args.block_path,
         stop_after_last_requested_layer=not args.no_early_stop,
     )
