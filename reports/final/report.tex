@@ -99,6 +99,19 @@ The activation analysis gives the positive mechanistic result. Along the layer-1
   \label{fig:activation-projection}
 \end{figure}
 
+\subsection{Projection strength is weakly linked to behavior}
+
+We next asked whether stronger projection on the realization direction predicts the model's actual wager or risk response. At the raw prompt level, projection is positively associated with wager: a one-standard-deviation increase in projection predicts an 84.44 CHF larger wager (\(p < 10^{-5}\)). Projection also weakly predicts risk profile (\(+0.136\) on the 1--5 scale, \(p = 0.021\)). However, this relationship mostly reflects prompt structure. After controlling for pair role, domain, outcome valence, amount bucket, and prompt source, the projection coefficient for wager falls to \(+5.21\) CHF and is not significant (\(p = 0.776\)). The risk-profile coefficient remains marginal (\(+0.134\), \(p = 0.053\)), but the model explains little variance.
+
+The stricter within-pair analysis is more important for the representation-without-control claim. For each matched pair, we computed the realized-minus-paper projection delta and compared it with the realized-minus-paper wager and risk deltas. Projection deltas barely predict behavior deltas: Pearson \(r = 0.072\) for wager and \(r = 0.001\) for risk. Regressions with prompt controls likewise do not find reliable effects. Thus, the activation direction tracks realization status, but variation in projection strength does not robustly explain variation in downstream risk behavior.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{projection_behavior_link.pdf}
+  \caption{Projection strength versus behavior. Raw prompt-level projection has a positive association with wager, but within matched paper/realized pairs, projection deltas weakly predict wager deltas and essentially do not predict risk deltas. This supports the distinction between readable representation and behavioral control.}
+  \label{fig:projection-behavior}
+\end{figure}
+
 \subsection{Steering does not robustly control risk behavior}
 
 If the layer-18 realization direction were a simple causal lever for risk-taking, steering toward \texttt{realized\_closed} should move behavior in one direction and steering toward \texttt{paper\_open} should move it in the opposite direction. We do not observe this pattern.

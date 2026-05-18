@@ -19,6 +19,7 @@ From the repository root, regenerate figures with:
 
 ```bash
 ./venv/bin/python scripts/build_report_figures.py
+./venv/bin/python scripts/analyze_projection_behavior_link.py
 ```
 
 To compile in an environment with TeX Live installed:
