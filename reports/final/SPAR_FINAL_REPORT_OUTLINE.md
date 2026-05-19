@@ -102,7 +102,8 @@ Files to reference:
 
 Original cleaned behavioral dataset:
 - `results/results.csv`
-- 32,251 canonical valid trials.
+- 46,750 canonical rows after reconciling the absolute and balance prompt blocks.
+- 45,865 valid wager rows and 45,808 valid risk-profile rows.
 - OLS regressions with condition dummies plus model, temperature, and prompt-version fixed effects.
 - HC3 robust standard errors.
 
@@ -156,17 +157,20 @@ Report:
 - The strongest broad finding is not "LLMs reproduce the realization effect"; it is "LLMs respond systematically to outcome framing and magnitude, but not according to the intended mental-accounting mechanism."
 
 Use numbers from `reports/current_findings.md`:
-- Canonical valid trials: 32,251.
+- Canonical rows: 46,750.
+- Valid wager rows: 45,865.
+- Valid risk-profile rows: 45,808.
 - Paper outcomes, `risk_profile` coefficients relative to baseline:
-  - `paper_loss_medium`: +0.0308, significant.
-  - `paper_loss_small`: +0.0568, significant.
-  - `paper_gain_small`: +0.1203, significant.
-  - `paper_gain_large`: +0.2436, significant.
+  - `paper_loss_large`: +0.0764, significant.
+  - `paper_loss_medium`: +0.0287, significant.
+  - `paper_loss_small`: -0.0120, not significant.
+  - `paper_gain_small`: +0.1004, significant.
+  - `paper_gain_large`: +0.2470, significant.
 - Realized outcomes, `risk_profile`:
-  - `realized_extreme_loss`: +0.1877, significant.
-  - `realized_large_loss`: +0.1758, significant.
-  - `realized_medium_loss`: +0.0377, significant.
-  - `realized_gain`: +0.1399, significant.
+  - `realized_extreme_loss`: +0.1323, significant.
+  - `realized_large_loss`: +0.1434, significant.
+  - `realized_medium_loss`: +0.0063, not significant.
+  - `realized_gain`: +0.2834, significant.
 
 Interpretation:
 - These effects show outcome sensitivity.
