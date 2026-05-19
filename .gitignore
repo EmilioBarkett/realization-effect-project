@@ -51,3 +51,27 @@ external/archive/**/.cache/
 
 .env
 .env.*
+
+# ------------------------------------------------------------
+# Local report build artifacts
+# ------------------------------------------------------------
+SPAR_Final.pdf
+reports/final/report.pdf
+reports/final/*.aux
+reports/final/*.bbl
+reports/final/*.bcf
+reports/final/*.blg
+reports/final/*.fdb_latexmk
+reports/final/*.fls
+reports/final/*.log
+reports/final/*.out
+reports/final/*.run.xml
+reports/final/*.synctex.gz
+reports/final/*.toc
+
+# ------------------------------------------------------------
+# Generated prompt artifacts (keep curated prompt assets tracked)
+# ------------------------------------------------------------
+experiments/activation_analysis/prompts/archive/generated/**
+experiments/activation_analysis/prompts/activation_vectors/*_pilot__*.csv
+experiments/activation_analysis/prompts/activation_vectors/*_realization_classification*.csv
