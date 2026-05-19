@@ -137,7 +137,11 @@ def steering_dose_response() -> None:
         ax.set_ylabel(ylabel)
         ax.set_xticks(df["scale"])
         ax.legend(frameon=False)
-    fig.suptitle("Layer-18 realization steering does not produce a sign-symmetric risk shift", y=0.995, fontsize=12)
+    fig.suptitle(
+        "Train-only layer-18 realization steering does not produce a sign-symmetric risk shift",
+        y=0.995,
+        fontsize=12,
+    )
     fig.tight_layout(rect=(0, 0, 1, 0.94))
     fig.savefig(FIGURE_DIR / "steering_dose_response.pdf")
     plt.close(fig)
@@ -149,7 +153,7 @@ def compliance_by_scale() -> None:
     df["source"] = df["group"].map({"gpt54": "GPT-5.4", "grok_fast": "Grok fast", "sonnet": "Sonnet"})
     df["noncompliance_percent"] = df["noncompliance_rate"] * 100.0
 
-    fig, ax = plt.subplots(figsize=(9.4, 4.8))
+    fig, ax = plt.subplots(figsize=(9.4, 5.2))
     sns.barplot(
         data=df,
         x="scale",
@@ -161,8 +165,15 @@ def compliance_by_scale() -> None:
     ax.set_title("Exactly-two-integer failures by steering scale and prompt source")
     ax.set_xlabel("Steering scale")
     ax.set_ylabel("Noncompliant responses (%)")
-    ax.legend(title="Prompt source", frameon=False)
-    fig.tight_layout()
+    ax.legend(
+        title="Prompt source",
+        frameon=False,
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.16),
+        ncol=3,
+        borderaxespad=0.0,
+    )
+    fig.tight_layout(rect=(0, 0.08, 1, 1))
     fig.savefig(FIGURE_DIR / "compliance_by_scale.pdf")
     plt.close(fig)
 

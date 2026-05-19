@@ -21,7 +21,7 @@ The most defensible claim:
 
 Draft:
 
-Large language models are increasingly used as behavioral simulators, but it remains unclear when their choices reflect human-like cognitive mechanisms rather than prompt-sensitive surface patterns. We study the realization effect, a behavioral-economics finding in which risk-taking differs after paper versus realized gains and losses. We first adapt casino and investment-style realization scenarios into LLM prompts that elicit a wager and a risk preference. Initial behavioral results suggested condition sensitivity, but follow-up tests showed that the effect was not robust across models and prompt variants. We then analyzed Gemma residual-stream activations and found that a train-only realization direction separates realized/closed outcomes from hypothetical or paper/open outcomes on held-out prompts, including newly generated DeepSeek-authored prompts. However, activation steering along a layer-18 realization direction did not reliably shift risk choices, despite perturbing generation and format compliance. These results suggest a representation-behavior dissociation: models may encode semantically meaningful state variables without those variables being sufficient to causally drive the measured behavior.
+Large language models are increasingly used as behavioral simulators, but it remains unclear when their choices reflect human-like cognitive mechanisms rather than prompt-sensitive surface patterns. We study the realization effect, a behavioral-economics finding in which risk-taking differs after paper versus realized gains and losses. We first adapt casino and investment-style realization scenarios into LLM prompts that elicit a wager and a risk preference. Initial behavioral results suggested condition sensitivity, but follow-up tests showed that the effect was not robust across models and prompt variants. We then analyzed Gemma residual-stream activations and found that a train-only realization direction separates realized/closed outcomes from hypothetical or paper/open outcomes on held-out prompts, including newly generated DeepSeek-authored prompts. However, activation steering along this train-only layer-18 realization direction did not reliably shift risk choices, despite perturbing generation and format compliance. These results suggest a representation-behavior dissociation: models may encode semantically meaningful state variables without those variables being sufficient to causally drive the measured behavior.
 
 ## 1. Introduction
 
@@ -120,8 +120,9 @@ Describe:
 - We built a mean-difference realization direction:
   - positive direction: `realized_closed - paper_open`
   - main layer used for steering: layer 18
-- Steering artifact caveat: the layer-18 direction used in steering was computed from all complete paired prompts in the original activation run, including direction-training, direction-validation, and behavior-evaluation splits.
-- Stricter readout check: a second layer-18 direction was rebuilt from `direction_train` only and evaluated on original `direction_val`, original `behavior_eval`, and a newly generated DeepSeek held-out set.
+- Main risk-steering artifact: the layer-18 direction used in the final risk-behavior steering run was rebuilt from `direction_train` only.
+- Held-out readout check: that train-only layer-18 direction was evaluated on original `direction_val`, original `behavior_eval`, and a newly generated DeepSeek held-out set.
+- Descriptive caveat: some earlier activation visualizations use the all-pairs layer-18 artifact and should be read descriptively rather than as the strict held-out test.
 - DeepSeek held-out set:
   - 40 matched paper/realized pairs.
   - 28 `heldout_readout` pairs and 12 `heldout_behavior_eval` pairs.
@@ -143,7 +144,8 @@ Describe:
 - Direction is normalized before injection.
 - Steering is applied at layer 18.
 - Position mode used in full pilots: `last`.
-- Tested scales: `-50`, `+50`, `+75`, `+100`, `+150`.
+- Tested scales: `-50`, `0`, `+50`, `+75`, `+100`, `+150`.
+- Comparisons use the in-run unsteered scale-`0` baseline matched by prompt ID.
 
 Implementation files:
 - `src/activation_analysis/steering.py`
@@ -213,16 +215,16 @@ Matched steering deltas, all valid matched rows:
 
 | Scale | Matched rows | Mean wager delta | Median wager delta | Mean risk delta | Median risk delta |
 | ---: | ---: | ---: | ---: | ---: | ---: |
-| -50 | 483 | +12.795 | 0 | +0.068 | 0 |
-| +50 | 475 | +18.326 | 0 | +0.013 | 0 |
-| +75 | 480 | +13.017 | 0 | +0.010 | 0 |
-| +100 | 482 | +14.521 | 0 | -0.039 | 0 |
-| +150 | 475 | +9.133 | 0 | -0.046 | 0 |
+| -50 | 478 | +11.797 | 0 | +0.094 | 0 |
+| +50 | 476 | +7.244 | 0 | +0.013 | 0 |
+| +75 | 483 | +8.213 | 0 | -0.025 | 0 |
+| +100 | 478 | +15.241 | 0 | -0.050 | 0 |
+| +150 | 473 | +12.801 | 0 | -0.080 | 0 |
 
 Interpretation:
 - Positive steering produces small mean wager movements, but medians remain zero.
 - Risk changes are essentially null and fluctuate around zero.
-- The negative `-50` sign-symmetry run does not reverse the positive-scale pattern.
+- The negative `-50` sign-symmetry run does not produce a clean opposite-direction behavioral pattern.
 - Higher scale worsens or does not improve exactly-two-integer compliance.
 - The evidence does not support the claim that the layer-18 realization vector is a reliable causal control direction for risk preference.
 
@@ -236,11 +238,11 @@ Report:
 - Exactly-two-integer compliance is imperfect across all steering runs.
 - Sonnet-derived prompts have especially high noncompliance.
 - At `+100`, noncompliance:
-  - casino: 96/324
-  - finance: 103/324
-  - GPT-5.4-generated prompts: 46/216
-  - Grok-fast-generated prompts: 47/216
-  - Sonnet-generated prompts: 106/216
+  - casino: 102/324
+  - finance: 130/324
+  - GPT-5.4-generated prompts: 47/216
+  - Grok-fast-generated prompts: 71/216
+  - Sonnet-generated prompts: 114/216
 
 Interpretation:
 - Some apparent effects may be driven by parseability and prompt-source artifacts.
@@ -282,14 +284,13 @@ Include:
 ## 7. Future Work
 
 Highest-value next steps:
-1. Rerun steering from the stricter train-only direction and compare it to the all-pairs steering artifact.
-2. Run a layer sweep around layers 14, 16, 18, 20, and 22.
-3. Test `position_mode=all` on a small smoke set to see whether prompt-wide steering has stronger causal effects.
-4. Expand the held-out prompt set with additional source models and larger behavior-evaluation cells.
-5. Generate downstream Gemma wager/risk responses for the DeepSeek `heldout_behavior_eval` prompts.
-6. Rerun the direct realization-classification positive control with corrected prompt construction.
-7. Build a local Qwen activation pipeline if compute allows, because hosted API behavior tests cannot support steering.
-8. Separate prompt-generation-source effects from core realization effects.
+1. Run a layer sweep around layers 14, 16, 18, 20, and 22.
+2. Test `position_mode=all` on a small smoke set to see whether prompt-wide steering has stronger causal effects.
+3. Expand the held-out prompt set with additional source models and larger behavior-evaluation cells.
+4. Generate downstream Gemma wager/risk responses for the DeepSeek `heldout_behavior_eval` prompts.
+5. Rerun the direct realization-classification positive control with the train-only direction and corrected prompt construction.
+6. Build a local Qwen activation pipeline if compute allows, because hosted API behavior tests cannot support steering.
+7. Separate prompt-generation-source effects from core realization effects.
 
 ## 8. Conclusion
 
@@ -304,7 +305,7 @@ We do not find strong evidence that LLMs robustly reproduce the human realizatio
 2. Activation projection plot:
    - `paper_open` vs `realized_closed` projection distributions along the Gemma layer-18 realization direction.
 3. Steering dose-response plot:
-   - scales `+50`, `+75`, `+100`, `+150`; mean and median deltas for wager and risk.
+   - scales `-50`, `+50`, `+75`, `+100`, `+150`; mean and median deltas for wager and risk.
 4. Steering compliance plot:
    - strict two-integer compliance by scale and prompt source.
 5. Summary table:
