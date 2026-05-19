@@ -89,6 +89,9 @@ FIELDNAMES = [
 
 def _classification_prompt(prompt_text: str) -> str:
     prompt = prompt_text
+    if "Return exactly one label: REALIZED or PAPER" in prompt and "Label:" in prompt:
+        return prompt.strip()
+
     instruction_marker = "Answer now."
     if instruction_marker in prompt:
         prompt = prompt.split(instruction_marker, maxsplit=1)[0].rstrip()

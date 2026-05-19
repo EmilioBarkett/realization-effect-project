@@ -54,35 +54,35 @@ Mechanistic interpretability offers a way to move beyond prompt-level behavior. 
 
 \subsection{Prompt-only behavioral task}
 
-We constructed vignette prompts modeled on the realization-effect literature. The original prompt-only dataset uses 11 conditions spanning paper outcomes and realized outcomes. The model is asked to return two integers: a next-session wager from 1 to 1000 CHF and a slot-machine risk preference from 1 to 5. The cleaned dataset contains 32,576 rows, of which 32,251 have valid parsed wagers and 28,097 have valid risk-profile responses.
+We constructed vignette prompts modeled on the realization-effect literature. The original prompt-only dataset uses 11 conditions spanning paper outcomes and realized outcomes, with both absolute-outcome and balance-relative prompt versions. The model is asked to return two integers: a next-session wager from 1 to 1000 CHF and a slot-machine risk preference from 1 to 5. The cleaned dataset contains 46,750 rows, of which 45,865 have valid parsed wagers and 45,808 have valid risk-profile responses.
 
 We analyze two outcomes: log wager and risk profile. The main regressions use condition indicators with model, temperature, and prompt-version fixed effects, and HC3 robust standard errors. Paper conditions are compared against a paper-even baseline, while realized conditions are compared against a small realized-loss baseline.
 
 \subsection{Activation-vector prompt set}
 
-For the mechanistic pass, we generated paired prompts contrasting \texttt{paper\_open} and \texttt{realized\_closed} framings across casino and finance domains. The prompt set includes direction-training rows, held-out validation rows, and behavior-evaluation rows. We logged Gemma residual-stream activations and constructed a mean-difference direction:
+For the mechanistic pass, we generated paired prompts contrasting \texttt{paper\_open} and \texttt{realized\_closed} framings across several realization-status domains, including finance, reimbursement, budget, compensation, academic, project-outcome, and casino scenarios. The behavior-evaluation subset is narrower: it contains casino and finance prompts that ask for downstream wager or investment-risk choices. We logged Gemma residual-stream activations and constructed a mean-difference direction:
 \[
 v_{\mathrm{realization}} = \mu_{\mathrm{realized\_closed}} - \mu_{\mathrm{paper\_open}}.
 \]
-The main artifact used for steering is the layer-18 direction from local Gemma 3 4B.
+The main artifact used for steering is the layer-18 direction from local Gemma 3 4B. In the current artifact, this direction is computed from all complete paired prompts in the activation run, including direction-training, direction-validation, and behavior-evaluation splits. Therefore, the readout analysis should be interpreted as evidence that the contrast is readable in the logged activation set, not as a strict held-out generalization test.
 
 \subsection{Steering intervention}
 
 We implemented a local residual-stream steering runner for Gemma. During generation, a forward hook adds a scaled, normalized realization direction at a selected layer. The full pilots reported here steer layer 18 at the final active token position using scales \(-50\), \(+50\), \(+75\), \(+100\), and \(+150\). Positive scales point toward \texttt{realized\_closed}; negative scales point toward \texttt{paper\_open}. Each steering run uses the same 648 behavior-evaluation prompts and is compared to the unsteered Gemma behavior baseline on matched prompt IDs.
 
-We report both all matched valid rows and a strict subset where the response contains exactly two integers. The strict subset is important because steering sometimes perturbs output format, and format failures can create misleading parsed outcomes.
+We report both all matched valid rows and an exactly-two-integer subset where the response contains exactly two integer tokens. This subset is important because steering sometimes perturbs the answer contract, and parsing failures can create misleading numeric outcomes.
 
 \subsection{Positive-control classification steering protocol}
 
 To test whether the realization direction can move a direct semantic judgment even when wager control is weak, we created a paired classification task from the same behavior-evaluation prompts. Instead of returning wager and risk integers, the model is asked to classify each scenario as \texttt{REALIZED} or \texttt{PAPER}. We evaluate three steering scales (\(-100\), \(0\), \(+100\)) on all 648 behavior-evaluation prompts.
 
-Because free generation often adds extra text, we score label candidates directly from token log-probabilities under steering hooks and choose the higher-scoring label. Scores are length-normalized and prior-calibrated within scale, then summarized by accuracy and realized-prediction rate.
+Because free generation often adds extra text, we score label candidates directly from token log-probabilities under steering hooks and choose the higher-scoring label. Scores are length-normalized and prior-calibrated within scale, then summarized by accuracy and realized-prediction rate. The current scored run has one prompt-construction caveat: the classification instruction was present in the prebuilt classification prompt CSV and was then added again by the steering runner, so these positive-control results should be treated as diagnostic rather than final.
 
 \section{Results}
 
 \subsection{Prompt-only behavior is condition-sensitive but not a clean realization-effect replication}
 
-The prompt-only behavioral data show systematic responses to outcome framing, but not in the clean pattern predicted by the human realization-effect literature. In the cleaned regular prompting dataset, paper-outcome effects on \texttt{risk\_profile} are mostly positive relative to the paper baseline: paper medium losses, paper small losses, paper small gains, and paper large gains all increase the risk-profile measure. However, wager effects are mixed. For \texttt{log\_wager}, paper large losses increase wagers, while paper small losses and paper gains decrease wagers.
+The prompt-only behavioral data show systematic responses to outcome framing, but not in the clean pattern predicted by the human realization-effect literature. In the cleaned regular prompting dataset, paper-outcome effects on \texttt{risk\_profile} are mostly positive relative to the paper baseline: paper large losses, paper medium losses, paper small gains, and paper large gains all increase the risk-profile measure, while paper small losses do not significantly differ from baseline. However, wager effects are mixed. For \texttt{log\_wager}, paper large losses increase wagers, while paper medium losses, paper small losses, and paper gains decrease wagers.
 
 The realized-outcome results diverge more sharply from the original human prediction. Realized losses increase rather than decrease both log wager and risk profile relative to the small realized-loss baseline. Realized gains also differ significantly from baseline. These patterns suggest that LLMs are sensitive to outcome magnitude and framing, but the response is not well described as a faithful realization-effect replication.
 
@@ -95,12 +95,12 @@ The realized-outcome results diverge more sharply from the original human predic
 
 \subsection{Gemma has a readable realization representation}
 
-The activation analysis gives the positive mechanistic result. Along the layer-18 mean-difference direction, \texttt{paper\_open} and \texttt{realized\_closed} prompts separate on held-out direction prompts and on the behavior-evaluation prompt set. The direction is therefore not merely memorizing the exact prompts used to construct it; it captures a semantic distinction that transfers to the behavior prompts used later for steering.
+The activation analysis gives the positive mechanistic result. Along the layer-18 mean-difference direction, \texttt{paper\_open} and \texttt{realized\_closed} prompts separate across the logged activation set, including the behavior-evaluation prompts used later for steering. Because the current direction was computed from all complete prompt pairs, including validation and behavior-evaluation pairs, this result should not be described as a held-out transfer test. It supports the narrower claim that realization status is linearly readable in this activation set.
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=\textwidth]{activation_projection_layer18.pdf}
-  \caption{Gemma layer-18 projections on the realization direction. Projections are centered within split for readability. Realized/closed prompts shift upward relative to paper/open prompts, supporting the claim that realization status is linearly readable in the residual stream.}
+  \caption{Gemma layer-18 projections on the realization direction. Projections are centered within split for readability. Realized/closed prompts shift upward relative to paper/open prompts, supporting the claim that realization status is linearly readable in the logged residual-stream activations.}
   \label{fig:activation-projection}
 \end{figure}
 
@@ -121,11 +121,11 @@ The stricter within-pair analysis is more important for the representation-witho
 
 If the layer-18 realization direction were a simple causal lever for risk-taking, steering toward \texttt{realized\_closed} should move behavior in one direction and steering toward \texttt{paper\_open} should move it in the opposite direction. We do not observe this pattern.
 
-Across positive scales \(+50\), \(+75\), \(+100\), and \(+150\), mean wager deltas are small and positive, but median deltas are zero. Mean risk-profile deltas fluctuate around zero. The negative sign-symmetry run at \(-50\) also fails to reverse the pattern: it has a strict matched mean wager delta of \(+14.75\), a strict matched mean risk delta of \(+0.074\), and median deltas of zero for both outcomes. This makes it difficult to interpret the steering response as directional control over risk behavior.
+Across positive scales \(+50\), \(+75\), \(+100\), and \(+150\), mean wager deltas are small and positive, but median deltas are zero. Mean risk-profile deltas fluctuate around zero. The negative sign-symmetry run at \(-50\) also fails to reverse the pattern: it has an exactly-two-integer matched mean wager delta of \(+14.75\), an exactly-two-integer matched mean risk delta of \(+0.074\), and median deltas of zero for both outcomes. This makes it difficult to interpret the steering response as directional control over risk behavior.
 
 \begin{table}[htbp]
   \centering
-  \caption{Matched steering deltas relative to the unsteered Gemma behavior baseline. The table reports all valid matched rows. Strict-valid rows show the same qualitative result: small mean shifts and zero median shifts.}
+  \caption{Matched steering deltas relative to the unsteered Gemma behavior baseline. The table reports all valid matched rows. Exactly-two-integer rows show the same qualitative result: small mean shifts and zero median shifts.}
   \label{tab:steering-deltas}
   \begin{tabular}{rrrrr}
     \toprule
@@ -143,7 +143,7 @@ Across positive scales \(+50\), \(+75\), \(+100\), and \(+150\), mean wager delt
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=\textwidth]{steering_dose_response.pdf}
-  \caption{Dose-response plot for Gemma layer-18 realization steering on the strict matched subset. The negative scale does not reverse the positive-scale pattern, and median matched deltas remain zero across wager and risk outcomes.}
+  \caption{Dose-response plot for Gemma layer-18 realization steering on the exactly-two-integer matched subset. The negative scale does not reverse the positive-scale pattern, and median matched deltas remain zero across wager and risk outcomes.}
   \label{fig:steering-dose}
 \end{figure}
 
@@ -151,16 +151,16 @@ Across positive scales \(+50\), \(+75\), \(+100\), and \(+150\), mean wager delt
 
 We ran a full positive-control pass on the direct \texttt{REALIZED}/\texttt{PAPER} classification task (648 prompts per scale; 1,944 rows total). The steering direction does induce a small directional movement: the realized-prediction rate increases from \(0.140\) at unsteered scale \(0\) to \(0.198\) at \(+100\), and decreases to \(0.120\) at \(-100\). However, classification accuracy remains near chance overall (\(0.520\) at scale \(0\), \(0.515\) at \(+100\), \(0.512\) at \(-100\)).
 
-The class breakdown clarifies why this is weak evidence of usable control. Across all scales, \texttt{paper\_open} prompts are usually classified correctly (accuracy \(0.863\)), while \texttt{realized\_closed} prompts are rarely classified correctly (accuracy \(0.169\)). Thus, even in a direct semantic task, steering produces only modest directional shifts and does not yield robust controllability.
+The prediction breakdown clarifies why this is weak evidence of usable control. The label set is balanced, but the model strongly favors \texttt{PAPER}. Across all scales, \texttt{paper\_open} prompts are usually classified correctly (accuracy \(0.863\)), while \texttt{realized\_closed} prompts are rarely classified correctly (accuracy \(0.169\)). Thus, even in a direct semantic task, steering produces only modest directional shifts and does not yield robust controllability.
 
 \subsection{Compliance artifacts matter}
 
-Steering also affects format compliance. The task asks for exactly two integers, but many responses contain extra text or malformed output. This matters because parsed numeric outcomes are only meaningful when the answer contract is followed. Noncompliance is concentrated in prompts generated from the Sonnet source, which fail strict formatting at much higher rates than the GPT-5.4 or Grok-fast prompt sources. At \(-50\), for example, Sonnet-derived prompts have 101 noncompliant responses out of 216, compared with 46/216 for GPT-5.4-derived prompts and 44/216 for Grok-fast-derived prompts.
+Steering also affects answer-contract compliance. The task asks for exactly two integers, and many responses either contain too few or too many integer tokens for unambiguous parsing. This matters because parsed numeric outcomes are only meaningful when the answer contract is followed. Noncompliance is concentrated in prompts generated from the Sonnet source, which fail the exactly-two-integer criterion at much higher rates than the GPT-5.4 or Grok-fast prompt sources. At \(-50\), for example, Sonnet-derived prompts have 101 noncompliant responses out of 216, compared with 46/216 for GPT-5.4-derived prompts and 44/216 for Grok-fast-derived prompts.
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.92\textwidth]{compliance_by_scale.pdf}
-  \caption{Strict-format noncompliance by steering scale and prompt source. The Sonnet-derived prompt subset has substantially higher failure rates, motivating strict-compliance analyses and caution in interpreting small mean shifts.}
+  \caption{Exactly-two-integer noncompliance by steering scale and prompt source. The Sonnet-derived prompt subset has substantially higher failure rates, motivating exactly-two-integer subset analyses and caution in interpreting small mean shifts.}
   \label{fig:compliance}
 \end{figure}
 
@@ -174,10 +174,10 @@ Steering also affects format compliance. The task asks for exactly two integers,
     Test & Outcome status & Evidence summary \\
     \midrule
     Prompt-only behavioral replication & Partial / weak & Condition sensitivity is clear, but directional patterns do not robustly match human realization-effect predictions. \\
-    Activation readout (layer-18 direction) & Supported & Realized/closed versus paper/open status is linearly separable in residual-stream projections. \\
+    Activation readout (layer-18 direction) & Supported / non-held-out & Realized/closed versus paper/open status is linearly separable in residual-stream projections, but the current direction was computed from all complete prompt pairs rather than train-only pairs. \\
     Projection strength versus behavior & Weak / mixed & Raw prompt-level association exists, but within-pair projection deltas weakly predict wager/risk deltas. \\
     Risk-behavior steering intervention & Not supported & Steering shifts are small, medians are zero, and negative-scale symmetry does not produce a clean reversal. \\
-    Positive-control classification steering & Weak support & Directional shift in realized-prediction rate occurs (\(-100 < 0 < +100\)), but accuracy remains near chance with strong class imbalance. \\
+    Positive-control classification steering & Weak diagnostic support & Directional shift in realized-prediction rate occurs (\(-100 < 0 < +100\)), but accuracy remains near chance with a strong \texttt{PAPER} prediction bias and a duplicated-instruction caveat. \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -194,13 +194,15 @@ There are several possible interpretations. The realization direction may encode
 
 This report should not be read as proving that realization status never causally affects LLM risk behavior. The intervention is limited to local Gemma 3 4B, layer 18, a normalized mean-difference direction, and final-token steering. We have not completed a full layer sweep, a position-mode sweep, or multi-layer steering. Hosted Qwen behavior runs can test prompt-only replication, but they cannot support residual-stream steering through API access because hidden states and generation hooks are not exposed.
 
-The behavioral assay is also indirect. Wager and risk-profile answers are constrained numeric outputs, which makes the task easy to score but may amplify format and parsing artifacts. Strict two-integer compliance is imperfect, especially for Sonnet-derived prompts. Finally, the activation direction is built from paired realization prompts, but it may encode a broad semantic contrast rather than the exact decision-relevant variable that would change risk-taking.
+The behavioral assay is also indirect. Wager and risk-profile answers are constrained numeric outputs, which makes the task easy to score but may amplify format and parsing artifacts. Exactly-two-integer compliance is imperfect, especially for Sonnet-derived prompts. The regular prompt-only dataset pools 25 models, so the aggregate coefficients should be read alongside per-model robustness rather than as evidence that every model behaves the same way. Finally, the activation direction is built from paired realization prompts, but it may encode a broad semantic contrast rather than the exact decision-relevant variable that would change risk-taking.
+
+The steering summaries report matched mean and median deltas, but they do not yet include bootstrap or randomization intervals for those deltas. The zero medians and lack of sign symmetry are the main evidence against robust control, but interval estimates would make the null result easier to calibrate.
 
 \section{Future Work}
 
-The next intervention step is to improve causal leverage, not just detect directional movement. The positive-control classification pass suggests the current single-layer, single-position intervention is too weak for robust semantic control. Immediate follow-up should test layer sweeps around 14, 16, 18, 20, and 22, plus \texttt{position\_mode=all} and multi-layer steering schedules.
+The next intervention step is to improve causal leverage, not just detect directional movement. First, the realization direction should be rebuilt from the direction-training split only, then re-evaluated on the direction-validation and behavior-evaluation splits as genuinely held-out tests. The diagnostic positive-control classification pass suggests the current single-layer, single-position intervention is too weak for robust semantic control, though it should be rerun after the duplicated classification instruction is removed. Immediate follow-up should test layer sweeps around 14, 16, 18, 20, and 22, plus \texttt{position\_mode=all} and multi-layer steering schedules.
 
-A second priority is cross-model intervention replication under the same local-hook framework. Building a local Qwen activation pipeline would allow direct comparison of readout and steering behavior across architectures without API-level hidden-state constraints. Finally, the report package should add appendix robustness tables for prompt-source stratification and strict-compliance sensitivity.
+A second priority is cross-model intervention replication under the same local-hook framework. Building a local Qwen activation pipeline would allow direct comparison of readout and steering behavior across architectures without API-level hidden-state constraints. Finally, the report package should add appendix robustness tables for prompt-source stratification and exactly-two-integer sensitivity.
 
 \section{Conclusion}
 
