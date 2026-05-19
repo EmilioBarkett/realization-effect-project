@@ -22,11 +22,16 @@ From the repository root, regenerate figures with:
 ./venv/bin/python scripts/analyze_projection_behavior_link.py
 ```
 
-To compile in an environment with TeX Live installed:
+To compile with TeX Live:
 
 ```bash
 cd reports/final
 latexmk -pdf report.tex
 ```
 
-This local environment currently does not have `latexmk`, `pdflatex`, or `tectonic` installed, so the TeX source has not been compiled here.
+This local environment has `tectonic`, so the report can also be compiled with:
+
+```bash
+cd reports/final
+tectonic report.tex
+```

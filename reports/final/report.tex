@@ -19,7 +19,7 @@
 \maketitle
 
 \begin{abstract}
-Large language models are increasingly used as behavioral simulators, but it remains unclear when their choices reflect human-like cognitive mechanisms rather than prompt-sensitive surface patterns. We study the realization effect, a behavioral-economics finding in which risk-taking differs after paper versus realized gains and losses. We adapt casino and investment-style realization scenarios into prompts that elicit a wager and risk preference. Initial prompt-only results showed systematic condition sensitivity, but follow-up analyses did not support a clean replication of the human realization-effect pattern. We then analyzed Gemma residual-stream activations and found a linear direction separating realized/closed outcomes from paper/open outcomes. However, activation steering along this direction at layer 18 did not reliably shift downstream risk choices, including in a negative sign-symmetry run. These results suggest a representation-behavior dissociation: models may encode semantically meaningful state variables without those variables being sufficient causal levers for the measured behavior.
+Large language models are increasingly used as behavioral simulators, but it remains unclear when their choices reflect human-like cognitive mechanisms rather than prompt-sensitive surface patterns. We study the realization effect, a behavioral-economics finding in which risk-taking differs after paper versus realized gains and losses. We adapt casino and investment-style realization scenarios into prompts that elicit a wager and risk preference. Initial prompt-only results showed systematic condition sensitivity, but follow-up analyses did not support a clean replication of the human realization-effect pattern. We then analyzed Gemma residual-stream activations and found that a train-only realization direction separates realized/closed outcomes from paper/open outcomes on held-out prompts, including newly generated DeepSeek-authored prompts. However, activation steering along a layer-18 realization direction did not reliably shift downstream risk choices, including in a negative sign-symmetry run. These results suggest a representation-behavior dissociation: models may encode semantically meaningful state variables without those variables being sufficient causal levers for the measured behavior.
 \end{abstract}
 
 \keywords{language models \and behavioral evaluation \and mechanistic interpretability \and activation steering \and risk-taking}
@@ -32,7 +32,7 @@ We study this problem through the realization effect. In human decision-making, 
 
 Our original question was behavioral: do LLMs reproduce the realization effect? As the project developed, the more informative question became mechanistic: if realization status matters in behavior, can we find a corresponding internal representation, and does intervening on that representation change risk choices?
 
-We test three linked questions. First, do prompt-only LLM responses show sensitivity to paper/open versus realized/closed framing? Second, is realization status linearly readable from model activations? Third, does steering along such a realization direction causally change wager or risk preference? The answer we find is mixed. Prompt-only behavior is condition-sensitive but does not robustly match the human realization-effect predictions. Gemma contains a readable realization direction in its residual stream. Yet steering that direction does not reliably move downstream risk behavior. The final contribution is therefore not a successful behavioral replication, but a case study in representation without control.
+We test three linked questions. First, do prompt-only LLM responses show sensitivity to paper/open versus realized/closed framing? Second, is realization status linearly readable from model activations, including on held-out prompts? Third, does steering along such a realization direction causally change wager or risk preference? The answer we find is mixed. Prompt-only behavior is condition-sensitive but does not robustly match the human realization-effect predictions. Gemma contains a readable realization direction in its residual stream, and a train-only direction generalizes to held-out readout prompts. Yet steering a layer-18 realization direction does not reliably move downstream risk behavior. The final contribution is therefore not a successful behavioral replication, but a case study in representation without control.
 
 \section{Related Work}
 
@@ -64,7 +64,7 @@ For the mechanistic pass, we generated paired prompts contrasting \texttt{paper\
 \[
 v_{\mathrm{realization}} = \mu_{\mathrm{realized\_closed}} - \mu_{\mathrm{paper\_open}}.
 \]
-The main artifact used for steering is the layer-18 direction from local Gemma 3 4B. In the current artifact, this direction is computed from all complete paired prompts in the activation run, including direction-training, direction-validation, and behavior-evaluation splits. Therefore, the readout analysis should be interpreted as evidence that the contrast is readable in the logged activation set, not as a strict held-out generalization test.
+The steering artifact is the layer-18 direction from local Gemma 3 4B computed from all complete paired prompts in the original activation run. For a stricter readout check, we also rebuilt the layer-18 direction using only the \texttt{direction\_train} split: 756 matched paper/realized pairs. We then evaluated that frozen train-only direction on the original \texttt{direction\_val} and \texttt{behavior\_eval} splits, plus a newly generated DeepSeek-authored held-out prompt set. The DeepSeek set contains 40 matched pairs split into \texttt{heldout\_readout} and \texttt{heldout\_behavior\_eval}; neutral outcome cells were omitted because preliminary generation made neutral wording ambiguous.
 
 \subsection{Steering intervention}
 
@@ -77,12 +77,6 @@ We report both all matched valid rows and an exactly-two-integer subset where th
 To test whether the realization direction can move a direct semantic judgment even when wager control is weak, we created a paired classification task from the same behavior-evaluation prompts. Instead of returning wager and risk integers, the model is asked to classify each scenario as \texttt{REALIZED} or \texttt{PAPER}. We evaluate three steering scales (\(-100\), \(0\), \(+100\)) on all 648 behavior-evaluation prompts.
 
 Because free generation often adds extra text, we score label candidates directly from token log-probabilities under steering hooks and choose the higher-scoring label. Scores are length-normalized and prior-calibrated within scale, then summarized by accuracy and realized-prediction rate. The current scored run has one prompt-construction caveat: the classification instruction was present in the prebuilt classification prompt CSV and was then added again by the steering runner, so these positive-control results should be treated as diagnostic rather than final.
-
-\subsection{Positive-control classification steering protocol}
-
-To test whether the realization direction can move a direct semantic judgment even when wager control is weak, we created a paired classification task from the same behavior-evaluation prompts. Instead of returning wager and risk integers, the model is asked to classify each scenario as \texttt{REALIZED} or \texttt{PAPER}. We evaluate three steering scales (\(-100\), \(0\), \(+100\)) on all 648 behavior-evaluation prompts.
-
-Because free generation often adds extra text, we score label candidates directly from token log-probabilities under steering hooks and choose the higher-scoring label. Scores are length-normalized and prior-calibrated within scale, then summarized by accuracy and realized-prediction rate.
 
 \section{Results}
 
@@ -101,7 +95,9 @@ The realized-outcome results diverge more sharply from the original human predic
 
 \subsection{Gemma has a readable realization representation}
 
-The activation analysis gives the positive mechanistic result. Along the layer-18 mean-difference direction, \texttt{paper\_open} and \texttt{realized\_closed} prompts separate across the logged activation set, including the behavior-evaluation prompts used later for steering. Because the current direction was computed from all complete prompt pairs, including validation and behavior-evaluation pairs, this result should not be described as a held-out transfer test. It supports the narrower claim that realization status is linearly readable in this activation set.
+The activation analysis gives the positive mechanistic result. Along the layer-18 mean-difference direction, \texttt{paper\_open} and \texttt{realized\_closed} prompts separate across the logged activation set, including the behavior-evaluation prompts used later for steering. The original visualization in Figure~\ref{fig:activation-projection} uses the all-pairs readout artifact, so it should be read as a descriptive projection plot rather than the strict generalization test.
+
+The stricter check is the train-only readout analysis. A direction built only from the 756 \texttt{direction\_train} pairs still separates realized/closed from paper/open prompts on the original held-out validation split and on the newly generated DeepSeek held-out set. The result is strongest for the direction-style prompts and weaker for behavior-evaluation prompts, especially in the small DeepSeek behavior subset, but all evaluated splits have positive realized-minus-paper mean projection deltas.
 
 \begin{figure}[htbp]
   \centering
@@ -109,6 +105,24 @@ The activation analysis gives the positive mechanistic result. Along the layer-1
   \caption{Gemma layer-18 projections on the realization direction. Projections are centered within split for readability. Realized/closed prompts shift upward relative to paper/open prompts, supporting the claim that realization status is linearly readable in the logged residual-stream activations.}
   \label{fig:activation-projection}
 \end{figure}
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Train-only layer-18 readout evaluated on original and DeepSeek-authored prompt splits. Correct direction is the percentage of matched pairs where the realized/closed prompt projects higher than the paper/open prompt.}
+  \label{tab:heldout-readout}
+  \begin{tabular}{llrrr}
+    \toprule
+    Dataset & Split & Pairs & Mean projection delta & Correct direction \\
+    \midrule
+    Original & \texttt{direction\_train} & 756 & 417.36 & 89.2\% \\
+    Original & \texttt{direction\_val} & 756 & 413.43 & 91.1\% \\
+    Original & \texttt{behavior\_eval} & 324 & 137.19 & 80.6\% \\
+    DeepSeek held-out & \texttt{heldout\_readout} & 28 & 443.62 & 92.9\% \\
+    DeepSeek held-out & \texttt{heldout\_behavior\_eval} & 12 & 123.08 & 75.0\% \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 \subsection{Projection strength is weakly linked to behavior}
 
@@ -180,7 +194,7 @@ Steering also affects answer-contract compliance. The task asks for exactly two 
     Test & Outcome status & Evidence summary \\
     \midrule
     Prompt-only behavioral replication & Partial / weak & Condition sensitivity is clear, but directional patterns do not robustly match human realization-effect predictions. \\
-    Activation readout (layer-18 direction) & Supported / non-held-out & Realized/closed versus paper/open status is linearly separable in residual-stream projections, but the current direction was computed from all complete prompt pairs rather than train-only pairs. \\
+    Activation readout (layer-18 direction) & Supported / held-out readout & A train-only direction separates realized/closed from paper/open prompts on original validation prompts and on a newly generated DeepSeek held-out readout set. \\
     Projection strength versus behavior & Weak / mixed & Raw prompt-level association exists, but within-pair projection deltas weakly predict wager/risk deltas. \\
     Risk-behavior steering intervention & Not supported & Steering shifts are small, medians are zero, and negative-scale symmetry does not produce a clean reversal. \\
     Positive-control classification steering & Weak diagnostic support & Directional shift in realized-prediction rate occurs (\(-100 < 0 < +100\)), but accuracy remains near chance with a strong \texttt{PAPER} prediction bias and a duplicated-instruction caveat. \\
@@ -190,7 +204,7 @@ Steering also affects answer-contract compliance. The task asks for exactly two 
 
 \section{Discussion}
 
-The strongest conclusion is a representation-behavior dissociation. Gemma appears to encode whether an outcome is realized/closed or paper/open, but the corresponding activation direction does not reliably control downstream risk choices in our assay. This distinction matters for both behavioral evaluation and mechanistic interpretability.
+The strongest conclusion is a representation-behavior dissociation. Gemma appears to encode whether an outcome is realized/closed or paper/open, and this readout generalizes beyond the prompts used to build the train-only direction. However, the corresponding activation direction does not reliably control downstream risk choices in our assay. This distinction matters for both behavioral evaluation and mechanistic interpretability.
 
 For behavioral evaluation, the prompt-only results warn against interpreting LLM condition sensitivity as human-like cognition. The models react to prior outcomes, but the direction and outcome dependence do not reproduce the intended mental-accounting pattern. For mechanistic interpretability, the steering results warn against treating linear decodability as explanation. A feature can be readable in residual activations while still failing to act as a simple causal control variable for the behavior of interest.
 
@@ -200,19 +214,21 @@ There are several possible interpretations. The realization direction may encode
 
 This report should not be read as proving that realization status never causally affects LLM risk behavior. The intervention is limited to local Gemma 3 4B, layer 18, a normalized mean-difference direction, and final-token steering. We have not completed a full layer sweep, a position-mode sweep, or multi-layer steering. Hosted Qwen behavior runs can test prompt-only replication, but they cannot support residual-stream steering through API access because hidden states and generation hooks are not exposed.
 
-The behavioral assay is also indirect. Wager and risk-profile answers are constrained numeric outputs, which makes the task easy to score but may amplify format and parsing artifacts. Exactly-two-integer compliance is imperfect, especially for Sonnet-derived prompts. The regular prompt-only dataset pools 25 models, so the aggregate coefficients should be read alongside per-model robustness rather than as evidence that every model behaves the same way. Finally, the activation direction is built from paired realization prompts, but it may encode a broad semantic contrast rather than the exact decision-relevant variable that would change risk-taking.
+The behavioral assay is also indirect. Wager and risk-profile answers are constrained numeric outputs, which makes the task easy to score but may amplify format and parsing artifacts. Exactly-two-integer compliance is imperfect, especially for Sonnet-derived prompts. The regular prompt-only dataset pools 25 models, so the aggregate coefficients should be read alongside per-model robustness rather than as evidence that every model behaves the same way. Finally, the held-out readout reduces leakage concerns for the representation claim, but the direction may still encode a broad semantic contrast rather than the exact decision-relevant variable that would change risk-taking.
+
+The new DeepSeek held-out set is also small and single-source. It is useful because it was not used to build the direction and passed a local overlap audit against the original prompt set, but it should not be treated as exhaustive evidence across prompt generators, domains, or behavior tasks. The \texttt{heldout\_behavior\_eval} split currently tests projection separation, not newly generated downstream Gemma wager or risk responses.
 
 The steering summaries report matched mean and median deltas, but they do not yet include bootstrap or randomization intervals for those deltas. The zero medians and lack of sign symmetry are the main evidence against robust control, but interval estimates would make the null result easier to calibrate.
 
 \section{Future Work}
 
-The next intervention step is to improve causal leverage, not just detect directional movement. First, the realization direction should be rebuilt from the direction-training split only, then re-evaluated on the direction-validation and behavior-evaluation splits as genuinely held-out tests. The diagnostic positive-control classification pass suggests the current single-layer, single-position intervention is too weak for robust semantic control, though it should be rerun after the duplicated classification instruction is removed. Immediate follow-up should test layer sweeps around 14, 16, 18, 20, and 22, plus \texttt{position\_mode=all} and multi-layer steering schedules.
+The next intervention step is to improve causal leverage, not just detect directional movement. The train-only held-out readout is now in place, so the next question is whether any intervention built from that stricter direction can control behavior. The diagnostic positive-control classification pass suggests the current single-layer, single-position intervention is too weak for robust semantic control, though it should be rerun with corrected prompt construction. Immediate follow-up should test layer sweeps around 14, 16, 18, 20, and 22, plus \texttt{position\_mode=all} and multi-layer steering schedules.
 
-A second priority is cross-model intervention replication under the same local-hook framework. Building a local Qwen activation pipeline would allow direct comparison of readout and steering behavior across architectures without API-level hidden-state constraints. Finally, the report package should add appendix robustness tables for prompt-source stratification and exactly-two-integer sensitivity.
+A second priority is to expand held-out evaluation. The current DeepSeek set is enough to support a cautious held-out readout claim, but future work should add more source models, larger behavior-evaluation subsets, and newly generated Gemma responses for those held-out behavior prompts. A third priority is cross-model intervention replication under the same local-hook framework. Building a local Qwen activation pipeline would allow direct comparison of readout and steering behavior across architectures without API-level hidden-state constraints. Finally, the report package should add appendix robustness tables for prompt-source stratification, overlap-audit results, and exactly-two-integer sensitivity.
 
 \section{Conclusion}
 
-We began by asking whether LLMs reproduce the realization effect in risk-taking. The answer from the current evidence is no, at least not robustly. Prompt-only behavior is condition-sensitive, but it does not cleanly match the human realization-effect predictions. Gemma contains a readable realization representation in its layer-18 residual stream, but steering along that direction does not reliably change wager or risk choices. This makes the project useful as a negative result: it clarifies the gap between observing behavior, decoding an internal representation, and demonstrating causal control. In this case, realization status is represented, but representation is not enough.
+We began by asking whether LLMs reproduce the realization effect in risk-taking. The answer from the current evidence is no, at least not robustly. Prompt-only behavior is condition-sensitive, but it does not cleanly match the human realization-effect predictions. Gemma contains a readable realization representation in its layer-18 residual stream, and this representation is visible on held-out readout prompts. But steering along a realization direction does not reliably change wager or risk choices. This makes the project useful as a negative result: it clarifies the gap between observing behavior, decoding an internal representation, and demonstrating causal control. In this case, realization status is represented, but representation is not enough.
 
 \bibliographystyle{plain}
 \bibliography{references}

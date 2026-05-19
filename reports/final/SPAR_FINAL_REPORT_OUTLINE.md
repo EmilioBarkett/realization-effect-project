@@ -11,17 +11,17 @@ Template source: `the-kairos-project/spar-report-template`, adapted from the tem
 
 ## Central Claim
 
-The original behavioral hypothesis was that LLMs would reproduce a realization effect: risk-taking would differ depending on whether prior gains or losses were merely paper outcomes or had been realized. Our final result is narrower and more mechanistic. Gemma appears to linearly represent the realized-versus-open distinction in its residual stream, but steering along that direction does not robustly control downstream risk behavior in our task.
+The original behavioral hypothesis was that LLMs would reproduce a realization effect: risk-taking would differ depending on whether prior gains or losses were merely paper outcomes or had been realized. Our final result is narrower and more mechanistic. Gemma appears to linearly represent the realized-versus-open distinction in its residual stream, including on held-out readout prompts, but steering along that direction does not robustly control downstream risk behavior in our task.
 
 The most defensible claim:
 
-> We find evidence that realization status is represented in Gemma activations, but not that this representation is a simple causal lever for risk-taking behavior under our assay.
+> We find evidence that realization status is represented in Gemma activations and generalizes to held-out readout prompts, but not that this representation is a simple causal lever for risk-taking behavior under our assay.
 
 ## Abstract
 
 Draft:
 
-Large language models are increasingly used as behavioral simulators, but it remains unclear when their choices reflect human-like cognitive mechanisms rather than prompt-sensitive surface patterns. We study the realization effect, a behavioral-economics finding in which risk-taking differs after paper versus realized gains and losses. We first adapt casino and investment-style realization scenarios into LLM prompts that elicit a wager and a risk preference. Initial behavioral results suggested condition sensitivity, but follow-up tests showed that the effect was not robust across models and prompt variants. We then analyzed Gemma residual-stream activations and found a linear direction separating realized/closed outcomes from hypothetical or paper/open outcomes. However, activation steering along this direction at layer 18 did not reliably shift risk choices, despite perturbing generation and format compliance. These results suggest a representation-behavior dissociation: models may encode semantically meaningful state variables without those variables being sufficient to causally drive the measured behavior.
+Large language models are increasingly used as behavioral simulators, but it remains unclear when their choices reflect human-like cognitive mechanisms rather than prompt-sensitive surface patterns. We study the realization effect, a behavioral-economics finding in which risk-taking differs after paper versus realized gains and losses. We first adapt casino and investment-style realization scenarios into LLM prompts that elicit a wager and a risk preference. Initial behavioral results suggested condition sensitivity, but follow-up tests showed that the effect was not robust across models and prompt variants. We then analyzed Gemma residual-stream activations and found that a train-only realization direction separates realized/closed outcomes from hypothetical or paper/open outcomes on held-out prompts, including newly generated DeepSeek-authored prompts. However, activation steering along a layer-18 realization direction did not reliably shift risk choices, despite perturbing generation and format compliance. These results suggest a representation-behavior dissociation: models may encode semantically meaningful state variables without those variables being sufficient to causally drive the measured behavior.
 
 ## 1. Introduction
 
@@ -37,12 +37,12 @@ Key framing:
 
 Research questions:
 1. Do LLMs show behavioral sensitivity to whether prior outcomes are paper/open versus realized/closed?
-2. Is realization status linearly represented in model activations?
+2. Is realization status linearly represented in model activations, including on held-out prompts?
 3. Does steering along a realization direction causally change downstream risk choices?
 
 Suggested final paragraph:
 
-Our contribution is a negative but informative case study. We do not find a stable behavioral realization effect across the models and interventions tested. We do find evidence for a Gemma realization representation, but steering that representation does not robustly move risk-taking. This makes the project useful less as a replication of human risk behavior and more as a cautionary example: semantic representations can be readable without being simple behavioral control knobs.
+Our contribution is a negative but informative case study. We do not find a stable behavioral realization effect across the models and interventions tested. We do find evidence for a Gemma realization representation, including a train-only held-out readout check, but steering that representation does not robustly move risk-taking. This makes the project useful less as a replication of human risk behavior and more as a cautionary example: semantic representations can be readable without being simple behavioral control knobs.
 
 ## 2. Related Work
 
@@ -120,11 +120,19 @@ Describe:
 - We built a mean-difference realization direction:
   - positive direction: `realized_closed - paper_open`
   - main layer used for steering: layer 18
-- Current caveat: the layer-18 direction was computed from all complete paired prompts in the activation run, including direction-training, direction-validation, and behavior-evaluation splits. The readout therefore supports linear readability in the logged activation set, not a strict held-out transfer claim.
+- Steering artifact caveat: the layer-18 direction used in steering was computed from all complete paired prompts in the original activation run, including direction-training, direction-validation, and behavior-evaluation splits.
+- Stricter readout check: a second layer-18 direction was rebuilt from `direction_train` only and evaluated on original `direction_val`, original `behavior_eval`, and a newly generated DeepSeek held-out set.
+- DeepSeek held-out set:
+  - 40 matched paper/realized pairs.
+  - 28 `heldout_readout` pairs and 12 `heldout_behavior_eval` pairs.
+  - Gain/loss contrasts only; neutral cells were omitted after preliminary generation made neutral wording ambiguous.
+  - Local overlap audit found no reused original prompts; one internal similarity flag reflected shared behavior-question wording, not an exact duplicate.
 
 Files to reference:
 - `results/final/activation_vectors/realization_vector_v1_layer18/`
-- `results/final/activation_vectors/realization_vector_v1_layer18/mean_direction.npy`
+- `results/final/activation_vectors/realization_vector_v1_layer18_direction_train_only/`
+- `experiments/activation_analysis/prompts/activation_vectors/realization_vector_heldout_v1.csv`
+- `results/audits/heldout_prompt_overlap.csv`
 - `src/activation_analysis/vector_analysis.py`
 - `src/activation_analysis/residual_streams.py`
 
@@ -187,7 +195,13 @@ Report:
 - The activation analysis supports a realization readout: `paper_open` and `realized_closed` prompts separate along a mean-difference vector.
 - This is the positive result of the project.
 - It justifies asking the causal question: if we push the model along that direction, does risk behavior move?
-- Caveat: the current vector was built from all complete paired prompts, so this should be described as supported but non-held-out.
+- The original visualization uses the all-pairs readout artifact and should be described as descriptive rather than the strict held-out test.
+- The train-only direction gives a genuine held-out readout check:
+  - original `direction_val`: 756 pairs, mean projection delta +413.43, correct direction 91.1%.
+  - original `behavior_eval`: 324 pairs, mean projection delta +137.19, correct direction 80.6%.
+  - DeepSeek `heldout_readout`: 28 pairs, mean projection delta +443.62, correct direction 92.9%.
+  - DeepSeek `heldout_behavior_eval`: 12 pairs, mean projection delta +123.08, correct direction 75.0%.
+- Interpretation: the representation claim is now stronger than “readable on the training artifact,” but the held-out behavior-eval subset is still small and should not be overclaimed.
 
 Suggested figure:
 - Projection distributions for `paper_open` versus `realized_closed` prompts along the layer-18 realization direction.
@@ -240,7 +254,7 @@ This project began with a behavioral hypothesis and ended with a representation-
 
 Claims we can make:
 - LLMs are sensitive to outcome framing and magnitude.
-- Gemma has a linearly readable realization representation.
+- Gemma has a linearly readable realization representation that generalizes to held-out readout prompts.
 - Direct steering of this representation, as implemented here, does not robustly reproduce the behavioral realization effect.
 
 Claims we should not make:
@@ -256,29 +270,32 @@ Why this matters:
 ## 6. Limitations
 
 Include:
-- Steering has only been fully tested for positive scales at Gemma layer 18.
-- We have not yet run a full negative sign-symmetry pilot such as `-50`.
+- Steering has only been fully tested at Gemma layer 18 with a limited set of scales.
 - We have not completed a layer sweep or position-mode sweep.
 - Qwen behavioral tests do not provide activation-level causal evidence.
 - Strict compliance is imperfect, especially for Sonnet-derived prompts.
 - The risk task may be too indirect for the realization representation to causally control the answer.
 - The activation vector may encode realization semantics without capturing the broader decision policy.
+- The new DeepSeek held-out set is useful but small and single-source.
+- The DeepSeek `heldout_behavior_eval` rows currently test projection separation, not newly generated downstream Gemma wager/risk responses.
 
 ## 7. Future Work
 
 Highest-value next steps:
-1. Run a `-50` steering pilot to check sign symmetry.
-2. Add a direct realization-classification positive control: ask whether a scenario is realized/closed or hypothetical/open, then test whether steering shifts that answer.
-3. Run a layer sweep around layers 14, 16, 18, 20, and 22.
-4. Test `position_mode=all` on a small smoke set to see whether prompt-wide steering has stronger causal effects.
-5. Build a local Qwen activation pipeline if compute allows, because hosted API behavior tests cannot support steering.
-6. Separate prompt-generation-source effects from core realization effects.
+1. Rerun steering from the stricter train-only direction and compare it to the all-pairs steering artifact.
+2. Run a layer sweep around layers 14, 16, 18, 20, and 22.
+3. Test `position_mode=all` on a small smoke set to see whether prompt-wide steering has stronger causal effects.
+4. Expand the held-out prompt set with additional source models and larger behavior-evaluation cells.
+5. Generate downstream Gemma wager/risk responses for the DeepSeek `heldout_behavior_eval` prompts.
+6. Rerun the direct realization-classification positive control with corrected prompt construction.
+7. Build a local Qwen activation pipeline if compute allows, because hosted API behavior tests cannot support steering.
+8. Separate prompt-generation-source effects from core realization effects.
 
 ## 8. Conclusion
 
 Draft:
 
-We do not find strong evidence that LLMs robustly reproduce the human realization effect in risk-taking. We do find that Gemma represents realization status in its activations, but activation steering along this direction does not reliably change downstream wager or risk choices. The project therefore supports a more cautious conclusion: semantic representations in LLMs can be linearly readable without being simple causal levers for behavior. This negative result is useful for both behavioral evaluation and mechanistic interpretability, because it clarifies the evidential gap between observing a behavior, decoding an internal feature, and demonstrating causal control.
+We do not find strong evidence that LLMs robustly reproduce the human realization effect in risk-taking. We do find that Gemma represents realization status in its activations, including on held-out readout prompts, but activation steering along this direction does not reliably change downstream wager or risk choices. The project therefore supports a more cautious conclusion: semantic representations in LLMs can be linearly readable without being simple causal levers for behavior. This negative result is useful for both behavioral evaluation and mechanistic interpretability, because it clarifies the evidential gap between observing a behavior, decoding an internal feature, and demonstrating causal control.
 
 ## Figures and Tables To Prepare
 
