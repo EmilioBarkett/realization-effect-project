@@ -1,0 +1,6 @@
+{
+  "activation_run": "results/final/residual_streams/realization_vector_heldout_v1_layer18_regions_float32",
+  "direction": "results/final/activation_vectors/realization_vector_v1_layer18_direction_train_only/mean_direction.npy",
+  "prompt_count": 80,
+  "direction_norm": 417.3575744628906
+}

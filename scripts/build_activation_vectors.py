@@ -30,6 +30,27 @@ def _parse_csv_set(value: str | None, *, as_int: bool = False):
     return parts
 
 
+def _metadata_value(metadata: dict, key: str) -> str:
+    value = metadata.get(key, "")
+    if value is None:
+        return ""
+    return str(value).strip()
+
+
+def _filter_activations(activations, *, include_splits: set[str] | None, exclude_splits: set[str] | None):
+    if include_splits is None and exclude_splits is None:
+        return activations
+    filtered = []
+    for activation in activations:
+        split = _metadata_value(activation.metadata, "split")
+        if include_splits is not None and split not in include_splits:
+            continue
+        if exclude_splits is not None and split in exclude_splits:
+            continue
+        filtered.append(activation)
+    return filtered
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Build activation-vector directions.")
     parser.add_argument("--activation-run", required=True, help="Residual-stream run directory.")
@@ -39,6 +60,8 @@ def main() -> None:
     parser.add_argument("--activation-site", default="resid_post")
     parser.add_argument("--positive-role", default="realized_closed")
     parser.add_argument("--negative-role", default="paper_open")
+    parser.add_argument("--include-splits", default=None, help="Comma-separated metadata split values to include.")
+    parser.add_argument("--exclude-splits", default=None, help="Comma-separated metadata split values to exclude.")
     args = parser.parse_args()
 
     activations = collect_prompt_mean_activations(
@@ -47,8 +70,13 @@ def main() -> None:
         token_regions=_parse_csv_set(args.token_regions),
         activation_site=args.activation_site,
     )
-    pair_rows, mean_direction = build_pair_directions(
+    selected_activations = _filter_activations(
         activations,
+        include_splits=_parse_csv_set(args.include_splits),
+        exclude_splits=_parse_csv_set(args.exclude_splits),
+    )
+    pair_rows, mean_direction = build_pair_directions(
+        selected_activations,
         positive_role=args.positive_role,
         negative_role=args.negative_role,
     )
@@ -80,12 +108,15 @@ def main() -> None:
         output_dir / "summary.json",
         {
             "activation_run": args.activation_run,
-            "prompt_count": len(activations),
+            "prompt_count": len(selected_activations),
+            "source_prompt_count": len(activations),
             "pair_count": len(pair_rows),
             "direction_file": str(output_dir / "mean_direction.npy"),
             "direction_norm": float(np.linalg.norm(mean_direction)),
             "positive_role": args.positive_role,
             "negative_role": args.negative_role,
+            "include_splits": sorted(_parse_csv_set(args.include_splits) or []),
+            "exclude_splits": sorted(_parse_csv_set(args.exclude_splits) or []),
             "aggregation": "prompt_mean_over_selected_token_vectors",
         },
     )

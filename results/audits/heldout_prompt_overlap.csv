@@ -1,0 +1,10 @@
+comparison_scope,candidate_prompt_id,reference_prompt_id,candidate_split,reference_split,candidate_source_llm,reference_source_llm,overlap_type,char_similarity,token_jaccard,ngram_jaccard,candidate_text,reference_text
+candidate_internal,realization_vector_heldout_generation_v1__deepseek_v32__heldout_behavior_realization_finance__heldout_behavior_eval__finance_investments__none__neutral__paired__gain__small__none__paired__heldout_tech_stock__realized_closed,realization_vector_heldout_generation_v1__deepseek_v32__heldout_behavior_realization_finance__heldout_behavior_eval__finance_investments__none__neutral__paired__gain__medium__none__paired__test_investment_choice_01__realized_closed,heldout_behavior_eval,heldout_behavior_eval,deepseek_v32,deepseek_v32,high_token_overlap,0.0481,0.5636,0.1753,"Elara sold her 300 shares of Vertex Dynamics yesterday for 87 dollars each. The proceeds are now settled in her cash account. She is considering adjusting her portfolio. How much of her available capital, from 1 to 1000, would she allocate to a new high-volatility tech fund? On a scale from 1 (very conservative) to 5 (very aggressive), what is her general risk preference for this new allocation?
+
+Respond with exactly two integers on separate lines:
+Line 1: allocation amount from 1 to 1000
+Line 2: risk preference from 1 to 5","Maya sold her tech stock shares, receiving 300 dollars in cash from the transaction. She now considers a new investment fund. How much of her available capital, from 1 to 1000 dollars, should she allocate to this new fund? On a scale from 1 (very low risk) to 5 (very high risk), what is her risk preference for this allocation?
+
+Respond with exactly two integers on separate lines:
+Line 1: allocation amount from 1 to 1000
+Line 2: risk preference from 1 to 5"

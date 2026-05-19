@@ -1,0 +1,15 @@
+{
+  "activation_run": "results/final/residual_streams/realization_vector_v1_layer18_regions_float32",
+  "prompt_count": 1512,
+  "source_prompt_count": 3672,
+  "pair_count": 756,
+  "direction_file": "results/final/activation_vectors/realization_vector_v1_layer18_direction_train_only/mean_direction.npy",
+  "direction_norm": 417.3575744628906,
+  "positive_role": "realized_closed",
+  "negative_role": "paper_open",
+  "include_splits": [
+    "direction_train"
+  ],
+  "exclude_splits": [],
+  "aggregation": "prompt_mean_over_selected_token_vectors"
+}
