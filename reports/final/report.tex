@@ -78,6 +78,12 @@ To test whether the realization direction can move a direct semantic judgment ev
 
 Because free generation often adds extra text, we score label candidates directly from token log-probabilities under steering hooks and choose the higher-scoring label. Scores are length-normalized and prior-calibrated within scale, then summarized by accuracy and realized-prediction rate. The current scored run has one prompt-construction caveat: the classification instruction was present in the prebuilt classification prompt CSV and was then added again by the steering runner, so these positive-control results should be treated as diagnostic rather than final.
 
+\subsection{Positive-control classification steering protocol}
+
+To test whether the realization direction can move a direct semantic judgment even when wager control is weak, we created a paired classification task from the same behavior-evaluation prompts. Instead of returning wager and risk integers, the model is asked to classify each scenario as \texttt{REALIZED} or \texttt{PAPER}. We evaluate three steering scales (\(-100\), \(0\), \(+100\)) on all 648 behavior-evaluation prompts.
+
+Because free generation often adds extra text, we score label candidates directly from token log-probabilities under steering hooks and choose the higher-scoring label. Scores are length-normalized and prior-calibrated within scale, then summarized by accuracy and realized-prediction rate.
+
 \section{Results}
 
 \subsection{Prompt-only behavior is condition-sensitive but not a clean realization-effect replication}
