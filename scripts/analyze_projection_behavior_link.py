@@ -264,7 +264,7 @@ def _plot(df: pd.DataFrame, pairs: pd.DataFrame, figure_path: Path, report_figur
         ax.set_title(title)
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
-    fig.suptitle("Projection strength weakly predicts risk behavior", y=0.995, fontsize=12)
+    fig.suptitle("Projection-behavior links are weak", y=0.995, fontsize=12)
     fig.tight_layout(rect=(0, 0, 1, 0.97))
     fig.savefig(figure_path)
     if report_figure_path is not None:

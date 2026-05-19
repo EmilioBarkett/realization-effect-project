@@ -85,11 +85,13 @@ def activation_projection() -> None:
     df["pair_role_label"] = df["pair_role"].map(
         {"paper_open": "Paper/open", "realized_closed": "Realized/closed"}
     )
-    df["split_label"] = df["split"].map({"direction_val": "Held-out direction prompts", "behavior_eval": "Behavior prompts"})
+    df["split_label"] = df["split"].map(
+        {"direction_val": "Direction-validation prompts", "behavior_eval": "Behavior prompts"}
+    )
 
     fig, axes = plt.subplots(1, 2, figsize=(10.5, 4.4), sharey=True)
     palette = {"Paper/open": "#2F6F9F", "Realized/closed": "#B44E3A"}
-    for ax, split_label in zip(axes, ["Held-out direction prompts", "Behavior prompts"]):
+    for ax, split_label in zip(axes, ["Direction-validation prompts", "Behavior prompts"]):
         sub = df[df["split_label"] == split_label]
         sns.violinplot(
             data=sub,
@@ -156,7 +158,7 @@ def compliance_by_scale() -> None:
         palette=["#2F6F9F", "#6A8F4E", "#B44E3A"],
         ax=ax,
     )
-    ax.set_title("Strict-format failures by steering scale and prompt source")
+    ax.set_title("Exactly-two-integer failures by steering scale and prompt source")
     ax.set_xlabel("Steering scale")
     ax.set_ylabel("Noncompliant responses (%)")
     ax.legend(title="Prompt source", frameon=False)

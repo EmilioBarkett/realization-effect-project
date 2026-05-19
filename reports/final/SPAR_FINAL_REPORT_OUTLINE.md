@@ -91,7 +91,7 @@ Describe the task:
 Primary outcomes:
 - `parsed_amount`
 - `risk_profile`
-- strict format compliance: exactly two integers
+- exactly-two-integer compliance
 
 Files to reference:
 - `configs/realization_effect/conditions.csv`
@@ -120,6 +120,7 @@ Describe:
 - We built a mean-difference realization direction:
   - positive direction: `realized_closed - paper_open`
   - main layer used for steering: layer 18
+- Current caveat: the layer-18 direction was computed from all complete paired prompts in the activation run, including direction-training, direction-validation, and behavior-evaluation splits. The readout therefore supports linear readability in the logged activation set, not a strict held-out transfer claim.
 
 Files to reference:
 - `results/final/activation_vectors/realization_vector_v1_layer18/`
@@ -134,7 +135,7 @@ Describe:
 - Direction is normalized before injection.
 - Steering is applied at layer 18.
 - Position mode used in full pilots: `last`.
-- Tested positive scales: `+50`, `+75`, `+100`, `+150`.
+- Tested scales: `-50`, `+50`, `+75`, `+100`, `+150`.
 
 Implementation files:
 - `src/activation_analysis/steering.py`
@@ -142,7 +143,8 @@ Implementation files:
 - `docs/steering_architecture.md`
 
 Output location:
-- `results/test/activation_vectors/steering_runs/`
+- Raw steering runs: `results/test/activation_vectors/steering_runs/`
+- Report package: `results/final/report_realization_v1/03_steering_intervention/`
 
 Important caveat:
 - Qwen API behavior runs can test behavioral replication, but OpenRouter-style hosted APIs cannot support activation steering because hidden states and hooks are not exposed.
@@ -185,6 +187,7 @@ Report:
 - The activation analysis supports a realization readout: `paper_open` and `realized_closed` prompts separate along a mean-difference vector.
 - This is the positive result of the project.
 - It justifies asking the causal question: if we push the model along that direction, does risk behavior move?
+- Caveat: the current vector was built from all complete paired prompts, so this should be described as supported but non-held-out.
 
 Suggested figure:
 - Projection distributions for `paper_open` versus `realized_closed` prompts along the layer-18 realization direction.
@@ -192,29 +195,31 @@ Suggested figure:
 
 ### 4.3 Steering the realization direction does not robustly shift risk behavior
 
-Full steering pilots:
+Matched steering deltas, all valid matched rows:
 
-| Scale | Rows | Both valid | Strict valid | Mean wager delta | Median wager delta | Mean risk delta | Median risk delta |
-| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| +50 | 648 | 491 | 419 | +18.326 | 0 | +0.013 | 0 |
-| +75 | 648 | 492 | 419 | +13.017 | 0 | +0.010 | 0 |
-| +100 | 648 | 492 | 420 | +14.521 | 0 | -0.039 | 0 |
-| +150 | 648 | 486 | 407 | +9.133 | 0 | -0.046 | 0 |
+| Scale | Matched rows | Mean wager delta | Median wager delta | Mean risk delta | Median risk delta |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| -50 | 483 | +12.795 | 0 | +0.068 | 0 |
+| +50 | 475 | +18.326 | 0 | +0.013 | 0 |
+| +75 | 480 | +13.017 | 0 | +0.010 | 0 |
+| +100 | 482 | +14.521 | 0 | -0.039 | 0 |
+| +150 | 475 | +9.133 | 0 | -0.046 | 0 |
 
 Interpretation:
 - Positive steering produces small mean wager movements, but medians remain zero.
 - Risk changes are essentially null and fluctuate around zero.
-- Higher scale worsens or does not improve format compliance.
+- The negative `-50` sign-symmetry run does not reverse the positive-scale pattern.
+- Higher scale worsens or does not improve exactly-two-integer compliance.
 - The evidence does not support the claim that the layer-18 realization vector is a reliable causal control direction for risk preference.
 
 Suggested figure:
-- Dose-response plot for `+50`, `+75`, `+100`, `+150` showing mean and median deltas for wager and risk.
+- Dose-response plot for `-50`, `+50`, `+75`, `+100`, `+150` showing mean and median deltas for wager and risk.
 - Compliance plot by scale.
 
 ### 4.4 Compliance and prompt-source effects
 
 Report:
-- Strict two-integer compliance is imperfect across all steering runs.
+- Exactly-two-integer compliance is imperfect across all steering runs.
 - Sonnet-derived prompts have especially high noncompliance.
 - At `+100`, noncompliance:
   - casino: 96/324
@@ -225,7 +230,7 @@ Report:
 
 Interpretation:
 - Some apparent effects may be driven by parseability and prompt-source artifacts.
-- Strict-compliance analysis is therefore important.
+- Exactly-two-integer subset analysis is therefore important.
 
 ## 5. Discussion
 
