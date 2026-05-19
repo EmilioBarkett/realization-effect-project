@@ -7,8 +7,7 @@
 \title{Representation Without Control: Testing the Realization Effect in Language Models}
 
 \author{
-  \textbf{[Author Name]}\\
-  \texttt{[email@example.com]}
+  \textbf{Ciar\'an Walsh and Emilio Barkett}
 }
 
 \sparround{Spring 2026}
@@ -72,6 +71,12 @@ The main artifact used for steering is the layer-18 direction from local Gemma 3
 We implemented a local residual-stream steering runner for Gemma. During generation, a forward hook adds a scaled, normalized realization direction at a selected layer. The full pilots reported here steer layer 18 at the final active token position using scales \(-50\), \(+50\), \(+75\), \(+100\), and \(+150\). Positive scales point toward \texttt{realized\_closed}; negative scales point toward \texttt{paper\_open}. Each steering run uses the same 648 behavior-evaluation prompts and is compared to the unsteered Gemma behavior baseline on matched prompt IDs.
 
 We report both all matched valid rows and a strict subset where the response contains exactly two integers. The strict subset is important because steering sometimes perturbs output format, and format failures can create misleading parsed outcomes.
+
+\subsection{Positive-control classification steering protocol}
+
+To test whether the realization direction can move a direct semantic judgment even when wager control is weak, we created a paired classification task from the same behavior-evaluation prompts. Instead of returning wager and risk integers, the model is asked to classify each scenario as \texttt{REALIZED} or \texttt{PAPER}. We evaluate three steering scales (\(-100\), \(0\), \(+100\)) on all 648 behavior-evaluation prompts.
+
+Because free generation often adds extra text, we score label candidates directly from token log-probabilities under steering hooks and choose the higher-scoring label. Scores are length-normalized and prior-calibrated within scale, then summarized by accuracy and realized-prediction rate.
 
 \section{Results}
 
@@ -142,6 +147,12 @@ Across positive scales \(+50\), \(+75\), \(+100\), and \(+150\), mean wager delt
   \label{fig:steering-dose}
 \end{figure}
 
+\subsection{Positive-control classification steering shows only weak directional movement}
+
+We ran a full positive-control pass on the direct \texttt{REALIZED}/\texttt{PAPER} classification task (648 prompts per scale; 1,944 rows total). The steering direction does induce a small directional movement: the realized-prediction rate increases from \(0.140\) at unsteered scale \(0\) to \(0.198\) at \(+100\), and decreases to \(0.120\) at \(-100\). However, classification accuracy remains near chance overall (\(0.520\) at scale \(0\), \(0.515\) at \(+100\), \(0.512\) at \(-100\)).
+
+The class breakdown clarifies why this is weak evidence of usable control. Across all scales, \texttt{paper\_open} prompts are usually classified correctly (accuracy \(0.863\)), while \texttt{realized\_closed} prompts are rarely classified correctly (accuracy \(0.169\)). Thus, even in a direct semantic task, steering produces only modest directional shifts and does not yield robust controllability.
+
 \subsection{Compliance artifacts matter}
 
 Steering also affects format compliance. The task asks for exactly two integers, but many responses contain extra text or malformed output. This matters because parsed numeric outcomes are only meaningful when the answer contract is followed. Noncompliance is concentrated in prompts generated from the Sonnet source, which fail strict formatting at much higher rates than the GPT-5.4 or Grok-fast prompt sources. At \(-50\), for example, Sonnet-derived prompts have 101 noncompliant responses out of 216, compared with 46/216 for GPT-5.4-derived prompts and 44/216 for Grok-fast-derived prompts.
@@ -152,6 +163,24 @@ Steering also affects format compliance. The task asks for exactly two integers,
   \caption{Strict-format noncompliance by steering scale and prompt source. The Sonnet-derived prompt subset has substantially higher failure rates, motivating strict-compliance analyses and caution in interpreting small mean shifts.}
   \label{fig:compliance}
 \end{figure}
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Hypothesis outcome summary.}
+  \label{tab:hypothesis-summary}
+  \begin{tabular}{p{0.26\textwidth}p{0.15\textwidth}p{0.49\textwidth}}
+    \toprule
+    Test & Outcome status & Evidence summary \\
+    \midrule
+    Prompt-only behavioral replication & Partial / weak & Condition sensitivity is clear, but directional patterns do not robustly match human realization-effect predictions. \\
+    Activation readout (layer-18 direction) & Supported & Realized/closed versus paper/open status is linearly separable in residual-stream projections. \\
+    Projection strength versus behavior & Weak / mixed & Raw prompt-level association exists, but within-pair projection deltas weakly predict wager/risk deltas. \\
+    Risk-behavior steering intervention & Not supported & Steering shifts are small, medians are zero, and negative-scale symmetry does not produce a clean reversal. \\
+    Positive-control classification steering & Weak support & Directional shift in realized-prediction rate occurs (\(-100 < 0 < +100\)), but accuracy remains near chance with strong class imbalance. \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 \section{Discussion}
 
@@ -169,9 +198,9 @@ The behavioral assay is also indirect. Wager and risk-profile answers are constr
 
 \section{Future Work}
 
-The most important next step is a positive-control steering task. Instead of asking for a wager, the model should be asked directly whether a scenario is realized/closed or paper/open. If steering shifts that direct judgment while still failing to shift risk behavior, the representation-without-control interpretation becomes much stronger. If steering also fails on the direct judgment task, the current direction should be treated as readable but not causally usable under the implemented hook.
+The next intervention step is to improve causal leverage, not just detect directional movement. The positive-control classification pass suggests the current single-layer, single-position intervention is too weak for robust semantic control. Immediate follow-up should test layer sweeps around 14, 16, 18, 20, and 22, plus \texttt{position\_mode=all} and multi-layer steering schedules.
 
-Additional follow-up work should run layer sweeps around layers 14, 16, 18, 20, and 22; test \texttt{position\_mode=all}; and build a local Qwen activation pipeline so behavioral replication and activation steering can be compared within the same model family. The report-facing data package should also be extended with finalized figure scripts, positive-control outputs, and appendix tables for prompt-source robustness.
+A second priority is cross-model intervention replication under the same local-hook framework. Building a local Qwen activation pipeline would allow direct comparison of readout and steering behavior across architectures without API-level hidden-state constraints. Finally, the report package should add appendix robustness tables for prompt-source stratification and strict-compliance sensitivity.
 
 \section{Conclusion}
 
