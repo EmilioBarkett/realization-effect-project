@@ -56,7 +56,6 @@ external/archive/**/.cache/
 # Local report build artifacts
 # ------------------------------------------------------------
 SPAR_Final.pdf
-reports/final/report.pdf
 reports/final/*.aux
 reports/final/*.bbl
 reports/final/*.bcf

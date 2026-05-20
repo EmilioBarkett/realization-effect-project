@@ -1,6 +1,6 @@
 # Results Layout
 
-This folder has three kinds of outputs:
+This folder has four kinds of outputs:
 
 - `results.csv` and `blocks/` are the canonical behavioral realization-effect
   results used by the analysis scripts.
@@ -9,18 +9,25 @@ This folder has three kinds of outputs:
   reproducible and tied to checked-in configs.
 - `test/` contains disposable smoke-test artifacts used to check formatting,
   storage, and pipeline behavior.
+- `audits/` contains small audit outputs that are useful for checking prompt
+  overlap and other data-integrity questions.
 
-Keep new local smoke runs under `results/test/`. Put the current SAE training
-dataset and current reference SAE checkpoints under `results/final/`.
+Keep new local smoke runs under `results/test/`. Put small, curated reference
+artifacts under `results/final/`; keep large activation tensors, raw steering
+generations, and exploratory checkpoints ignored unless they are explicitly
+needed for publication or review.
 
-## Current SAE Artifacts
+## Current Final Artifacts
 
-- `final/residual_streams/final_inference_prompts_v1_layer18_regions_float32/`
-  is the corrected full activation run for the first generated prompt set.
-- `final/sae/final_inference_prompts_v1_layer18_normalized/` is the SAE trained
-  on that corrected activation run. Its feature inspection shows strong
-  casino-context features, so treat it as an exploratory reference, not the
-  final research SAE.
-- `final/residual_streams/first_sae_prompt_mix_v1_repeated_5022_layer18_regions_float32/`
-  and `final/sae/first_sae_prompt_mix_v1_repeated_5022_layer18_normalized/`
-  are earlier larger local runs kept for comparison.
+- `final/activation_vectors/realization_vector_v1_layer18_direction_train_only/`
+  is the current reference activation-vector artifact. It contains the
+  train-only layer-18 realization direction and held-out readout summaries.
+- `final/residual_streams/` contains README stubs in git. Full local activation
+  tensors are intentionally ignored because they are large and reproducible from
+  the checked-in prompt/config files plus local model weights.
+- `final/sae/` contains README stubs in git. Earlier SAE outputs are archived
+  locally under ignored `results/legacy/` and are not the active report path.
+- `test/activation_vectors/` contains ignored local smoke and steering runs.
+  The final report's train-only steering run lives there locally, while
+  report-ready text, figures, and selected train-only readout artifacts are
+  tracked separately.

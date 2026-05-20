@@ -24,23 +24,24 @@ wager/risk behavior or can steer that behavior.
 ## Current Project Direction
 
 The current result is best understood as a dissociation rather than a clean
-behavioral replication. Local Gemma residual-stream activations strongly
-separate matched `paper_open` and `realized_closed` prompts, but matched-pair
-free-generation behavior is weak or null across local Gemma and larger
-OpenRouter Qwen probes. Larger Qwen models still often anchor on salient prompt
-numbers and default to middle risk choices.
+behavioral replication. Local Gemma residual-stream activations separate
+matched `paper_open` and `realized_closed` prompts, including under a
+train-only held-out readout check. However, steering the train-only layer-18
+realization direction during local Gemma generation does not robustly control
+the downstream wager/risk outputs. Larger OpenRouter behavior probes are useful
+as prompt-only checks, but they cannot support residual-stream steering because
+hosted APIs do not expose hidden-state hooks.
 
 The active report claim should therefore be:
 
-> LLMs represent realization/finality, but the representation is not reliably
-> recruited for spontaneous risk-taking behavior in the current matched-pair
+> LLMs represent realization/finality, but that representation is not a simple
+> causal control lever for risk-taking behavior in the current matched-pair
 > decision assay.
 
-The next experiment should test causality rather than simply scaling behavior
-runs: apply the Gemma realization direction during generation and compare
-unsteered, `+realized_closed`, and `-realized_closed` behavior outputs. A useful
-secondary check is an anchor-free qualitative prompt set, but steering is the
-stronger mechanistic follow-up.
+The remaining experimental work is about robustness rather than rescuing the
+core claim: layer sweeps, position-mode sweeps, multi-layer steering, larger
+held-out prompt sets, and a corrected direct realization-classification
+positive control.
 
 ## What this study tests
 
@@ -144,30 +145,29 @@ Current activation-vector status:
 - Prompt dataset: `experiments/activation_analysis/prompts/activation_vectors/realization_vector_v1.csv`
   contains 3,672 synthetic prompts across realization, control, and behavior
   evaluation cells.
-- Local activation run: `results/final/residual_streams/realization_vector_v1_layer18_regions_float32`
-  logs Gemma-3-4B layer 18 residual-stream activations for scenario tokens.
-- Realization direction: `results/final/activation_vectors/realization_vector_v1_layer18/mean_direction.npy`
-  is the mean paired direction from `realized_closed - paper_open`.
-- Projection evaluation: `results/final/activation_vectors/realization_vector_v1_layer18/evaluation/prompt_projections.csv`
-  shows the direction separates matched realization prompts strongly.
-- Behavior evaluation: `results/final/activation_vectors/realization_vector_v1_layer18/behavior_eval.csv`
-  stores free-generated wager/risk outputs from local Gemma on 648 behavior
-  prompts, with paired summaries in
-  `results/final/activation_vectors/realization_vector_v1_layer18/evaluation/behavior_eval_summary.json`.
+- Held-out prompt dataset: `experiments/activation_analysis/prompts/activation_vectors/realization_vector_heldout_v1.csv`
+  contains the DeepSeek-authored holdout prompts used for readout checks.
+- Train-only realization direction:
+  `results/final/activation_vectors/realization_vector_v1_layer18_direction_train_only/mean_direction.npy`
+  is the layer-18 mean paired direction from `realized_closed - paper_open`
+  built only from the `direction_train` split.
+- Held-out readout summaries:
+  `results/final/activation_vectors/realization_vector_v1_layer18_direction_train_only/summary_tables/`
+  contains the original validation and DeepSeek held-out projection summaries.
+- Main risk-behavior steering run:
+  `results/test/activation_vectors/steering_runs/gemma_realization_steering_train_only_full_v1/`
+  is the local, ignored raw generation artifact for the train-only layer-18
+  steering pass. Report-ready figures and tables are generated from it.
 
-The behavior link is currently weak: the realization direction separates prompt
-representations, but generated wager/risk changes are small. Behavior-only
-OpenRouter probes of Qwen 32B and Qwen3.5 397B are treated as exploratory smoke
-artifacts and kept under ignored `results/test/activation_vectors/behavior_runs/`
-rather than the canonical `results/final/` tree. They did not rescue a strong
-matched-pair behavioral effect.
+The behavior link remains weak: the realization direction separates prompt
+representations, but generated wager/risk changes are small, median deltas are
+zero, and negative-scale steering does not produce a clean opposite-direction
+behavioral effect. Behavior-only OpenRouter probes are treated as exploratory
+smoke artifacts and kept under ignored `results/test/activation_vectors/behavior_runs/`
+rather than the canonical `results/final/` tree.
 
-The next planned test is activation steering on local Gemma using the existing
-realization direction. If steering moves wager/risk behavior, the project can
-claim that the representation is causally usable even when ordinary prompting
-does not recruit it.
-The steering architecture is documented in `docs/steering_architecture.md`; smoke
-runs write to ignored `results/test/activation_vectors/steering_runs/`.
+The steering architecture is documented in `docs/steering_architecture.md`; local
+steering runs write to ignored `results/test/activation_vectors/steering_runs/`.
 See `docs/cloud_open_model_behavior.md` for the cloud behavior-run process.
 See `docs/cloud_open_model_activations.md` for the matching cloud activation
 logging process.

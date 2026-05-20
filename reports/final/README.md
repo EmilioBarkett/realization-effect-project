@@ -5,6 +5,7 @@ This folder contains the SPAR final report LaTeX draft.
 Files:
 
 - `report.tex`: main report draft using `\documentclass[final]{sparreport}`.
+- `report.pdf`: compiled final report PDF.
 - `references.bib`: bibliography.
 - `sparreport.cls`: SPAR report template class copied from `the-kairos-project/spar-report-template`.
 
