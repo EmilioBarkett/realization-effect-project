@@ -68,10 +68,3 @@ reports/final/*.out
 reports/final/*.run.xml
 reports/final/*.synctex.gz
 reports/final/*.toc
-
-# ------------------------------------------------------------
-# Generated prompt artifacts (keep curated prompt assets tracked)
-# ------------------------------------------------------------
-experiments/activation_analysis/prompts/archive/generated/**
-experiments/activation_analysis/prompts/activation_vectors/*_pilot__*.csv
-experiments/activation_analysis/prompts/activation_vectors/*_realization_classification*.csv
