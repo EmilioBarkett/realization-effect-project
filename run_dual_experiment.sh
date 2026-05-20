@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd /Users/ciaranwalsh/Documents/GitHub/realization-effect-project
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "${REPO_ROOT}"
 
-MAXW=7
+PYTHON="${PYTHON:-./venv/bin/python}"
+MAXW="${MAXW:-7}"
 TS="$(date +%Y%m%d_%H%M%S)"
 mkdir -p results/logs
 
@@ -20,7 +22,7 @@ while IFS= read -r _model; do
   if [[ -n "${_model}" ]]; then
     BAL_MODELS+=("${_model}")
   fi
-done < <(./venv/bin/python - <<'PY'
+done < <("${PYTHON}" - <<'PY'
 import csv
 from pathlib import Path
 models=set()
@@ -69,21 +71,21 @@ ABS_T15_MODELS=(
   set -euo pipefail
   echo "[$(date)] Starting ABSOLUTE catch-up"
 
-  ./venv/bin/python scripts/run_realization_experiment.py \
+  "${PYTHON}" scripts/run_realization_experiment.py \
     --models "${ABS_T1_MODELS[@]}" \
     --temperatures 1.0 \
     --prompt-version absolute \
     --n-trials 100 \
     --max-workers "${MAXW}"
 
-  ./venv/bin/python scripts/run_realization_experiment.py \
+  "${PYTHON}" scripts/run_realization_experiment.py \
     --models "${ABS_T05_MODELS[@]}" \
     --temperatures 0.5 \
     --prompt-version absolute \
     --n-trials 25 \
     --max-workers "${MAXW}"
 
-  ./venv/bin/python scripts/run_realization_experiment.py \
+  "${PYTHON}" scripts/run_realization_experiment.py \
     --models "${ABS_T15_MODELS[@]}" \
     --temperatures 1.5 \
     --prompt-version absolute \
@@ -97,7 +99,7 @@ ABS_T15_MODELS=(
   set -euo pipefail
   echo "[$(date)] Starting BALANCE t=1.0 n=50 across ${#BAL_MODELS[@]} model(s)"
 
-  ./venv/bin/python scripts/run_realization_experiment.py \
+  "${PYTHON}" scripts/run_realization_experiment.py \
     --models "${BAL_MODELS[@]}" \
     --temperatures 1.0 \
     --prompt-version balance \

@@ -17,6 +17,7 @@ results/residual_streams/
 results/blocks/
 results/balance/
 results/logs/
+results/results.csv
 results/sae/
 results/results_grouped.csv
 results/results_canonical.csv

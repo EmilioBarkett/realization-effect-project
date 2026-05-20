@@ -15,14 +15,31 @@ dependencies = [
   "statsmodels",
 ]
 
+[project.scripts]
+realization-analyze = "realization_effect.analysis:main"
+realization-dashboard = "realization_effect.block_dashboard:main"
+realization-partition = "realization_effect.partition:main"
+realization-reconcile = "realization_effect.reconcile:main"
+realization-reorganize = "realization_effect.reorganize_csv:main"
+realization-reparse = "realization_effect.reparse_results:main"
+realization-run = "realization_effect.runner:main"
+activation-export-emotion-probes = "activation_analysis.emotion_probes:main"
+activation-log-residuals = "activation_analysis.log_residuals:main"
+
 [project.optional-dependencies]
 dev = [
+  "matplotlib",
   "pytest",
   "ruff",
+  "seaborn",
 ]
 interp = [
   "torch",
   "transformers",
+]
+report = [
+  "matplotlib",
+  "seaborn",
 ]
 
 [tool.setuptools.packages.find]

@@ -3,7 +3,9 @@
 This folder has four kinds of outputs:
 
 - `results.csv` and `blocks/` are the canonical behavioral realization-effect
-  results used by the analysis scripts.
+  results used by the analysis scripts. `results.csv` is local-only and ignored
+  because it is large; regenerate or copy it into place before running analyses
+  that need the full behavioral table.
 - `final/` is for reference artifacts from larger activation extraction and SAE
   training runs. These runs may still be exploratory, but they should be
   reproducible and tied to checked-in configs.

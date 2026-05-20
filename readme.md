@@ -176,15 +176,26 @@ logging process.
 
 Examples below use `./venv/bin/python`, which works from a fresh shell in this
 checkout. If you have activated the virtual environment, `python` is equivalent.
+For a fresh local environment, install the report/test tooling with:
+
+```bash
+./venv/bin/python -m pip install -e ".[dev,report]"
+```
 
 Common checks are available through `make`:
 
 ```bash
 make test
 make compile
+make lint
+make check
 make audit
 make analyze
 ```
+
+The full behavioral table `results/results.csv` is intentionally local-only and
+not tracked in Git. Keep a local copy there when running `make analyze` or
+`make audit`.
 
 ### 1. Inspect prompts before running
 

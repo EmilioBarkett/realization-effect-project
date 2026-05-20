@@ -1,6 +1,7 @@
 .PHONY: test compile lint check analyze audit steering-summary figures report report-pipeline
 
 PYTHON ?= ./venv/bin/python
+PYTHONPATH ?= src
 RESULTS ?= results/results.csv
 STEERING_EVAL ?= results/test/activation_vectors/steering_runs/gemma_realization_steering_train_only_full_v1/steering_eval.csv
 STEERING_REPORT_DIR ?= results/final/report_realization_v1/03_steering_intervention
@@ -18,10 +19,10 @@ lint:
 check: lint compile test
 
 analyze:
-	$(PYTHON) scripts/analyze_realization_results.py $(RESULTS)
+	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m realization_effect.analysis $(RESULTS)
 
 audit:
-	$(PYTHON) scripts/reparse_realization_results.py results/results.csv results/blocks
+	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m realization_effect.reparse_results results/results.csv results/blocks
 
 steering-summary:
 	$(PYTHON) scripts/summarize_steering_report_tables.py \
