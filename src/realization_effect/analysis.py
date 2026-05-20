@@ -39,7 +39,6 @@ Usage:
 """
 
 import argparse
-import sys
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -399,9 +398,9 @@ def analyse(
     primary_realized = {dv: realized_results[dv] for dv in realized_results}
     test_hypotheses(primary_paper, primary_realized)
 
-    print(f"Notes: HC3 heteroscedasticity-robust standard errors.")
-    print(f"       * p<0.10  ** p<0.05  *** p<0.01")
-    print(f"       Model, temperature, and prompt_version included as covariate FEs.")
+    print("Notes: HC3 heteroscedasticity-robust standard errors.")
+    print("       * p<0.10  ** p<0.05  *** p<0.01")
+    print("       Model, temperature, and prompt_version included as covariate FEs.")
 
 
 def main() -> None:

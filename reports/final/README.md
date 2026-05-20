@@ -19,9 +19,18 @@ figures/
 From the repository root, regenerate figures with:
 
 ```bash
-./venv/bin/python scripts/build_report_figures.py
-./venv/bin/python scripts/analyze_projection_behavior_link.py
+make figures
 ```
+
+The train-only steering report tables can be regenerated from the local raw
+steering CSV with:
+
+```bash
+make steering-summary
+```
+
+That target expects the local ignored raw run at
+`results/test/activation_vectors/steering_runs/gemma_realization_steering_train_only_full_v1/steering_eval.csv`.
 
 To compile with TeX Live:
 
@@ -35,4 +44,10 @@ This local environment has `tectonic`, so the report can also be compiled with:
 ```bash
 cd reports/final
 tectonic report.tex
+```
+
+From the repository root, the same local compile is available as:
+
+```bash
+make report
 ```
