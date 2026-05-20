@@ -21,6 +21,15 @@ what should be split next.
    - SAE configs, docs, local outputs, and Gemma Scope imports are preserved
      under dated archive/legacy folders.
 
+5. Split the behavioral experiment runner into focused modules.
+   - Prompt construction now lives in `src/realization_effect/prompts.py`.
+   - Response parsing now lives in `src/realization_effect/parsing.py`.
+   - OpenRouter API helpers now live in `src/realization_effect/api.py`.
+   - Block CSV merge/resume logic now lives in `src/realization_effect/blocks.py`.
+   - Experiment execution now lives in `src/realization_effect/orchestration.py`.
+   - `src/realization_effect/runner.py` remains the CLI entrypoint and compatibility
+     import surface.
+
 ## Archived Imported External SAE
 
 - Source: `google/gemma-scope-2-4b-pt`
