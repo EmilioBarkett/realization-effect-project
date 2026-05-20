@@ -102,8 +102,9 @@ Files to reference:
 
 Original cleaned behavioral dataset:
 - `results/results.csv`
-- 46,750 canonical rows after reconciling the absolute and balance prompt blocks.
-- 45,865 valid wager rows and 45,808 valid risk-profile rows.
+- 54,450 canonical rows after reconciling the complete absolute and balance prompt blocks.
+- 53,547 valid wager rows and 49,351 valid risk-profile rows.
+- Two incomplete absolute temperature-1.5 cells are excluded: `qwen/qwq-32b` and `z-ai/glm-5`.
 - OLS regressions with condition dummies plus model, temperature, and prompt-version fixed effects.
 - HC3 robust standard errors.
 
@@ -169,20 +170,20 @@ Report:
 - The strongest broad finding is not "LLMs reproduce the realization effect"; it is "LLMs respond systematically to outcome framing and magnitude, but not according to the intended mental-accounting mechanism."
 
 Use numbers from `reports/current_findings.md`:
-- Canonical rows: 46,750.
-- Valid wager rows: 45,865.
-- Valid risk-profile rows: 45,808.
+- Canonical rows: 54,450.
+- Valid wager rows: 53,547.
+- Valid risk-profile rows: 49,351.
 - Paper outcomes, `risk_profile` coefficients relative to baseline:
-  - `paper_loss_large`: +0.0764, significant.
-  - `paper_loss_medium`: +0.0287, significant.
-  - `paper_loss_small`: -0.0120, not significant.
-  - `paper_gain_small`: +0.1004, significant.
-  - `paper_gain_large`: +0.2470, significant.
+  - `paper_loss_large`: +0.0666, significant.
+  - `paper_loss_medium`: +0.0223, not significant.
+  - `paper_loss_small`: -0.0116, not significant.
+  - `paper_gain_small`: +0.1114, significant.
+  - `paper_gain_large`: +0.2527, significant.
 - Realized outcomes, `risk_profile`:
-  - `realized_extreme_loss`: +0.1323, significant.
-  - `realized_large_loss`: +0.1434, significant.
-  - `realized_medium_loss`: +0.0063, not significant.
-  - `realized_gain`: +0.2834, significant.
+  - `realized_extreme_loss`: +0.1358, significant.
+  - `realized_large_loss`: +0.1501, significant.
+  - `realized_medium_loss`: +0.0204, not significant.
+  - `realized_gain`: +0.2923, significant.
 
 Interpretation:
 - These effects show outcome sensitivity.

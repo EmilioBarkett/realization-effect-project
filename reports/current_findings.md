@@ -5,9 +5,9 @@ This is the current read of the cleaned canonical dataset in
 
 ## Dataset
 
-- Canonical rows: 46,750.
-- Valid wager rows: 45,865.
-- Valid risk-profile rows: 45,808.
+- Canonical rows: 54,450.
+- Valid wager rows: 53,547.
+- Valid risk-profile rows: 49,351.
 - Prompt versions: `absolute` and `balance`.
 - Active analysis file: `results/results.csv`.
 - Small review sample: `results/sample_results.csv`.
@@ -23,35 +23,35 @@ temperature, and prompt-version fixed effects. Standard errors use HC3.
 For `log_wager`, paper outcomes are mixed relative to the original human
 casino pattern:
 
-- `paper_loss_large`: +0.1603, significant.
-- `paper_loss_medium`: -0.0586, significant.
-- `paper_loss_small`: -0.6381, significant.
-- `paper_gain_small`: -0.7361, significant.
-- `paper_gain_large`: -0.0456, significant.
+- `paper_loss_large`: +0.1530, significant.
+- `paper_loss_medium`: -0.0121, not significant.
+- `paper_loss_small`: -0.5804, significant.
+- `paper_gain_small`: -0.7065, significant.
+- `paper_gain_large`: -0.0269, significant.
 
 For `risk_profile`, paper outcomes are mostly positive:
 
-- `paper_loss_large`: +0.0764, significant.
-- `paper_loss_medium`: +0.0287, significant.
-- `paper_loss_small`: -0.0120, not significant.
-- `paper_gain_small`: +0.1004, significant.
-- `paper_gain_large`: +0.2470, significant.
+- `paper_loss_large`: +0.0666, significant.
+- `paper_loss_medium`: +0.0223, not significant.
+- `paper_loss_small`: -0.0116, not significant.
+- `paper_gain_small`: +0.1114, significant.
+- `paper_gain_large`: +0.2527, significant.
 
 For realized outcomes, the LLM responses do not match the original paper's
 large-loss prediction. Realized losses increase `log_wager` instead of
 decreasing it:
 
-- `realized_extreme_loss`: +0.6793, significant.
-- `realized_large_loss`: +0.6588, significant.
-- `realized_medium_loss`: +0.3894, significant.
-- `realized_gain`: +0.1320, significant.
+- `realized_extreme_loss`: +0.6463, significant.
+- `realized_large_loss`: +0.6271, significant.
+- `realized_medium_loss`: +0.3721, significant.
+- `realized_gain`: +0.0965, significant.
 
 The `risk_profile` results also move upward for realized outcomes:
 
-- `realized_extreme_loss`: +0.1323, significant.
-- `realized_large_loss`: +0.1434, significant.
-- `realized_medium_loss`: +0.0063, not significant.
-- `realized_gain`: +0.2834, significant.
+- `realized_extreme_loss`: +0.1358, significant.
+- `realized_large_loss`: +0.1501, significant.
+- `realized_medium_loss`: +0.0204, not significant.
+- `realized_gain`: +0.2923, significant.
 
 ## Interpretation
 
