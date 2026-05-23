@@ -193,9 +193,9 @@ Steering also affects answer-contract compliance. The task asks for exactly two 
     \toprule
     Test & Outcome status & Evidence summary \\
     \midrule
-    Prompt-only behavioral replication & Partial / weak & Condition sensitivity is clear, but directional patterns do not robustly match human realization-effect predictions. \\
-    Activation readout (layer-18 direction) & Supported / held-out readout & A train-only direction separates realized/closed from paper/open prompts on original validation prompts and on a newly generated DeepSeek held-out readout set. \\
-    Projection strength versus behavior & Weak / mixed & Raw prompt-level association exists, but within-pair projection deltas weakly predict wager/risk deltas. \\
+    Prompt-only behavioral replication & Weak support & Condition sensitivity is clear, but the directional pattern does not robustly match human realization-effect predictions. \\
+    Activation readout (layer-18 direction) & Supported & A train-only direction separates realized/closed from paper/open prompts on original validation prompts and on a newly generated DeepSeek held-out readout set. \\
+    Projection strength versus behavior & Mixed & Raw prompt-level association exists, but within-pair projection deltas weakly predict wager/risk deltas. \\
     Risk-behavior steering intervention & Not supported & Steering shifts are small, medians are zero, and negative-scale symmetry does not produce a clean reversal. \\
     Positive-control classification steering & Weak diagnostic support & Directional shift in realized-prediction rate occurs (\(-100 < 0 < +100\)), but accuracy remains near chance with a strong \texttt{PAPER} prediction bias and a duplicated-instruction caveat. \\
     \bottomrule
