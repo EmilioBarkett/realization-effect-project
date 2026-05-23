@@ -64,7 +64,7 @@ For the mechanistic pass, we generated paired prompts contrasting \texttt{paper\
 \[
 v_{\mathrm{realization}} = \mu_{\mathrm{realized\_closed}} - \mu_{\mathrm{paper\_open}}.
 \]
-The main readout and risk-behavior steering artifact is the layer-18 direction from local Gemma 3 4B computed using only the \texttt{direction\_train} split: 756 matched paper/realized pairs. We evaluated that frozen train-only direction on the original \texttt{direction\_val} and \texttt{behavior\_eval} splits, plus a newly generated DeepSeek-authored held-out prompt set. The DeepSeek set contains 40 matched pairs split into \texttt{heldout\_readout} and \texttt{heldout\_behavior\_eval}; neutral outcome cells were omitted because preliminary generation made neutral wording ambiguous. Some earlier descriptive activation plots use the all-pairs layer-18 direction from the original activation run and are labeled as descriptive rather than strict held-out evidence.
+The main readout and risk-behavior steering direction is the layer-18 direction from local Gemma 3 4B computed using only the \texttt{direction\_train} split: 756 matched paper/realized pairs. We evaluated that frozen train-only direction on the original \texttt{direction\_val} and \texttt{behavior\_eval} splits, plus a newly generated DeepSeek-authored held-out prompt set. The DeepSeek set contains 40 matched pairs split into \texttt{heldout\_readout} and \texttt{heldout\_behavior\_eval}; neutral outcome cells were omitted because preliminary generation made neutral wording ambiguous. Some earlier descriptive activation plots use the all-pairs layer-18 direction from the original activation run and are labeled as descriptive rather than strict held-out evidence.
 
 \subsection{Steering intervention}
 
@@ -74,9 +74,9 @@ We report both all matched valid rows and an exactly-two-integer subset where th
 
 \subsection{Positive-control classification steering protocol}
 
-To test whether a realization direction can move a direct semantic judgment even when wager control is weak, we created a paired classification task from the same behavior-evaluation prompts. Instead of returning wager and risk integers, the model is asked to classify each scenario as \texttt{REALIZED} or \texttt{PAPER}. This diagnostic classification run used the earlier all-pairs layer-18 direction and evaluated three steering scales (\(-100\), \(0\), \(+100\)) on all 648 behavior-evaluation prompts.
+As a diagnostic positive control, we tested whether a realization direction can move a direct semantic judgment even when wager control is weak. We created a paired classification task from the same behavior-evaluation prompts: instead of returning wager and risk integers, the model is asked to classify each scenario as \texttt{REALIZED} or \texttt{PAPER}. This classification run used the earlier all-pairs layer-18 direction, not the train-only steering direction, and evaluated three steering scales (\(-100\), \(0\), \(+100\)) on all 648 behavior-evaluation prompts.
 
-Because free generation often adds extra text, we score label candidates directly from token log-probabilities under steering hooks and choose the higher-scoring label. Scores are length-normalized and prior-calibrated within scale, then summarized by accuracy and realized-prediction rate. The current scored run has one prompt-construction caveat: the classification instruction was present in the prebuilt classification prompt CSV and was then added again by the steering runner, so these positive-control results should be treated as diagnostic rather than final.
+Because free generation often adds extra text, we scored label candidates directly from token log-probabilities under steering hooks and chose the higher-scoring label. Scores are length-normalized and prior-calibrated at each scale, then summarized by accuracy and realized-prediction rate. The scored run has one prompt-construction caveat: the classification instruction was present in the prebuilt classification prompt CSV and was then added again by the steering runner, so these positive-control results should be treated as diagnostic rather than final.
 
 \section{Results}
 
