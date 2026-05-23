@@ -192,7 +192,7 @@
   \ifspar@arxiv
     \def\spar@reportprefix{}
   \else
-    \def\spar@reportprefix{Final Report: }
+    \def\spar@reportprefix{}
   \fi
 \fi
 
