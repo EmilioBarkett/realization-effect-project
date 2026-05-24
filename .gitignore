@@ -47,8 +47,21 @@ data/interpretability/sae_runs/
 
 experiments/emotion_activation/prompts/final/*.bak
 
-external/saes/**/.cache/
-external/archive/**/.cache/
+# ------------------------------------------------------------
+# Internal / dead-end work — not public-facing
+# ------------------------------------------------------------
+docs/
+configs/sae/
+external/
+src/sae/
+scripts/archive/
+experiments/activation_analysis/prompts/archive/
+experiments/activation_analysis/prompts/activation_vectors/smoke/
+experiments/activation_analysis/prompts/activation_vectors/realization_vector_v1_pilot__*.csv
+experiments/activation_analysis/prompts/activation_vectors/realization_vector_v1__gpt54.csv
+experiments/activation_analysis/prompts/activation_vectors/realization_vector_v1__grok_fast.csv
+experiments/activation_analysis/prompts/activation_vectors/realization_vector_v1__sonnet.csv
+reports/midterm/
 
 .env
 .env.*
