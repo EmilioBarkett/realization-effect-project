@@ -1,0 +1,372 @@
+% SPAR Midterm Report Template
+% Compatible with arXiv (TeX Live 2023+, pdflatex)
+%
+% To compile: latexmk -pdf report.tex
+% Or use the build scripts: build report.tex
+
+% ============================================================================
+% DOCUMENT CLASS
+% ============================================================================
+% Options: midterm | final | arxiv
+% - midterm: For mid-program report
+% - final: For end-of-program report
+% - arxiv: For converting your report into a preprint for arXiv
+\documentclass[midterm]{sparreport}
+
+% ============================================================================
+% METADATA
+% ============================================================================
+\title{Paper Gains, Realized Losses: Testing the Realization Effect in Large Language Models}
+
+\author{
+  \textbf{Ciaran Walsh}\\
+  \texttt{crw2161@columbia.edu} \\
+  Columbia University
+  \and
+  \textbf{Emilio Barkett\footnote{SPAR Mentor}}\\
+  \texttt{eab2291@columbia.edu}\\
+  Columbia University
+}
+\sparround{Fall 2025}
+
+% ============================================================================
+% DOCUMENT BEGINS
+% ============================================================================
+\begin{document}
+
+\maketitle
+
+% ============================================================================
+% ABSTRACT
+% ============================================================================
+\begin{abstract}
+This project tests whether large language models (LLMs) reproduce the realization
+effect documented in human casino gamblers by Flepp, Meier, and Franck \cite{flepp-2021-effect}.
+We adapt their casino framework into a vignette experiment in which prior outcomes
+are manipulated to be either paper (within-visit, mental account open) or realized
+(between-visits, mental account closed), and measure subsequent wager choices.
+Across nine models and three sampling temperatures, we estimate condition effects
+using OLS regression with model, temperature, and prompt-version fixed effects and
+HC3 robust standard errors. Preliminary pooled results show substantial and
+statistically significant condition effects, but the signs of many coefficients
+diverge from the human-field predictions: paper losses are associated with
+\emph{reduced} wagering relative to baseline, and realized losses with
+\emph{increased} wagering, reversing the realization effect. The one partial
+exception is the magnitude ordering within paper gains, where large gains produce
+higher wagers than small gains, consistent with H2b. These reversals motivate
+further analysis at the model level and across alternative prompt framings.
+\end{abstract}
+
+% Keywords
+\keywords{realization effect \and large language models \and behavioral economics \and risk-taking \and mental accounting}
+
+% ============================================================================
+% INTRODUCTION
+% ============================================================================
+\section{Introduction}
+
+The realization effect, formalized by Imas (2016) and empirically validated by
+Flepp et al.\ \cite{flepp-2021-effect} predicts that people take more risk after paper outcomes than
+after realized outcomes. When a prior loss or gain remains unrealized---that is,
+when the gambler has not yet cashed out and closed their mental account---it stays
+integrated with future prospects, motivating loss-chasing behavior or encouraging
+further risk-taking on the cushion of paper gains. Once outcomes are realized
+through a money transfer, the mental account closes, the reference point resets,
+and risk behavior returns toward baseline or, for large losses, falls below it.
+
+This question is significant for AI behavioral modeling. Large language models are
+increasingly used in decision-support tools, preference elicitation, risk
+simulation, and policy prototyping. If LLM behavior systematically diverges from
+human decision patterns in well-documented ways, downstream applications that
+assume model-human behavioral correspondence may produce misleading outputs.
+Conversely, if LLMs do replicate human biases, this raises its own concerns: models
+trained on human-generated text may inherit and amplify behavioral heuristics in
+contexts where rational calculation is warranted.
+
+We replicate the Flepp et al.\ \cite{flepp-2021-effect} field study design as a vignette experiment,
+presenting LLM agents with slot machine scenarios that vary both prior
+outcome magnitude and account status (paper versus realized). We test the four
+directional hypotheses from the original paper---that paper losses and gains each
+increase risk-taking, that larger outcomes amplify these effects, that realized
+losses decrease risk-taking, and that realized gains leave risk-taking unchanged---
+and examine whether LLM behavior matches, mirrors, or is orthogonal to the
+human-field pattern.
+
+% ============================================================================
+% METHODOLOGY
+% ============================================================================
+\section{Methodology}
+
+\subsection{Experimental Design}
+
+We implement an 11-condition vignette experiment structured around the quintile
+design of Flepp et al. (2021, Table 2). Each condition specifies a prior outcome
+amount in Swiss francs (CHF) and an account status. Paper conditions present the
+agent as currently inside the casino with the balance remaining on a playing card;
+realized conditions present the agent as returning for a new visit after having
+cashed out at the end of a prior visit. This framing operationalizes the open versus
+closed mental account distinction from Imas (2016).
+
+Paper outcome conditions use \texttt{paper\_even} (CHF 0) as the baseline,
+corresponding to the paper's Q3 quintile (--96 to 0 CHF). Non-baseline paper
+conditions cover three loss levels---small (--60 CHF, within Q3), medium (--200
+CHF, Q2: --309 to --97), and large (--350 CHF, Q1: $\leq$ --310)---and two gain
+levels---small (+40 CHF, Q4: 1--80) and large (+150 CHF, Q5: $\geq$ 81).
+
+Realized outcome conditions use \texttt{realized\_small\_loss} (--30 CHF) as the
+baseline (Q4: --62 to 0 CHF). Non-baseline realized conditions cover three loss
+levels---medium (--400 CHF, Q3: --787 to --63), large (--1800 CHF, Q2: --2790 to
+--788), and extreme (--3500 CHF, Q1: $\leq$ --2791)---and one gain level (+200
+CHF, Q5: $\geq$ 1). The medium realized loss and realized gain conditions were not
+statistically significant in the original paper, providing useful null-effect
+benchmarks.
+
+\subsection{Stimuli}
+
+Each trial presents a system prompt establishing the casino visitor role and a
+condition-specific user prompt. The primary prompt version (\texttt{absolute})
+states prior outcomes as explicit CHF amounts. A second version (\texttt{balance})
+frames outcomes as card balance relative to the start of the visit. A third version
+(\texttt{qualitative}) describes outcomes in relative terms only (e.g., ``a modest
+amount'', ``a substantial amount'') with no numeric figures, testing whether the
+realization effect holds when the reference point is implicit rather than
+numerically specified. The key manipulation is consistent across all versions:
+paper scenarios specify the balance remains on the playing card, while realized
+scenarios specify the player has cashed out and returned for a new visit.
+
+Each trial elicits two responses: (1) a total session wager in CHF (range 1--1000,
+reflecting the paper's mean session wager of approximately 650 CHF), and (2) a
+slot machine risk preference on a 1--5 scale (1 = low-volatility, 5 = high-volatility),
+providing an analog to the paper's second dependent variable (\texttt{LogT-winCasino}).
+
+\subsection{Models and Parameters}
+
+We query models via the OpenRouter API. Current results include nine models spanning
+several major providers and capability tiers: \texttt{anthropic/claude-3.5-haiku},
+\texttt{anthropic/claude-haiku-4.5}, \texttt{deepseek/deepseek-chat-v3-0324},
+\texttt{google/gemini-3.1-flash-lite-preview}, \texttt{gpt-4.1-mini},
+\texttt{openai/gpt-5.4-mini}, \texttt{qwen/qwen3-32b},
+\texttt{moonshotai/kimi-k2-thinking}, and \texttt{x-ai/grok-4-fast}. Each
+condition is run at three sampling temperatures (0.5, 1.0, 1.5) to assess
+sensitivity to output stochasticity.
+
+\subsection{Analysis}
+
+We estimate OLS regressions of log-wager on condition dummies, with model,
+temperature, and prompt-version included as covariate fixed effects and HC3
+heteroscedasticity-robust standard errors throughout. Paper and realized conditions
+are estimated in separate regressions, as each trial tests one outcome type only.
+Hypothesis tests mirror H1a--H4 from Flepp et al., with one-sided $p$-values
+where the original paper specifies a directional prediction, and Wald tests on
+coefficient differences for the magnitude-ordering hypotheses (H1b, H2b, H3b).
+
+% ============================================================================
+% PRELIMINARY RESULTS
+% ============================================================================
+\section{Preliminary Results}
+
+Current data comprise 12,155 trials, of which 12,138 yield valid parsed wagers,
+across nine models and three temperatures. We first estimate OLS regressions of
+log-wager on outcome conditions.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcc}
+\hline
+ & Coefficient & (SE) \\
+\hline
+\multicolumn{3}{c}{\textit{Panel A: Paper Outcomes (Baseline: Paper Even)}} \\
+\hline
+Paper Loss (Small)  & -0.1833*** & (0.0224) \\
+Paper Loss (Medium) & -0.5085*** & (0.0177) \\
+Paper Loss (Large)  & -0.3584*** & (0.0192) \\
+Paper Gain (Small)  & -0.5024*** & (0.0166) \\
+Paper Gain (Large)  &  0.1231*** & (0.0165) \\
+\hline
+Observations & \multicolumn{2}{c}{6,065} \\
+$R^2$ & \multicolumn{2}{c}{0.495} \\
+\hline
+\\[-1em]
+\multicolumn{3}{c}{\textit{Panel B: Realized Outcomes (Baseline: Small Realized Loss)}} \\
+\hline
+Realized Loss (Medium)  & 0.3948*** & (0.0245) \\
+Realized Loss (Large)   & 0.4653*** & (0.0232) \\
+Realized Loss (Extreme) & 0.4175*** & (0.0236) \\
+Realized Gain           & 0.0786*** & (0.0158) \\
+\hline
+Observations & \multicolumn{2}{c}{6,073} \\
+$R^2$ & \multicolumn{2}{c}{0.448} \\
+\hline
+\end{tabular}
+\caption{OLS estimates of log-wager on outcome conditions. Regressions include
+fixed effects for model, temperature, and prompt framing. HC3 robust standard
+errors in parentheses. *** $p < 0.01$.}
+\end{table}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcc}
+\hline
+Hypothesis & Prediction & Result \\
+\hline
+H1a & Paper losses $\uparrow$ risk & Not supported \\
+H1b & Larger losses $\uparrow$ risk more & Partially supported \\
+H2a & Paper gains $\uparrow$ risk & Not supported \\
+H2b & Large gain $>$ small gain & Supported \\
+H3a & Realized losses $\downarrow$ risk & Not supported \\
+H3b & Larger losses $\downarrow$ risk more & Not supported \\
+H4  & Realized gain $=$ baseline & Rejected \\
+\hline
+\end{tabular}
+\caption{Summary of hypothesis tests relative to Flepp et al. (2021). Results
+are based on pooled preliminary estimates and should be interpreted with caution
+given the data quality issues described in Section 4.}
+\end{table}
+
+Preliminary pooled estimates show that LLM behavior does not straightforwardly
+reproduce the human realization-effect pattern and in several respects reverses it.
+
+In Panel A, all paper loss coefficients are negative relative to the paper-even
+baseline, indicating that LLMs reduce their wager following paper losses rather
+than increase it as predicted. The ordering is also non-monotone: the medium loss
+(--0.51) produces a larger reduction than the large loss (--0.36), partially
+violating H1b. Paper gains are similarly discordant: small paper gains reduce
+wagering (--0.50), while large paper gains increase it (+0.12), making H2b the
+only hypothesis to receive clear support.
+
+In Panel B, all realized loss coefficients are positive---LLMs increase wagering
+after a realized loss relative to the small-loss baseline, reversing H3a. The
+magnitude ordering is approximately monotone for the medium-to-large comparison
+(+0.39 vs. +0.47), though the extreme loss slightly reverses (+0.42), providing
+only weak support for H3b. Realized gains also significantly increase wagering
+(+0.08), rejecting H4.
+
+One interpretation of these reversals is that models are responding to the
+numerical magnitude of stated outcomes---treating a large stated loss as a signal
+to be cautious---rather than to the paper-versus-realized framing. The asymmetric
+pattern for gains (small reduces, large increases) is consistent with a
+magnitude-based reference point: small gains may anchor the model to a modest
+outcome and suppress wagering, while large gains license greater risk-taking
+regardless of account status. The near-identical coefficients for \texttt{paper\_loss\_small}
+and \texttt{paper\_loss\_medium} in the preliminary data also reflect a data quality
+issue described below.
+
+% ============================================================================
+% CHALLENGES & OPEN QUESTIONS
+% ============================================================================
+\section{Challenges \& Open Questions}
+
+\paragraph{Between-conditions vs.\ within-person identification.}
+The most fundamental structural difference from Flepp et al. (2021) is that the
+original study uses individual-level fixed-effects OLS, comparing the \emph{same
+gambler's} behavior across different prior-outcome states. This controls for all
+stable individual differences in risk tolerance. Our vignette design is purely
+between-conditions: each LLM trial is an independent query with no individual
+gambling history to exploit. The closest analog---model and temperature fixed
+effects---absorbs systematic differences across models but cannot replicate the
+within-person identification of the field study. This is unavoidable in a vignette
+design and situates our study closer to the Imas (2016) laboratory replication
+than the Flepp et al. field study.
+
+\paragraph{Legacy condition labels in existing data.}
+The current results file contains data collected across multiple experimental
+iterations with inconsistent condition naming. Early runs used \texttt{paper\_neutral}
+and \texttt{realized\_neutral} for the baseline conditions (now
+\texttt{paper\_even} and \texttt{realized\_small\_loss}), and
+\texttt{realized\_loss\_medium}, \texttt{realized\_loss\_large}, and
+\texttt{realized\_loss\_small} for what are now \texttt{realized\_medium\_loss},
+\texttt{realized\_large\_loss}, and \texttt{realized\_small\_loss}. Critically,
+\texttt{paper\_loss\_small} in the existing data contains runs at --200 CHF (the
+value previously associated with the mislabeled condition, now renamed
+\texttt{paper\_loss\_medium}), whereas the corrected \texttt{paper\_loss\_small}
+is defined at --60 CHF. Pooled analysis that does not account for this mixing will
+produce biased condition estimates. The preliminary results above should be read
+with this caveat.
+
+\paragraph{Wager range and prompt framing.}
+Initial data collection used a 1--500 CHF response range and prompt wording that
+was ambiguous between a per-spin and a session-total wager interpretation. The
+500 CHF cap binds for a non-trivial fraction of trials given the paper's mean
+session wager of approximately 650 CHF, artificially truncating the upper tail of
+the response distribution and attenuating detectable loss-chasing effects. Updated
+prompts raise the cap to 1--1000 CHF and clarify that responses represent total
+session wagers.
+
+\paragraph{Explicit numeric reference points.}
+The \texttt{absolute} prompt version presents exact CHF figures to the model. Real
+casino customers do not necessarily track their running balance with this
+precision---they experience losses and gains but may not consciously anchor on a
+specific number. Providing an exact amount may cause LLMs to apply more deliberate,
+arithmetic reasoning rather than simulating affective loss-chasing, which could
+explain the conservative responses to paper losses. The \texttt{qualitative} prompt
+version, which uses only relative descriptors, will help isolate whether numeric
+precision is driving the divergence from human-field results.
+
+\paragraph{Pooling across heterogeneous models.}
+The current dataset is heavily imbalanced: \texttt{gpt-4.1-mini} contributes
+approximately 7,000 of the 12,155 rows, representing 58\% of the sample. Pooled
+coefficients are therefore dominated by one model's behavioral patterns. Whether
+the reversals documented above are a property of all models or specific to
+particular architectures or capability tiers is an open question that
+model-level analysis will address.
+
+% ============================================================================
+% NEXT STEPS
+% ============================================================================
+\section{Next Steps}
+
+\paragraph{Data cleaning and harmonization.}
+The immediate priority is to reconcile legacy condition labels in the existing
+results file so that the --200 CHF \texttt{paper\_loss\_small} rows are correctly
+treated as \texttt{paper\_loss\_medium}, and baseline conditions are consistently
+identified regardless of naming variant. A cleaned, consolidated dataset will allow
+model-level and prompt-version-level subgroup analyses without confounding from
+labeling inconsistencies.
+
+\paragraph{Per-model analysis.}
+Once data are cleaned, we will rerun the regression analysis separately for each of
+the nine models using \texttt{analyze\_results.py --per-model}. This will establish
+whether the pooled reversals are uniform across models or driven by a subset,
+whether reasoning models (e.g., \texttt{kimi-k2-thinking}) diverge systematically
+from non-reasoning models, and whether effects scale with model capability tier.
+
+\paragraph{New data collection under the updated design.}
+Fresh runs using the updated prompts (1--1000 CHF range, explicit session-total
+framing, two-response format capturing both wager and slot machine risk preference)
+will replace or supplement the truncated legacy data. We will also collect data
+under the \texttt{qualitative} prompt version, which has not yet been run, to test
+whether removing numeric anchors brings LLM behavior closer to the human-field
+pattern.
+
+\paragraph{Expanded model coverage.}
+We will extend collection to additional models from our evaluation list, prioritizing
+frontier and reasoning models not yet covered. Of particular interest are models
+that have been studied in prior behavioral economics replications
+(e.g., \texttt{openai/gpt-4o}, \texttt{openai/o3}) to enable comparison with
+the emerging literature on LLM decision-making.
+
+\paragraph{Risk-profile dependent variable.}
+Updated trials elicit a slot machine risk preference (1--5) alongside the wager
+amount, providing a second dependent variable analogous to the paper's
+\texttt{LogT-winCasino}. If wager size and machine choice covary across conditions
+in a coherent direction, this will strengthen the interpretation of whatever
+realization-effect pattern emerges; if they dissociate, it will suggest that
+different response channels are governed by different mechanisms within the models.
+
+\paragraph{Prompt-version comparison.}
+The final analysis will compare results across \texttt{absolute},
+\texttt{balance}, and \texttt{qualitative} prompt versions. If the realization
+effect is present under \texttt{qualitative} framing but absent or reversed under
+\texttt{absolute} framing, this would indicate that LLMs apply explicit numerical
+reasoning that overrides the mental-accounting heuristics the paper-versus-realized
+manipulation is designed to elicit. This would be a substantive finding in its own
+right regarding the conditions under which LLM behavior mirrors human behavioral
+patterns.
+
+% ============================================================================
+% BIBLIOGRAPHY
+% ============================================================================
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}

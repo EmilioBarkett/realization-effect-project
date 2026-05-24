@@ -1,100 +1,34 @@
-# Realization Effect Replication — LLM Study
+# Representation Without Control: Testing the Realization Effect in Language Models
 
-Replication of Flepp, Meier & Franck (2021) *"The effect of paper outcomes
-versus realized outcomes on subsequent risk-taking: Field evidence from casino
-gambling"* (OBHDP 165, 45–55), substituting language models for human
-subjects.
+**Ciarán Walsh and Emilio Barkett** — Columbia University
 
-The project now has three connected goals:
+Code and data for the paper *Representation Without Control: Testing the Realization Effect in Language Models* (SPAR Spring 2026 / preprint).
 
-1. Measure whether LLMs reproduce realization-effect gambling behavior or
-   related condition sensitivity.
-2. Use residual-stream logging and activation-vector methods to test whether
-   realization framing is internally represented.
-3. Test whether that representation predicts or can causally steer risk-taking
-   behavior.
+Paper: [`reports/Realization_Effect_in_Language_Models____Ciaran____Emilio.pdf`](reports/Realization_Effect_in_Language_Models____Ciaran____Emilio.pdf)
 
-The active interpretability path is no longer SAE-first. The earlier SAE work is
-archived as supporting infrastructure, while the current experiment follows an
-Anthropic-style paired activation-vector approach: build a direction from
-matched `paper_open` versus `realized_closed` prompts, evaluate projection on
-held-out prompts, then test whether the same direction relates to generated
-wager/risk behavior or can steer that behavior.
+## Overview
 
-## Current Project Direction
+The **realization effect** is a behavioral-economics finding in which risk-taking depends on whether prior gains or losses remain *paper* (open mental account) or have been *realized* (closed account). We use it as a test case for a broader question about LLM behavioral research: does condition-sensitive behavior imply genuine internal implementation of the underlying construct?
 
-The current result is best understood as a dissociation rather than a clean
-behavioral replication. Local Gemma residual-stream activations separate
-matched `paper_open` and `realized_closed` prompts, including under a
-train-only held-out readout check. However, steering the train-only layer-18
-realization direction during local Gemma generation does not robustly control
-the downstream wager/risk outputs. Larger OpenRouter behavior probes are useful
-as prompt-only checks, but they cannot support residual-stream steering because
-hosted APIs do not expose hidden-state hooks.
+We evaluate LLM behavior at three levels:
 
-The active report claim should therefore be:
+1. **Behavioral** — Do prompt-only responses show the pattern of condition sensitivity that human subjects exhibit?
+2. **Readout** — Is realization status linearly decodable from residual-stream activations, including on held-out prompts?
+3. **Steering** — Does adding a decoded realization direction during inference causally shift downstream risk choices?
 
-> LLMs represent realization/finality, but that representation is not a simple
-> causal control lever for risk-taking behavior in the current matched-pair
-> decision assay.
+**Core finding:** Models are condition-sensitive, but the directional pattern does not reproduce the human realization-effect predictions. Gemma's residual stream contains a linearly decodable realization-status signal at layer 18 that generalizes to held-out prompts. Steering along that direction does not, however, reliably shift downstream risk choices — a null result that holds across positive scales and in a negative sign-symmetry run. Behavioral sensitivity, latent readout, and causal control are three distinct properties that do not automatically co-occur.
 
-The remaining experimental work is about robustness rather than rescuing the
-core claim: layer sweeps, position-mode sweeps, multi-layer steering, larger
-held-out prompt sets, and a corrected direct realization-classification
-positive control.
+## Results summary
 
-## What this study tests
-
-The **realization effect** predicts that risk-taking differs depending on whether prior outcomes are *paper* (still in play, mental account open) or *realized* (cashed out, mental account closed):
-
-| Condition type | Paper prediction | Realized prediction |
+| Test | Outcome | Evidence |
 |---|---|---|
-| Loss | ↑ risk-taking (loss-chasing) | ↓ risk-taking (if large) |
-| Gain | ↑ risk-taking (house money effect) | no change |
+| Prompt-only behavioral replication | Weak support | Condition-sensitive, but directional pattern does not match human realization-effect predictions |
+| Activation readout (layer-18 direction) | Supported | Train-only direction separates realized/closed from paper/open on original and DeepSeek held-out splits |
+| Projection strength vs. behavior | Not supported | Within-pair projection deltas do not predict wager or risk deltas after controlling for prompt structure |
+| Risk-behavior steering intervention | Not supported | Small mean shifts, zero medians, no sign-symmetric reversal |
+| Positive-control classification steering | Weak diagnostic | Directional rate shift occurs; accuracy near chance with strong PAPER prediction bias |
 
-## Experimental design
-
-Each trial presents an LLM with a casino vignette and asks for two responses: (1) how much to wager in the next slot machine session (1–1000 CHF total session wager), and (2) a slot machine risk preference (1–5 scale). The manipulation is the prior outcome history embedded in the vignette.
-
-### Conditions
-
-Conditions map to the quintile structure from Table 2 of the paper:
-
-**Paper outcomes (within-visit — mental account open):**
-| Condition | Amount (CHF) | Paper quintile |
-|---|---|---|
-| `paper_loss_large` | −350 | Q1 ≤ −310 |
-| `paper_loss_medium` | −200 | Q2 −309 to −97 |
-| `paper_loss_small` | −60 | Q3 −96 to 0 (small-loss sub-case) |
-| `paper_even` | 0 | Q3 −96 to 0 (**baseline**) |
-| `paper_gain_small` | +40 | Q4 1 to 80 |
-| `paper_gain_large` | +150 | Q5 ≥ 81 |
-
-**Realized outcomes (between-visits — mental account closed):**
-| Condition | Amount (CHF) | Paper quintile |
-|---|---|---|
-| `realized_extreme_loss` | −3500 | Q1 ≤ −2,791 |
-| `realized_large_loss` | −1800 | Q2 −2,790 to −788 |
-| `realized_medium_loss` | −400 | Q3 −787 to −63 (not sig. in paper) |
-| `realized_small_loss` | −30 | Q4 −62 to 0 (**baseline**) |
-| `realized_gain` | +200 | Q5 ≥ 1 (not sig. in paper) |
-
-### Key hypotheses being tested (from Flepp et al. 2021)
-
-- **H1a/b**: Paper losses increase risk-taking; larger losses increase it more.
-- **H2a/b**: Paper gains increase risk-taking; larger gains increase it more.
-- **H3a/b**: Realized losses decrease risk-taking; only large realized losses are significant.
-- **H4**: Realized gains do not alter risk-taking.
-
-### Prompt framing
-
-Prompt versions are implemented in `src/realization_effect/runner.py`:
-
-- `absolute` (default): States win/loss amounts directly ("you have won/lost X CHF").
-- `balance`: Frames outcomes as card balance relative to starting point.
-- `qualitative`: Describes outcomes in relative terms only ("a modest amount", "a substantial amount") with no CHF figures — tests whether the effect holds without numeric anchoring.
-
-The key distinction across all versions: **paper** scenarios specify the player is still in the casino (balance on card); **realized** scenarios specify the player cashed out and has returned for a new visit.
+The prompt-only dataset covers **54,450 rows** across **25 models** (53,547 valid wagers; 49,351 valid risk-profile responses). The activation analysis uses **Gemma 3 4B**, a train-only layer-18 direction built from **756 matched pairs**.
 
 ## Repository structure
 
@@ -103,318 +37,118 @@ realization-effect-project/
 ├── src/
 │   ├── realization_effect/      # Prompting, running, parsing, analysis, reconciliation
 │   ├── activation_analysis/     # Residual streams, prompt generation, vector analysis
-│   └── sae/                     # Archived/supporting SAE utilities
-├── scripts/                     # Preferred command-line entrypoints
-├── tests/                       # Regression tests for parsing and analysis checks
-│   └── fixtures/noncanonical/   # Local ignored archive of non-canonical CSVs
+│   └── sae/                     # Archived SAE utilities
+├── scripts/                     # Command-line entrypoints for all three stages
+├── tests/                       # Regression tests for parsing and analysis
 ├── configs/
-│   ├── realization_effect/      # Conditions and model catalogues
-│   ├── activation_analysis/     # Activation-vector and archived prompt definitions
+│   ├── realization_effect/      # Conditions (11) and model catalogue
+│   ├── activation_analysis/     # Activation-vector prompt generation configs
 │   └── sae/                     # Archived SAE configs
 ├── experiments/
-│   └── activation_analysis/      # Reviewable prompt CSVs for activation work
-├── notebooks/realization_effect/ # Ordered exploratory notebooks
-├── reports/                     # Current findings, midterm material, source papers
-├── results/                     # Active canonical CSVs plus resumable block CSVs
-└── models/                      # Local model weights, gitignored
+│   └── activation_analysis/     # Reviewable prompt CSVs for activation work
+├── notebooks/realization_effect/ # Exploratory notebooks (01–07)
+├── reports/
+│   ├── Realization_Effect_in_Language_Models____Ciaran____Emilio.pdf  # preprint
+│   ├── final/                   # SPAR report source (report.tex, sparreport.cls, figures/)
+│   └── papers/                  # Source papers (Flepp et al., Imas, etc.)
+├── results/
+│   ├── sample_results.csv       # Schema sample for the behavioral dataset (tracked)
+│   └── final/                   # Tracked activation vectors and evaluation summaries
+└── docs/                        # Architecture notes and planning documents
 ```
 
-The exploratory notebooks are numbered in the order they are most useful to
-read:
+**Key tracked data artifacts:**
 
-- `01_experiment_design.ipynb`
-- `02_results_merge_and_cleaning.ipynb`
-- `03_multi_model_pilot.ipynb`
-- `04_large_sample_7000_rows.ipynb`
-- `05_large_sample_8000_rows.ipynb`
-- `06_gpt54mini_haiku_comparison.ipynb`
-- `07_kimi_grok_comparison.ipynb`
+- [`results/sample_results.csv`](results/sample_results.csv) — schema sample for the behavioral dataset
+- [`results/final/activation_vectors/realization_vector_v1_layer18_direction_train_only/`](results/final/activation_vectors/realization_vector_v1_layer18_direction_train_only/) — train-only layer-18 mean direction (`mean_direction.npy`) and held-out evaluation summaries
+- [`experiments/activation_analysis/prompts/activation_vectors/realization_vector_v1.csv`](experiments/activation_analysis/prompts/activation_vectors/realization_vector_v1.csv) — 3,672 synthetic prompts used for activation logging
+- [`experiments/activation_analysis/prompts/activation_vectors/realization_vector_heldout_v1.csv`](experiments/activation_analysis/prompts/activation_vectors/realization_vector_heldout_v1.csv) — DeepSeek-authored held-out prompt set (40 pairs)
 
-The current cleaned-results summary is in
-`reports/current_findings.md`.
+The full behavioral results CSV (`results/results.csv`) and all local activation-run outputs are gitignored and local-only.
 
-The current interpretability direction is the activation-vector realization/risk
-experiment documented in `docs/activation_vector_realization_plan.md` and
-`experiments/activation_analysis/README.md`. Earlier emotion-probe materials are
-kept in `docs/emotion_probe_design.md` for reference.
-The earlier SAE-first pass is archived under `docs/archive/20260506_sae_first_pass/`
-and `configs/sae/archive/20260506_sae_first_pass/`.
+## Stage 1: Behavioral prompting
 
-Current activation-vector status:
+Each trial presents an LLM with a casino vignette and elicits two responses: a next-session wager (1–1000 CHF) and a slot-machine risk preference (1–5). Eleven conditions map to the quintile structure from Table 2 of Flepp et al. (2021).
 
-- Prompt dataset: `experiments/activation_analysis/prompts/activation_vectors/realization_vector_v1.csv`
-  contains 3,672 synthetic prompts across realization, control, and behavior
-  evaluation cells.
-- Held-out prompt dataset: `experiments/activation_analysis/prompts/activation_vectors/realization_vector_heldout_v1.csv`
-  contains the DeepSeek-authored holdout prompts used for readout checks.
-- Train-only realization direction:
-  `results/final/activation_vectors/realization_vector_v1_layer18_direction_train_only/mean_direction.npy`
-  is the layer-18 mean paired direction from `realized_closed - paper_open`
-  built only from the `direction_train` split.
-- Held-out readout summaries:
-  `results/final/activation_vectors/realization_vector_v1_layer18_direction_train_only/summary_tables/`
-  contains the original validation and DeepSeek held-out projection summaries.
-- Main risk-behavior steering run:
-  `results/test/activation_vectors/steering_runs/gemma_realization_steering_train_only_full_v1/`
-  is the local, ignored raw generation artifact for the train-only layer-18
-  steering pass. Report-ready figures and tables are generated from it.
+**Paper conditions** (within-visit, mental account open):
 
-The behavior link remains weak: the realization direction separates prompt
-representations, but generated wager/risk changes are small, median deltas are
-zero, and negative-scale steering does not produce a clean opposite-direction
-behavioral effect. Behavior-only OpenRouter probes are treated as exploratory
-smoke artifacts and kept under ignored `results/test/activation_vectors/behavior_runs/`
-rather than the canonical `results/final/` tree.
+| Condition | CHF | Paper quintile |
+|---|---|---|
+| `paper_loss_large` | −350 | Q1 ≤ −310 |
+| `paper_loss_medium` | −200 | Q2 −309 to −97 |
+| `paper_loss_small` | −60 | Q3 small-loss sub-case |
+| `paper_even` | 0 | Q3 **baseline** |
+| `paper_gain_small` | +40 | Q4 1–80 |
+| `paper_gain_large` | +150 | Q5 ≥ 81 |
 
-The steering architecture is documented in `docs/steering_architecture.md`; local
-steering runs write to ignored `results/test/activation_vectors/steering_runs/`.
-See `docs/cloud_open_model_behavior.md` for the cloud behavior-run process.
-See `docs/cloud_open_model_activations.md` for the matching cloud activation
-logging process.
+**Realized conditions** (between-visits, mental account closed):
 
-## Workflow
+| Condition | CHF | Paper quintile |
+|---|---|---|
+| `realized_extreme_loss` | −3500 | Q1 ≤ −2,791 |
+| `realized_large_loss` | −1800 | Q2 −2,790 to −788 |
+| `realized_medium_loss` | −400 | Q3 −787 to −63 |
+| `realized_small_loss` | −30 | Q4 **baseline** |
+| `realized_gain` | +200 | Q5 ≥ 1 |
 
-Examples below use `./venv/bin/python`, which works from a fresh shell in this
-checkout. If you have activated the virtual environment, `python` is equivalent.
-For a fresh local environment, install the report/test tooling with:
+Two prompt versions were used in the main analysis: `absolute` (CHF amounts stated explicitly) and `balance` (card balance framing). A `qualitative` version uses relative descriptors with no CHF figures.
 
-```bash
-./venv/bin/python -m pip install -e ".[dev,report]"
-```
+Main regressions use condition indicators with model, temperature, and prompt-version fixed effects, and HC3 robust standard errors. Paper conditions are compared against a `paper_even` baseline; realized conditions against a `realized_small_loss` baseline.
 
-Common checks are available through `make`:
-
-```bash
-make test
-make compile
-make lint
-make check
-make audit
-make analyze
-```
-
-The full behavioral table `results/results.csv` is intentionally local-only and
-not tracked in Git. Keep a local copy there when running `make analyze` or
-`make audit`.
-
-### 1. Inspect prompts before running
-
-```bash
-# Export every prompt text across all conditions and prompt versions
-./venv/bin/python scripts/export_prompts.py --output prompts.csv
-
-# One version only
-./venv/bin/python scripts/export_prompts.py --version qualitative --output prompts_qualitative.csv
-```
-
-### 2. Run the experiment
+### Running the behavioral experiment
 
 ```bash
 export OPENROUTER_API_KEY=your_key_here
 
-# Single model, 100 trials per condition
-./venv/bin/python scripts/run_realization_experiment.py \
-  --models openai/gpt-4o \
-  --n-trials 100 \
-  --prompt-version absolute
-
-# Grid over multiple models and temperatures
 ./venv/bin/python scripts/run_realization_experiment.py \
   --models openai/gpt-4o anthropic/claude-3-5-sonnet \
   --temperatures 0.5 1.0 \
   --n-trials 100 \
+  --prompt-version absolute \
   --shuffle
 ```
 
-Runs are resumable: interrupted experiments can be restarted with the same command and already-completed trials are skipped.
+Runs are resumable. Each model/temperature/prompt-version block writes to `results/blocks/`; a final step reconciles them into `results/results.csv`.
 
-The run script has one canonical write process:
-
-1. Each model / temperature / prompt-version block writes to its own resumable CSV in `results/blocks/`.
-2. After all selected blocks finish, the script performs one final reconciliation into `results/results.csv`.
-3. `results/results_grouped.csv` is refreshed as the grouped companion file.
-
-Avoid sidecar outputs for ordinary runs. Keep the default `--output results/results.csv`
-unless you are intentionally creating a separate scratch dataset.
-
-Current active data files:
-
-- `results/results.csv` is the canonical analysis dataset.
-- `results/sample_results.csv` is a small schema/sample extract for quick review.
-- `results/results_grouped.csv` is generated by reconciliation for dashboard/analysis compatibility and is not tracked.
-- `results/blocks/*.csv` are resumable per-block raw outputs used to rebuild the canonical CSV.
-- Non-canonical historical CSVs are archived locally under `tests/fixtures/noncanonical/`.
-
-If parser logic changes, audit or repair existing parsed columns without
-re-querying models:
+### Analysing behavioral results
 
 ```bash
-# Dry-run audit
-./venv/bin/python scripts/reparse_realization_results.py results/results.csv results/blocks
+# Pooled across all models
+./venv/bin/python scripts/analyze_realization_results.py results/results.csv
 
-# Rewrite parsed_wager, log_wager, risk_profile, and validity metadata
-./venv/bin/python scripts/reparse_realization_results.py --write results/results.csv results/blocks
+# Per-model
+./venv/bin/python scripts/analyze_realization_results.py results/results.csv --per-model
+
+# Filter to one model or prompt version
+./venv/bin/python scripts/analyze_realization_results.py results/results.csv --model openai/gpt-4o
+./venv/bin/python scripts/analyze_realization_results.py results/results.csv --prompt-version qualitative
 ```
 
-If you need to rebuild the canonical CSV from existing blocks without querying
-models, run:
+## Stage 2: Activation readout
 
-```bash
-./venv/bin/python scripts/reconcile_realization_results.py
+Paired prompts contrast `paper_open` and `realized_closed` framings across several domains (finance, reimbursement, budget, compensation, academic, project-outcome, casino). A mean-difference realization direction is computed at layer 18 of local Gemma 3 4B:
+
+```
+v_realization = μ(realized_closed) − μ(paper_open)
 ```
 
-### 3. Generate synthetic prompts for activation logging
+The **train-only direction** is built from the `direction_train` split (756 matched pairs) and is the direction used for all generalization tests and steering interventions reported as main results. The all-pairs direction appears only in descriptive plots (labeled accordingly).
 
-Use the activation prompt generator to create reviewable synthetic prompt CSVs
-through OpenRouter. This does not write behavioral results to
-`results/results.csv`; it writes prompt CSVs under
-`experiments/activation_analysis/prompts/activation_vectors/`.
-
-Run a small pilot before spending credits on the full prompt set:
-
-```bash
-export OPENROUTER_API_KEY=your_key_here
-
-./venv/bin/python scripts/generate_activation_prompts.py \
-  --pilot-all-cells \
-  --output experiments/activation_analysis/prompts/activation_vectors/realization_vector_v1_pilot.csv
-```
-
-For full generation, run each source model into its own CSV. This lets separate
-terminals work at the same time without racing on one shared file:
-
-```bash
-./venv/bin/python scripts/generate_activation_prompts.py \
-  --models gpt54 \
-  --output-template experiments/activation_analysis/prompts/activation_vectors/realization_vector_v1__{model}.csv \
-  --resume
-
-./venv/bin/python scripts/generate_activation_prompts.py \
-  --models sonnet \
-  --output-template experiments/activation_analysis/prompts/activation_vectors/realization_vector_v1__{model}.csv \
-  --resume
-
-./venv/bin/python scripts/generate_activation_prompts.py \
-  --models grok_fast \
-  --output-template experiments/activation_analysis/prompts/activation_vectors/realization_vector_v1__{model}.csv \
-  --resume
-```
-
-After the model-specific files finish, merge them:
-
-```bash
-./venv/bin/python scripts/generate_activation_prompts.py \
-  --merge-inputs \
-    experiments/activation_analysis/prompts/activation_vectors/realization_vector_v1__gpt54.csv \
-    experiments/activation_analysis/prompts/activation_vectors/realization_vector_v1__sonnet.csv \
-    experiments/activation_analysis/prompts/activation_vectors/realization_vector_v1__grok_fast.csv \
-  --output experiments/activation_analysis/prompts/activation_vectors/realization_vector_v1.csv
-```
-
-The active paired-contrast generation plan is
-`configs/activation_analysis/realization_vector_generation_v1.json`. Its default
-full output is
-`experiments/activation_analysis/prompts/activation_vectors/realization_vector_v1.csv`.
-
-### Fresh clone to analysis
-
-```bash
-python -m venv venv
-./venv/bin/python -m pip install -e ".[dev]"
-make test
-make audit
-make analyze
-```
-
-This path uses the tracked canonical dataset at `results/results.csv`.
-`make audit` checks that the parsed wager/risk columns still match the current
-parser without re-querying any model.
-
-### 4. Log residual streams for activation-vector analysis
-
-The `src/activation_analysis` package contains a Hugging Face forward-pass
-adapter adapted from the metageniuses extraction code. It registers forward
-hooks on selected transformer blocks and writes residual stream tensors plus
-prompt metadata for later activation-vector analysis.
-
-See `docs/forward_pass_plan.md` for the intended extraction contract.
-
-Example smoke run against local Gemma files:
+### Logging residual streams
 
 ```bash
 ./venv/bin/python scripts/log_residual_streams.py \
   --model-id models/gemma-3-4b-pt \
-  --layers 12,18 \
-  --prompt-version absolute \
+  --layers 18 \
   --activation-site resid_post \
   --token-mode nonpad \
-  --token-region-strategy auto \
   --include-token-regions scenario,decision_question \
   --storage-dtype float16 \
-  --batch-size 1 \
-  --limit 2 \
   --local-files-only \
-  --run-name gemma3_4b_smoke
+  --run-name gemma3_4b_layer18
 ```
 
-Outputs:
-
-- `prompts.jsonl` — prompt text and condition metadata.
-- `manifest.json` — model, layer, run, and shard metadata.
-- `activations/layer_XX/batch_*.npy` — float16 tensors by default, shaped
-  `[batch, sequence_length, d_model]`.
-- `activations/layer_XX/batch_*.jsonl` — prompt IDs and token IDs aligned to
-  each batch tensor.
-
-Validate a completed run before using it downstream:
-
-```bash
-./venv/bin/python scripts/validate_activation_run.py \
-  results/test/residual_streams/gemma3_4b_smoke
-```
-
-Inspect a validated run as a vector dataset. This only counts the vectors
-available for later analysis:
-
-```bash
-./venv/bin/python scripts/inspect_activation_dataset.py \
-  results/test/residual_streams/gemma3_4b_smoke \
-  --layers 12 \
-  --token-regions scenario,decision_question
-```
-
-Useful extraction options:
-
-- `--block-path model.layers` forces hook placement when automatic model
-  architecture detection is not enough.
-- `--device-map auto` lets Hugging Face shard larger cloud models across
-  available devices.
-- `--attn-implementation flash_attention_2` can be used on cloud images with
-  FlashAttention installed.
-- `--activation-site resid_post` records the current hook contract: residual
-  stream output after a selected transformer block. `block_output` is an alias
-  for the same current hook.
-- `--token-mode all|nonpad|final` chooses whether to save every padded token,
-  all non-padding tokens, or only the final non-padding token.
-- `--token-region-strategy auto` labels saved tokens as regions such as
-  `scenario`, `decision_question`, `response_instruction`, or
-  `processing_instruction` without filtering out the broader activation data.
-- `--include-token-regions scenario,decision_question` filters written activation
-  shards to only those region labels, reducing storage for SAE-focused runs.
-- `--storage-dtype float16|float32` controls saved tensor precision. The
-  default is `float16` to reduce local storage; downstream analysis can cast
-  vectors back to float32 when averaging or training.
-- `--results-csv results/results.csv` attaches condition-level behavioral
-  summaries to prompt metadata; use `--no-results-join` to skip this.
-- If `--output-dir` is omitted, the script creates a deterministic run
-  directory under `results/test/residual_streams/` unless `--output-dir` is provided.
-Use `results/test/residual_streams/` for disposable smoke runs and
-`results/final/residual_streams/` for current reference activation datasets.
-
-Activation-vector analysis outputs should go under
-`results/final/activation_vectors/`.
-
-Build and evaluate a first realization direction:
+### Building and evaluating the realization direction
 
 ```bash
 ./venv/bin/python scripts/build_activation_vectors.py \
@@ -429,127 +163,81 @@ Build and evaluate a first realization direction:
   --output-dir results/final/activation_vectors/realization_vector_v1_layer18/evaluation
 ```
 
-Run and summarize free-generated behavior outputs for the behavior-evaluation
-prompt split:
+Held-out readout results (Table 1 of the paper) are in:
+`results/final/activation_vectors/realization_vector_v1_layer18_direction_train_only/summary_tables/`
+
+## Stage 3: Activation steering
+
+A forward hook adds a scaled, normalized realization direction at layer 18 during Gemma generation. Positive scales push toward `realized_closed`; negative scales toward `paper_open`. All main steering results use the train-only direction.
 
 ```bash
-./venv/bin/python scripts/validate_behavior_prompts.py --fail-on-issues
-
-./venv/bin/python scripts/run_behavior_vector_eval.py \
+./venv/bin/python scripts/steer_realization_direction.py \
   --model-id models/gemma-3-4b-pt \
+  --direction results/final/activation_vectors/realization_vector_v1_layer18_direction_train_only/mean_direction.npy \
+  --scales -50 0 50 75 100 150 \
+  --layer 18 \
   --local-files-only \
-  --run-name gemma3_4b_behavior_v1 \
-  --output-dir results/test/activation_vectors/behavior_runs \
-  --max-new-tokens 32 \
-  --min-new-tokens 4
-
-./venv/bin/python scripts/reparse_behavior_vector_eval.py \
-  --input results/test/activation_vectors/behavior_runs/gemma3_4b_behavior_v1/behavior_eval.csv
-
-./venv/bin/python scripts/analyze_behavior_vector_eval.py \
-  --input results/test/activation_vectors/behavior_runs/gemma3_4b_behavior_v1/behavior_eval.csv \
-  --summary-output results/test/activation_vectors/behavior_runs/gemma3_4b_behavior_v1/behavior_eval_summary.json \
-  --pair-output results/test/activation_vectors/behavior_runs/gemma3_4b_behavior_v1/behavior_pair_deltas.csv
+  --run-name gemma3_4b_steering_v1
 ```
 
-This behavior pass uses free numeric generation. It does not force the model to
-choose from discrete wager/risk buckets, although prompt numbers can still act
-as anchors. Keep exploratory behavior-generation outputs under
-`results/test/activation_vectors/behavior_runs/`; they are ignored by git and
-should not be treated as final reference artifacts.
+The steering architecture is documented in [`docs/steering_architecture.md`](docs/steering_architecture.md).
 
-For OpenRouter instruction models, use chat prompting, one run directory per
-model, and API-level reasoning suppression for reasoning-capable models:
+## Reproducing paper figures and tables
 
 ```bash
-./venv/bin/python scripts/run_behavior_vector_eval.py \
-  --backend openrouter \
-  --model-id qwen/qwen3.5-397b-a17b \
-  --prompt-format chat \
-  --openrouter-reasoning-effort none \
-  --run-name qwen3_5_397b_a17b_behavior_probe \
-  --output-dir results/test/activation_vectors/behavior_runs
+./venv/bin/python scripts/build_report_figures.py
+./venv/bin/python scripts/build_behavioral_report_tables.py
+./venv/bin/python scripts/summarize_steering_report_tables.py
 ```
 
-Current local Gemma summary:
-
-- `648` behavior rows generated.
-- `523` valid wager/allocation rows after reparsing.
-- `518` valid risk rows after reparsing.
-- `226` complete valid paper/realized pairs.
-- Mean realized-minus-paper wager delta: `+13.96`.
-- Mean realized-minus-paper risk delta: `-0.03`.
-- Mean realized-minus-paper projection delta: `+149.14`.
-
-Interpretation: the representation result is promising, but free-generated
-behavior is not yet strong behavioral evidence. The next check before making a
-causal claim is steering with the existing Gemma realization direction.
-
-### 5. Archived SAE-first pass
-
-The earlier SAE-first branch of the interpretability work is preserved but is no
-longer the active research path:
-
-- configs: `configs/sae/archive/20260506_sae_first_pass/`
-- docs: `docs/archive/20260506_sae_first_pass/`
-- local outputs: `results/legacy/20260506_sae_first_pass/`
-- imported Gemma Scope weights: `external/archive/20260506_sae_first_pass/saes/`
-
-The reusable `src/sae/` package and inspection scripts remain in the repo in case
-we later use SAEs as a supporting analysis rather than the main method.
-
-### 6. Analyse results
+## Setup
 
 ```bash
-# Full analysis, pooled across all models
-./venv/bin/python scripts/analyze_realization_results.py results/results.csv
-
-# Separate analysis per model
-./venv/bin/python scripts/analyze_realization_results.py results/results.csv --per-model
-
-# Filter to one model or one prompt version
-./venv/bin/python scripts/analyze_realization_results.py results/results.csv --model openai/gpt-4o
-./venv/bin/python scripts/analyze_realization_results.py results/results.csv --prompt-version qualitative
+python -m venv venv
+./venv/bin/python -m pip install -e ".[dev]"
+make test
 ```
 
-The analysis script outputs OLS regression tables (condition dummies + model/temperature/prompt_version fixed effects, HC3 robust SEs) for both `log(wager)` and `risk_profile`, and structured hypothesis verdicts for H1a–H4 — mirroring Table 2 of Flepp et al. (2021).
-
-### 7. Monitor Block Progress (Live Dashboard)
+Common checks:
 
 ```bash
-# Launch local dashboard (default: http://127.0.0.1:8765)
-./venv/bin/python scripts/block_dashboard.py
-
-# Example for temp sweep phases (n=25 target per condition)
-./venv/bin/python scripts/block_dashboard.py --target-trials 25 --refresh-seconds 5
+make test      # regression tests
+make compile   # type-check
+make lint      # ruff
+make audit     # verify parsed columns match current parser (no API calls)
+make analyze   # run analysis on results/results.csv
 ```
 
-If you use a virtual environment, launch with that interpreter (for example `./venv/bin/python scripts/block_dashboard.py`) so the Analysis tab can run with the same installed dependencies.
+`make test` and `make audit` run against `results/sample_results.csv` (tracked) and do not require the full local dataset.
 
-The dashboard reads `results/blocks/*.csv` and shows:
-- per-block model/temperature/prompt version
-- per-condition min/max run counts
-- remaining runs to target
-- active/idle status based on recent file updates
+## Exploratory notebooks
 
-You can override values in the URL directly:
-- `?target=25`
-- `&refresh=5`
-- `&active_window=90`
+[`notebooks/realization_effect/`](notebooks/realization_effect/), numbered in reading order:
 
-### 8. Run Analysis From Dashboard
+- `01_experiment_design.ipynb` — condition structure and prompt design
+- `02_results_merge_and_cleaning.ipynb` — data cleaning and merging
+- `03_multi_model_pilot.ipynb` — early multi-model results
+- `04_large_sample_7000_rows.ipynb` — scale-up analysis
+- `05_large_sample_8000_rows.ipynb` — further scale-up
+- `06_gpt54mini_haiku_comparison.ipynb` — GPT-4.1-mini vs Haiku
+- `07_kimi_grok_comparison.ipynb` — Kimi vs Grok
 
-Open the Analysis tab at:
-- `http://127.0.0.1:8765/analyze`
+## Citation
 
-From that page you can:
-- select any `results/**/*.csv` dataset
-- optionally filter by `model` and `prompt_version`
-- toggle `--per-model`
-- choose robust SE type (`HC0`–`HC3`)
+```bibtex
+@article{walsh2026representation,
+  title   = {Representation Without Control: Testing the Realization Effect in Language Models},
+  author  = {Walsh, Ciar{\'a}n and Barkett, Emilio},
+  year    = {2026},
+  note    = {Supervised Program for Alignment Research, Spring 2026}
+}
+```
 
-Click **Run Analysis** to execute the analysis wrapper on demand and view output inline.
+## References
 
-## Reference
-
-Flepp, R., Meier, P., & Franck, E. (2021). The effect of paper outcomes versus realized outcomes on subsequent risk-taking: Field evidence from casino gambling. *Organizational Behavior and Human Decision Processes*, 165, 45–55. https://doi.org/10.1016/j.obhdp.2021.04.003
+- Flepp, R., Meier, P., & Franck, E. (2021). The effect of paper outcomes versus realized outcomes on subsequent risk-taking. *OBHDP*, 165, 45–55.
+- Imas, A. (2016). The realization effect: Risk-taking after realized versus paper losses. *AER*, 106(8), 2086–2109.
+- Merkle, C., Müller-Dethard, J., & Weber, M. (2021). Closing a mental account: The realization effect for gains and losses. *Experimental Economics*, 24(1), 303–329.
+- Turner et al. (2023). Steering language models with activation engineering. *arXiv:2308.10248*.
+- Zou et al. (2023). Representation engineering: A top-down approach to AI transparency. *arXiv:2310.01405*.
+- Park, K., Choe, Y. J., & Veitch, V. (2024). The linear representation hypothesis and the geometry of large language models. *ICML 2024*.
