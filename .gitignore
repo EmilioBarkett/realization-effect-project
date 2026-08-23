@@ -42,6 +42,7 @@ results/final/**
 !results/final/sae/
 !results/final/sae/README.md
 results/final/activation_vectors/behavior_runs/**
+results/benchmark/*/*/*/raw/
 data/interpretability/activations/
 data/interpretability/sae_runs/
 

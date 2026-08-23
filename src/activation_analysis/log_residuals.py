@@ -12,8 +12,6 @@ from typing import Any
 
 import numpy as np
 
-from realization_effect.runner import build_prompt, load_conditions
-
 from .emotion_probes import load_emotion_probe_records
 from .residual_streams import BatchResiduals, ResidualStreamLogger, SUPPORTED_ACTIVATION_SITES
 
@@ -58,42 +56,13 @@ def _load_prompt_records(args: argparse.Namespace) -> list[PromptRecord]:
             for record in load_emotion_probe_records(Path(args.emotion_config))
         ]
 
-    behavioral_summaries = _load_behavioral_summaries(
-        Path(args.results_csv),
-        prompt_version=args.prompt_version,
-        enabled=not args.no_results_join,
-    )
     if args.prompt_csv:
         return _load_prompt_csv(
             Path(args.prompt_csv),
             args.prompt_column,
             args.id_column,
-            behavioral_summaries=behavioral_summaries,
         )
-
-    conditions = load_conditions(Path(args.conditions_csv))
-    records: list[PromptRecord] = []
-    for index, condition in enumerate(conditions):
-        condition_name = str(condition.get("condition") or f"condition_{index:05d}")
-        metadata = {
-            **condition,
-            "prompt_version": args.prompt_version,
-        }
-        if condition_name in behavioral_summaries:
-            metadata["behavioral_results"] = behavioral_summaries[condition_name]
-        prompt_text = build_prompt(
-            outcome_type=str(condition["outcome_type"]),
-            amount=int(condition["amount"]),
-            prompt_version=args.prompt_version,
-        )
-        records.append(
-            PromptRecord(
-                prompt_id=condition_name,
-                prompt_text=prompt_text,
-                metadata=metadata,
-            )
-        )
-    return records
+    raise ValueError("Provide --prompt-csv or --emotion-config; activation logging does not generate prompts inline.")
 
 
 def _with_token_regions(record: PromptRecord, strategy: str) -> PromptRecord:
@@ -163,9 +132,7 @@ def _load_prompt_csv(
     path: Path,
     prompt_column: str,
     id_column: str | None,
-    behavioral_summaries: dict[str, dict[str, Any]] | None = None,
 ) -> list[PromptRecord]:
-    behavioral_summaries = behavioral_summaries or {}
     records: list[PromptRecord] = []
     with path.open("r", newline="", encoding="utf-8") as handle:
         reader = csv.DictReader(handle)
@@ -175,9 +142,6 @@ def _load_prompt_csv(
             prompt_id = row.get(id_column or "") or row.get("prompt_id") or f"prompt_{index:05d}"
             prompt_text = row[prompt_column]
             metadata = {key: value for key, value in row.items() if key != prompt_column}
-            condition = str(metadata.get("condition", "")).strip()
-            if condition in behavioral_summaries:
-                metadata["behavioral_results"] = behavioral_summaries[condition]
             records.append(
                 PromptRecord(
                     prompt_id=prompt_id,
@@ -188,81 +152,6 @@ def _load_prompt_csv(
     if not records:
         raise ValueError(f"No prompt rows found in {path}.")
     return records
-
-
-def _load_behavioral_summaries(
-    path: Path,
-    *,
-    prompt_version: str,
-    enabled: bool,
-) -> dict[str, dict[str, Any]]:
-    if not enabled or not path.exists():
-        return {}
-
-    groups: dict[str, dict[str, Any]] = {}
-    with path.open("r", newline="", encoding="utf-8") as handle:
-        reader = csv.DictReader(handle)
-        required = {"condition", "prompt_version", "parsed_wager", "risk_profile", "model"}
-        if reader.fieldnames is None or not required.issubset(set(reader.fieldnames)):
-            return {}
-
-        for row in reader:
-            if str(row.get("prompt_version", "")).strip() != prompt_version:
-                continue
-            condition = str(row.get("condition", "")).strip()
-            if not condition:
-                continue
-            group = groups.setdefault(
-                condition,
-                {
-                    "condition": condition,
-                    "prompt_version": prompt_version,
-                    "rows": 0,
-                    "valid_wager_rows": 0,
-                    "wager_sum": 0.0,
-                    "log_wager_sum": 0.0,
-                    "valid_risk_rows": 0,
-                    "risk_profile_sum": 0.0,
-                    "models": set(),
-                },
-            )
-            group["rows"] += 1
-            model = str(row.get("model", "")).strip()
-            if model:
-                group["models"].add(model)
-            try:
-                wager = float(row.get("parsed_wager", ""))
-                log_wager = float(row.get("log_wager", ""))
-            except ValueError:
-                pass
-            else:
-                group["valid_wager_rows"] += 1
-                group["wager_sum"] += wager
-                group["log_wager_sum"] += log_wager
-            try:
-                risk_profile = float(row.get("risk_profile", ""))
-            except ValueError:
-                pass
-            else:
-                group["valid_risk_rows"] += 1
-                group["risk_profile_sum"] += risk_profile
-
-    summaries: dict[str, dict[str, Any]] = {}
-    for condition, group in groups.items():
-        valid_wager_rows = int(group["valid_wager_rows"])
-        valid_risk_rows = int(group["valid_risk_rows"])
-        summaries[condition] = {
-            "condition": condition,
-            "prompt_version": prompt_version,
-            "rows": int(group["rows"]),
-            "valid_wager_rows": valid_wager_rows,
-            "mean_wager": group["wager_sum"] / valid_wager_rows if valid_wager_rows else None,
-            "mean_log_wager": group["log_wager_sum"] / valid_wager_rows if valid_wager_rows else None,
-            "valid_risk_rows": valid_risk_rows,
-            "mean_risk_profile": group["risk_profile_sum"] / valid_risk_rows if valid_risk_rows else None,
-            "models": sorted(group["models"]),
-        }
-    return summaries
 
 
 def _batched(records: list[PromptRecord], batch_size: int):
@@ -392,11 +281,8 @@ def _write_manifest(
             "resolved_device": getattr(logger, "resolved_device", logger.device),
         },
         "input": {
-            "conditions_csv": args.conditions_csv,
             "emotion_config": args.emotion_config,
             "prompt_csv": args.prompt_csv,
-            "results_csv": None if args.no_results_join else args.results_csv,
-            "prompt_version": args.prompt_version,
             "prompt_column": args.prompt_column,
             "id_column": args.id_column,
             "limit": args.limit,
@@ -422,9 +308,7 @@ def _sanitize_run_part(value: str) -> str:
 
 def _build_run_name(args: argparse.Namespace, records: list[PromptRecord]) -> str:
     layers = "-".join(str(layer) for layer in args.layers)
-    prompt_source = args.prompt_csv or args.conditions_csv
-    if args.emotion_config:
-        prompt_source = args.emotion_config
+    prompt_source = args.prompt_csv or args.emotion_config or "prompt-records"
     fingerprint_payload = {
         "model_id": args.model_id,
         "tokenizer_id": args.tokenizer_id,
@@ -436,7 +320,6 @@ def _build_run_name(args: argparse.Namespace, records: list[PromptRecord]) -> st
         "storage_dtype": args.storage_dtype,
         "include_token_regions": sorted(args.include_token_regions) if args.include_token_regions else None,
         "prompt_source": prompt_source,
-        "prompt_version": args.prompt_version,
         "prompt_ids": [record.prompt_id for record in records],
         "prompt_text_sha256": hashlib.sha256(
             "\n".join(record.prompt_text for record in records).encode("utf-8")
@@ -448,8 +331,10 @@ def _build_run_name(args: argparse.Namespace, records: list[PromptRecord]) -> st
     model_name = _sanitize_run_part(str(args.model_id).rstrip("/").split("/")[-1])
     if args.emotion_config:
         prompt_name = _sanitize_run_part(Path(args.emotion_config).stem)
+    elif args.prompt_csv:
+        prompt_name = _sanitize_run_part(Path(args.prompt_csv).stem)
     else:
-        prompt_name = _sanitize_run_part(args.prompt_version if not args.prompt_csv else Path(args.prompt_csv).stem)
+        prompt_name = "prompt-records"
     return (
         f"{model_name}__prompt-{prompt_name}__layers-{layers}"
         f"__site-{args.activation_site}__tokens-{args.token_mode}"
@@ -469,12 +354,8 @@ def main() -> None:
     parser.add_argument("--run-name", default=None, help="Optional deterministic run directory name.")
     parser.add_argument("--overwrite", action="store_true", help="Allow writing into a non-empty output directory.")
     parser.add_argument("--layers", type=_parse_layers, required=True, help="Comma-separated layers, 1-based")
-    parser.add_argument("--conditions-csv", default="configs/realization_effect/conditions.csv")
-    parser.add_argument("--results-csv", default="results/results.csv", help="Optional behavioral results CSV for condition-level metadata joins.")
-    parser.add_argument("--no-results-join", action="store_true", help="Do not attach behavioral result summaries to prompt metadata.")
-    parser.add_argument("--emotion-config", help="Emotion probe config JSON; overrides --conditions-csv and --prompt-csv.")
-    parser.add_argument("--prompt-version", default="absolute", choices=["absolute", "balance", "qualitative"])
-    parser.add_argument("--prompt-csv", help="CSV with a prompt text column; overrides --conditions-csv")
+    parser.add_argument("--emotion-config", help="Structured probe config JSON; mutually exclusive with --prompt-csv.")
+    parser.add_argument("--prompt-csv", help="Frozen CSV with a prompt text column and optional metadata.")
     parser.add_argument("--prompt-column", default="prompt_text")
     parser.add_argument("--id-column", default=None)
     parser.add_argument("--batch-size", type=int, default=2)
@@ -527,6 +408,8 @@ def main() -> None:
         raise ValueError("--batch-size must be >= 1.")
     if args.limit is not None and args.limit < 1:
         raise ValueError("--limit must be >= 1 when provided.")
+    if bool(args.prompt_csv) == bool(args.emotion_config):
+        raise ValueError("Provide exactly one of --prompt-csv or --emotion-config.")
 
     records = _load_prompt_records(args)
     if args.limit is not None:

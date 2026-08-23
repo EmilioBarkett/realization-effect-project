@@ -11,7 +11,6 @@ import pytest
 from activation_analysis.log_residuals import (
     _batched,
     _build_run_name,
-    _load_behavioral_summaries,
     _load_prompt_csv,
     _parse_layers,
     _with_token_regions,
@@ -35,11 +34,6 @@ from activation_analysis.openrouter_prompt_generation import (
     validate_unique_prompt_ids,
 )
 from activation_analysis.residual_streams import BatchResiduals, ResidualStreamLogger
-from realization_effect.runner import (
-    DEFAULT_GENERATION_OUTPUT,
-    GENERATION_PROMPT_VERSION,
-    build_prompt,
-)
 
 
 def test_parse_layers_sorts_deduplicates_and_rejects_invalid() -> None:
@@ -69,34 +63,6 @@ def test_load_prompt_csv_preserves_prompt_ids_and_metadata(tmp_path: Path) -> No
             metadata={"prompt_id": "paper_even", "condition": "paper_even"},
         )
     ]
-
-
-def test_load_behavioral_summaries_groups_results_by_condition(tmp_path: Path) -> None:
-    results_csv = tmp_path / "results.csv"
-    results_csv.write_text(
-        "condition,prompt_version,parsed_wager,log_wager,risk_profile,model\n"
-        "paper_even,absolute,100,4.605,2,model-a\n"
-        "paper_even,absolute,200,5.298,4,model-b\n"
-        "paper_even,balance,900,6.802,5,model-c\n",
-        encoding="utf-8",
-    )
-
-    summaries = _load_behavioral_summaries(results_csv, prompt_version="absolute", enabled=True)
-
-    assert summaries["paper_even"]["rows"] == 2
-    assert summaries["paper_even"]["mean_wager"] == 150
-    assert summaries["paper_even"]["mean_risk_profile"] == 3
-    assert summaries["paper_even"]["models"] == ["model-a", "model-b"]
-
-
-def test_generation_prompt_version_is_reserved_for_prompt_generation() -> None:
-    assert GENERATION_PROMPT_VERSION == "generation"
-    assert DEFAULT_GENERATION_OUTPUT == Path(
-        "experiments/activation_analysis/prompts/activation_vectors/realization_vector_v1.csv"
-    )
-
-    with pytest.raises(ValueError, match="Unsupported prompt_version"):
-        build_prompt("paper", 0, prompt_version=GENERATION_PROMPT_VERSION)
 
 
 def test_with_token_regions_labels_emotion_prompt_spans() -> None:
@@ -295,12 +261,8 @@ def test_write_manifest_records_extraction_contract(tmp_path: Path) -> None:
         local_files_only=True,
         dtype="float32",
         device="cpu",
-        conditions_csv="configs/realization_effect/conditions.csv",
         emotion_config=None,
-        prompt_csv=None,
-        results_csv="results/results.csv",
-        no_results_join=False,
-        prompt_version="absolute",
+        prompt_csv="experiments/activation_analysis/prompts/activation_vectors/realization_vector_v1.csv",
         prompt_column="prompt_text",
         id_column=None,
         limit=3,
@@ -333,7 +295,9 @@ def test_write_manifest_records_extraction_contract(tmp_path: Path) -> None:
     assert manifest["extraction"]["include_token_regions"] is None
     assert manifest["extraction"]["storage_dtype"] == "float16"
     assert manifest["extraction"]["block_path"] == "model.layers"
-    assert manifest["input"]["results_csv"] == "results/results.csv"
+    assert manifest["input"]["prompt_csv"] == (
+        "experiments/activation_analysis/prompts/activation_vectors/realization_vector_v1.csv"
+    )
     assert manifest["stats"] == {"total_prompts": 3, "total_shards": 2}
 
 
@@ -374,12 +338,8 @@ def test_activation_store_validates_written_run(tmp_path: Path) -> None:
         local_files_only=True,
         dtype="float32",
         device="cpu",
-        conditions_csv="configs/realization_effect/conditions.csv",
         emotion_config=None,
-        prompt_csv=None,
-        results_csv="results/results.csv",
-        no_results_join=False,
-        prompt_version="absolute",
+        prompt_csv="experiments/activation_analysis/prompts/activation_vectors/realization_vector_v1.csv",
         prompt_column="prompt_text",
         id_column=None,
         limit=1,
@@ -420,16 +380,14 @@ def test_build_run_name_is_deterministic() -> None:
         token_region_strategy="auto",
         include_token_regions=None,
         storage_dtype="float16",
-        prompt_csv=None,
+        prompt_csv="experiments/activation_analysis/prompts/activation_vectors/realization_vector_v1.csv",
         emotion_config=None,
-        conditions_csv="configs/realization_effect/conditions.csv",
-        prompt_version="absolute",
     )
     records = [PromptRecord("paper_even", "Prompt text", {})]
 
     assert _build_run_name(args, records) == _build_run_name(args, records)
     assert _build_run_name(args, records).startswith(
-        "tiny-model__prompt-absolute__layers-1-3__site-resid_post__tokens-nonpad__store-float16__"
+        "tiny-model__prompt-realization_vector_v1__layers-1-3__site-resid_post__tokens-nonpad__store-float16__"
     )
 
 
@@ -446,8 +404,6 @@ def test_build_run_name_uses_emotion_config_when_present() -> None:
         storage_dtype="float16",
         prompt_csv=None,
         emotion_config="configs/activation_analysis/emotions_initial.json",
-        conditions_csv="configs/realization_effect/conditions.csv",
-        prompt_version="absolute",
     )
     records = [PromptRecord("regret__positive", "Prompt text", {})]
 
@@ -1126,7 +1082,7 @@ def test_residual_stream_logger_validates_batch_inputs_without_model_init() -> N
 
 
 def test_residual_stream_logger_smoke_extracts_from_fake_torch_model() -> None:
-    import torch
+    torch = pytest.importorskip("torch")
 
     class FakeTokenizer:
         pad_token_id = 0
@@ -1201,7 +1157,7 @@ def test_residual_stream_logger_smoke_extracts_from_fake_torch_model() -> None:
 
 
 def test_residual_stream_logger_final_token_mode() -> None:
-    import torch
+    torch = pytest.importorskip("torch")
 
     logger = object.__new__(ResidualStreamLogger)
     logger._torch = torch

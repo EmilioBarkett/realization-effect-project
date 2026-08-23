@@ -8,7 +8,7 @@ from typing import Any, Iterable
 
 import numpy as np
 
-from sae.dataset import iter_activation_vectors
+from .activation_store import iter_activation_vectors
 
 
 @dataclass(frozen=True)
