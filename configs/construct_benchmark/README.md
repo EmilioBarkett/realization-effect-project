@@ -18,8 +18,9 @@ dropped.
 Each Wave 1 generation plan freezes the probe-to-downstream composition:
 probes are paired and precede the independent behavior task, only the induced
 state may carry over, probe surface text does not carry over, and behavior and
-steering pools are separate. Activation-state orchestration remains a later
-measurement implementation step.
+steering pools are separate. Steering execution is now plan-driven; prompt-only
+probe-to-downstream behavior composition still remains to be implemented and
+validated on a representative model.
 
 The run configuration is intentionally multi-construct. A Wave 1 run loads
 one combined prompt inventory and performs one activation logging pass. The

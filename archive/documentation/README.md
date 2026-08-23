@@ -17,4 +17,5 @@ The current direction is defined by the root-level documents:
 3. `SCIENTIFIC_PROTOCOL.md` — current experimental protocol.
 4. `PROJECT_ARCHITECTURE.md` — current implementation boundary and roadmap.
 5. `AGENTS.md` — instructions for coding agents.
-6. `CHAT_HANDOFF.md` — concise continuation brief.
+6. `agents/` — maintainer handoffs and execution notes; these are operational
+   and do not override the root scientific documents.

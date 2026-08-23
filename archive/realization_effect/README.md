@@ -15,6 +15,7 @@ active generalized benchmark pipeline.
   activation behavior evaluation, report construction, and steering adapters.
 - `tests/`: tests that exercise the archived behavioral package or its
   realization-specific adapters.
+- `reports/`: historical findings and the earlier SPAR report outline.
 - `run_dual_experiment.sh`: the original multi-run launcher.
 
 The generated behavioral results, model weights, raw generations, and large

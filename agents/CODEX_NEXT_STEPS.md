@@ -6,28 +6,29 @@ This document gives the next Codex session a concrete implementation sequence
 for the construct bank and synthetic-prompt phase agreed with the user.
 
 `PROJECT_DIRECTION.md` remains the canonical scientific authority. The
-16-construct bank below is the user's selected next direction, but it has not
-yet been synchronized into the canonical direction and protocol documents.
-Before implementing the expanded bank, update those documents deliberately and
-retain the current claim limits: two constructs validate engineering, four
-constructs support a descriptive pilot, and a larger matrix is required for
-out-of-sample representation-profile prediction.
+16-construct bank below is synchronized into the canonical direction and
+protocol documents. Retain the current claim limits: two constructs validate
+engineering, four constructs support a descriptive pilot, and a larger matrix
+is required for out-of-sample representation-profile prediction.
 
 ## Current repository state
 
 At the time of this handoff:
 
-- `main` is clean and synchronized with `origin/main`;
+- the current measurement worktree contains uncommitted implementation changes;
 - the multi-construct control plane is implemented under
   `src/construct_benchmark/`;
 - construct, run, analysis, prompt, split, and provenance validation exists;
 - train-only direction construction and construct isolation are enforced;
-- `make check` passes under the Python 3.11 `venv` with 48 tests passing and 2
+- `make check` passes under the Python 3.11 `venv` with 70 tests passing and 2
   optional PyTorch tests skipped;
 - no new benchmark prompt dataset has been generated;
 - no API call or model download was made during the planning review;
-- continuous projection margins, calibration, behavioral adapters, and the
-  end-to-end steering measurement layer remain unimplemented.
+- projection margins, calibration, parsing, primary state-transfer scoring,
+  control-direction generation, timing-aware injection, and local/RunPod
+  planning/execution entrypoints are fixture-tested;
+- no representative real-model activation or steering run has validated that
+  measurement code, and manipulation/uncertainty checks remain incomplete.
 
 Always re-check these claims:
 
@@ -58,7 +59,7 @@ completed for Wave 1:
   response-format, and probe/downstream independence metadata;
 - the no-API Wave 1 dry run expands to 48 requests and 144 expected rows with
   token estimates;
-- `make check` passes with 57 tests passing and 2 optional PyTorch tests
+- `make check` passes with 70 tests passing and 2 optional PyTorch tests
   skipped.
 
 No API call, model download, or benchmark dataset generation occurred. The

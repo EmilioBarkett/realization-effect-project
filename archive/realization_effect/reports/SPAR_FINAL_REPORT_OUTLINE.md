@@ -169,7 +169,7 @@ Report:
 - After cleaning and replication, the pattern did not match the original human realization-effect predictions in a stable way.
 - The strongest broad finding is not "LLMs reproduce the realization effect"; it is "LLMs respond systematically to outcome framing and magnitude, but not according to the intended mental-accounting mechanism."
 
-Use numbers from `reports/current_findings.md`:
+Use numbers from `current_findings.md`:
 - Canonical rows: 54,450.
 - Valid wager rows: 53,547.
 - Valid risk-profile rows: 49,351.

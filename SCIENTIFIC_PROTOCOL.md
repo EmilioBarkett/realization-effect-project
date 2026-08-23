@@ -227,8 +227,13 @@ implementation:
 - the 16-construct registry, four specified Wave 1 construct definitions,
   four generation plans, generic canonical-record generation adapter, and
   generalized leakage-audit metadata are implemented;
-- projection-margin, neutral/within-cell calibration, state-transfer adapters,
-  and manipulation-check orchestration do not exist;
+- train-only direction estimation, projection-margin measurement,
+  neutral/within-condition calibration, strict Wave 1 parsing, directed
+  state-transfer scoring, control-direction generation, and timing-aware
+  injection are implemented and fixture-tested;
+- real-model execution, prompt-only behavior composition, uncertainty,
+  downstream manipulation checks, and correspondence analysis remain
+  unvalidated or unimplemented end to end;
 - the tracked activation iterator now lives in
   `activation_analysis.activation_store` and passes the clean Python 3.11
   `make check` suite; real-run validation remains pending;
@@ -245,16 +250,16 @@ Before measurement implementation:
    existing activation-store manifests;
 3. keep the active activation tests green and add
    iterator/filtering/region/memory-map regression tests;
-4. implement the measurement adapters: projection margins, calibration,
-   parsing, manipulation checks, and downstream persistence.
+4. validate the implemented projection, calibration, parsing, and steering
+   adapters, then add manipulation checks and downstream persistence.
 
 Then implement in this order:
 
-1. train-only readout for the Wave 1 construct inventories;
-2. continuous held-out readout, neutral/within-cell dose calibration, and
-   outcome-specific effect adapters;
-3. explicit intervention timing, independent-task parsing, output-accessibility
-   and downstream-persistence checks;
+1. run the implemented train-only readout on the frozen Wave 1 inventories;
+2. validate held-out readout, neutral/within-condition calibration, and
+   outcome-specific effect adapters on a representative model;
+3. execute the implemented timing and parsing paths, then add
+   output-accessibility and downstream-persistence checks;
 4. precision simulation and expansion decision;
 5. second model family before general conclusions;
 6. Waves 2–4 only after the Wave 1 measurement and construct gates pass.

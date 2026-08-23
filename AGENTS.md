@@ -44,16 +44,24 @@ direction.
 The project is currently in scientific protocol development and benchmark
 infrastructure implementation. The shared multi-construct control plane,
 16-construct registry, Wave 1 construct specifications, generic generation
-adapter, generation plans, and no-API dry-run path are implemented; the
-end-to-end measurement layer is not.
+adapter, generation plans, no-API dry-run path, and environment-independent
+measurement core are implemented; real-model end-to-end validation is not.
 
 Do not describe the following as completed:
 
-- continuous projection-margin analysis;
-- neutral/within-cell dose calibration;
-- generic state-transfer metrics;
+- real-run projection-margin results;
+- real-run neutral/within-condition calibration results;
+- a validated local or RunPod steering run;
 - downstream manipulation-check orchestration;
 - the evidence-diagnosticity experiment.
+
+Fixture-tested code now covers train-only directions, held-out standardized
+projection margins, neutral/within-condition calibration, strict Wave 1 output
+parsing, directed state-transfer scoring, deterministic shuffled/random
+controls, timing-aware injection, and readout/steering planning CLIs. These are
+implemented code, not empirical results. PyTorch, Transformers, a concrete
+model revision, model weights, and a representative activation run remain
+absent from the base development environment.
 
 The original realization behavioral pipeline is archived under
 [`archive/realization_effect/`](archive/realization_effect/). The active
@@ -79,6 +87,8 @@ construct-specific paired prompts.
 - `archive/sae/`: archived SAE-training and feature-analysis tests; not active
   test scope.
 - `archive/documentation/`: archived planning documents.
+- `agents/`: maintainer handoffs and local/GPU execution notes; these do not
+  override the root scientific documents.
 - `configs/construct_benchmark/`: versioned construct definitions, run
   configurations, analysis specifications, the 16-entry registry, and Wave 1
   generation plans.

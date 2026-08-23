@@ -182,8 +182,15 @@ benchmark infrastructure implementation**:
   partial inventories as complete;
 - the prompt-overlap audit reports construct, split, family, role, template,
   response-format, and probe/downstream independence metadata;
-- projection-margin, neutral/within-cell dose calibration, state-transfer
-  adapters, and manipulation-check orchestration are not yet implemented;
+- fixture-tested train-only directions, continuous held-out projection margins,
+  neutral/within-condition calibration, strict Wave 1 output parsing, directed
+  state-transfer scoring, deterministic steering controls, and timing-aware
+  injection are implemented;
+- readout, steering-plan, environment-check, remote execution, and scoring CLIs
+  now separate frozen scientific decisions from GPU/model execution;
+- prompt-only behavior composition, real-model validation, downstream
+  manipulation checks, uncertainty orchestration, and correspondence analysis
+  are not yet implemented end to end;
 - the active vector iterator now lives in `activation_analysis.activation_store`
   and passes the active Python 3.11 `make check` suite; end-to-end validation
   against a real activation run remains pending;
@@ -200,9 +207,9 @@ benchmark infrastructure implementation**:
    resulting inventories to the canonical combined activation manifest.
 2. Add a manifest-backed activation-run smoke fixture when a representative
    local run is available, while preserving the passing clean-install checks.
-3. Implement continuous held-out projection margins and neutral/within-cell
-   dose calibration.
-4. Build the four-construct Wave 1 measurement slice, beginning with the
+3. Validate continuous held-out projection margins and neutral/within-condition
+   dose calibration on a representative manifest-backed activation run.
+4. Complete the four-construct Wave 1 measurement slice, beginning with the
    realization/evidence engineering adapters and preserving source-reliability
    and persistence namespaces.
 5. Add explicit intervention timing, output-accessibility, downstream-
@@ -211,5 +218,5 @@ benchmark infrastructure implementation**:
    predictors or advancing to Waves 2–4.
 
 Until these gates are passed, documentation should describe the benchmark as
-an implemented control plane with an unimplemented end-to-end experimental
-measurement layer.
+an implemented control plane and fixture-tested measurement core without a
+validated end-to-end experimental run.

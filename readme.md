@@ -9,11 +9,15 @@ models.
 The project is currently in **scientific protocol development and benchmark
 infrastructure implementation**. The shared multi-construct control plane is
 implemented, but no new benchmark dataset has been collected and the
-end-to-end measurement layer is still under construction.
+end-to-end measurement run is still under construction. The environment-
+independent numerical measurement core is implemented and fixture-tested.
 
-The repository cleanup is mostly complete: the original realization-effect
-behavioral pipeline is archived, while the activation-analysis prompt
-generator and activation primitives remain active.
+The original realization-effect behavioral pipeline is archived, while the
+activation-analysis prompt generator and activation primitives remain active.
+
+Maintainer-only GPU execution notes and continuation handoffs live under
+[`agents/`](agents/); they are not part of the scientific claims of the
+project.
 
 ## The research question
 
@@ -117,12 +121,19 @@ Implemented control plane:
   response-format, and probe/downstream independence metadata;
 - a four-construct Wave 1 smoke configuration path without pooling directions;
 
-Not implemented yet:
+Implemented and fixture-tested, but not yet validated on a real model:
 
-- continuous projection-margin analysis;
-- neutral/within-cell dose calibration;
-- generic state-transfer and manipulation-check adapters;
-- the end-to-end Wave 1 measurement experiments and API-generated prompt data.
+- train-only directions and continuous held-out projection margins;
+- neutral/within-condition dose calibration;
+- strict Wave 1 parsing and directed state-transfer scoring;
+- deterministic shuffled/random controls and timing-aware residual injection;
+- local/RunPod readout, steering-plan, execution, and scoring entrypoints.
+
+Still not implemented or validated end to end:
+
+- prompt-only behavior composition and uncertainty orchestration;
+- output-accessibility, downstream-persistence, and collateral manipulation checks;
+- the Wave 1 experiments and API-generated prompt data.
 
 The current generation artifact is only a no-API dry-run summary under
 `results/test/construct_benchmark/`; no external model call or model download
@@ -170,9 +181,7 @@ planning documents are indexed in
 - [`PROJECT_ARCHITECTURE.md`](PROJECT_ARCHITECTURE.md) — current engineering
   architecture and implementation roadmap;
 - [`AGENTS.md`](AGENTS.md) — instructions and invariants for coding agents;
-- [`CHAT_HANDOFF.md`](CHAT_HANDOFF.md) — concise continuation brief.
-- [`CODEX_NEXT_STEPS.md`](CODEX_NEXT_STEPS.md) — selected construct bank,
-  execution waves, and synthetic-prompt implementation gates.
+- [`agents/`](agents/) — maintainer handoffs and GPU execution notes.
 
 ## Development
 

@@ -344,7 +344,7 @@ The primary estimator should remain close to the current implementation:
 This makes the main readout axis identical to the main steering axis.
 
 The existing implementation is in
-[`src/activation_analysis/vector_analysis.py`](src/activation_analysis/vector_analysis.py).
+[`src/activation_analysis/vector_analysis.py`](../../../src/activation_analysis/vector_analysis.py).
 Its `build_pair_directions` function is the starting point, but the new
 pipeline must make the positive/negative roles construct-configurable.
 
@@ -447,7 +447,7 @@ steps are modified. `all` or a registered decision-token region can be a
 secondary robustness condition.
 
 The current hooks support both modes in
-[`src/activation_analysis/steering.py`](src/activation_analysis/steering.py).
+[`src/activation_analysis/steering.py`](../../../src/activation_analysis/steering.py).
 The new run manifest must record the mode explicitly.
 
 ### 9.3 Required intervention conditions

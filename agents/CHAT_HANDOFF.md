@@ -4,23 +4,23 @@
 
 This repository is in scientific protocol development and benchmark
 infrastructure implementation. The shared multi-construct control plane is
-implemented; no new construct data have been collected and the end-to-end
-measurement layer is not complete.
+implemented; the numerical measurement core is fixture-tested, no new
+construct data have been collected, and no real-model end-to-end run exists.
 
 ## Read in this order
 
-1. [`PROJECT_DIRECTION.md`](PROJECT_DIRECTION.md) — canonical scientific scope;
-2. [`BENCHMARK_RESEARCH_DIRECTION.md`](BENCHMARK_RESEARCH_DIRECTION.md) —
+1. [`PROJECT_DIRECTION.md`](../PROJECT_DIRECTION.md) — canonical scientific scope;
+2. [`BENCHMARK_RESEARCH_DIRECTION.md`](../BENCHMARK_RESEARCH_DIRECTION.md) —
    detailed representation–steerability correspondence proposal;
-3. [`BENCHMARK_REVIEW_HANDOFF.md`](BENCHMARK_REVIEW_HANDOFF.md) — brief for an
+3. [`BENCHMARK_REVIEW_HANDOFF.md`](../BENCHMARK_REVIEW_HANDOFF.md) — brief for an
    independent reviewer;
-4. [`SCIENTIFIC_PROTOCOL.md`](SCIENTIFIC_PROTOCOL.md) — current experimental
+4. [`SCIENTIFIC_PROTOCOL.md`](../SCIENTIFIC_PROTOCOL.md) — current experimental
    contract;
-5. [`PROJECT_ARCHITECTURE.md`](PROJECT_ARCHITECTURE.md) — engineering target;
-6. [`AGENTS.md`](AGENTS.md) — operating rules;
+5. [`PROJECT_ARCHITECTURE.md`](../PROJECT_ARCHITECTURE.md) — engineering target;
+6. [`AGENTS.md`](../AGENTS.md) — operating rules;
 7. [`CODEX_NEXT_STEPS.md`](CODEX_NEXT_STEPS.md) — selected construct bank and
    synthetic-prompt implementation handoff;
-8. [`readme.md`](readme.md) — human-facing overview.
+8. [`readme.md`](../readme.md) — human-facing overview.
 
 ## Current scientific direction
 
@@ -68,9 +68,11 @@ Archived:
 
 ## Known blockers
 
-- Projection-margin analysis, neutral/within-cell dose calibration,
-  outcome-specific state-transfer adapters, and manipulation checks do not
-  exist.
+- Projection-margin analysis, neutral/within-condition calibration, strict
+  Wave 1 parsing, primary state-transfer scoring, deterministic steering
+  controls, and timing-aware injection are implemented and fixture-tested.
+- Prompt-only behavior composition, bootstrap uncertainty, output-accessibility,
+  downstream-persistence, collateral checks, and real-model validation remain.
 - The 16-entry registry, four specified Wave 1 construct specs, four
   generation plans, generic canonical-record generation adapter, and
   generalized overlap audit are now implemented.
@@ -95,12 +97,12 @@ Archived:
    against its manifest and shards.
 3. Connect the approved canonical Wave 1 inventory to activation logging while
    keeping construct namespaces intact.
-4. Keep the active iterator, filtering, region, and memory-map regression
-   tests green while implementing held-out readout and calibration.
-5. Build the Wave 1 measurement slice, beginning with realization/evidence task
-   adapters and retaining source-reliability/persistence cells.
-6. Add explicit intervention timing, outcome-specific parsing, output
-   accessibility, downstream persistence, and manipulation checks.
+4. Run the implemented readout and calibration CLIs against that activation
+   fixture and verify the frozen hashes and margins.
+5. Execute the timing-aware steering runner on a tiny realization/evidence GPU
+   fixture before expanding to all Wave 1 cells.
+6. Add prompt-only behavior composition, uncertainty, output accessibility,
+   downstream persistence, and manipulation checks.
 7. Run the precision simulation before advancing to Waves 2–4 or fitting full
    representation-profile predictors.
 
