@@ -21,6 +21,14 @@ FIELDNAMES = [
     "reference_prompt_id",
     "candidate_split",
     "reference_split",
+    "candidate_construct_id",
+    "reference_construct_id",
+    "candidate_prompt_role",
+    "reference_prompt_role",
+    "candidate_prompt_family",
+    "reference_prompt_family",
+    "candidate_expected_output_format",
+    "reference_expected_output_format",
     "candidate_source_llm",
     "reference_source_llm",
     "overlap_type",
@@ -74,6 +82,10 @@ class PromptRecord:
     normalized: str
     tokens: frozenset[str]
     ngrams: frozenset[tuple[str, ...]]
+    construct_id: str = ""
+    prompt_role: str = ""
+    prompt_family: str = ""
+    expected_output_format: str = ""
 
 
 def extract_core_text(prompt_text: str) -> str:
@@ -140,6 +152,10 @@ def load_prompt_records(path: Path, *, ngram_size: int) -> list[PromptRecord]:
                     normalized=normalized,
                     tokens=content_tokens(normalized),
                     ngrams=token_ngrams(normalized, ngram_size),
+                    construct_id=row.get("construct_id", ""),
+                    prompt_role=row.get("prompt_role", ""),
+                    prompt_family=row.get("prompt_family", ""),
+                    expected_output_format=row.get("expected_output_format", ""),
                 )
             )
     return records
@@ -154,17 +170,70 @@ def overlap_type(
     char_threshold: float,
     token_threshold: float,
     ngram_threshold: float,
+    metadata_labels: tuple[str, ...] = (),
 ) -> str:
-    if exact:
-        return "exact_normalized"
-    labels = []
-    if char_similarity >= char_threshold:
+    labels = ["exact_normalized"] if exact else []
+    if not exact and char_similarity >= char_threshold:
         labels.append("high_char_similarity")
-    if token_jaccard_score >= token_threshold:
+    if not exact and token_jaccard_score >= token_threshold:
         labels.append("high_token_overlap")
-    if ngram_jaccard_score >= ngram_threshold:
+    if not exact and ngram_jaccard_score >= ngram_threshold:
         labels.append("high_ngram_overlap")
+    labels.extend(metadata_labels)
     return "+".join(labels)
+
+
+def metadata_overlap_labels(candidate: PromptRecord, reference: PromptRecord) -> tuple[str, ...]:
+    labels: list[str] = []
+    if candidate.prompt_family and candidate.prompt_family == reference.prompt_family:
+        labels.append("template_overlap")
+    if (
+        candidate.expected_output_format
+        and candidate.expected_output_format == reference.expected_output_format
+    ):
+        labels.append("response_format_overlap")
+    downstream_roles = {"behavior", "steering", "calibration"}
+    if (
+        {candidate.prompt_role, reference.prompt_role} & {"probe"}
+        and {candidate.prompt_role, reference.prompt_role} & downstream_roles
+    ):
+        labels.append("probe_downstream_overlap")
+    return tuple(labels)
+
+
+def _overlap_row(
+    *,
+    comparison_scope: str,
+    candidate: PromptRecord,
+    reference: PromptRecord,
+    label: str,
+    char_similarity: float,
+    token_score: float,
+    ngram_score: float,
+) -> dict[str, str]:
+    return {
+        "comparison_scope": comparison_scope,
+        "candidate_prompt_id": candidate.prompt_id,
+        "reference_prompt_id": reference.prompt_id,
+        "candidate_split": candidate.split,
+        "reference_split": reference.split,
+        "candidate_construct_id": candidate.construct_id,
+        "reference_construct_id": reference.construct_id,
+        "candidate_prompt_role": candidate.prompt_role,
+        "reference_prompt_role": reference.prompt_role,
+        "candidate_prompt_family": candidate.prompt_family,
+        "reference_prompt_family": reference.prompt_family,
+        "candidate_expected_output_format": candidate.expected_output_format,
+        "reference_expected_output_format": reference.expected_output_format,
+        "candidate_source_llm": candidate.source_llm,
+        "reference_source_llm": reference.source_llm,
+        "overlap_type": label,
+        "char_similarity": f"{char_similarity:.4f}",
+        "token_jaccard": f"{token_score:.4f}",
+        "ngram_jaccard": f"{ngram_score:.4f}",
+        "candidate_text": candidate.core_text,
+        "reference_text": reference.core_text,
+    }
 
 
 def audit_overlaps(
@@ -184,6 +253,7 @@ def audit_overlaps(
             char_similarity = SequenceMatcher(None, candidate.normalized, reference.normalized).ratio()
             token_score = jaccard(candidate.tokens, reference.tokens)
             ngram_score = jaccard(candidate.ngrams, reference.ngrams)
+            metadata_labels = metadata_overlap_labels(candidate, reference)
             label = overlap_type(
                 exact=exact,
                 char_similarity=char_similarity,
@@ -192,25 +262,22 @@ def audit_overlaps(
                 char_threshold=char_threshold,
                 token_threshold=token_threshold,
                 ngram_threshold=ngram_threshold,
+                metadata_labels=metadata_labels,
             )
             score = max(char_similarity, token_score, ngram_score)
+            if metadata_labels:
+                score = max(score, 1.0)
             if label and score > best_score:
                 best_score = score
-                best_row = {
-                    "comparison_scope": "candidate_vs_reference",
-                    "candidate_prompt_id": candidate.prompt_id,
-                    "reference_prompt_id": reference.prompt_id,
-                    "candidate_split": candidate.split,
-                    "reference_split": reference.split,
-                    "candidate_source_llm": candidate.source_llm,
-                    "reference_source_llm": reference.source_llm,
-                    "overlap_type": label,
-                    "char_similarity": f"{char_similarity:.4f}",
-                    "token_jaccard": f"{token_score:.4f}",
-                    "ngram_jaccard": f"{ngram_score:.4f}",
-                    "candidate_text": candidate.core_text,
-                    "reference_text": reference.core_text,
-                }
+                best_row = _overlap_row(
+                    comparison_scope="candidate_vs_reference",
+                    candidate=candidate,
+                    reference=reference,
+                    label=label,
+                    char_similarity=char_similarity,
+                    token_score=token_score,
+                    ngram_score=ngram_score,
+                )
         if best_row is not None:
             rows.append(best_row)
     return rows
@@ -232,6 +299,7 @@ def audit_internal_overlaps(
             char_similarity = SequenceMatcher(None, candidate.normalized, reference.normalized).ratio()
             token_score = jaccard(candidate.tokens, reference.tokens)
             ngram_score = jaccard(candidate.ngrams, reference.ngrams)
+            metadata_labels = metadata_overlap_labels(candidate, reference)
             label = overlap_type(
                 exact=exact,
                 char_similarity=char_similarity,
@@ -240,25 +308,20 @@ def audit_internal_overlaps(
                 char_threshold=char_threshold,
                 token_threshold=token_threshold,
                 ngram_threshold=ngram_threshold,
+                metadata_labels=metadata_labels,
             )
             if not label:
                 continue
             rows.append(
-                {
-                    "comparison_scope": "candidate_internal",
-                    "candidate_prompt_id": candidate.prompt_id,
-                    "reference_prompt_id": reference.prompt_id,
-                    "candidate_split": candidate.split,
-                    "reference_split": reference.split,
-                    "candidate_source_llm": candidate.source_llm,
-                    "reference_source_llm": reference.source_llm,
-                    "overlap_type": label,
-                    "char_similarity": f"{char_similarity:.4f}",
-                    "token_jaccard": f"{token_score:.4f}",
-                    "ngram_jaccard": f"{ngram_score:.4f}",
-                    "candidate_text": candidate.core_text,
-                    "reference_text": reference.core_text,
-                }
+                _overlap_row(
+                    comparison_scope="candidate_internal",
+                    candidate=candidate,
+                    reference=reference,
+                    label=label,
+                    char_similarity=char_similarity,
+                    token_score=token_score,
+                    ngram_score=ngram_score,
+                )
             )
     return rows
 

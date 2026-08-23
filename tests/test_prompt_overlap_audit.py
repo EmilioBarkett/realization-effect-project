@@ -111,3 +111,52 @@ def test_internal_audit_skips_matched_pair_but_flags_other_candidates():
 
     assert len(rows) == 2
     assert {row["comparison_scope"] for row in rows} == {"candidate_internal"}
+
+
+def test_audit_reports_construct_role_family_and_response_format_overlap():
+    audit = _load_module()
+    normalized = audit.normalize_text("A separate factual item asks for a probability judgment.")
+    reference = audit.PromptRecord(
+        prompt_id="probe",
+        pair_id="probe_pair",
+        split="direction_train",
+        source_llm="gpt54",
+        text="",
+        core_text="A separate factual item asks for a probability judgment.",
+        normalized=normalized,
+        tokens=audit.content_tokens(normalized),
+        ngrams=audit.token_ngrams(normalized, 3),
+        construct_id="evidence_diagnosticity",
+        prompt_role="probe",
+        prompt_family="shared_template",
+        expected_output_format="single_integer_0_to_100",
+    )
+    candidate = audit.PromptRecord(
+        prompt_id="behavior",
+        pair_id="",
+        split="behavior_eval",
+        source_llm="gpt54",
+        text="",
+        core_text="A different factual item asks for a probability judgment.",
+        normalized=audit.normalize_text("A different factual item asks for a probability judgment."),
+        tokens=audit.content_tokens(audit.normalize_text("A different factual item asks for a probability judgment.")),
+        ngrams=audit.token_ngrams(audit.normalize_text("A different factual item asks for a probability judgment."), 3),
+        construct_id="evidence_diagnosticity",
+        prompt_role="behavior",
+        prompt_family="shared_template",
+        expected_output_format="single_integer_0_to_100",
+    )
+    rows = audit.audit_overlaps(
+        [reference],
+        [candidate],
+        char_threshold=0.99,
+        token_threshold=0.99,
+        ngram_threshold=0.99,
+    )
+
+    assert len(rows) == 1
+    assert rows[0]["candidate_construct_id"] == "evidence_diagnosticity"
+    assert rows[0]["candidate_prompt_role"] == "behavior"
+    assert "template_overlap" in rows[0]["overlap_type"]
+    assert "response_format_overlap" in rows[0]["overlap_type"]
+    assert "probe_downstream_overlap" in rows[0]["overlap_type"]

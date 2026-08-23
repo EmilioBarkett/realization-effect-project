@@ -1,0 +1,86 @@
+{
+  "schema_version": "0.1.0",
+  "construct_id": "source_reliability",
+  "version": "v1",
+  "family": "social",
+  "title": "Source reliability",
+  "description": "Whether a source is represented as reliable or unreliable based on its track record, independently of status or authority.",
+  "contrast_conditions": [
+    {
+      "condition_id": "reliable_source",
+      "label": "Reliable source",
+      "definition": "The source has a demonstrated record of accurate, well-supported reports in the relevant domain."
+    },
+    {
+      "condition_id": "unreliable_source",
+      "label": "Unreliable source",
+      "definition": "The source has a demonstrated record of inaccurate, poorly supported, or repeatedly contradicted reports in the relevant domain."
+    }
+  ],
+  "probe_prompt_template": "Read the following short third-person information scenario. Track the source's evidential track record separately from the source's social status or authority.\n\nScenario:\n{scenario}\n\nContinue processing the scenario.",
+  "independent_behavior_task": {
+    "task_id": "testimony_weighting_v1",
+    "task_family": "source_weighting",
+    "prompt_template": "Read a separate factual question with a prior probability and testimony from a named source. Report the probability that the focal claim is true from 0 to 100. The source's status and the evidence quality are varied independently of the probe scenarios.",
+    "primary_outcome": "testimony_weight",
+    "secondary_outcomes": ["posterior_calibration", "confidence"],
+    "response_format": "single_integer_0_to_100",
+    "independence_requirements": [
+      "Use new domains, source names, and claims not present in probe prompts.",
+      "Cross source track record with legitimate and non-legitimate status cues.",
+      "Do not ask the model to classify the source as reliable or unreliable."
+    ]
+  },
+  "expected_direction": {
+    "readout": {
+      "positive_condition": "reliable_source",
+      "negative_condition": "unreliable_source",
+      "estimand": "heldout_projection_margin"
+    },
+    "behavior": {
+      "outcome": "testimony_weight",
+      "estimand": "source_reliability_by_evidence_effect",
+      "expected_by_evidence_valence": {
+        "supporting": "reliable_source increases testimony-consistent probability",
+        "contradicting": "reliable_source decreases testimony-inconsistent probability"
+      },
+      "direction_status": "preregister_before_data_collection",
+      "warning": "This construct concerns track record, not authority, status, or generic social compliance."
+    }
+  },
+  "parsing_rules": {
+    "parser_id": "single_integer_probability_v1",
+    "valid_ranges": {
+      "probability": [0, 100]
+    },
+    "invalid_response_policy": "exclude_from_outcome_denominator_and_report_compliance",
+    "extra_text_policy": "invalid"
+  },
+  "required_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout",
+    "behavior_eval",
+    "steering_eval",
+    "calibration"
+  ],
+  "paired_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout"
+  ],
+  "controls": [
+    "source_track_record_balance",
+    "authority_status_crossing",
+    "evidence_quality_crossing",
+    "lexical_overlap_audit",
+    "neutral_behavior_prompt",
+    "shuffled_pair_labels",
+    "random_direction"
+  ],
+  "metadata": {
+    "primary_question": "Does a source-track-record direction transfer to testimony weighting in a new factual domain?",
+    "probe_state_is": "source_reliability_state",
+    "not_claimed_as": "authority_deference_or_generic_social_compliance"
+  }
+}

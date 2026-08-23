@@ -84,10 +84,11 @@ The control profile can include:
 | Cross-task generalization | Does the effect transfer to a second independent task? | Secondary |
 
 `B`, prompt-only behavioral sensitivity, remains a construct-validity and
-quality-control measure. In a small four-construct pilot, the primary analysis
-should remain the simple `D → S` relationship. A multivariate prediction of
-`S` from the full `R` profile requires a larger, carefully curated concept bank
-or repeated model/task cells; it should not be overfit to four constructs.
+quality-control measure. In the Wave 1 four-construct descriptive pilot, the
+primary analysis should remain the simple `D → S` relationship. A multivariate
+prediction of `S` from the full `R` profile requires a larger, carefully
+curated construct bank or repeated model/task cells; it should not be overfit
+to Wave 1.
 
 The benchmark is not trying to establish that a model has a human-like
 psychological mechanism. It tests whether reproducibly measured properties of
@@ -192,22 +193,31 @@ absence or presence of a concept.
 
 ## Construct suite
 
-The current four-construct proposal is a good starting point because it spans
-different kinds of behavior without treating behavioral economics as the
-whole project.
+The selected bank spans different kinds of behavior without treating
+behavioral economics as the whole project. The registry freezes membership and
+execution order before results are inspected:
 
-| Construct | Family | State to transfer | Independent task candidate |
-| --- | --- | --- | --- |
-| Realization/account closure | Decision | Paper/open account versus realized/closed account | Risk, wager, or related decision |
-| Evidence diagnosticity | Epistemic | Evidence perceived as reliable/diagnostic versus weak/unreliable | Confidence or belief revision |
-| Source reliability/authority | Social | Deference to a source versus independent verification | Follow the source versus check the evidence |
-| Persistence/continuation | Agentic | Continue pursuing a goal versus abandon/reallocate effort | Continue, quit, revise, or reallocate |
+| Family | Wave 1 | Wave 2 | Wave 3 | Wave 4 |
+| --- | --- | --- | --- | --- |
+| Decision | `realization_account_closure` | `reference_frame` | `ambiguity_orientation` | `temporal_orientation` |
+| Epistemic | `evidence_diagnosticity` | `prior_weighting` | `causal_interpretation` | `epistemic_uncertainty` |
+| Social | `source_reliability` | `authority_deference` | `consensus_conformity` | `reciprocity_obligation` |
+| Agentic | `persistence_continuation` | `exploration_exploitation` | `plan_replanning` | `goal_shielding` |
+
+The detailed candidate contrasts and task intentions are described in
+[`PROJECT_DIRECTION.md`](PROJECT_DIRECTION.md). The four Wave 1 operational
+specifications and generation plans are versioned under
+[`configs/construct_benchmark/`](configs/construct_benchmark/); the other
+twelve registry entries remain planned. Wave 1 is the immediate target. Two
+constructs validate engineering, four support a descriptive pilot, and the
+full bank is reserved for later out-of-sample profile prediction.
 
 These are candidate operationalizations, not conclusions. The evidence
 construct needs especially careful wording: the intended transferred state is
 *perceived evidence quality or diagnosticity*. It is not automatically a
-direction for “updating responsiveness.” Those are different hypotheses and
-would require different contrasts and outcomes.
+direction for “updating responsiveness.” Source reliability is distinct from
+authority status, persistence from replanning, and epistemic uncertainty from
+ambiguity orientation.
 
 For the final confirmatory benchmark, each construct should have at least one
 primary independent task and, if feasible, a second task with a different
@@ -244,9 +254,9 @@ after intervention norm, layer choice, and operating point are normalized.
 Likewise, a 50–100-concept bank should be treated as a later breadth module.
 It should be hand-curated into families with independent tasks and quality
 gates, not produced as a large collection of loosely defined labels. The
-current four constructs provide theory and behavioral depth; the later bank
-would provide statistical breadth for learning a representation-to-control
-mapping.
+Wave 1 four constructs provide the first theory and behavioral depth; the
+16-entry bank provides a staged route to statistical breadth for learning a
+representation-to-control mapping.
 
 The archived specification-gaming work could later supply a difficult agentic
 module—for example, distinguishing “follow the user's intended objective” from
@@ -477,9 +487,9 @@ At the aggregate level, report:
 
 Avoid an overall score that rewards a large effect with poor specificity or a
 highly decodable prompt artifact with no independent behavioral transfer. A
-full-profile predictor should be fit only after the concept bank is large
-enough to support it; the four-construct pilot should not be used to train a
-high-dimensional correspondence model.
+full-profile predictor should be fit only after the construct bank is large
+enough to support it; the Wave 1 four-construct pilot should not be used to
+train a high-dimensional correspondence model.
 
 ## Staged research plan
 
@@ -509,10 +519,13 @@ high-dimensional correspondence model.
 - Freeze the primary estimands, controls, and quadrant definitions.
 - The initial `construct_spec`, `run_config`, and `analysis_spec` schemas,
   canonical prompt inventory, split validation, and shared run manifest are
-  now implemented under `src/construct_benchmark/`.
-- Use one combined prompt inventory and one activation logging pass for two or
-  four constructs, then namespace all direction and outcome artifacts by
-  `construct_id`.
+  implemented under `src/construct_benchmark/`.
+- The versioned 16-construct registry, four specified Wave 1 construct specs,
+  generic canonical-record generation adapter, four generation plans, and
+  generalized leakage audit are implemented. The no-API Wave 1 dry run reports
+  the expanded job matrix without generating benchmark data.
+- Use one combined Wave 1 prompt inventory and one activation logging pass,
+  then namespace all direction and outcome artifacts by `construct_id`.
 - Simulate plausible prompt, readout, and steering effect sizes to determine
   how many constructs, task templates, models, and repetitions are needed.
 - Decide whether two downstream tasks per construct are required for the
@@ -533,7 +546,8 @@ high-dimensional correspondence model.
 - Add secondary accuracy, AUC, layer-stability, and context-transfer measures.
 - Record model revision, layer, site, region, roles, signs, prompt hashes,
   normalization, and configuration hashes in direction artifacts.
-- Use realization and evidence diagnosticity as the first two constructs.
+- Use the four Wave 1 constructs as the descriptive target, with realization
+  and evidence diagnosticity as the first engineering adapters.
 
 ### Phase 4: implement steering as a controlled experiment
 
@@ -558,9 +572,10 @@ score(parsed_response) -> outcome
 collateral(parsed_response) -> control_metrics
 ```
 
-Implement the realization/account-closure adapter first, followed by evidence
-diagnosticity. Prefer structured or constrained outputs for primary outcomes;
-use free-text judging only as a secondary measure where necessary.
+Implement the realization/account-closure and evidence-diagnosticity adapters
+first, while preserving source-reliability and persistence cells in the same
+Wave 1 control path. Prefer structured or constrained outputs for primary
+outcomes; use free-text judging only as a secondary measure where necessary.
 
 ### Phase 6: build the correspondence analysis
 
@@ -578,18 +593,19 @@ leave-one-construct-out evaluation for profile-based predictors.
 
 ### Phase 7: preregistered pilot and benchmark expansion
 
-- Run the complete two-construct slice on one open-weight model for
-  engineering and protocol validation.
+- Run the complete four-construct Wave 1 slice on one open-weight model, using
+  the two-construct subset as the engineering and protocol validation gate.
 - Add a second model family before drawing general conclusions.
-- Add authority/source reliability and persistence only after construct review.
+- Advance to Waves 2–4 only after Wave 1 construct review, measurement gates,
+  and the precision simulation pass.
 - Add a second task template per construct where resources permit.
 - Release complete manifests, aggregate summaries, and negative results.
 
 ### Phase 8: breadth and scale module
 
-- Build a hand-curated concept bank only after the four-construct protocol is
-  stable. A 50–100-concept bank is a possible target, not a prerequisite for
-  the vertical slice.
+- Complete the hand-curated 16-construct bank only after the Wave 1 protocol is
+  stable. A 50–100-concept bank is a possible later target, not a prerequisite
+  for the Wave 1 vertical slice.
 - Add concept families such as style, epistemic, social, safety, and agentic
   behavior only when each has a directional contrast, independent task, and
   frozen parser.
@@ -651,8 +667,9 @@ The next review should answer these questions before implementation begins:
    templates per construct?
 3. Is the primary steering outcome the signed mean state-transfer contrast,
    with policy-slope change secondary?
-4. Are the four candidate constructs sufficiently directional and distinct,
-   especially evidence diagnosticity versus updating responsiveness?
+4. Are the four Wave 1 constructs sufficiently directional and distinct,
+   especially evidence diagnosticity versus updating responsiveness and source
+   reliability versus authority deference?
 5. What model/layer coverage gives useful heterogeneity without turning the
    project into an unpowered sweep?
 6. Which representation-profile features should be primary in the eventual

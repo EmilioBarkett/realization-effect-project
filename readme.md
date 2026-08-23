@@ -35,20 +35,26 @@ automatically a causal control signal. The detailed proposal treats this as a
 representation–steerability correspondence problem rather than a steering
 leaderboard.
 
-## Initial construct set
+## Frozen construct bank and Wave 1
 
-The first benchmark is deliberately broader than behavioral economics:
+The benchmark is deliberately broader than behavioral economics. The selected
+bank contains 16 theory-relevant constructs balanced across four families; the
+versioned registry is
+[`configs/construct_benchmark/construct_registry_v1.json`](configs/construct_benchmark/construct_registry_v1.json).
 
-| Construct | Family | State contrast | Independent task |
-|---|---|---|---|
-| Realization/account closure | Decision | Paper/open versus realized/closed account | Risk or wager choice |
-| Evidence diagnosticity | Epistemic | Reliable/diagnostic versus weak/unreliable evidence | Confidence or belief revision |
-| Source reliability/authority | Social | Deference versus independent verification | Follow source versus check evidence |
-| Persistence/continuation | Agentic | Continue versus abandon/reallocate effort | Continue, quit, revise, or reallocate |
+| Wave | Decision | Epistemic | Social | Agentic |
+|---|---|---|---|---|
+| 1 — anchor | `realization_account_closure` | `evidence_diagnosticity` | `source_reliability` | `persistence_continuation` |
+| 2 — weighting/control | `reference_frame` | `prior_weighting` | `authority_deference` | `exploration_exploitation` |
+| 3 — uncertainty/adaptation | `ambiguity_orientation` | `causal_interpretation` | `consensus_conformity` | `plan_replanning` |
+| 4 — horizon/goal management | `temporal_orientation` | `epistemic_uncertainty` | `reciprocity_obligation` | `goal_shielding` |
 
-The first engineering vertical slice is planned around realization and evidence
-diagnosticity. The remaining constructs require the same measurement review
-before inclusion in a confirmatory benchmark.
+Wave 1 is the immediate implementation target. Two constructs validate the
+engineering vertical slice, four support a descriptive pilot, and the full
+16-construct matrix is reserved for later out-of-sample prediction of
+representation profiles. Source reliability is distinct from authority
+deference; persistence is distinct from replanning; and evidence diagnosticity
+is not automatically updating responsiveness.
 
 Specification gaming in coding agents is not the current project direction;
 that proposal is preserved as historical material outside the active scope.
@@ -100,17 +106,27 @@ Implemented control plane:
 
 - `src/construct_benchmark/` — construct, run, analysis, prompt, split, and
   provenance schemas;
+- the versioned 16-construct registry with four specified Wave 1 construct
+  definitions;
+- the generic benchmark-facing prompt generator and four reviewable Wave 1
+  generation plans, including no-API dry-run support;
 - canonical combined prompt inventories with global IDs and construct-scoped
   pair validation;
 - shared-activation/construct-fan-out run manifests;
-- two validated construct definitions and a two-construct smoke config;
+- generalized overlap auditing for construct, split, family, role, template,
+  response-format, and probe/downstream independence metadata;
+- a four-construct Wave 1 smoke configuration path without pooling directions;
 
 Not implemented yet:
 
 - continuous projection-margin analysis;
 - neutral/within-cell dose calibration;
 - generic state-transfer and manipulation-check adapters;
-- the evidence-diagnosticity experiment.
+- the end-to-end Wave 1 measurement experiments and API-generated prompt data.
+
+The current generation artifact is only a no-API dry-run summary under
+`results/test/construct_benchmark/`; no external model call or model download
+has been made by the repository implementation.
 
 The active vector path now uses the tracked iterator in
 `activation_analysis.activation_store`; the obsolete SAE-only tests are
@@ -155,6 +171,8 @@ planning documents are indexed in
   architecture and implementation roadmap;
 - [`AGENTS.md`](AGENTS.md) — instructions and invariants for coding agents;
 - [`CHAT_HANDOFF.md`](CHAT_HANDOFF.md) — concise continuation brief.
+- [`CODEX_NEXT_STEPS.md`](CODEX_NEXT_STEPS.md) — selected construct bank,
+  execution waves, and synthetic-prompt implementation gates.
 
 ## Development
 

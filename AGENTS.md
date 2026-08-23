@@ -29,19 +29,23 @@ The central hypothesis is that decodability is common but is an incomplete and
 often poor predictor of steerability. The longer-term benchmark may add
 representation-profile features such as direction stability, context
 consistency, localization, and dimensionality, but v1 must not overfit a
-high-dimensional predictor to the four-construct pilot. Do not collapse
-representation and control into one outcome.
+high-dimensional predictor to the small engineering or Wave 1 pilot. Do not
+collapse representation and control into one outcome.
 
-The active construct families are realization/account closure,
-evidence diagnosticity, source reliability/authority, and
-persistence/continuation. Specification gaming in coding agents is not the
-current project direction.
+The active candidate bank is the versioned 16-entry registry, balanced across
+decision, epistemic, social, and agentic families. Wave 1 is
+`realization_account_closure`, `evidence_diagnosticity`, `source_reliability`,
+and `persistence_continuation`; Waves 2–4 are planned, not yet specified for
+generation. Specification gaming in coding agents is not the current project
+direction.
 
 ## Maturity and scope
 
 The project is currently in scientific protocol development and benchmark
-infrastructure implementation. The shared multi-construct control plane is
-implemented; the end-to-end measurement layer is not.
+infrastructure implementation. The shared multi-construct control plane,
+16-construct registry, Wave 1 construct specifications, generic generation
+adapter, generation plans, and no-API dry-run path are implemented; the
+end-to-end measurement layer is not.
 
 Do not describe the following as completed:
 
@@ -61,8 +65,12 @@ construct-specific paired prompts.
 - `src/activation_analysis/`: active prompt generation, residual logging,
   activation storage, vector primitives, and steering primitives.
 - `src/construct_benchmark/`: shared construct/run/analysis schemas,
-  canonical prompt records, split validation, and multi-construct run plans.
+  canonical prompt records, split validation, registry validation, generic
+  generation, and multi-construct run plans.
 - `scripts/`: active activation-analysis entrypoints.
+- `scripts/generate_construct_prompts.py`: benchmark-facing generic generation
+  CLI with dry-run support.
+- `scripts/validate_construct_registry.py`: registry/spec agreement check.
 - `configs/activation_analysis/`: active prompt-generation and probe configs.
 - `experiments/activation_analysis/`: reviewable prompt CSVs.
 - `tests/`: active tests for activation and prompt-generation behavior.
@@ -72,7 +80,8 @@ construct-specific paired prompts.
   test scope.
 - `archive/documentation/`: archived planning documents.
 - `configs/construct_benchmark/`: versioned construct definitions, run
-  configurations, and analysis specifications.
+  configurations, analysis specifications, the 16-entry registry, and Wave 1
+  generation plans.
 - `reports/` and `results/`: reference artifacts and local/ignored outputs.
 
 The active vector path now imports its iterator from
@@ -84,8 +93,9 @@ installed.
 
 The multi-construct control plane uses one combined prompt inventory and one
 shared activation pass, then fans out into construct-scoped directions,
-readouts, calibration, behavior, and steering outputs. Never pool directions
-across `construct_id` values.
+readouts, calibration, behavior, and steering outputs. The benchmark-facing
+generator creates canonical rows before activation logging; never pool
+directions across `construct_id` values.
 
 ## Research invariants
 
@@ -95,6 +105,8 @@ For every construct:
 - freeze train, validation, held-out, and downstream-task splits;
 - construct the main direction from the training split only;
 - keep probe prompts and downstream behavior tasks independent;
+- compose Wave 1 as probe first, independent downstream task second; allow only
+  the induced state—not probe text, labels, or entities—to carry over;
 - use continuous held-out projection margin as the primary readout;
 - treat pair accuracy as secondary;
 - use directed mean state transfer as the primary steering outcome;

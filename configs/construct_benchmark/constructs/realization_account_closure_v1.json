@@ -2,7 +2,7 @@
   "schema_version": "0.1.0",
   "construct_id": "realization_account_closure",
   "version": "v1",
-  "family": "decision_economic",
+  "family": "decision",
   "title": "Realization and account closure",
   "description": "Whether an outcome is represented as still open or as closed, posted, settled, or otherwise accounted for.",
   "contrast_conditions": [

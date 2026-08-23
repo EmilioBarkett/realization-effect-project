@@ -1,0 +1,88 @@
+{
+  "schema_version": "0.1.0",
+  "construct_id": "persistence_continuation",
+  "version": "v1",
+  "family": "agentic",
+  "title": "Persistence and continuation",
+  "description": "Whether a focal goal is represented as worth continuing after a setback, distinct from whether the means or plan should be revised.",
+  "contrast_conditions": [
+    {
+      "condition_id": "continue_goal",
+      "label": "Continue the focal goal",
+      "definition": "The scenario frames continued pursuit of the focal goal as warranted despite a setback or cost."
+    },
+    {
+      "condition_id": "abandon_goal",
+      "label": "Abandon or reallocate",
+      "definition": "The scenario frames abandoning the focal goal and reallocating effort as warranted after a setback or cost."
+    }
+  ],
+  "probe_prompt_template": "Read the following short third-person goal-pursuit scenario. Track whether the focal goal is being continued or abandoned separately from whether the current plan or means should be revised.\n\nScenario:\n{scenario}\n\nContinue processing the scenario.",
+  "independent_behavior_task": {
+    "task_id": "resource_reallocation_v1",
+    "task_family": "goal_persistence_allocation",
+    "prompt_template": "Consider a separate project after a setback. Allocate exactly 100 effort points between continuing the focal project and starting an alternative project. The item must use a new domain and must not reuse the earlier goal or plan.",
+    "primary_outcome": "continue_allocation",
+    "secondary_outcomes": ["alternative_allocation", "compliance"],
+    "response_format": "two_integers_sum_100",
+    "independence_requirements": [
+      "Use new goals, actors, domains, and setback types not present in probe prompts.",
+      "Cross whether the original means remain viable with whether the focal goal remains valuable.",
+      "Do not ask the model to classify persistence or abandonment."
+    ]
+  },
+  "expected_direction": {
+    "readout": {
+      "positive_condition": "continue_goal",
+      "negative_condition": "abandon_goal",
+      "estimand": "heldout_projection_margin"
+    },
+    "behavior": {
+      "outcome": "continue_allocation",
+      "estimand": "persistence_by_setback_cost_effect",
+      "expected_by_setback": {
+        "moderate": "continue_goal increases continuation allocation",
+        "severe": "continue_goal increases continuation allocation less or not at all"
+      },
+      "direction_status": "preregister_before_data_collection",
+      "warning": "This construct concerns retaining a goal, not preserving a fixed plan or refusing to adapt means."
+    }
+  },
+  "parsing_rules": {
+    "parser_id": "two_integers_sum_100_v1",
+    "valid_ranges": {
+      "continue_allocation": [0, 100],
+      "alternative_allocation": [0, 100]
+    },
+    "sum_constraint": 100,
+    "invalid_response_policy": "exclude_from_outcome_denominator_and_report_compliance",
+    "extra_text_policy": "invalid"
+  },
+  "required_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout",
+    "behavior_eval",
+    "steering_eval",
+    "calibration"
+  ],
+  "paired_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout"
+  ],
+  "controls": [
+    "goal_value_and_means_crossing",
+    "setback_severity_balance",
+    "new_domain_behavior_task",
+    "lexical_overlap_audit",
+    "neutral_behavior_prompt",
+    "shuffled_pair_labels",
+    "random_direction"
+  ],
+  "metadata": {
+    "primary_question": "Does a goal-continuation direction transfer to resource allocation after an independent setback?",
+    "probe_state_is": "goal_persistence_state",
+    "not_claimed_as": "plan_inflexibility_or_generic_agentic_drive"
+  }
+}

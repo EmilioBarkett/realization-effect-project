@@ -22,26 +22,36 @@ claiming to decode a behavioral policy parameter or gain-control variable.
 The longer-term benchmark may measure a representation profile—including
 direction stability, context consistency, localization, and dimensionality—
 but those additional features are not to be fit as a high-dimensional
-predictor in the four-construct pilot.
+predictor in the small engineering or Wave 1 pilot.
 
 ## 2. Scope and pilot constructs
 
-The initial construct families are:
+The candidate bank is frozen in the versioned
+[`construct_registry_v1.json`](configs/construct_benchmark/construct_registry_v1.json)
+and is balanced across four families:
 
-| Construct | Transferred state | Probe contrast | Independent task |
-|---|---|---|---|
-| Realization/account closure | Open/paper versus closed/realized account | Matched realization framing | Risk or wager choice |
-| Evidence diagnosticity | Perceived reliable/diagnostic versus weak/unreliable evidence | Matched evidence-quality framing | Confidence or belief revision |
-| Source reliability/authority | Deference versus independent verification | Matched source/evidence framing | Follow source versus check evidence |
-| Persistence/continuation | Continue versus abandon/reallocate effort | Matched goal-progress framing | Continue, quit, revise, or reallocate |
+| Family | Wave 1 | Wave 2 | Wave 3 | Wave 4 |
+|---|---|---|---|---|
+| Decision | `realization_account_closure` | `reference_frame` | `ambiguity_orientation` | `temporal_orientation` |
+| Epistemic | `evidence_diagnosticity` | `prior_weighting` | `causal_interpretation` | `epistemic_uncertainty` |
+| Social | `source_reliability` | `authority_deference` | `consensus_conformity` | `reciprocity_obligation` |
+| Agentic | `persistence_continuation` | `exploration_exploitation` | `plan_replanning` | `goal_shielding` |
 
-These are operational hypotheses. A construct enters the confirmatory set only
-after its state definition, directional outcome, parsing rules, and leakage
-controls are frozen.
+The directional contrasts and independent tasks are specified in the registry's
+construct files and are summarized in the project direction. The distinctions
+must remain explicit: evidence diagnosticity is not updating responsiveness;
+source reliability is not authority status; persistence is not replanning; and
+epistemic uncertainty is not ambiguity orientation.
 
-The first vertical slice is realization plus evidence diagnosticity. Authority
-and persistence are subsequent pilot candidates, not guaranteed confirmatory
-constructs.
+Wave 1 is the immediate implementation target. Its four construct definitions
+and generation plans are specified, while Waves 2–4 remain planned registry
+entries. Two constructs are the engineering validation slice, four constructs
+form the descriptive Wave 1 pilot, and the full 16-construct matrix is reserved
+for later out-of-sample representation-profile prediction.
+
+These are operational hypotheses. A construct enters a confirmatory analysis
+only after its state definition, directional outcome, parsing rules, and
+leakage controls are frozen.
 
 Specification gaming in coding agents is outside the current protocol and is
 preserved only as historical project material.
@@ -81,8 +91,18 @@ No validation, held-out, or downstream behavioral prompt may enter direction
 construction. Entire prompt families or task templates should be held out when
 testing generalization, not only paraphrases.
 
-The active paired-prompt generator currently produces realization-focused
-outputs. It will be generalized before new construct data are generated.
+The legacy generator in `activation_analysis` remains realization-focused and
+is not the interface for new multi-construct data. The benchmark-facing
+`construct_benchmark.generation` adapter now takes semantics from a construct
+specification and generation plan, emits canonical prompt records, supports
+deterministic mocks and no-API dry runs, and is the path for Wave 1 generation.
+
+Wave 1 generation plans also freeze task composition: paired probe context is
+presented before the independent downstream task; only an induced internal
+state may carry over; probe surface text, condition labels, and entities do
+not carry over; and behavior and steering content pools remain separate. The
+activation-state orchestration needed to enforce that sequence is not yet
+implemented, so no external pilot may be treated as an end-to-end experiment.
 
 ## 5. Direction and decodability
 
@@ -186,9 +206,10 @@ analysis, not a four-construct pilot claim.
 
 A descriptive Representation–Steerability Gap may be plotted after a reference
 distribution and normalization are frozen. It is not a primary estimand, since
-the result depends on the component metrics and standardization. A broader
-50–100-concept bank and model-scale/checkpoint comparison are later extensions,
-not requirements for the first vertical slice.
+the result depends on the component metrics and standardization. The 16-entry
+bank is the current staged breadth plan; a 50–100-concept bank and
+model-scale/checkpoint comparison are later extensions, not requirements for
+Wave 1.
 
 The final construct count will be selected using a precision simulation, not an
 automatic target such as eight to twelve constructs.
@@ -203,36 +224,40 @@ implementation:
   retained;
 - the initial benchmark control plane exists with versioned construct, run,
   analysis, prompt, split, and provenance schemas;
+- the 16-construct registry, four specified Wave 1 construct definitions,
+  four generation plans, generic canonical-record generation adapter, and
+  generalized leakage-audit metadata are implemented;
 - projection-margin, neutral/within-cell calibration, state-transfer adapters,
   and manipulation-check orchestration do not exist;
 - the tracked activation iterator now lives in
   `activation_analysis.activation_store` and passes the clean Python 3.11
   `make check` suite; real-run validation remains pending;
-- a single run plan can batch two or four construct inventories through one
-  activation pass and then fan out construct-specific analyses;
-- no evidence-diagnosticity data have been collected.
+- a single run plan can batch the four Wave 1 inventories through one activation
+  pass and then fan out construct-specific analyses;
+- no API-generated prompt dataset, evidence-diagnosticity data, or large
+  benchmark run has been collected; only a no-API dry-run summary exists.
 
 Before measurement implementation:
 
-1. verify `ActivationVectorRecord` and `iter_activation_vectors()` against
+1. review the four Wave 1 generation plans and, after explicit approval,
+   connect generated inventories to the canonical combined inventory;
+2. verify `ActivationVectorRecord` and `iter_activation_vectors()` against
    existing activation-store manifests;
-2. keep the active activation tests green and add
+3. keep the active activation tests green and add
    iterator/filtering/region/memory-map regression tests;
-3. connect generic prompt generation to the canonical combined inventory and
-   preserve construct namespaces through logging;
 4. implement the measurement adapters: projection margins, calibration,
    parsing, manipulation checks, and downstream persistence.
 
 Then implement in this order:
 
-1. generic prompt/split schema and leakage audit;
-2. train-only realization/evidence-diagnosticity readout vertical slice;
-3. continuous held-out readout, neutral/within-cell dose calibration, and
+1. train-only readout for the Wave 1 construct inventories;
+2. continuous held-out readout, neutral/within-cell dose calibration, and
    outcome-specific effect adapters;
-4. explicit intervention timing, independent-task parsing, output-accessibility
+3. explicit intervention timing, independent-task parsing, output-accessibility
    and downstream-persistence checks;
-5. precision simulation and expansion decision;
-6. second model family before general conclusions.
+4. precision simulation and expansion decision;
+5. second model family before general conclusions;
+6. Waves 2–4 only after the Wave 1 measurement and construct gates pass.
 
 ## 11. Claims this protocol does not support by itself
 

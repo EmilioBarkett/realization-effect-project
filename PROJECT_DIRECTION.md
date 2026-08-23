@@ -58,26 +58,54 @@ The detailed benchmark proposal is in
 review-ready brief in
 [`BENCHMARK_REVIEW_HANDOFF.md`](BENCHMARK_REVIEW_HANDOFF.md).
 
-## Construct families
+## Frozen construct bank and execution waves
 
-The initial construct set is deliberately diverse. Each construct must have a
-directional state contrast and a separate downstream task.
+The candidate bank is deliberately balanced across decision, epistemic, social,
+and agentic families. Membership and wave order are frozen before confirmatory
+results are inspected. Each construct must still pass its own operational,
+leakage, parsing, and independent-task gates; a failed construct remains in the
+record with an exclusion reason rather than being silently replaced. The
+versioned registry is
+[`configs/construct_benchmark/construct_registry_v1.json`](configs/construct_benchmark/construct_registry_v1.json).
 
-| Construct | Family | State to transfer | Independent downstream behavior |
+| Construct ID | Family | State to transfer | Independent downstream behavior |
 |---|---|---|---|
-| Realization/account closure | Decision | Open/paper versus closed/realized account | Risk choice, wager, or related decision |
-| Evidence diagnosticity | Epistemic | Evidence perceived as reliable/diagnostic versus weak/unreliable | Confidence or belief revision |
-| Source reliability and authority | Social | Deference to a source versus independent verification | Follow the source versus check the evidence |
-| Persistence/continuation | Agentic | Continue pursuing a goal versus abandon/reallocate effort | Continue, quit, revise, or reallocate effort |
+| `realization_account_closure` | Decision | Open/pending versus closed/settled account | Risk allocation in a new domain |
+| `reference_frame` | Decision | Above-reference versus below-reference outcome | Unrelated sure-versus-risky choice |
+| `ambiguity_orientation` | Decision | Accept underspecified probabilities versus prefer resolved probabilities | Known-versus-unknown lottery allocation |
+| `temporal_orientation` | Decision | Immediate-consequence versus long-term-consequence focus | Smaller-sooner versus larger-later allocation |
+| `evidence_diagnosticity` | Epistemic | Highly diagnostic versus weakly diagnostic evidence | Posterior update magnitude |
+| `prior_weighting` | Epistemic | Prior/base-rate-sensitive versus case-evidence-sensitive reasoning | Structured Bayesian probability judgment |
+| `causal_interpretation` | Epistemic | Causal versus correlational representation | Intervention-versus-observation prediction |
+| `epistemic_uncertainty` | Epistemic | Resolved/certain versus unresolved/uncertain state | Seek more information versus commit now |
+| `source_reliability` | Social | Reliable-source versus unreliable-source weighting | Testimony weighting in a new factual domain |
+| `authority_deference` | Social | Deference to legitimate authority versus independent verification | Follow advice versus conflicting direct evidence |
+| `consensus_conformity` | Social | Follow group consensus versus independent judgment | Factual choice with controlled peer responses |
+| `reciprocity_obligation` | Social | Reciprocal obligation versus no obligation | Return/help allocation in a new interaction |
+| `persistence_continuation` | Agentic | Continue versus abandon/reallocate after a setback | Resource reallocation after a setback |
+| `exploration_exploitation` | Agentic | Explore alternatives versus exploit a known option | Structured search or bandit choice |
+| `plan_replanning` | Agentic | Preserve the current plan versus adaptively revise means | Maintain or revise after changed constraints |
+| `goal_shielding` | Agentic | Shield the focal goal versus attend to competing goals | Continue focal task versus switch to a distractor |
 
-These labels are working constructs, not conclusions. Before inclusion, each
-construct needs an operational definition, a directional outcome, a leakage-
-safe prompt design, and a parsing rule that can be frozen in advance.
+Execution is balanced one construct per family per wave:
 
-The first engineering vertical slice should use realization as the anchor and
-evidence diagnosticity as the first non-economic construct. Authority/source
-reliability and persistence follow only after the first two pass engineering
-and measurement checks.
+| Wave | Decision | Epistemic | Social | Agentic |
+|---|---|---|---|---|
+| 1 — anchor | `realization_account_closure` | `evidence_diagnosticity` | `source_reliability` | `persistence_continuation` |
+| 2 — weighting/control | `reference_frame` | `prior_weighting` | `authority_deference` | `exploration_exploitation` |
+| 3 — uncertainty/adaptation | `ambiguity_orientation` | `causal_interpretation` | `consensus_conformity` | `plan_replanning` |
+| 4 — horizon/goal management | `temporal_orientation` | `epistemic_uncertainty` | `reciprocity_obligation` | `goal_shielding` |
+
+Wave 1 is the immediate implementation target. Its four construct specs and
+generation plans are defined; the other twelve entries are registry-planned
+and intentionally do not yet have generated prompt inventories. The distinction
+between source reliability and authority deference, and between diagnosticity
+and updating responsiveness, is substantive rather than cosmetic.
+
+The maturity claims are staged: two constructs validate the engineering
+vertical slice, four constructs support a descriptive pilot, and the full
+16-construct bank is the later matrix needed for out-of-sample
+representation-profile prediction.
 
 ## Common experiment
 
@@ -147,30 +175,40 @@ benchmark infrastructure implementation**:
 - the initial `construct_benchmark` control-plane package now exists;
 - construct, run, analysis, prompt, split, and provenance schemas are now
   implemented;
+- the versioned 16-construct registry exists, with four specified Wave 1
+  construct definitions and four reviewable generation plans;
+- the benchmark-facing generation adapter emits canonical `PromptRecord`
+  rows, supports deterministic mocks and no-API dry runs, and refuses to treat
+  partial inventories as complete;
+- the prompt-overlap audit reports construct, split, family, role, template,
+  response-format, and probe/downstream independence metadata;
 - projection-margin, neutral/within-cell dose calibration, state-transfer
   adapters, and manipulation-check orchestration are not yet implemented;
 - the active vector iterator now lives in `activation_analysis.activation_store`
   and passes the active Python 3.11 `make check` suite; end-to-end validation
   against a real activation run remains pending;
-- a two-construct smoke configuration can produce one shared activation stage
-  and construct-scoped direction/readout/steering/behavior stages; the same
-  plan scales to four constructs without pooling directions;
-- no new construct dataset or large benchmark run has been launched.
+- a shared activation plan can batch the four Wave 1 constructs without
+  pooling directions and can later expand to all registry entries;
+- no API-generated benchmark dataset, model download, or large benchmark run
+  has been launched; the current generation artifact is a no-API dry-run
+  summary only.
 
 ## Next implementation gates
 
-1. Add a manifest-backed activation-run smoke fixture when a representative
+1. Review the four Wave 1 generation plans, expand them with the approved
+   request function only after the no-API dry run is accepted, and connect the
+   resulting inventories to the canonical combined activation manifest.
+2. Add a manifest-backed activation-run smoke fixture when a representative
    local run is available, while preserving the passing clean-install checks.
-2. Connect the active paired-prompt generator to the canonical combined
-   multi-construct inventory.
 3. Implement continuous held-out projection margins and neutral/within-cell
    dose calibration.
-4. Build the realization/evidence-diagnosticity vertical slice with
-   deterministic fixtures and outcome-specific adapters.
+4. Build the four-construct Wave 1 measurement slice, beginning with the
+   realization/evidence engineering adapters and preserving source-reliability
+   and persistence namespaces.
 5. Add explicit intervention timing, output-accessibility, downstream-
    persistence, and manipulation checks.
-6. Run the precision simulation before expanding the construct count or fitting
-   full representation-profile predictors.
+6. Run the precision simulation before fitting representation-profile
+   predictors or advancing to Waves 2–4.
 
 Until these gates are passed, documentation should describe the benchmark as
 an implemented control plane with an unimplemented end-to-end experimental
