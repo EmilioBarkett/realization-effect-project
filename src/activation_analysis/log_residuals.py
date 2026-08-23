@@ -142,6 +142,25 @@ def _load_prompt_csv(
             prompt_id = row.get(id_column or "") or row.get("prompt_id") or f"prompt_{index:05d}"
             prompt_text = row[prompt_column]
             metadata = {key: value for key, value in row.items() if key != prompt_column}
+            raw_metadata = metadata.pop("metadata_json", None)
+            if raw_metadata:
+                try:
+                    parsed_metadata = json.loads(raw_metadata)
+                except json.JSONDecodeError as exc:
+                    raise ValueError(f"{path} row {index + 2} has invalid metadata_json.") from exc
+                if not isinstance(parsed_metadata, dict):
+                    raise ValueError(f"{path} row {index + 2} metadata_json must contain an object.")
+                for key, value in metadata.items():
+                    if key not in parsed_metadata:
+                        parsed_metadata[key] = value
+                metadata = parsed_metadata
+            for field_name in ("prompt_regions", "prompt_regions_json"):
+                raw_regions = metadata.get(field_name)
+                if isinstance(raw_regions, str) and raw_regions.strip():
+                    try:
+                        metadata[field_name] = json.loads(raw_regions)
+                    except json.JSONDecodeError as exc:
+                        raise ValueError(f"{path} row {index + 2} has invalid {field_name}.") from exc
             records.append(
                 PromptRecord(
                     prompt_id=prompt_id,

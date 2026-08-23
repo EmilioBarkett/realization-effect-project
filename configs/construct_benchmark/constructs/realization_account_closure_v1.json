@@ -1,0 +1,86 @@
+{
+  "schema_version": "0.1.0",
+  "construct_id": "realization_account_closure",
+  "version": "v1",
+  "family": "decision_economic",
+  "title": "Realization and account closure",
+  "description": "Whether an outcome is represented as still open or as closed, posted, settled, or otherwise accounted for.",
+  "contrast_conditions": [
+    {
+      "condition_id": "open_pending",
+      "label": "Open or pending",
+      "definition": "The outcome is visible or expected but remains on account, in play, provisional, or not finally settled."
+    },
+    {
+      "condition_id": "closed_settled",
+      "label": "Closed or settled",
+      "definition": "The same outcome has been posted, received, paid, sold, submitted, or otherwise finalized."
+    }
+  ],
+  "probe_prompt_template": "Read the following short third-person scenario. Preserve the situation in working memory without answering the downstream task.\n\nScenario:\n{scenario}\n\nContinue processing the scenario.",
+  "independent_behavior_task": {
+    "task_id": "realization_risk_choice_v1",
+    "task_family": "decision_under_uncertainty",
+    "prompt_template": "Consider this separate decision scenario. Choose an allocation from 1 to 1000 and a risk preference from 1 to 5. The response must not mention or reuse the earlier account-closure scenario.",
+    "primary_outcome": "risk_preference",
+    "secondary_outcomes": ["allocation_amount"],
+    "response_format": "two_integers_on_separate_lines",
+    "independence_requirements": [
+      "No lexical reuse of probe scenario entities or closure terms.",
+      "Use a new decision domain and new item identifiers.",
+      "Do not reveal the target construct in the behavior prompt."
+    ]
+  },
+  "expected_direction": {
+    "readout": {
+      "positive_condition": "closed_settled",
+      "negative_condition": "open_pending",
+      "estimand": "heldout_projection_margin"
+    },
+    "behavior": {
+      "outcome": "risk_preference",
+      "estimand": "condition_by_outcome_valence_effect",
+      "expected_by_outcome_valence": {
+        "gain": "closed_settled_minus_open_pending_positive",
+        "loss": "closed_settled_minus_open_pending_negative",
+        "neutral": "near_zero_or_controlled"
+      },
+      "direction_status": "preregister_before_data_collection"
+    }
+  },
+  "parsing_rules": {
+    "parser_id": "two_integers_risk_choice_v1",
+    "valid_ranges": {
+      "allocation_amount": [1, 1000],
+      "risk_preference": [1, 5]
+    },
+    "invalid_response_policy": "exclude_from_outcome_denominator_and_report_compliance",
+    "extra_text_policy": "invalid"
+  },
+  "required_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout",
+    "behavior_eval",
+    "steering_eval",
+    "calibration"
+  ],
+  "paired_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout"
+  ],
+  "controls": [
+    "gain_and_loss_balance",
+    "money_and_nonmoney_probe_domains",
+    "lexical_overlap_audit",
+    "neutral_behavior_prompt",
+    "shuffled_pair_labels",
+    "random_direction"
+  ],
+  "metadata": {
+    "primary_question": "Does a train-only account-closure direction transfer to an independent risk-choice task?",
+    "probe_state_is": "account_closure_state",
+    "not_claimed_as": "generic_risk_policy_parameter"
+  }
+}

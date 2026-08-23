@@ -21,6 +21,9 @@ from activation_analysis.vector_analysis import (
 )
 
 
+DEFAULT_DIRECTION_SPLIT = "direction_train"
+
+
 def _parse_csv_set(value: str | None, *, as_int: bool = False):
     if not value:
         return None
@@ -28,6 +31,19 @@ def _parse_csv_set(value: str | None, *, as_int: bool = False):
     if as_int:
         return {int(part) for part in parts}
     return parts
+
+
+def _validated_include_splits(value: str | None, *, allow_nontrain: bool) -> set[str]:
+    splits = _parse_csv_set(value)
+    if not splits:
+        raise ValueError("--include-splits must contain at least one split name.")
+    nontrain_splits = splits - {DEFAULT_DIRECTION_SPLIT}
+    if nontrain_splits and not allow_nontrain:
+        raise ValueError(
+            "Direction construction is train-only by default. Pass --allow-nontrain-splits only "
+            "for a registered diagnostic analysis."
+        )
+    return splits
 
 
 def _metadata_value(metadata: dict, key: str) -> str:
@@ -51,18 +67,55 @@ def _filter_activations(activations, *, include_splits: set[str] | None, exclude
     return filtered
 
 
-def main() -> None:
+def _filter_construct(activations, construct_id: str | None):
+    construct_ids = {
+        str(activation.metadata.get("construct_id", "")).strip()
+        for activation in activations
+    }
+    construct_ids.discard("")
+    if construct_id is None and len(construct_ids) > 1:
+        raise ValueError(
+            "Activation run contains multiple constructs. Pass --construct-id to build one "
+            "construct-scoped direction at a time."
+        )
+    if construct_id is None:
+        return activations
+    return [
+        activation
+        for activation in activations
+        if str(activation.metadata.get("construct_id", "")).strip() == construct_id
+    ]
+
+
+def build_argument_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Build activation-vector directions.")
     parser.add_argument("--activation-run", required=True, help="Residual-stream run directory.")
     parser.add_argument("--output-dir", required=True, help="Output directory.")
+    parser.add_argument("--construct-id", default=None, help="Construct namespace to analyze.")
     parser.add_argument("--layers", default=None, help="Comma-separated layer filter.")
     parser.add_argument("--token-regions", default="scenario", help="Comma-separated token regions.")
     parser.add_argument("--activation-site", default="resid_post")
     parser.add_argument("--positive-role", default="realized_closed")
     parser.add_argument("--negative-role", default="paper_open")
-    parser.add_argument("--include-splits", default=None, help="Comma-separated metadata split values to include.")
+    parser.add_argument(
+        "--include-splits",
+        default=DEFAULT_DIRECTION_SPLIT,
+        help=(
+            "Comma-separated metadata split values to include. Defaults to direction_train; "
+            "pass an explicit value only for registered diagnostic analyses."
+        ),
+    )
+    parser.add_argument(
+        "--allow-nontrain-splits",
+        action="store_true",
+        help="Explicitly permit non-training splits for a registered diagnostic analysis.",
+    )
     parser.add_argument("--exclude-splits", default=None, help="Comma-separated metadata split values to exclude.")
-    args = parser.parse_args()
+    return parser
+
+
+def main() -> None:
+    args = build_argument_parser().parse_args()
 
     activations = collect_prompt_mean_activations(
         args.activation_run,
@@ -70,11 +123,16 @@ def main() -> None:
         token_regions=_parse_csv_set(args.token_regions),
         activation_site=args.activation_site,
     )
+    include_splits = _validated_include_splits(
+        args.include_splits,
+        allow_nontrain=args.allow_nontrain_splits,
+    )
     selected_activations = _filter_activations(
         activations,
-        include_splits=_parse_csv_set(args.include_splits),
+        include_splits=include_splits,
         exclude_splits=_parse_csv_set(args.exclude_splits),
     )
+    selected_activations = _filter_construct(selected_activations, args.construct_id)
     pair_rows, mean_direction = build_pair_directions(
         selected_activations,
         positive_role=args.positive_role,
@@ -90,6 +148,7 @@ def main() -> None:
         output_dir / "pair_directions.csv",
         pair_rows,
         [
+            "construct_id",
             "pair_id",
             "positive_prompt_id",
             "negative_prompt_id",
@@ -108,6 +167,7 @@ def main() -> None:
         output_dir / "summary.json",
         {
             "activation_run": args.activation_run,
+            "construct_id": args.construct_id,
             "prompt_count": len(selected_activations),
             "source_prompt_count": len(activations),
             "pair_count": len(pair_rows),
@@ -115,7 +175,8 @@ def main() -> None:
             "direction_norm": float(np.linalg.norm(mean_direction)),
             "positive_role": args.positive_role,
             "negative_role": args.negative_role,
-            "include_splits": sorted(_parse_csv_set(args.include_splits) or []),
+            "include_splits": sorted(include_splits),
+            "allow_nontrain_splits": args.allow_nontrain_splits,
             "exclude_splits": sorted(_parse_csv_set(args.exclude_splits) or []),
             "aggregation": "prompt_mean_over_selected_token_vectors",
         },

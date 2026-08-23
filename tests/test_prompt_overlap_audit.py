@@ -44,7 +44,7 @@ def test_audit_flags_near_duplicate_prompt():
     candidate = audit.PromptRecord(
         prompt_id="new",
         pair_id="new_pair",
-        split="heldout_readout",
+        split="direction_heldout",
         source_llm="gemini_pro",
         text="",
         core_text="A student sees a provisional grade before the official posting.",
@@ -71,7 +71,7 @@ def test_internal_audit_skips_matched_pair_but_flags_other_candidates():
     first = audit.PromptRecord(
         prompt_id="candidate_1",
         pair_id="pair_1",
-        split="heldout_readout",
+        split="direction_heldout",
         source_llm="deepseek_v32",
         text="",
         core_text="A manager sees a pending bonus before payroll closes.",
@@ -82,7 +82,7 @@ def test_internal_audit_skips_matched_pair_but_flags_other_candidates():
     same_pair = audit.PromptRecord(
         prompt_id="candidate_2",
         pair_id="pair_1",
-        split="heldout_readout",
+        split="direction_heldout",
         source_llm="deepseek_v32",
         text="",
         core_text="A manager sees a pending bonus before payroll closes.",
@@ -93,7 +93,7 @@ def test_internal_audit_skips_matched_pair_but_flags_other_candidates():
     other_pair = audit.PromptRecord(
         prompt_id="candidate_3",
         pair_id="pair_2",
-        split="heldout_readout",
+        split="direction_heldout",
         source_llm="llama_maverick",
         text="",
         core_text="A manager sees a pending bonus before payroll closes.",

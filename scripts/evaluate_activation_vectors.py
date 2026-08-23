@@ -25,11 +25,32 @@ def _parse_csv_set(value: str | None, *, as_int: bool = False):
     return parts
 
 
+def _filter_construct(activations, construct_id: str | None):
+    construct_ids = {
+        str(activation.metadata.get("construct_id", "")).strip()
+        for activation in activations
+    }
+    construct_ids.discard("")
+    if construct_id is None and len(construct_ids) > 1:
+        raise ValueError(
+            "Activation run contains multiple constructs. Pass --construct-id to evaluate one "
+            "construct-scoped direction at a time."
+        )
+    if construct_id is None:
+        return activations
+    return [
+        activation
+        for activation in activations
+        if str(activation.metadata.get("construct_id", "")).strip() == construct_id
+    ]
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Evaluate an activation direction on prompt activations.")
     parser.add_argument("--activation-run", required=True)
     parser.add_argument("--direction", required=True, help="Path to .npy direction vector.")
     parser.add_argument("--output-dir", required=True)
+    parser.add_argument("--construct-id", default=None, help="Construct namespace to analyze.")
     parser.add_argument("--layers", default=None)
     parser.add_argument("--token-regions", default="scenario")
     parser.add_argument("--activation-site", default="resid_post")
@@ -47,12 +68,14 @@ def main() -> None:
         token_regions=_parse_csv_set(args.token_regions),
         activation_site=args.activation_site,
     )
+    activations = _filter_construct(activations, args.construct_id)
     rows = []
     for activation in activations:
         metadata = activation.metadata
         rows.append(
             {
                 "prompt_id": activation.prompt_id,
+                "construct_id": metadata.get("construct_id", ""),
                 "projection": float(np.dot(activation.vector, unit_direction)),
                 "token_count": activation.token_count,
                 "split": metadata.get("split", ""),
@@ -75,6 +98,7 @@ def main() -> None:
         rows,
         [
             "prompt_id",
+            "construct_id",
             "projection",
             "token_count",
             "split",

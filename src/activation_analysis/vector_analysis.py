@@ -4,7 +4,7 @@ import csv
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, Iterable, Mapping
 
 import numpy as np
 
@@ -83,21 +83,39 @@ def build_pair_directions(
     *,
     positive_role: str = "realized_closed",
     negative_role: str = "paper_open",
+    construct_id: str | None = None,
 ) -> tuple[list[dict[str, Any]], np.ndarray | None]:
-    """Build per-pair contrast vectors and their mean direction."""
+    """Build per-pair contrast vectors and their mean direction.
 
-    by_pair: dict[str, dict[str, PromptActivation]] = {}
+    A direction is a construct-scoped object. Passing a combined activation
+    inventory without ``construct_id`` is rejected when multiple construct
+    namespaces are present so a joint run cannot silently pool unrelated
+    behaviors.
+    """
+
+    by_pair: dict[tuple[str, str], dict[str, PromptActivation]] = {}
+    observed_constructs: set[str] = set()
     for activation in activations:
+        activation_construct_id = _metadata_value(activation.metadata, "construct_id")
+        if construct_id is not None and activation_construct_id != construct_id:
+            continue
+        observed_constructs.add(activation_construct_id)
         pair_id = _metadata_value(activation.metadata, "pair_id")
         pair_role = _metadata_value(activation.metadata, "pair_role")
         if not pair_id or not pair_role:
             continue
-        by_pair.setdefault(pair_id, {})[pair_role] = activation
+        by_pair.setdefault((activation_construct_id, pair_id), {})[pair_role] = activation
+
+    if construct_id is None and len(observed_constructs) > 1:
+        raise ValueError(
+            "Multiple construct_id values were supplied. Build directions separately per construct "
+            "or pass construct_id explicitly; pooled directions are not a primary benchmark estimand."
+        )
 
     rows: list[dict[str, Any]] = []
     vectors: list[np.ndarray] = []
-    for pair_id in sorted(by_pair):
-        pair = by_pair[pair_id]
+    for pair_construct_id, pair_id in sorted(by_pair):
+        pair = by_pair[(pair_construct_id, pair_id)]
         positive = pair.get(positive_role)
         negative = pair.get(negative_role)
         if positive is None or negative is None:
@@ -107,6 +125,7 @@ def build_pair_directions(
         metadata = positive.metadata
         rows.append(
             {
+                "construct_id": pair_construct_id,
                 "pair_id": pair_id,
                 "positive_prompt_id": positive.prompt_id,
                 "negative_prompt_id": negative.prompt_id,
@@ -125,6 +144,40 @@ def build_pair_directions(
     if not vectors:
         return rows, None
     return rows, np.mean(np.stack(vectors, axis=0), axis=0).astype(np.float32, copy=False)
+
+
+def build_directions_by_construct(
+    activations: Iterable[PromptActivation],
+    *,
+    positive_roles: Mapping[str, str],
+    negative_roles: Mapping[str, str],
+) -> dict[str, tuple[list[dict[str, Any]], np.ndarray | None]]:
+    """Build independent directions for every construct in a combined run."""
+
+    grouped: dict[str, list[PromptActivation]] = {}
+    for activation in activations:
+        construct_id = _metadata_value(activation.metadata, "construct_id")
+        if not construct_id:
+            raise ValueError("Every activation must carry construct_id for multi-construct direction building.")
+        grouped.setdefault(construct_id, []).append(activation)
+
+    missing_positive = sorted(set(grouped) - set(positive_roles))
+    missing_negative = sorted(set(grouped) - set(negative_roles))
+    if missing_positive or missing_negative:
+        raise ValueError(
+            "Role mappings are missing construct IDs: "
+            f"positive={missing_positive}, negative={missing_negative}."
+        )
+
+    return {
+        construct_id: build_pair_directions(
+            construct_activations,
+            positive_role=positive_roles[construct_id],
+            negative_role=negative_roles[construct_id],
+            construct_id=construct_id,
+        )
+        for construct_id, construct_activations in sorted(grouped.items())
+    }
 
 
 def write_json(path: Path, data: dict[str, Any]) -> None:

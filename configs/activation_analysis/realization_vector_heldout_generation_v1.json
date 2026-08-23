@@ -40,7 +40,7 @@
     {
       "cell_id": "heldout_realization_money",
       "prompt_family": "heldout_realization_pair",
-      "split": "heldout_readout",
+      "split": "direction_heldout",
       "domains": [
         "finance_investments",
         "refund_reimbursement",
@@ -76,7 +76,7 @@
     {
       "cell_id": "heldout_realization_nonmoney",
       "prompt_family": "heldout_realization_pair",
-      "split": "heldout_readout",
+      "split": "direction_heldout",
       "domains": [
         "academic_grades",
         "project_outcomes"

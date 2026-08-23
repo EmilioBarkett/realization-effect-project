@@ -1,0 +1,41 @@
+{
+  "schema_version": "0.1.0",
+  "run_id": "two_construct_smoke_v1",
+  "construct_ids": [
+    "realization_account_closure",
+    "evidence_diagnosticity"
+  ],
+  "model": {
+    "model_id": "REPLACE_WITH_LOCAL_MODEL",
+    "tokenizer_id": "REPLACE_WITH_LOCAL_MODEL",
+    "revision": null
+  },
+  "activation": {
+    "layers": [18],
+    "activation_site": "resid_post",
+    "token_mode": "nonpad",
+    "token_region_strategy": "auto",
+    "include_token_regions": ["scenario"],
+    "storage_dtype": "float32",
+    "batch_size": 8,
+    "max_length": 512
+  },
+  "steering": {
+    "scales": [-1.0, 0.0, 1.0],
+    "position_mode": "last",
+    "intervention_timing": "prefill_only",
+    "direction_source": "direction_train_only",
+    "calibration": "neutral_within_cell"
+  },
+  "output_root": "results/benchmark",
+  "seed": 17,
+  "analysis_spec_id": "rsc_benchmark_core_v1",
+  "execution": {
+    "mode": "shared_activation_then_construct_fanout",
+    "max_constructs_per_run": 4,
+    "parallel_construct_analysis": true,
+    "shared_model_load": true,
+    "shared_activation_pass": true,
+    "construct_namespace_required": true
+  }
+}

@@ -49,7 +49,7 @@
       "prompt_family": "realization_pair",
       "splits": [
         "direction_train",
-        "direction_val"
+        "direction_validation"
       ],
       "domains": [
         "finance_investments",
@@ -89,7 +89,7 @@
       "prompt_family": "realization_pair",
       "splits": [
         "direction_train",
-        "direction_val"
+        "direction_validation"
       ],
       "domains": [
         "academic_grades",

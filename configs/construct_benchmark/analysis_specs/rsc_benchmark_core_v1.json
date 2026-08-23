@@ -1,0 +1,41 @@
+{
+  "schema_version": "0.1.0",
+  "analysis_id": "rsc_benchmark_core_v1",
+  "version": "v1",
+  "primary_readout": {
+    "estimand": "continuous_heldout_projection_margin",
+    "direction_source": "direction_train_only",
+    "secondary_metrics": ["pair_accuracy", "heldout_auc", "direction_norm"],
+    "aggregation": "within_construct_then_report_construct_distribution",
+    "pooled_direction_for_primary": false
+  },
+  "primary_steering": {
+    "estimand": "directed_mean_state_transfer",
+    "secondary_metrics": [
+      "dose_response_slope",
+      "output_accessibility",
+      "downstream_persistence",
+      "unrelated_behavior_specificity"
+    ],
+    "controls": ["positive_scale", "zero_scale", "negative_scale", "shuffled_direction", "random_direction"],
+    "dose_calibration": "neutral_or_within_cell_before_behavioral_claims",
+    "direction_source": "direction_train_only"
+  },
+  "controls": {
+    "prompt": ["lexical_overlap", "template_compliance", "pair_balance", "source_model_balance"],
+    "activation": ["layer_recording", "token_region_recording", "hidden_size_consistency"],
+    "behavior": ["invalid_response_reporting", "neutral_prompt", "unrelated_outcome"],
+    "steering": ["shuffled_direction", "random_direction", "zero_scale", "timing_control"]
+  },
+  "uncertainty": {
+    "readout": "bootstrap_over_pairs_or_items_with_construct_stratification",
+    "steering": "bootstrap_over_behavior_items_and_report_compliance_denominators",
+    "cross_construct": "report_construct_level_effects_before_any_meta_analysis",
+    "missingness": "never replace invalid responses with zero"
+  },
+  "exclusions": {
+    "direction": ["prompt_overlap", "missing_pair_member", "noncompliant_probe"],
+    "behavior": ["invalid_parse", "prompt_overlap", "task_failure"],
+    "steering": ["missing_direction", "wrong_hidden_size", "generation_failure"]
+  }
+}

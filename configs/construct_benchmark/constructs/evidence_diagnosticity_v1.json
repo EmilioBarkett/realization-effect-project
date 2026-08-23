@@ -1,0 +1,85 @@
+{
+  "schema_version": "0.1.0",
+  "construct_id": "evidence_diagnosticity",
+  "version": "v1",
+  "family": "epistemic",
+  "title": "Evidence diagnosticity",
+  "description": "Whether presented evidence is represented as highly diagnostic or weakly diagnostic for the focal hypothesis, without identifying the direction of belief polarity.",
+  "contrast_conditions": [
+    {
+      "condition_id": "high_diagnosticity",
+      "label": "Highly diagnostic evidence",
+      "definition": "The evidence is described as reliable, specific, and strongly informative for distinguishing the focal hypothesis from alternatives."
+    },
+    {
+      "condition_id": "low_diagnosticity",
+      "label": "Weakly diagnostic evidence",
+      "definition": "The evidence is described as noisy, nonspecific, or only weakly informative for distinguishing the focal hypothesis from alternatives."
+    }
+  ],
+  "probe_prompt_template": "Read the following short epistemic scenario. Track the evidential quality separately from whether the evidence supports or contradicts the focal hypothesis.\n\nScenario:\n{scenario}\n\nContinue processing the scenario.",
+  "independent_behavior_task": {
+    "task_id": "belief_update_magnitude_v1",
+    "task_family": "sequential_belief_update",
+    "prompt_template": "You have a prior probability for a hypothesis and then receive a separate piece of evidence. Report your posterior probability from 0 to 100. The task varies whether the evidence supports or contradicts the hypothesis and is independent of the probe wording.",
+    "primary_outcome": "absolute_posterior_update",
+    "secondary_outcomes": ["posterior_calibration", "confidence"],
+    "response_format": "single_integer_0_to_100",
+    "independence_requirements": [
+      "Use new hypotheses and evidence items not present in probe prompts.",
+      "Cross supporting and contradicting evidence across diagnosticity conditions.",
+      "Do not ask the model to classify evidence as high or low diagnosticity."
+    ]
+  },
+  "expected_direction": {
+    "readout": {
+      "positive_condition": "high_diagnosticity",
+      "negative_condition": "low_diagnosticity",
+      "estimand": "heldout_projection_margin"
+    },
+    "behavior": {
+      "outcome": "absolute_posterior_update",
+      "estimand": "diagnosticity_by_evidence_valence_effect",
+      "expected_by_evidence_valence": {
+        "supporting": "high_diagnosticity_increases_update_magnitude",
+        "contradicting": "high_diagnosticity_increases_update_magnitude"
+      },
+      "direction_status": "preregister_before_data_collection",
+      "warning": "This construct represents perceived evidence diagnosticity, not belief polarity or an unrestricted updating policy."
+    }
+  },
+  "parsing_rules": {
+    "parser_id": "single_integer_probability_v1",
+    "valid_ranges": {
+      "posterior_probability": [0, 100]
+    },
+    "invalid_response_policy": "exclude_from_outcome_denominator_and_report_compliance",
+    "extra_text_policy": "invalid"
+  },
+  "required_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout",
+    "behavior_eval",
+    "steering_eval",
+    "calibration"
+  ],
+  "paired_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout"
+  ],
+  "controls": [
+    "supporting_and_contradicting_evidence",
+    "prior_probability_balance",
+    "lexical_overlap_audit",
+    "neutral_behavior_prompt",
+    "shuffled_pair_labels",
+    "random_direction"
+  ],
+  "metadata": {
+    "primary_question": "Is a diagnosticity direction decodable, and does it transfer to the magnitude of an independent belief update?",
+    "probe_state_is": "perceived_evidence_diagnosticity",
+    "belief_polarity_is": "a separate task factor, not the construct definition"
+  }
+}
