@@ -2,9 +2,10 @@
 
 This directory holds reviewable prompt CSVs used before residual-stream logging.
 
-The active direction is an Anthropic-style activation-vector experiment for
-realization framing and risk-taking behavior. Older emotion-probe and SAE prompt
-sets are preserved as archive/reference material.
+These files are the reviewable prompt inputs for the activation foundation. The
+current CSVs are realization-anchor prompts; the next task is to generalize
+their paired metadata and split structure to evidence diagnosticity and later
+constructs. Older emotion-probe and SAE prompt sets are reference material.
 
 ## Current Path
 
@@ -22,16 +23,6 @@ sets are preserved as archive/reference material.
 ```bash
 export OPENROUTER_API_KEY=your_key_here
 
-./venv/bin/python scripts/run_realization_experiment.py \
-  --prompt-version generation \
-  --generation-plan configs/activation_analysis/realization_vector_generation_v1.json \
-  --generation-pilot-all-cells \
-  --generation-output experiments/activation_analysis/prompts/activation_vectors/realization_vector_v1_pilot.csv
-```
-
-Preferred direct entrypoint:
-
-```bash
 ./venv/bin/python scripts/generate_activation_prompts.py \
   --pilot-all-cells \
   --output experiments/activation_analysis/prompts/activation_vectors/realization_vector_v1_pilot.csv
@@ -74,6 +65,11 @@ completed model CSVs:
 ```
 
 ## Vector Build/Eval
+
+The vector build/evaluation scripts are retained as activation primitives and
+now use the tracked iterator in `activation_analysis.activation_store`. A
+clean Python 3.11 editable installation and active test run now pass `make
+check`; end-to-end validation against a real activation run remains pending.
 
 ```bash
 ./venv/bin/python scripts/build_activation_vectors.py \

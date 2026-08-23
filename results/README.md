@@ -1,11 +1,14 @@
-# Results Layout
+# Results layout
+
+The current project has not yet produced a generalized benchmark dataset. Most
+tracked results in this directory are realization-anchor or activation-pipeline
+reference artifacts.
 
 This folder has four kinds of outputs:
 
-- `results.csv` and `blocks/` are the canonical behavioral realization-effect
-  results used by the analysis scripts. `results.csv` is local-only and ignored
-  because it is large; regenerate or copy it into place before running analyses
-  that need the full behavioral table.
+- `results.csv` and `blocks/` are historical realization-effect behavioral
+  results used by the archived analysis scripts. `results.csv` is local-only
+  and ignored because it is large.
 - `final/` is for reference artifacts from larger activation extraction and SAE
   training runs. These runs may still be exploratory, but they should be
   reproducible and tied to checked-in configs.
@@ -18,6 +21,10 @@ Keep new local smoke runs under `results/test/`. Put small, curated reference
 artifacts under `results/final/`; keep large activation tensors, raw steering
 generations, and exploratory checkpoints ignored unless they are explicitly
 needed for publication or review.
+
+Before any generalized benchmark run, add an explicit ignore rule for
+`results/benchmark/<construct>/<model>/<run>/raw/` and record the run manifest
+and split/config hashes.
 
 ## Current Final Artifacts
 

@@ -1,7 +1,8 @@
 # Activation-Vector Prompt CSVs
 
-This folder is for generated synthetic prompts used by the Anthropic-style
-activation-vector pipeline.
+This folder contains generated synthetic prompt pairs used by the
+activation-vector pipeline. The current files are realization-anchor data, not
+the final multi-construct benchmark.
 
 Current planned output:
 

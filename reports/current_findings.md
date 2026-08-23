@@ -1,4 +1,8 @@
-# Current Findings
+# Historical realization-anchor findings
+
+This file summarizes the completed realization-effect case study. It is not a
+result from the generalized decodability–steerability benchmark, which has not
+yet been implemented or run.
 
 This is the current read of the cleaned canonical dataset in
 `results/results.csv`.
