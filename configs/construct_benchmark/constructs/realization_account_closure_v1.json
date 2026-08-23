@@ -25,6 +25,12 @@
     "primary_outcome": "risk_preference",
     "secondary_outcomes": ["allocation_amount"],
     "response_format": "two_integers_on_separate_lines",
+    "item_metadata_schema": {
+      "required": ["outcome_valence"],
+      "properties": {
+        "outcome_valence": {"type": "string", "enum": ["gain", "loss", "neutral"]}
+      }
+    },
     "independence_requirements": [
       "No lexical reuse of probe scenario entities or closure terms.",
       "Use a new decision domain and new item identifiers.",

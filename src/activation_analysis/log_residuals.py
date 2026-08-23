@@ -81,11 +81,36 @@ def _with_token_regions(record: PromptRecord, strategy: str) -> PromptRecord:
 
 def _infer_prompt_regions(prompt_text: str, metadata: dict[str, Any] | None = None) -> list[dict[str, Any]]:
     metadata = metadata or {}
+    if str(metadata.get("construct_id", "")).strip():
+        return _infer_construct_prompt_regions(prompt_text, metadata)
     if "Scenario:\n" in prompt_text and "\n\nDo not answer yet." in prompt_text:
         return _infer_emotion_prompt_regions(prompt_text)
     if str(metadata.get("emotion", "")).strip():
         return _infer_emotion_prompt_regions(prompt_text)
     return _infer_realization_prompt_regions(prompt_text)
+
+
+def _infer_construct_prompt_regions(prompt_text: str, metadata: dict[str, Any]) -> list[dict[str, Any]]:
+    prompt_role = str(metadata.get("prompt_role", "")).strip()
+    if prompt_role != "probe":
+        return [_region("task", 0, len(prompt_text))]
+    scenario_marker = "Scenario:\n"
+    scenario_marker_start = prompt_text.find(scenario_marker)
+    if scenario_marker_start == -1:
+        return [_region("scenario", 0, len(prompt_text))]
+    scenario_start = scenario_marker_start + len(scenario_marker)
+    processing_markers = ("\n\nContinue processing", "\n\nDo not answer yet.")
+    processing_start = next(
+        (position for marker in processing_markers if (position := prompt_text.find(marker, scenario_start)) != -1),
+        len(prompt_text),
+    )
+    regions = []
+    if scenario_start > 0:
+        regions.append(_region("wrapper", 0, scenario_start))
+    regions.append(_region("scenario", scenario_start, processing_start))
+    if processing_start < len(prompt_text):
+        regions.append(_region("processing_instruction", processing_start, len(prompt_text)))
+    return regions
 
 
 def _region(label: str, start: int, end: int) -> dict[str, Any]:

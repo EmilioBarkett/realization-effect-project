@@ -116,6 +116,33 @@ def test_with_token_regions_labels_generated_scenario_without_emotion_metadata()
     )
 
 
+def test_with_token_regions_labels_construct_probe_and_downstream_task() -> None:
+    probe = PromptRecord(
+        prompt_id="construct_probe",
+        prompt_text=(
+            "Read the following short scenario.\n\nScenario:\n"
+            "A reviewer examines an unsettled request.\n\n"
+            "Continue processing the scenario."
+        ),
+        metadata={"construct_id": "example_construct", "prompt_role": "probe"},
+    )
+    downstream = PromptRecord(
+        prompt_id="construct_task",
+        prompt_text="Allocate exactly 100 points between the two projects.",
+        metadata={"construct_id": "example_construct", "prompt_role": "calibration"},
+    )
+
+    annotated_probe = _with_token_regions(probe, "auto")
+    annotated_task = _with_token_regions(downstream, "auto")
+
+    assert [region["label"] for region in annotated_probe.metadata["prompt_regions"]] == [
+        "wrapper",
+        "scenario",
+        "processing_instruction",
+    ]
+    assert [region["label"] for region in annotated_task.metadata["prompt_regions"]] == ["task"]
+
+
 def test_with_token_regions_labels_realization_prompt_spans() -> None:
     record = PromptRecord(
         prompt_id="paper_even",

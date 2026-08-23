@@ -150,6 +150,36 @@ class ConstructSpec:
                 behavior_task.get(field_name),
                 field_name=f"independent_behavior_task.{field_name}",
             )
+        item_metadata_schema = _mapping(
+            behavior_task.get("item_metadata_schema"),
+            field_name="independent_behavior_task.item_metadata_schema",
+        )
+        item_metadata_properties = _mapping(
+            item_metadata_schema.get("properties"),
+            field_name="independent_behavior_task.item_metadata_schema.properties",
+        )
+        item_metadata_required = _string_list(
+            item_metadata_schema.get("required"),
+            field_name="independent_behavior_task.item_metadata_schema.required",
+            allow_empty=False,
+        )
+        if set(item_metadata_required) != set(item_metadata_properties):
+            raise ValueError("item_metadata_schema must require every declared property exactly once.")
+        for property_name, raw_property in item_metadata_properties.items():
+            _validate_id(property_name, field_name="item_metadata_schema property")
+            property_schema = _mapping(
+                raw_property,
+                field_name=f"item_metadata_schema.properties.{property_name}",
+            )
+            property_type = _nonempty_string(
+                property_schema.get("type"),
+                field_name=f"item_metadata_schema.properties.{property_name}.type",
+            )
+            if property_type not in {"string", "integer", "number", "boolean"}:
+                raise ValueError(f"Unsupported item metadata type={property_type!r}.")
+        item_metadata_schema["required"] = list(item_metadata_required)
+        item_metadata_schema["properties"] = item_metadata_properties
+        behavior_task["item_metadata_schema"] = item_metadata_schema
 
         expected_direction = _mapping(payload.get("expected_direction"), field_name="expected_direction")
         readout_direction = _mapping(
@@ -309,6 +339,24 @@ class RunConfig:
         )
         if direction_source != "direction_train_only":
             raise ValueError("steering.direction_source must be 'direction_train_only'.")
+        calibration_method = _nonempty_string(
+            steering.get("calibration"), field_name="steering.calibration"
+        )
+        if calibration_method not in {"neutral", "within_condition"}:
+            raise ValueError("steering.calibration must be 'neutral' or 'within_condition'.")
+        random_direction_count = steering.get("random_direction_count")
+        if not isinstance(random_direction_count, int) or random_direction_count < 1:
+            raise ValueError("steering.random_direction_count must be a positive integer.")
+        if intervention_timing == "fixed_window":
+            window = steering.get("fixed_window")
+            if (
+                not isinstance(window, (list, tuple))
+                or len(window) != 2
+                or any(not isinstance(index, int) for index in window)
+                or window[0] < 0
+                or window[1] <= window[0]
+            ):
+                raise ValueError("fixed_window timing requires steering.fixed_window=[start, end].")
 
         output_root = _nonempty_string(payload.get("output_root"), field_name="output_root")
         seed = payload.get("seed")

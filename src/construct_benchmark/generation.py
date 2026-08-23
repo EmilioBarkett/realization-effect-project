@@ -416,7 +416,7 @@ def dry_run_summary(
     }
 
 
-def response_schema_for_job(job: ConstructGenerationJob) -> dict[str, Any]:
+def response_schema_for_job(job: ConstructGenerationJob, spec: ConstructSpec) -> dict[str, Any]:
     if job.mode == "paired":
         return {
             "type": "json_schema",
@@ -458,6 +458,7 @@ def response_schema_for_job(job: ConstructGenerationJob) -> dict[str, Any]:
             },
         }
     if job.mode == "single":
+        item_metadata_schema = dict(spec.independent_behavior_task["item_metadata_schema"])
         return {
             "type": "json_schema",
             "json_schema": {
@@ -473,10 +474,22 @@ def response_schema_for_job(job: ConstructGenerationJob) -> dict[str, Any]:
                             "items": {
                                 "type": "object",
                                 "additionalProperties": False,
-                                "required": ["variant_id", "content_domain", "prompt_text", "notes"],
+                                "required": [
+                                    "variant_id",
+                                    "content_domain",
+                                    "task_metadata",
+                                    "prompt_text",
+                                    "notes",
+                                ],
                                 "properties": {
                                     "variant_id": {"type": "string"},
                                     "content_domain": {"type": "string"},
+                                    "task_metadata": {
+                                        "type": "object",
+                                        "additionalProperties": False,
+                                        "required": list(item_metadata_schema["required"]),
+                                        "properties": dict(item_metadata_schema["properties"]),
+                                    },
                                     "prompt_text": {"type": "string"},
                                     "notes": {"type": "string"},
                                 },
@@ -525,6 +538,7 @@ def build_generation_messages(spec: ConstructSpec, plan: Mapping[str, Any], job:
         "generation_mode": job.mode,
         "probe_template": spec.probe_prompt_template if job.prompt_role == "probe" else None,
         "independent_task": task if job.prompt_role != "probe" else None,
+        "item_metadata_schema": task["item_metadata_schema"] if job.prompt_role != "probe" else None,
         "cell_instructions": cell.get("instructions", ""),
         "design_rules": plan.get("design_rules", []),
         "task_composition": plan["task_composition"],
@@ -532,7 +546,8 @@ def build_generation_messages(spec: ConstructSpec, plan: Mapping[str, Any], job:
         "output_requirement": (
             "For paired mode return exactly count pairs, and each pair must contain exactly one prompt "
             "for each condition_id and the assigned content_domain at the corresponding index. For single "
-            "mode return exactly count prompts with the assigned content_domain at the corresponding index. "
+            "mode return exactly count prompts with the assigned content_domain at the corresponding index and "
+            "task_metadata that exactly follows item_metadata_schema. "
             "Every prompt_text must be a complete model input, not a summary."
         ),
     }
@@ -599,7 +614,45 @@ def _validate_text(prompt_text: Any, *, plan: Mapping[str, Any], job: ConstructG
     return text
 
 
-def _parse_response(response: Mapping[str, Any], *, plan: Mapping[str, Any], job: ConstructGenerationJob) -> list[dict[str, Any]]:
+def _validate_task_metadata(value: Any, *, spec: ConstructSpec, job: ConstructGenerationJob) -> dict[str, Any]:
+    if not isinstance(value, Mapping):
+        raise ValueError(f"{job.job_id} task_metadata must be an object.")
+    metadata = dict(value)
+    schema = dict(spec.independent_behavior_task["item_metadata_schema"])
+    properties = dict(schema["properties"])
+    _validate_object_keys(
+        metadata,
+        allowed=set(properties),
+        required=set(schema["required"]),
+        context=f"{job.job_id} task_metadata",
+    )
+    for field_name, field_schema in properties.items():
+        field_value = metadata[field_name]
+        field_type = field_schema["type"]
+        valid_type = {
+            "string": isinstance(field_value, str),
+            "integer": isinstance(field_value, int) and not isinstance(field_value, bool),
+            "number": isinstance(field_value, (int, float)) and not isinstance(field_value, bool),
+            "boolean": isinstance(field_value, bool),
+        }[field_type]
+        if not valid_type:
+            raise ValueError(f"{job.job_id} task_metadata.{field_name} must have type={field_type}.")
+        if "enum" in field_schema and field_value not in field_schema["enum"]:
+            raise ValueError(f"{job.job_id} task_metadata.{field_name} is outside its registered enum.")
+        if "minimum" in field_schema and field_value < field_schema["minimum"]:
+            raise ValueError(f"{job.job_id} task_metadata.{field_name} is below its registered minimum.")
+        if "maximum" in field_schema and field_value > field_schema["maximum"]:
+            raise ValueError(f"{job.job_id} task_metadata.{field_name} is above its registered maximum.")
+    return metadata
+
+
+def _parse_response(
+    response: Mapping[str, Any],
+    *,
+    spec: ConstructSpec,
+    plan: Mapping[str, Any],
+    job: ConstructGenerationJob,
+) -> list[dict[str, Any]]:
     data = _parse_json_response(response)
     expected_domains = _assigned_content_domains(plan, job)
     if job.mode == "paired":
@@ -691,8 +744,8 @@ def _parse_response(response: Mapping[str, Any], *, plan: Mapping[str, Any], job
             raise ValueError(f"{job.job_id} contains a non-object prompt.")
         _validate_object_keys(
             prompt,
-            allowed={"variant_id", "content_domain", "prompt_text", "notes"},
-            required={"variant_id", "content_domain", "prompt_text", "notes"},
+            allowed={"variant_id", "content_domain", "task_metadata", "prompt_text", "notes"},
+            required={"variant_id", "content_domain", "task_metadata", "prompt_text", "notes"},
             context=f"{job.job_id} prompt",
         )
         raw_variant_id = prompt.get("variant_id")
@@ -714,6 +767,7 @@ def _parse_response(response: Mapping[str, Any], *, plan: Mapping[str, Any], job
             {
                 "variant_id": variant_id,
                 "content_domain": content_domain,
+                "task_metadata": _validate_task_metadata(prompt["task_metadata"], spec=spec, job=job),
                 "prompt_text": _validate_text(prompt.get("prompt_text"), plan=plan, job=job),
                 "notes": prompt["notes"],
             }
@@ -759,7 +813,7 @@ def _records_from_response(
     plan: Mapping[str, Any],
     job: ConstructGenerationJob,
 ) -> list[PromptRecord]:
-    parsed = _parse_response(response, plan=plan, job=job)
+    parsed = _parse_response(response, spec=spec, plan=plan, job=job)
     task = spec.independent_behavior_task
     records: list[PromptRecord] = []
     if job.mode == "paired":
@@ -795,6 +849,16 @@ def _records_from_response(
     expected_format = str(job.cell.get("expected_output_format", task["response_format"]))
     condition_id = str(job.cell.get("condition_id", "neutral"))
     for prompt in parsed:
+        metadata = _record_metadata(
+            spec,
+            plan,
+            job,
+            notes=prompt["notes"],
+            variant_id=prompt["variant_id"],
+            content_domain=prompt["content_domain"],
+        )
+        metadata["task_metadata"] = dict(prompt["task_metadata"])
+        metadata.update(prompt["task_metadata"])
         records.append(
             PromptRecord(
                 prompt_id=f"{job.job_id}__{prompt['variant_id']}",
@@ -807,14 +871,7 @@ def _records_from_response(
                 task_id=task_id,
                 expected_output_format=expected_format,
                 parser_id=parser_id,
-                metadata=_record_metadata(
-                    spec,
-                    plan,
-                    job,
-                    notes=prompt["notes"],
-                    variant_id=prompt["variant_id"],
-                    content_domain=prompt["content_domain"],
-                ),
+                metadata=metadata,
             )
         )
     return records
@@ -900,7 +957,7 @@ def generate_prompt_records(
                 "api_key": api_key,
                 "seed": job.seed,
                 "temperature": job.temperature,
-                "response_schema": response_schema_for_job(job),
+                "response_schema": response_schema_for_job(job, spec),
             }
             messages = build_generation_messages(spec, plan, job)
             response = _request_with_retries(request_fn, job, messages, options)

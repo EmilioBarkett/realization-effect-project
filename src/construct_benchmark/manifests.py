@@ -152,6 +152,9 @@ def build_run_plan(
                     "calibration_output": entry["output_layout"]["calibration"],
                     "scales": list(run_config.steering["scales"]),
                     "intervention_timing": run_config.steering["intervention_timing"],
+                    "calibration_method": run_config.steering["calibration"],
+                    "controls": list(analysis_spec.primary_steering.get("controls", [])),
+                    "random_direction_count": run_config.steering["random_direction_count"],
                     "scope_rule": SPLIT_EXECUTION_SCOPE["steering_eval"],
                 },
                 {
@@ -160,13 +163,12 @@ def build_run_plan(
                     "construct_id": construct_id,
                     "input": entry["output_layout"]["steering"],
                     "output": entry["output_layout"]["behavior_steered"],
-                    "baseline_input": entry["output_layout"]["behavior_baseline"],
                     "behavior_task_id": entry["behavior_task_id"],
-                    "behavior_split": "behavior_eval",
+                    "behavior_split": "steering_eval",
                     "parser_id": entry["parser_id"],
                     "intervention": "steered",
-                    "comparison": "paired_with_prompt_only_baseline",
-                    "scope_rule": SPLIT_EXECUTION_SCOPE["behavior_eval"],
+                    "comparison": "positive_vs_negative_standardized_by_zero_dose_on_same_items",
+                    "scope_rule": SPLIT_EXECUTION_SCOPE["steering_eval"],
                 },
             ]
         )

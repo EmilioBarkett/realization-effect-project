@@ -25,6 +25,15 @@
     "primary_outcome": "testimony_weight",
     "secondary_outcomes": ["posterior_calibration", "confidence"],
     "response_format": "single_integer_0_to_100",
+    "item_metadata_schema": {
+      "required": ["prior_probability", "testimony_valence", "authority_status", "evidence_quality"],
+      "properties": {
+        "prior_probability": {"type": "integer", "minimum": 0, "maximum": 100},
+        "testimony_valence": {"type": "string", "enum": ["supporting", "contradicting"]},
+        "authority_status": {"type": "string", "enum": ["legitimate", "non_authority"]},
+        "evidence_quality": {"type": "string", "enum": ["strong", "weak"]}
+      }
+    },
     "independence_requirements": [
       "Use new domains, source names, and claims not present in probe prompts.",
       "Cross source track record with legitimate and non-legitimate status cues.",

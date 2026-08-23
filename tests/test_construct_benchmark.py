@@ -87,11 +87,25 @@ def _mock_generation_response(model_id: str, messages: list[dict[str, str]], opt
             )
         data = {"pairs": pairs}
     else:
+        task_schema = payload["item_metadata_schema"]
+        task_metadata = {}
+        for field_name, field_schema in task_schema["properties"].items():
+            if field_schema.get("enum"):
+                task_metadata[field_name] = field_schema["enum"][0]
+            elif field_schema["type"] == "integer":
+                task_metadata[field_name] = int(field_schema.get("minimum", 0))
+            elif field_schema["type"] == "number":
+                task_metadata[field_name] = float(field_schema.get("minimum", 0))
+            elif field_schema["type"] == "boolean":
+                task_metadata[field_name] = True
+            else:
+                task_metadata[field_name] = "mock_value"
         data = {
             "prompts": [
                 {
                     "variant_id": f"mock_variant_{index}",
                     "content_domain": assigned_domains[index],
+                    "task_metadata": task_metadata,
                     "prompt_text": "A separate task presents a new item and asks for a response.",
                     "notes": "deterministic mock response",
                 }
@@ -167,6 +181,8 @@ def test_two_construct_configs_are_valid_and_share_execution() -> None:
     assert len(baseline_stages) == len(steered_stages) == 2
     assert all(stage["prompt_only_baseline"] for stage in baseline_stages)
     assert all(stage["intervention"] == "steered" for stage in steered_stages)
+    assert all(stage["behavior_split"] == "steering_eval" for stage in steered_stages)
+    assert all("zero_dose" in stage["comparison"] for stage in steered_stages)
     assert {entry["construct_id"] for entry in plan["constructs"]} == set(specs)
     assert all(
         stage["group_key"] == ["construct_id", "pair_id"]
@@ -248,6 +264,13 @@ def test_wave_one_generation_emits_canonical_records_and_is_deterministic(tmp_pa
             in plan["content_pools"][record.metadata["content_pool"]]["domains"]
             for record in result.records
         )
+        downstream_records = [record for record in result.records if record.prompt_role != "probe"]
+        assert all(record.metadata["task_metadata"] for record in downstream_records)
+        assert all(
+            set(record.metadata["task_metadata"])
+            == set(spec.independent_behavior_task["item_metadata_schema"]["required"])
+            for record in downstream_records
+        )
         assert len({job.seed for job in iter_generation_jobs(plan)}) == len(first_jobs)
 
         chunked_plan = copy.deepcopy(plan)
@@ -315,6 +338,17 @@ def test_generation_rejects_wrong_fields_missing_pairs_duplicate_ids_and_forbidd
 
     with pytest.raises(ValueError, match="unexpected field"):
         generate_prompt_records(plan, spec, api_key="test", request_fn=wrong_field_response)
+
+    def missing_task_metadata_response(model_id: str, messages: list[dict[str, str]], options: dict) -> dict:
+        response = _mock_generation_response(model_id, messages, options)
+        payload = json.loads(response["choices"][0]["message"]["content"])
+        if payload.get("prompts"):
+            payload["prompts"][0].pop("task_metadata")
+        response["choices"][0]["message"]["content"] = json.dumps(payload)
+        return response
+
+    with pytest.raises(ValueError, match="missing required field"):
+        generate_prompt_records(plan, spec, api_key="test", request_fn=missing_task_metadata_response)
 
 
 def test_generation_plan_requires_all_wave_one_splits(tmp_path: Path) -> None:

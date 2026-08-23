@@ -25,6 +25,14 @@
     "primary_outcome": "absolute_posterior_update",
     "secondary_outcomes": ["posterior_calibration", "confidence"],
     "response_format": "single_integer_0_to_100",
+    "item_metadata_schema": {
+      "required": ["prior_probability", "evidence_valence", "evidence_strength"],
+      "properties": {
+        "prior_probability": {"type": "integer", "minimum": 0, "maximum": 100},
+        "evidence_valence": {"type": "string", "enum": ["supporting", "contradicting"]},
+        "evidence_strength": {"type": "string", "enum": ["weak", "moderate", "strong"]}
+      }
+    },
     "independence_requirements": [
       "Use new hypotheses and evidence items not present in probe prompts.",
       "Cross supporting and contradicting evidence across diagnosticity conditions.",

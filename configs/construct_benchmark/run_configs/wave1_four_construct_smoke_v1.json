@@ -17,7 +17,7 @@
     "activation_site": "resid_post",
     "token_mode": "nonpad",
     "token_region_strategy": "auto",
-    "include_token_regions": ["scenario"],
+    "include_token_regions": ["scenario", "task"],
     "storage_dtype": "float32",
     "batch_size": 8,
     "max_length": 512
@@ -27,7 +27,8 @@
     "position_mode": "last",
     "intervention_timing": "prefill_only",
     "direction_source": "direction_train_only",
-    "calibration": "neutral_within_cell"
+    "calibration": "neutral",
+    "random_direction_count": 2
   },
   "output_root": "results/benchmark",
   "seed": 17,

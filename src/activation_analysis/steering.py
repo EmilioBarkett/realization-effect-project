@@ -9,6 +9,7 @@ import numpy as np
 
 
 SUPPORTED_POSITION_MODES = {"all", "last"}
+SUPPORTED_INTERVENTION_TIMINGS = {"prefill_only", "generation_only", "every_step", "fixed_window"}
 
 
 @dataclass(frozen=True)
@@ -24,6 +25,9 @@ class SteeringConfig:
     scale: float
     position_mode: str = "last"
     normalize_direction: bool = True
+    intervention_timing: str = "every_step"
+    fixed_window_start: int | None = None
+    fixed_window_end: int | None = None
 
 
 @dataclass(frozen=True)
@@ -32,6 +36,53 @@ class SteeringVectorInfo:
     hidden_size: int
     raw_norm: float
     normalized: bool
+
+
+def _validate_intervention_timing(config: SteeringConfig) -> None:
+    if config.intervention_timing not in SUPPORTED_INTERVENTION_TIMINGS:
+        supported = ", ".join(sorted(SUPPORTED_INTERVENTION_TIMINGS))
+        raise ValueError(f"intervention_timing must be one of: {supported}.")
+    if config.intervention_timing == "fixed_window":
+        if config.fixed_window_start is None or config.fixed_window_end is None:
+            raise ValueError("fixed_window timing requires fixed_window_start and fixed_window_end.")
+        if config.fixed_window_start < 0 or config.fixed_window_end <= config.fixed_window_start:
+            raise ValueError("fixed_window must satisfy 0 <= start < end.")
+    elif config.fixed_window_start is not None or config.fixed_window_end is not None:
+        raise ValueError("fixed_window_start/end may only be set for fixed_window timing.")
+
+
+def should_inject_at_forward(
+    intervention_timing: str,
+    forward_index: int,
+    *,
+    fixed_window_start: int | None = None,
+    fixed_window_end: int | None = None,
+) -> bool:
+    """Return whether to inject on a generate() forward pass.
+
+    Forward index 0 is the prompt-prefill pass. Later indices are autoregressive
+    generation passes. Fixed windows use a half-open interval over these indices.
+    """
+
+    config = SteeringConfig(
+        direction_path=Path("unused.npy"),
+        layer=1,
+        scale=0.0,
+        intervention_timing=intervention_timing,
+        fixed_window_start=fixed_window_start,
+        fixed_window_end=fixed_window_end,
+    )
+    _validate_intervention_timing(config)
+    if forward_index < 0:
+        raise ValueError("forward_index must be non-negative.")
+    if intervention_timing == "prefill_only":
+        return forward_index == 0
+    if intervention_timing == "generation_only":
+        return forward_index > 0
+    if intervention_timing == "every_step":
+        return True
+    assert fixed_window_start is not None and fixed_window_end is not None
+    return fixed_window_start <= forward_index < fixed_window_end
 
 
 class ResidualSteeringGenerator:
@@ -265,12 +316,16 @@ class ResidualSteeringGenerator:
         blocks = self._resolve_transformer_blocks()
         if config.layer > len(blocks):
             raise ValueError(f"Requested layer {config.layer}, but model has only {len(blocks)} blocks.")
+        _validate_intervention_timing(config)
         direction, info = self.load_direction(config)
         handle = blocks[config.layer - 1].register_forward_hook(
             self._make_hook(
                 direction=direction,
                 scale=config.scale,
                 position_mode=config.position_mode,
+                intervention_timing=config.intervention_timing,
+                fixed_window_start=config.fixed_window_start,
+                fixed_window_end=config.fixed_window_end,
             )
         )
         try:
@@ -278,11 +333,37 @@ class ResidualSteeringGenerator:
         finally:
             handle.remove()
 
-    def _make_hook(self, *, direction: Any, scale: float, position_mode: str):
+    def _make_hook(
+        self,
+        *,
+        direction: Any,
+        scale: float,
+        position_mode: str,
+        intervention_timing: str,
+        fixed_window_start: int | None,
+        fixed_window_end: int | None,
+    ):
+        forward_index = 0
+
         def _hook(_module, _inputs, output):
+            nonlocal forward_index
             tensor = self._extract_block_tensor(output)
-            steered = self._inject(tensor, direction=direction, scale=scale, position_mode=position_mode)
-            return self._replace_block_tensor(output, steered)
+            if should_inject_at_forward(
+                intervention_timing,
+                forward_index,
+                fixed_window_start=fixed_window_start,
+                fixed_window_end=fixed_window_end,
+            ):
+                replacement = self._inject(
+                    tensor,
+                    direction=direction,
+                    scale=scale,
+                    position_mode=position_mode,
+                )
+            else:
+                replacement = tensor
+            forward_index += 1
+            return self._replace_block_tensor(output, replacement)
 
         return _hook
 

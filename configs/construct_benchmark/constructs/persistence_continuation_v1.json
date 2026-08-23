@@ -25,6 +25,14 @@
     "primary_outcome": "continue_allocation",
     "secondary_outcomes": ["alternative_allocation", "compliance"],
     "response_format": "two_integers_sum_100",
+    "item_metadata_schema": {
+      "required": ["setback_severity", "goal_value", "means_viable"],
+      "properties": {
+        "setback_severity": {"type": "string", "enum": ["moderate", "severe"]},
+        "goal_value": {"type": "string", "enum": ["high", "low"]},
+        "means_viable": {"type": "boolean"}
+      }
+    },
     "independence_requirements": [
       "Use new goals, actors, domains, and setback types not present in probe prompts.",
       "Cross whether the original means remain viable with whether the focal goal remains valuable.",
