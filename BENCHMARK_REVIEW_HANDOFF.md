@@ -91,7 +91,8 @@ engineering pilot because it confounds construct and task effects.
    four constructs and multiple model families?
 13. Which implementation assumptions in the current repository are premature,
     especially given the recently repaired activation boundary, completed clean
-    test verification, and absent generic benchmark package?
+    test verification, and the new multi-construct control plane before the
+    measurement layer is added?
 
 ## Recommended implementation sequence
 
@@ -102,8 +103,8 @@ The proposed order is:
    manifest, building on the new `ActivationVectorRecord` and
    `iter_activation_vectors()` implementation rather than restoring an
    obsolete SAE package;
-3. implement only the minimum schemas, manifests, splits, readout, and
-   calibration core;
+3. connect the implemented schemas, manifests, splits, and combined prompt
+   inventory to the readout and calibration core;
 4. complete the two-construct readout vertical slice;
 5. add explicit steering timing, neutral/within-cell dose calibration, and
    outcome-specific effect adapters;
@@ -128,6 +129,7 @@ Please return:
 - a recommended minimum experiment;
 - any changes needed to the current protocol or architecture before coding.
 
-The repository is still in protocol development. No generalized benchmark
-has been implemented, and the existing realization behavioral pipeline is
-archived as a reference case rather than the active experiment.
+The repository is still in protocol development. The shared multi-construct
+control plane is implemented, but the end-to-end measurement layer has not
+been run; the existing realization behavioral pipeline is archived as a
+reference case rather than the active experiment.

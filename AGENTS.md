@@ -39,13 +39,12 @@ current project direction.
 
 ## Maturity and scope
 
-The project is currently in scientific protocol development and repository
-preparation. The generalized benchmark is not implemented.
+The project is currently in scientific protocol development and benchmark
+infrastructure implementation. The shared multi-construct control plane is
+implemented; the end-to-end measurement layer is not.
 
 Do not describe the following as completed:
 
-- `src/construct_benchmark/`;
-- construct, run, or analysis schemas;
 - continuous projection-margin analysis;
 - neutral/within-cell dose calibration;
 - generic state-transfer metrics;
@@ -61,6 +60,8 @@ construct-specific paired prompts.
 
 - `src/activation_analysis/`: active prompt generation, residual logging,
   activation storage, vector primitives, and steering primitives.
+- `src/construct_benchmark/`: shared construct/run/analysis schemas,
+  canonical prompt records, split validation, and multi-construct run plans.
 - `scripts/`: active activation-analysis entrypoints.
 - `configs/activation_analysis/`: active prompt-generation and probe configs.
 - `experiments/activation_analysis/`: reviewable prompt CSVs.
@@ -70,6 +71,8 @@ construct-specific paired prompts.
 - `archive/sae/`: archived SAE-training and feature-analysis tests; not active
   test scope.
 - `archive/documentation/`: archived planning documents.
+- `configs/construct_benchmark/`: versioned construct definitions, run
+  configurations, and analysis specifications.
 - `reports/` and `results/`: reference artifacts and local/ignored outputs.
 
 The active vector path now imports its iterator from
@@ -78,6 +81,11 @@ feature-analysis tests are archived. The active environment is now a Python
 3.11 editable install, and `make check` passes; the two PyTorch-dependent
 interpreter smoke tests are skipped when the optional `interp` extra is not
 installed.
+
+The multi-construct control plane uses one combined prompt inventory and one
+shared activation pass, then fans out into construct-scoped directions,
+readouts, calibration, behavior, and steering outputs. Never pool directions
+across `construct_id` values.
 
 ## Research invariants
 
@@ -119,12 +127,12 @@ development. Those actions require explicit user intent and a reviewed
 configuration.
 
 Before creating outputs, inspect `.gitignore`. In particular,
-`results/benchmark/<construct>/<model>/<run>/raw/` must be explicitly ignored
-before benchmark runs begin.
+`results/benchmark/<construct>/<model>/<run>/raw/` is already covered by
+`.gitignore` before benchmark runs begin.
 
 Run the narrowest relevant check first, then `make check` when the project
-environment is available. The current checkout may not have its virtual
-environment or scientific dependencies installed; report that limitation
+environment is available. The current development baseline uses the Python
+3.11 `venv`; if it is absent in a fresh checkout, report that limitation
 instead of claiming tests passed.
 
 Do not delete or regenerate existing local data. Preserve the archived source

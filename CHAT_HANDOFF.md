@@ -2,9 +2,10 @@
 
 ## One-line status
 
-This repository is in scientific protocol development and repository
-preparation. The generalized benchmark is not implemented and no new
-construct data have been collected.
+This repository is in scientific protocol development and benchmark
+infrastructure implementation. The shared multi-construct control plane is
+implemented; no new construct data have been collected and the end-to-end
+measurement layer is not complete.
 
 ## Read in this order
 
@@ -47,7 +48,10 @@ Specification gaming in coding agents is not active scope.
 Active:
 
 - `src/activation_analysis/`;
+- `src/construct_benchmark/` — shared schemas, canonical prompt records, split
+  validation, and construct-fan-out run plans;
 - `configs/activation_analysis/`;
+- `configs/construct_benchmark/`;
 - `experiments/activation_analysis/`;
 - active activation-generation, logging, vector, evaluation, validation, and
   audit scripts.
@@ -60,11 +64,12 @@ Archived:
 
 ## Known blockers
 
-- The generalized `src/construct_benchmark/` package does not exist.
-- The three configuration schemas do not exist.
 - Projection-margin analysis, neutral/within-cell dose calibration,
   outcome-specific state-transfer adapters, and manipulation checks do not
   exist.
+- The initial `src/construct_benchmark/` package now validates construct,
+  run, analysis, prompt, and split schemas and emits a shared-activation,
+  construct-fan-out run plan.
 - the active vector iterator now lives in
   `src/activation_analysis/activation_store.py`; the legacy SAE tests are
   archived and `make check` passes under Python 3.11;
@@ -75,19 +80,17 @@ Archived:
 
 ## Next actions
 
-1. Consolidate the current archive/documentation changes into one reviewable
-   repository checkpoint.
-2. Add a representative activation-run fixture and verify the new
+1. Add a representative activation-run fixture and verify the new
    `ActivationVectorRecord` and `iter_activation_vectors()` implementation
    against its manifest and shards.
+2. Connect the active prompt generator to the canonical combined inventory and
+   keep the construct namespace intact through activation logging.
 3. Keep the active iterator, filtering, region, and memory-map regression
    tests green as the generic benchmark package is introduced.
-4. Implement and validate `construct_spec`, `run_config`, and `analysis_spec`.
-5. Generalize paired-prompt metadata beyond realization fields.
-6. Build the realization/evidence-diagnosticity readout vertical slice.
-7. Add neutral/within-cell calibration, explicit intervention timing,
+4. Build the realization/evidence-diagnosticity readout vertical slice.
+5. Add neutral/within-cell calibration, explicit intervention timing,
    outcome-specific parsing, output accessibility, and manipulation checks.
-8. Run the precision simulation before expanding the construct count or fitting
+6. Run the precision simulation before expanding the construct count or fitting
    full representation-profile predictors.
 
 Do not launch APIs, download weights, or begin a large run until the protocol,

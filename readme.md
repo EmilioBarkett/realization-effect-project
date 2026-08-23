@@ -6,9 +6,10 @@ models.
 
 ## Current status
 
-The project is currently in **scientific protocol development and repository
-preparation**. The generalized benchmark has not been implemented and no new
-benchmark dataset has been collected.
+The project is currently in **scientific protocol development and benchmark
+infrastructure implementation**. The shared multi-construct control plane is
+implemented, but no new benchmark dataset has been collected and the
+end-to-end measurement layer is still under construction.
 
 The repository cleanup is mostly complete: the original realization-effect
 behavioral pipeline is archived, while the activation-analysis prompt
@@ -95,11 +96,17 @@ Active and reusable:
 - active scripts for prompt generation, residual logging, vector construction,
   evaluation, validation, and overlap auditing.
 
+Implemented control plane:
+
+- `src/construct_benchmark/` — construct, run, analysis, prompt, split, and
+  provenance schemas;
+- canonical combined prompt inventories with global IDs and construct-scoped
+  pair validation;
+- shared-activation/construct-fan-out run manifests;
+- two validated construct definitions and a two-construct smoke config;
+
 Not implemented yet:
 
-- `src/construct_benchmark/`;
-- construct, run, and analysis schemas;
-- generic prompt/split validation;
 - continuous projection-margin analysis;
 - neutral/within-cell dose calibration;
 - generic state-transfer and manipulation-check adapters;
@@ -108,7 +115,8 @@ Not implemented yet:
 The active vector path now uses the tracked iterator in
 `activation_analysis.activation_store`; the obsolete SAE-only tests are
 archived. Under Python 3.11, the clean editable install and active suite now
-pass `make check` (37 passed, 2 optional PyTorch tests skipped).
+pass `make check`; the optional PyTorch-dependent interpreter tests are
+skipped when that extra is not installed.
 
 ## Repository layout
 
@@ -123,6 +131,8 @@ archive/sae/                      Archived optional SAE-training tests
 archive/documentation/             Superseded planning documents
 reports/                           Paper and historical reference artifacts
 results/                            Curated summaries and local/ignored outputs
+configs/construct_benchmark/        Multi-construct specs and run configs
+src/construct_benchmark/            Shared schemas, prompt validation, run plans
 ```
 
 The original realization-effect paper and its implementation remain useful as
@@ -156,8 +166,9 @@ make check
 
 Do not make API calls, download model weights, or launch a large experiment as
 part of ordinary tests. Raw generations, model weights, and large activation
-tensors must remain outside Git. Before benchmark runs begin,
-`results/benchmark/<construct>/<model>/<run>/raw/` must be explicitly ignored.
+tensors must remain outside Git. The benchmark raw path
+`results/benchmark/<construct>/<model>/<run>/raw/` is already ignored before
+benchmark runs begin.
 
 ## Historical reference
 

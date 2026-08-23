@@ -7,6 +7,12 @@ current CSVs are realization-anchor prompts; the next task is to generalize
 their paired metadata and split structure to evidence diagnosticity and later
 constructs. Older emotion-probe and SAE prompt sets are reference material.
 
+The checked-in realization CSVs predate the canonical multi-construct prompt
+inventory and therefore preserve their original generation labels for
+reproducibility. They are not benchmark manifests and must not be passed to
+the construct-benchmark validator as-is. New combined inventories and newly
+generated files use `direction_validation` and `direction_heldout`.
+
 ## Current Path
 
 - Generation plan:

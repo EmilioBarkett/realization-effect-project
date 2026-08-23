@@ -3,8 +3,9 @@
 **Working title:** Representation–Steerability Correspondence Benchmark
 (`RSC-Bench`). `D2S-Bench` was an earlier working name.
 
-**Status:** research proposal for review. This document extends the current
-project direction; it does not claim that the benchmark has been implemented.
+**Status:** research proposal plus an implemented multi-construct control-plane
+prototype. This document does not claim that the end-to-end benchmark has been
+run.
 
 ## Executive assessment
 
@@ -499,14 +500,19 @@ high-dimensional correspondence model.
 - Keep tests that genuinely belong to the archived SAE-training pipeline out of
   the active test suite.
 - Add iterator, filtering, region, and memory-map regression tests.
-- The current clean Python 3.11 editable install passes `make check` (37
-  passed, 2 optional PyTorch tests skipped), and benchmark raw-output paths are
-  now covered by `.gitignore`.
+- The current clean Python 3.11 editable install passes `make check`; the
+  optional PyTorch-dependent interpreter tests are skipped when that extra is
+  not installed, and benchmark raw-output paths are now covered by `.gitignore`.
 
 ### Phase 2: implement the minimum benchmark core
 
 - Freeze the primary estimands, controls, and quadrant definitions.
-- Write `construct_spec`, `run_config`, and `analysis_spec` schemas.
+- The initial `construct_spec`, `run_config`, and `analysis_spec` schemas,
+  canonical prompt inventory, split validation, and shared run manifest are
+  now implemented under `src/construct_benchmark/`.
+- Use one combined prompt inventory and one activation logging pass for two or
+  four constructs, then namespace all direction and outcome artifacts by
+  `construct_id`.
 - Simulate plausible prompt, readout, and steering effect sizes to determine
   how many constructs, task templates, models, and repetitions are needed.
 - Decide whether two downstream tasks per construct are required for the

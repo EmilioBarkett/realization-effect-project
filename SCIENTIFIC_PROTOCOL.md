@@ -74,6 +74,8 @@ Required partitions:
 - `direction_heldout`: used for confirmatory readout;
 - `behavior_eval`: independent downstream-task prompts;
 - `steering_eval`: matched independent prompts used for causal intervention.
+- `calibration`: neutral or within-cell prompts used only to set intervention
+  scale.
 
 No validation, held-out, or downstream behavioral prompt may enter direction
 construction. Entire prompt families or task templates should be held out when
@@ -112,12 +114,12 @@ couples construct separation to physical intervention strength. Residual-norm
 ratios and unstandardized intervention magnitudes are recorded as safety
 diagnostics alongside the normalized dose.
 
-The intervention timing must be explicit:
+The intervention timing must use one of the canonical registered values:
 
-- prompt-prefill only;
-- generation-only;
-- every decoding step; or
-- a fixed position or window.
+- `prefill_only`;
+- `generation_only`;
+- `every_step`; or
+- `fixed_window`.
 
 The minimum intervention battery includes positive, zero, and negative doses,
 plus a shuffled-label or random-direction control. Wrong-layer or unrelated
@@ -193,31 +195,33 @@ automatic target such as eight to twelve constructs.
 
 ## 10. Current maturity and implementation gates
 
-The current status is protocol development and repository preparation:
+The current status is protocol development and benchmark infrastructure
+implementation:
 
 - the realization behavioral pipeline is archived;
 - the activation paired-prompt generator and core activation primitives are
   retained;
-- the generic benchmark package does not exist;
-- the three configuration schemas do not exist;
+- the initial benchmark control plane exists with versioned construct, run,
+  analysis, prompt, split, and provenance schemas;
 - projection-margin, neutral/within-cell calibration, state-transfer adapters,
   and manipulation-check orchestration do not exist;
 - the tracked activation iterator now lives in
   `activation_analysis.activation_store` and passes the clean Python 3.11
   `make check` suite; real-run validation remains pending;
+- a single run plan can batch two or four construct inventories through one
+  activation pass and then fan out construct-specific analyses;
 - no evidence-diagnosticity data have been collected.
 
-Before schema implementation:
+Before measurement implementation:
 
-1. stabilize the repository boundary and record the completed clean-install
-   check plus the remaining optional-dependency limitation;
-2. verify `ActivationVectorRecord` and `iter_activation_vectors()` against
+1. verify `ActivationVectorRecord` and `iter_activation_vectors()` against
    existing activation-store manifests;
-3. make the active activation tests collect in a clean environment and add
+2. keep the active activation tests green and add
    iterator/filtering/region/memory-map regression tests;
-4. add an explicit `.gitignore` rule for benchmark raw artifacts;
-5. define the three versioned artifacts:
-   `construct_spec`, `run_config`, and `analysis_spec`.
+3. connect generic prompt generation to the canonical combined inventory and
+   preserve construct namespaces through logging;
+4. implement the measurement adapters: projection margins, calibration,
+   parsing, manipulation checks, and downstream persistence.
 
 Then implement in this order:
 

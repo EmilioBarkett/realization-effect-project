@@ -140,35 +140,38 @@ layers, signs, doses, or outcomes after inspecting confirmatory results.
 ## Current implementation status
 
 The repository is currently in **scientific protocol development and
-repository preparation**:
+benchmark infrastructure implementation**:
 
 - the original realization implementation is archived;
 - activation prompt generation and activation primitives remain active;
-- the generic `construct_benchmark` package does not yet exist;
-- construct, run, and analysis schemas do not yet exist;
+- the initial `construct_benchmark` control-plane package now exists;
+- construct, run, analysis, prompt, split, and provenance schemas are now
+  implemented;
 - projection-margin, neutral/within-cell dose calibration, state-transfer
   adapters, and manipulation-check orchestration are not yet implemented;
 - the active vector iterator now lives in `activation_analysis.activation_store`
   and passes the active Python 3.11 `make check` suite; end-to-end validation
   against a real activation run remains pending;
+- a two-construct smoke configuration can produce one shared activation stage
+  and construct-scoped direction/readout/steering/behavior stages; the same
+  plan scales to four constructs without pooling directions;
 - no new construct dataset or large benchmark run has been launched.
 
 ## Next implementation gates
 
-1. Consolidate the archive and documentation changes into one reviewable
-   repository checkpoint.
-2. Add a manifest-backed activation-run smoke fixture when a representative
+1. Add a manifest-backed activation-run smoke fixture when a representative
    local run is available, while preserving the passing clean-install checks.
-3. Define and validate the three versioned schemas and canonical manifests.
-4. Generalize the active paired-prompt generator beyond realization metadata.
-5. Implement continuous held-out projection margins and neutral/within-cell
+2. Connect the active paired-prompt generator to the canonical combined
+   multi-construct inventory.
+3. Implement continuous held-out projection margins and neutral/within-cell
    dose calibration.
-6. Build the realization/evidence-diagnosticity vertical slice with
+4. Build the realization/evidence-diagnosticity vertical slice with
    deterministic fixtures and outcome-specific adapters.
-7. Add explicit intervention timing, output-accessibility, downstream-
+5. Add explicit intervention timing, output-accessibility, downstream-
    persistence, and manipulation checks.
-8. Run the precision simulation before expanding the construct count or fitting
+6. Run the precision simulation before expanding the construct count or fitting
    full representation-profile predictors.
 
 Until these gates are passed, documentation should describe the benchmark as
-planned rather than implemented.
+an implemented control plane with an unimplemented end-to-end experimental
+measurement layer.
