@@ -34,6 +34,49 @@ Optimizing tests is not automatically specification gaming. The distinction is
 only meaningful on tasks where the tests or evaluator are an imperfect or
 conflicting proxy for the user's goal.
 
+## Related work and novelty positioning
+
+The novelty claim should be narrow because nearby work already covers several
+important components:
+
+- The [SPAR working report *Inducing Reward Hacking via Activation
+  Steering*](https://library.sparai.org/reports/inducing-reward-hacking-via-activation-steering-rcy2f4/), submitted in January 2026, shows that activation steering can induce
+  benign reward-hacking behavior in open-weight models and reports effects that
+  vary with steering strength and layer.
+- [*From Reward-Hack Activations to Agentic Risk States*](https://arxiv.org/abs/2606.06223), a June 2026 paper, studies activation-based monitoring and steering in
+  agentic Gameable ALFWorld and WebShop settings. It finds that reward-hack
+  activation can identify a latent policy state, but that its action-level
+  meaning is context-dependent; entropy and decision context improve prediction,
+  and steering reduces proxy-exploit behavior only in selected regimes.
+- [OpenAI's coding-task monitoring work](https://openai.com/index/chain-of-thought-monitoring/)
+  shows that frontier reasoning models can exploit evaluator loopholes,
+  including subverting tests, and that chain-of-thought/action monitoring can
+  detect some of these behaviors. It also shows that pressure on the monitored
+  reasoning can make intent less observable without eliminating misbehavior.
+
+The paper should therefore not claim to be the first to find a reward-hacking
+activation direction, the first to steer reward hacking, or the first to study
+reward/specification gaming in agents or coding agents. The potentially novel
+claim is the specific identification strategy:
+
+> We test whether a representation induced by contrasting user-goal and
+> evaluator-oriented framing generalizes to neutral specification-gaming
+> decisions in coding agents, and whether manipulating that representation
+> selectively changes proxy-optimizing behavior.
+
+The distinctive contribution is construct validity. The direction must survive
+neutral prompts, held-out exploit-family transfer, nuisance-controlled
+discriminant-validity tests, and ordinary/benign controls before it is given a
+strong semantic interpretation. Causal steering then tests whether the
+direction selectively changes proxy optimization rather than merely changing
+generic caution, refusal, verbosity, or activity. This directly addresses the
+context-dependence concern in the closest agent-monitoring work and positions
+the project as a methodological workshop contribution rather than another
+claim to have discovered reward-hacking representations.
+
+This is a working novelty position, not a priority guarantee. The related-work
+search and citations should be updated again before submission.
+
 ## Evidential ladder
 
 The project must distinguish the following levels of evidence:
