@@ -18,6 +18,15 @@ We evaluate LLM behavior at three levels:
 
 **Core finding:** Models are condition-sensitive, but the directional pattern does not reproduce the human realization-effect predictions. Gemma's residual stream contains a linearly decodable realization-status signal at layer 18 that generalizes to held-out prompts. Steering along that direction does not, however, reliably shift downstream risk choices — a null result that holds across positive scales and in a negative sign-symmetry run. Behavioral sensitivity, latent readout, and causal control are three distinct properties that do not automatically co-occur.
 
+## Current proposed extension
+
+The next focused project direction applies the same behavioral-sensitivity →
+linear-readout → causal-steering structure to specification gaming in coding
+agents. The central contrast is following the user's actual specification versus
+optimizing a test or evaluator when the two conflict; audit awareness is a
+secondary manipulation. See [PROJECT_DIRECTION.md](PROJECT_DIRECTION.md) for the
+current experimental proposal and its identification strategy.
+
 ## Results summary
 
 | Test | Outcome | Evidence |
