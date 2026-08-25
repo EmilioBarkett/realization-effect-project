@@ -274,8 +274,9 @@ def test_wave_one_generation_emits_canonical_records_and_is_deterministic(tmp_pa
 
         result = generate_prompt_records(plan, spec, api_key="test", request_fn=_mock_generation_response)
         assert result.complete is True
-        assert len(result.records) == 60
-        assert result.request_count == 24
+        expected = dry_run_summary(plan)
+        assert len(result.records) == expected["expected_record_count"]
+        assert result.request_count == expected["request_count"]
         validate_prompt_records(result.records, {spec.construct_id: spec})
         assert {record.split for record in result.records} == set(spec.required_splits)
         assert all(record.metadata["generation_plan_id"] == plan["plan_id"] for record in result.records)
@@ -399,7 +400,7 @@ def test_filtered_models_and_pilot_override_are_explicitly_incomplete() -> None:
     filtered = dry_run_summary(plan, model_aliases={"gpt54"})
     assert filtered["complete_plan"] is False
     assert filtered["selected_model_aliases"] == ["gpt54"]
-    assert filtered["expected_record_count"] == 30
+    assert filtered["expected_record_count"] == 36
 
     pilot = dry_run_summary(plan, count_per_model_override=1)
     full = dry_run_summary(plan)
@@ -426,6 +427,24 @@ def test_filtered_models_and_pilot_override_are_explicitly_incomplete() -> None:
     )
     assert result.complete is False
     assert len(result.records) == 18
+
+
+def test_crossed_wave_one_factor_schedules_are_complete() -> None:
+    for plan_path in WAVE1_PLAN_PATHS[-2:]:
+        plan = json.loads(plan_path.read_text(encoding="utf-8"))
+        schedule = plan["behavior_factor_schedule"]
+        fields = schedule["required_item_fields"]
+        required = {
+            tuple(combination[field] for field in fields)
+            for combination in schedule["required_combinations"]
+        }
+        assert len(required) == 8
+        for cell in plan["cells"]:
+            if cell["split"] not in {"behavior_eval", "steering_eval"}:
+                continue
+            observed = set(zip(*(cell["category_balance"][field] for field in fields), strict=True))
+            assert cell["count_per_model"] == 8
+            assert observed == required
 
 
 def test_named_generation_and_model_run_modes_are_explicit_and_deterministic() -> None:
