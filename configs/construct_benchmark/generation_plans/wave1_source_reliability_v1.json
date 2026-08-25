@@ -15,7 +15,7 @@
   "default_count_per_cell_per_model": 2,
   "models": [
     {"alias": "gpt54", "model": "openai/gpt-5.4"},
-    {"alias": "sonnet", "model": "anthropic/claude-sonnet-4.6"}
+    {"alias": "sonnet", "model": "anthropic/claude-sonnet-4-7"}
   ],
   "generation": {
     "temperature": 0.7,
@@ -42,12 +42,97 @@
     "source_steering": {"role": "steering", "domains": ["new_testimony_items_heldout"]},
     "source_calibration": {"role": "calibration", "domains": ["neutral_testimony_items"]}
   },
+  "behavior_factor_schedule": {
+    "note": "All three behavior-task factors must vary independently. Generate one item per combination; do not allow factors to co-vary. Record testimony_valence, authority_status, and evidence_quality as structured metadata fields on every generated item.",
+    "factors": {
+      "testimony_valence":  ["supporting", "contradicting"],
+      "authority_status":   ["legitimate", "non_authority"],
+      "evidence_quality":   ["strong", "weak"]
+    },
+    "required_combinations": [
+      {"testimony_valence": "supporting",    "authority_status": "legitimate",    "evidence_quality": "strong"},
+      {"testimony_valence": "supporting",    "authority_status": "legitimate",    "evidence_quality": "weak"},
+      {"testimony_valence": "supporting",    "authority_status": "non_authority", "evidence_quality": "strong"},
+      {"testimony_valence": "supporting",    "authority_status": "non_authority", "evidence_quality": "weak"},
+      {"testimony_valence": "contradicting", "authority_status": "legitimate",    "evidence_quality": "strong"},
+      {"testimony_valence": "contradicting", "authority_status": "legitimate",    "evidence_quality": "weak"},
+      {"testimony_valence": "contradicting", "authority_status": "non_authority", "evidence_quality": "strong"},
+      {"testimony_valence": "contradicting", "authority_status": "non_authority", "evidence_quality": "weak"}
+    ],
+    "required_item_fields": ["testimony_valence", "authority_status", "evidence_quality"],
+    "balance_check": "Each of the 8 combinations must appear at least once per content pool (behavior_eval and steering_eval). Warn if any combination is missing."
+  },
   "cells": [
-    {"cell_id": "probe_train", "split": "direction_train", "prompt_role": "probe", "mode": "paired", "prompt_family": "source_probe_train", "content_pool": "source_probe_train", "condition_ids": ["reliable_source", "unreliable_source"], "instructions": "Generate matched source-track-record scenarios while keeping source status and evidence quality controlled."},
-    {"cell_id": "probe_validation", "split": "direction_validation", "prompt_role": "probe", "mode": "paired", "prompt_family": "source_probe_validation", "content_pool": "source_probe_validation", "condition_ids": ["reliable_source", "unreliable_source"], "instructions": "Use new factual domains and source names while preserving the track-record contrast."},
-    {"cell_id": "probe_heldout", "split": "direction_heldout", "prompt_role": "probe", "mode": "paired", "prompt_family": "source_probe_heldout", "content_pool": "source_probe_heldout", "condition_ids": ["reliable_source", "unreliable_source"], "instructions": "Use held-out domains and avoid template phrases from train or validation prompts."},
-    {"cell_id": "behavior_eval", "split": "behavior_eval", "prompt_role": "behavior", "mode": "single", "prompt_family": "source_behavior_eval", "content_pool": "source_behavior", "condition_id": "neutral", "task_id": "testimony_weighting_v1", "parser_id": "single_integer_probability_v1", "expected_output_format": "single_integer_0_to_100", "instructions": "Generate an independent testimony-weighting task with new source names and claims."},
-    {"cell_id": "steering_eval", "split": "steering_eval", "prompt_role": "steering", "mode": "single", "prompt_family": "source_steering_eval", "content_pool": "source_steering", "condition_id": "neutral", "task_id": "testimony_weighting_v1", "parser_id": "single_integer_probability_v1", "expected_output_format": "single_integer_0_to_100", "instructions": "Generate an independent intervention task distinct from behavior_eval content."},
-    {"cell_id": "calibration", "split": "calibration", "prompt_role": "calibration", "mode": "single", "prompt_family": "source_calibration", "content_pool": "source_calibration", "condition_id": "neutral", "task_id": "testimony_weighting_v1", "parser_id": "single_integer_probability_v1", "expected_output_format": "single_integer_0_to_100", "instructions": "Generate neutral calibration items used only to estimate within-cell output variation."}
+    {
+      "cell_id": "probe_train",
+      "split": "direction_train",
+      "prompt_role": "probe",
+      "mode": "paired",
+      "prompt_family": "source_probe_train",
+      "content_pool": "source_probe_train",
+      "condition_ids": ["reliable_source", "unreliable_source"],
+      "instructions": "Generate matched source-track-record scenarios. Keep authority status and evidence quality controlled and constant within each pair — do not allow them to co-vary with the track-record condition."
+    },
+    {
+      "cell_id": "probe_validation",
+      "split": "direction_validation",
+      "prompt_role": "probe",
+      "mode": "paired",
+      "prompt_family": "source_probe_validation",
+      "content_pool": "source_probe_validation",
+      "condition_ids": ["reliable_source", "unreliable_source"],
+      "instructions": "Use new factual domains and source names while preserving the track-record contrast. Authority status and evidence quality must remain constant within each pair."
+    },
+    {
+      "cell_id": "probe_heldout",
+      "split": "direction_heldout",
+      "prompt_role": "probe",
+      "mode": "paired",
+      "prompt_family": "source_probe_heldout",
+      "content_pool": "source_probe_heldout",
+      "condition_ids": ["reliable_source", "unreliable_source"],
+      "instructions": "Use held-out domains and avoid template phrases from train or validation prompts. Authority status and evidence quality must remain constant within each pair."
+    },
+    {
+      "cell_id": "behavior_eval",
+      "split": "behavior_eval",
+      "prompt_role": "behavior",
+      "mode": "single",
+      "prompt_family": "source_behavior_eval",
+      "content_pool": "source_behavior",
+      "condition_id": "neutral",
+      "task_id": "testimony_weighting_v1",
+      "parser_id": "single_integer_probability_v1",
+      "expected_output_format": "single_integer_0_to_100",
+      "factor_schedule": "behavior_factor_schedule",
+      "instructions": "Generate one independent testimony-weighting item per combination in behavior_factor_schedule.required_combinations (8 items minimum). Use new source names, domains, and claims not present in probe prompts. Record testimony_valence, authority_status, and evidence_quality as structured metadata fields on every item. Do not allow factors to co-vary — each combination must appear in isolation."
+    },
+    {
+      "cell_id": "steering_eval",
+      "split": "steering_eval",
+      "prompt_role": "steering",
+      "mode": "single",
+      "prompt_family": "source_steering_eval",
+      "content_pool": "source_steering",
+      "condition_id": "neutral",
+      "task_id": "testimony_weighting_v1",
+      "parser_id": "single_integer_probability_v1",
+      "expected_output_format": "single_integer_0_to_100",
+      "factor_schedule": "behavior_factor_schedule",
+      "instructions": "Generate one independent intervention item per combination in behavior_factor_schedule.required_combinations (8 items minimum). Content must be distinct from behavior_eval. Record testimony_valence, authority_status, and evidence_quality as structured metadata fields on every item."
+    },
+    {
+      "cell_id": "calibration",
+      "split": "calibration",
+      "prompt_role": "calibration",
+      "mode": "single",
+      "prompt_family": "source_calibration",
+      "content_pool": "source_calibration",
+      "condition_id": "neutral",
+      "task_id": "testimony_weighting_v1",
+      "parser_id": "single_integer_probability_v1",
+      "expected_output_format": "single_integer_0_to_100",
+      "instructions": "Generate neutral calibration items used only to estimate within-cell output variation. No factor-schedule constraint required here."
+    }
   ]
 }
