@@ -16,13 +16,13 @@ if str(_SRC) not in sys.path:
 
 from construct_benchmark.behavior import (  # noqa: E402
     BehaviorObservation,
-    directed_mean_state_transfer,
     orient_primary_outcome,
     parse_behavior_output,
     primary_outcome,
 )
 from construct_benchmark.config import load_construct_spec  # noqa: E402
 from construct_benchmark.manifests import canonical_hash, file_sha256  # noqa: E402
+from construct_benchmark.uncertainty import bootstrap_state_transfer_ci  # noqa: E402
 
 
 def main() -> None:
@@ -30,6 +30,8 @@ def main() -> None:
     parser.add_argument("--raw-generations", type=Path, required=True)
     parser.add_argument("--construct-spec", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument("--bootstrap-resamples", type=int, default=2000)
+    parser.add_argument("--bootstrap-seed", type=int, default=17)
     args = parser.parse_args()
 
     spec = load_construct_spec(args.construct_spec)
@@ -85,11 +87,13 @@ def main() -> None:
     target_doses = sorted({observation.scale for observation in observations})
     if 0.0 not in target_doses:
         raise ValueError("Target-direction rows do not contain a zero-dose condition.")
-    effect = directed_mean_state_transfer(
+    effect, effect_ci = bootstrap_state_transfer_ci(
         observations,
         positive_scale=max(target_doses),
         negative_scale=min(target_doses),
         zero_scale=0.0,
+        resamples=args.bootstrap_resamples,
+        seed=args.bootstrap_seed,
     )
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
@@ -102,6 +106,7 @@ def main() -> None:
         "construct_id": spec.construct_id,
         "primary_outcome": spec.independent_behavior_task["primary_outcome"],
         "target_direction_effect": asdict(effect),
+        "uncertainty": effect_ci.to_mapping(),
         "control_rows": {
             kind: sum(row["direction_kind"] == kind for row in rows)
             for kind in ("shuffled", "random")

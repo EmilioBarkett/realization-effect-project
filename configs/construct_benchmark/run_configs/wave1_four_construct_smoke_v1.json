@@ -13,7 +13,8 @@
     "revision": null
   },
   "activation": {
-    "layers": [18],
+    "layers": [12, 18, 24],
+    "layer_selection": "validation_max_margin",
     "activation_site": "resid_post",
     "token_mode": "nonpad",
     "token_region_strategy": "auto",
@@ -23,22 +24,51 @@
     "max_length": 512
   },
   "steering": {
-    "scales": [-1.0, 0.0, 1.0],
+    "scales": [-1.0, -0.5, 0.0, 0.5, 1.0],
     "position_mode": "last",
     "intervention_timing": "prefill_only",
     "direction_source": "direction_train_only",
     "calibration": "neutral",
-    "random_direction_count": 2
+    "random_direction_count": 3
   },
   "output_root": "results/benchmark",
   "seed": 17,
   "analysis_spec_id": "rsc_benchmark_core_v1",
   "execution": {
     "mode": "shared_activation_then_construct_fanout",
+    "default_run_mode": "test",
+    "run_modes": {
+      "test": {
+        "purpose": "engineering_smoke",
+        "confirmatory": false,
+        "max_runtime_minutes": 60,
+        "prompt_selection": {
+          "strategy": "balanced_pair_preserving",
+          "max_pairs_per_paired_split": 2,
+          "max_items_per_single_split": 2
+        }
+      },
+      "full": {
+        "purpose": "confirmatory",
+        "confirmatory": true,
+        "max_runtime_minutes": null,
+        "prompt_selection": {
+          "strategy": "all"
+        }
+      }
+    },
     "max_constructs_per_run": 4,
     "parallel_construct_analysis": true,
     "shared_model_load": true,
     "shared_activation_pass": true,
     "construct_namespace_required": true
+  },
+  "storage": {
+    "workspace_root_env": "RSC_BENCH_WORKSPACE_ROOT",
+    "archive_uri_env": "RSC_BENCH_ARCHIVE_URI",
+    "sync_endpoint_env": "RSC_BENCH_S3_ENDPOINT_URL",
+    "sync_tool": "aws",
+    "sync_on_finalize": true,
+    "keep_local_copy": true
   }
 }

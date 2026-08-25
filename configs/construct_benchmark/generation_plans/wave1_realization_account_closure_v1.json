@@ -13,6 +13,18 @@
     "behavior_steering_pool_separation": true
   },
   "default_count_per_cell_per_model": 2,
+  "run_modes": {
+    "review": {
+      "purpose": "prompt_review",
+      "count_per_model_per_cell": 1,
+      "partial": true
+    },
+    "full": {
+      "purpose": "frozen_full_inventory",
+      "count_per_model_per_cell": null,
+      "partial": false
+    }
+  },
   "models": [
     {"alias": "gpt54", "model": "openai/gpt-5.4"},
     {"alias": "sonnet", "model": "anthropic/claude-sonnet-4.6"}
@@ -22,7 +34,7 @@
     "max_tokens": 2500,
     "seed": 101,
     "timeout": 120,
-    "retries": 1,
+    "retries": 0,
     "max_items_per_request": 2,
     "estimated_input_tokens_per_request": 1400,
     "estimated_output_tokens_per_record": 300
@@ -46,8 +58,8 @@
     {"cell_id": "probe_train", "split": "direction_train", "prompt_role": "probe", "mode": "paired", "prompt_family": "realization_probe_train", "content_pool": "realization_probe_train", "condition_ids": ["open_pending", "closed_settled"], "instructions": "Generate matched third-person scenarios contrasting an outcome that remains pending with the same outcome after final settlement."},
     {"cell_id": "probe_validation", "split": "direction_validation", "prompt_role": "probe", "mode": "paired", "prompt_family": "realization_probe_validation", "content_pool": "realization_probe_validation", "condition_ids": ["open_pending", "closed_settled"], "instructions": "Use a distinct domain and entity pool while preserving the same pending-versus-settled contrast."},
     {"cell_id": "probe_heldout", "split": "direction_heldout", "prompt_role": "probe", "mode": "paired", "prompt_family": "realization_probe_heldout", "content_pool": "realization_probe_heldout", "condition_ids": ["open_pending", "closed_settled"], "instructions": "Use held-out domains and avoid template phrases from train or validation prompts."},
-    {"cell_id": "behavior_eval", "split": "behavior_eval", "prompt_role": "behavior", "mode": "single", "prompt_family": "realization_behavior_eval", "content_pool": "realization_behavior", "condition_id": "neutral", "task_id": "realization_risk_choice_v1", "parser_id": "two_integers_risk_choice_v1", "expected_output_format": "two_integers_on_separate_lines", "instructions": "Generate an independent risk-allocation task with no account-closure or probe-entity wording."},
-    {"cell_id": "steering_eval", "split": "steering_eval", "prompt_role": "steering", "mode": "single", "prompt_family": "realization_steering_eval", "content_pool": "realization_steering", "condition_id": "neutral", "task_id": "realization_risk_choice_v1", "parser_id": "two_integers_risk_choice_v1", "expected_output_format": "two_integers_on_separate_lines", "instructions": "Generate an independent matched task for intervention, distinct from behavior_eval content."},
-    {"cell_id": "calibration", "split": "calibration", "prompt_role": "calibration", "mode": "single", "prompt_family": "realization_calibration", "content_pool": "realization_calibration", "condition_id": "neutral", "task_id": "realization_risk_choice_v1", "parser_id": "two_integers_risk_choice_v1", "expected_output_format": "two_integers_on_separate_lines", "instructions": "Generate neutral calibration items used only to estimate within-cell output variation."}
+    {"cell_id": "behavior_eval", "split": "behavior_eval", "prompt_role": "behavior", "mode": "single", "prompt_family": "realization_behavior_eval", "content_pool": "realization_behavior", "condition_id": "neutral", "task_id": "realization_risk_choice_v1", "parser_id": "two_integers_risk_choice_v1", "expected_output_format": "two_integers_on_separate_lines", "count_per_model": 6, "category_balance": {"outcome_valence": ["gain", "loss", "neutral", "gain", "loss", "neutral"]}, "instructions": "Generate an independent risk-allocation task with no account-closure or probe-entity wording."},
+    {"cell_id": "steering_eval", "split": "steering_eval", "prompt_role": "steering", "mode": "single", "prompt_family": "realization_steering_eval", "content_pool": "realization_steering", "condition_id": "neutral", "task_id": "realization_risk_choice_v1", "parser_id": "two_integers_risk_choice_v1", "expected_output_format": "two_integers_on_separate_lines", "count_per_model": 6, "category_balance": {"outcome_valence": ["gain", "loss", "neutral", "gain", "loss", "neutral"]}, "instructions": "Generate an independent matched task for intervention, distinct from behavior_eval content."},
+    {"cell_id": "calibration", "split": "calibration", "prompt_role": "calibration", "mode": "single", "prompt_family": "realization_calibration", "content_pool": "realization_calibration", "condition_id": "neutral", "task_id": "realization_risk_choice_v1", "parser_id": "two_integers_risk_choice_v1", "expected_output_format": "two_integers_on_separate_lines", "count_per_model": 6, "category_balance": {"outcome_valence": ["gain", "loss", "neutral", "gain", "loss", "neutral"]}, "instructions": "Generate neutral calibration items used only to estimate within-cell output variation."}
   ]
 }

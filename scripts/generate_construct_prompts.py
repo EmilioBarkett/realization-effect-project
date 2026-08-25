@@ -18,6 +18,7 @@ from construct_benchmark.generation import (  # noqa: E402
     dry_run_summary,
     generate_prompt_records,
     load_generation_plan,
+    resolve_generation_mode,
     write_generation_result,
 )
 
@@ -52,6 +53,15 @@ def main() -> None:
         nargs="*",
         default=None,
         help="Optional spec paths matching --plan order; otherwise use each plan's construct_spec_path.",
+    )
+    parser.add_argument(
+        "--mode",
+        choices=("review", "full"),
+        default=None,
+        help=(
+            "Named API-generation mode. review emits one item per model/cell and is explicitly partial; "
+            "full emits the complete frozen inventory."
+        ),
     )
     parser.add_argument("--dry-run", action="store_true", help="Expand plans without making API calls.")
     parser.add_argument("--summary-output", type=Path, default=None)
@@ -107,18 +117,33 @@ def main() -> None:
         specs.append(spec)
 
     if args.dry_run:
+        selected_mode = args.mode or "full"
+        mode_configs = [resolve_generation_mode(plan, selected_mode)[1] for plan in plans]
+        if selected_mode == "full" and any(
+            value is not None for value in (args.count_per_model_per_cell, args.limit_jobs)
+        ):
+            raise SystemExit("full generation mode cannot use count or job limits; use review mode for a partial run.")
+        mode_count_override = (
+            int(mode_configs[0]["count_per_model_per_cell"])
+            if selected_mode == "review" and args.count_per_model_per_cell is None
+            else args.count_per_model_per_cell
+        )
         selected_aliases = set(args.models) if args.models else None
         summaries = [
             dry_run_summary(
                 plan,
                 model_aliases=selected_aliases,
-                count_per_model_override=args.count_per_model_per_cell,
+                count_per_model_override=mode_count_override,
                 input_usd_per_million_tokens=args.input_usd_per_million_tokens,
                 output_usd_per_million_tokens=args.output_usd_per_million_tokens,
             )
             for plan in plans
         ]
+        for summary, mode_config in zip(summaries, mode_configs, strict=True):
+            summary["run_mode"] = selected_mode
+            summary["run_mode_purpose"] = mode_config["purpose"]
         aggregate = {
+            "run_mode": selected_mode,
             "plan_count": len(summaries),
             "construct_ids": [summary["construct_id"] for summary in summaries],
             "complete_plan": all(summary["complete_plan"] for summary in summaries),
@@ -147,19 +172,37 @@ def main() -> None:
             summary_path.write_text(json.dumps(output, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         return
 
+    if args.mode is None:
+        raise SystemExit("Choose an API generation mode with --mode review or --mode full.")
+    mode_configs = [resolve_generation_mode(plan, args.mode)[1] for plan in plans]
+    if args.mode == "full" and (
+        args.count_per_model_per_cell is not None
+        or args.limit_jobs is not None
+        or args.models is not None
+    ):
+        raise SystemExit(
+            "full generation mode cannot use model, count, or job limits; "
+            "use review mode for a partial run."
+        )
+    mode_count_override = (
+        int(mode_configs[0]["count_per_model_per_cell"])
+        if args.mode == "review" and args.count_per_model_per_cell is None
+        else args.count_per_model_per_cell
+    )
     api_key = os.environ.get(args.api_key_env)
     selected_aliases = set(args.models) if args.models else None
     planned_aliases = [set(model["alias"] for model in plan["models"]) for plan in plans]
     selection_is_complete = selected_aliases is None or all(selected_aliases == aliases for aliases in planned_aliases)
     requested_partial = (
         args.limit_jobs is not None
-        or args.count_per_model_per_cell is not None
+        or mode_count_override is not None
         or not selection_is_complete
     )
-    if requested_partial and not args.allow_partial:
+    mode_allows_partial = any(bool(mode_config["partial"]) for mode_config in mode_configs)
+    if requested_partial and not (args.allow_partial or mode_allows_partial):
         raise SystemExit(
             "The requested run is partial (limited jobs, model subset, or per-cell count override); "
-            "pass --allow-partial to make that incompleteness explicit."
+            "pass --allow-partial or choose review mode to make that incompleteness explicit."
         )
     if not api_key:
         raise SystemExit(f"Set {args.api_key_env} before generating prompts.")
@@ -172,11 +215,14 @@ def main() -> None:
             spec,
             api_key=api_key,
             model_aliases=selected_aliases,
-            count_per_model_override=args.count_per_model_per_cell,
+            count_per_model_override=mode_count_override,
             limit_jobs=args.limit_jobs,
         )
-        if not result.complete and not args.allow_partial:
-            raise SystemExit("The requested generation is partial; pass --allow-partial to write it explicitly.")
+        if not result.complete and not (args.allow_partial or mode_allows_partial):
+            raise SystemExit(
+                "The requested generation is partial; pass --allow-partial or choose review mode "
+                "to write it explicitly."
+            )
         if args.output is not None:
             output_path = args.output
         else:
@@ -184,9 +230,16 @@ def main() -> None:
             output_path = args.output_dir / f"{spec.construct_id}.csv"
         write_generation_result(result, output_path)
         output_paths.append(output_path)
-        summaries.append({"output": str(output_path), **result.summary()})
+        summaries.append(
+            {
+                "output": str(output_path),
+                "run_mode": args.mode,
+                "run_mode_purpose": mode_configs[len(summaries)]["purpose"],
+                **result.summary(),
+            }
+        )
 
-    output = {"plans": summaries}
+    output = {"run_mode": args.mode, "plans": summaries}
     print(json.dumps(output, indent=2, sort_keys=True))
     summary_path = _summary_path(args)
     if summary_path is not None:

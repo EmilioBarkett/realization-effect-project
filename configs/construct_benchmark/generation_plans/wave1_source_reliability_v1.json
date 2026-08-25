@@ -13,6 +13,18 @@
     "behavior_steering_pool_separation": true
   },
   "default_count_per_cell_per_model": 2,
+  "run_modes": {
+    "review": {
+      "purpose": "prompt_review",
+      "count_per_model_per_cell": 1,
+      "partial": true
+    },
+    "full": {
+      "purpose": "frozen_full_inventory",
+      "count_per_model_per_cell": null,
+      "partial": false
+    }
+  },
   "models": [
     {"alias": "gpt54", "model": "openai/gpt-5.4"},
     {"alias": "sonnet", "model": "anthropic/claude-sonnet-4.6"}
@@ -22,7 +34,7 @@
     "max_tokens": 2500,
     "seed": 103,
     "timeout": 120,
-    "retries": 1,
+    "retries": 0,
     "max_items_per_request": 2,
     "estimated_input_tokens_per_request": 1400,
     "estimated_output_tokens_per_record": 300
@@ -46,8 +58,8 @@
     {"cell_id": "probe_train", "split": "direction_train", "prompt_role": "probe", "mode": "paired", "prompt_family": "source_probe_train", "content_pool": "source_probe_train", "condition_ids": ["reliable_source", "unreliable_source"], "instructions": "Generate matched source-track-record scenarios while keeping source status and evidence quality controlled."},
     {"cell_id": "probe_validation", "split": "direction_validation", "prompt_role": "probe", "mode": "paired", "prompt_family": "source_probe_validation", "content_pool": "source_probe_validation", "condition_ids": ["reliable_source", "unreliable_source"], "instructions": "Use new factual domains and source names while preserving the track-record contrast."},
     {"cell_id": "probe_heldout", "split": "direction_heldout", "prompt_role": "probe", "mode": "paired", "prompt_family": "source_probe_heldout", "content_pool": "source_probe_heldout", "condition_ids": ["reliable_source", "unreliable_source"], "instructions": "Use held-out domains and avoid template phrases from train or validation prompts."},
-    {"cell_id": "behavior_eval", "split": "behavior_eval", "prompt_role": "behavior", "mode": "single", "prompt_family": "source_behavior_eval", "content_pool": "source_behavior", "condition_id": "neutral", "task_id": "testimony_weighting_v1", "parser_id": "single_integer_probability_v1", "expected_output_format": "single_integer_0_to_100", "instructions": "Generate an independent testimony-weighting task with new source names and claims."},
-    {"cell_id": "steering_eval", "split": "steering_eval", "prompt_role": "steering", "mode": "single", "prompt_family": "source_steering_eval", "content_pool": "source_steering", "condition_id": "neutral", "task_id": "testimony_weighting_v1", "parser_id": "single_integer_probability_v1", "expected_output_format": "single_integer_0_to_100", "instructions": "Generate an independent intervention task distinct from behavior_eval content."},
-    {"cell_id": "calibration", "split": "calibration", "prompt_role": "calibration", "mode": "single", "prompt_family": "source_calibration", "content_pool": "source_calibration", "condition_id": "neutral", "task_id": "testimony_weighting_v1", "parser_id": "single_integer_probability_v1", "expected_output_format": "single_integer_0_to_100", "instructions": "Generate neutral calibration items used only to estimate within-cell output variation."}
+    {"cell_id": "behavior_eval", "split": "behavior_eval", "prompt_role": "behavior", "mode": "single", "prompt_family": "source_behavior_eval", "content_pool": "source_behavior", "condition_id": "neutral", "task_id": "testimony_weighting_v1", "parser_id": "single_integer_probability_v1", "expected_output_format": "single_integer_0_to_100", "count_per_model": 6, "category_balance": {"testimony_valence": ["supporting", "contradicting", "supporting", "contradicting", "supporting", "contradicting"], "authority_status": ["legitimate", "non_authority", "legitimate", "non_authority", "legitimate", "non_authority"], "evidence_quality": ["strong", "weak", "strong", "weak", "strong", "weak"]}, "instructions": "Generate an independent testimony-weighting task with new source names and claims."},
+    {"cell_id": "steering_eval", "split": "steering_eval", "prompt_role": "steering", "mode": "single", "prompt_family": "source_steering_eval", "content_pool": "source_steering", "condition_id": "neutral", "task_id": "testimony_weighting_v1", "parser_id": "single_integer_probability_v1", "expected_output_format": "single_integer_0_to_100", "count_per_model": 6, "category_balance": {"testimony_valence": ["supporting", "contradicting", "supporting", "contradicting", "supporting", "contradicting"], "authority_status": ["legitimate", "non_authority", "legitimate", "non_authority", "legitimate", "non_authority"], "evidence_quality": ["strong", "weak", "strong", "weak", "strong", "weak"]}, "instructions": "Generate an independent intervention task distinct from behavior_eval content."},
+    {"cell_id": "calibration", "split": "calibration", "prompt_role": "calibration", "mode": "single", "prompt_family": "source_calibration", "content_pool": "source_calibration", "condition_id": "neutral", "task_id": "testimony_weighting_v1", "parser_id": "single_integer_probability_v1", "expected_output_format": "single_integer_0_to_100", "count_per_model": 6, "category_balance": {"testimony_valence": ["supporting", "contradicting", "supporting", "contradicting", "supporting", "contradicting"], "authority_status": ["legitimate", "non_authority", "legitimate", "non_authority", "legitimate", "non_authority"], "evidence_quality": ["strong", "weak", "strong", "weak", "strong", "weak"]}, "instructions": "Generate neutral calibration items used only to estimate within-cell output variation."}
   ]
 }

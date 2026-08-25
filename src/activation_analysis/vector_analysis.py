@@ -17,6 +17,7 @@ class PromptActivation:
     metadata: dict[str, Any]
     vector: np.ndarray
     token_count: int
+    layer: int | None = None
 
 
 def _metadata_value(metadata: dict[str, Any], key: str) -> str:
@@ -35,7 +36,7 @@ def collect_prompt_mean_activations(
 ) -> list[PromptActivation]:
     """Mean-pool selected token activations into one vector per prompt."""
 
-    prompt_id_to_index: dict[str, int] = {}
+    prompt_id_to_index: dict[tuple[str, int], int] = {}
     prompt_ids: list[str] = []
     prompt_metadata: list[dict[str, Any]] = []
     sums: list[np.ndarray] = []
@@ -50,12 +51,17 @@ def collect_prompt_mean_activations(
         prompt_id = str(record.metadata.get("prompt_id") or "")
         if not prompt_id:
             continue
-        prompt_index = prompt_id_to_index.get(prompt_id)
+        layer = int(record.layer)
+        prompt_key = (prompt_id, layer)
+        prompt_index = prompt_id_to_index.get(prompt_key)
         if prompt_index is None:
             prompt_index = len(prompt_ids)
-            prompt_id_to_index[prompt_id] = prompt_index
+            prompt_id_to_index[prompt_key] = prompt_index
             prompt_ids.append(prompt_id)
-            prompt_metadata.append(dict(record.metadata.get("prompt_metadata", {})))
+            metadata = dict(record.metadata.get("prompt_metadata", {}))
+            metadata["layer"] = layer
+            metadata["activation_site"] = record.metadata.get("activation_site", activation_site)
+            prompt_metadata.append(metadata)
             sums.append(np.zeros_like(record.vector, dtype=np.float32))
             counts.append(0)
         sums[prompt_index] += np.asarray(record.vector, dtype=np.float32)
@@ -67,6 +73,7 @@ def collect_prompt_mean_activations(
             metadata=metadata,
             vector=(vector_sum / max(count, 1)).astype(np.float32, copy=False),
             token_count=count,
+            layer=int(metadata["layer"]) if metadata.get("layer") is not None else None,
         )
         for prompt_id, metadata, vector_sum, count in zip(
             prompt_ids,

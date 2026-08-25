@@ -85,9 +85,10 @@ state-transfer, compliance, and collateral-behavior analysis
 
 The primary readout is continuous standardized projection margin on held-out
 prompts. The primary causal outcome is directed mean behavioral state transfer
-under positive, zero, and negative calibrated doses. Pair accuracy and
-policy-slope changes are secondary outcomes. Policy-gain steering is future
-exploratory method development, not a current claim.
+under five calibrated doses (`-1`, `-0.5`, `0`, `+0.5`, `+1`). The first
+intervention uses prefill-only injection; pair accuracy and policy-slope
+changes are secondary outcomes. Policy-gain steering is future exploratory
+method development, not a current claim.
 
 Probe prompts and downstream tasks must be meaningfully independent. Splits,
 prompt overlap, parsing rules, model settings, layer settings, intervention
@@ -114,6 +115,10 @@ Implemented control plane:
   definitions;
 - the generic benchmark-facing prompt generator and four reviewable Wave 1
   generation plans, including no-API dry-run support;
+- explicit `review`/`full` prompt-generation modes and deterministic
+  pair-preserving `test`/`full` model-run selection;
+- separate behavior, steering, and calibration prompt-family validation plus
+  pre-registered categorical schedules for balanced task factors;
 - canonical combined prompt inventories with global IDs and construct-scoped
   pair validation;
 - shared-activation/construct-fan-out run manifests;
@@ -127,17 +132,20 @@ Implemented and fixture-tested, but not yet validated on a real model:
 - neutral/within-condition dose calibration;
 - strict Wave 1 parsing and directed state-transfer scoring;
 - deterministic shuffled/random controls and timing-aware residual injection;
+- validation-only candidate-layer selection and pair/item bootstrap intervals;
+- a deterministic no-API fake vertical slice at
+  `scripts/run_fake_benchmark.py`;
 - local/RunPod readout, steering-plan, execution, and scoring entrypoints.
 
 Still not implemented or validated end to end:
 
-- prompt-only behavior composition and uncertainty orchestration;
+- prompt-only behavior composition and real-run uncertainty orchestration;
 - output-accessibility, downstream-persistence, and collateral manipulation checks;
 - the Wave 1 experiments and API-generated prompt data.
 
-The current generation artifact is only a no-API dry-run summary under
-`results/test/construct_benchmark/`; no external model call or model download
-has been made by the repository implementation.
+The repository contains no external model call or model download. The no-API
+generator dry-run and the fake vertical-slice runner are software artifacts
+only; neither is an empirical benchmark result.
 
 The active vector path now uses the tracked iterator in
 `activation_analysis.activation_store`; the obsolete SAE-only tests are
@@ -160,6 +168,9 @@ reports/                           Paper and historical reference artifacts
 results/                            Curated summaries and local/ignored outputs
 configs/construct_benchmark/        Multi-construct specs and run configs
 src/construct_benchmark/            Shared schemas, prompt validation, run plans
+results/benchmark/<run_id>/         Portable run workspace and raw artifacts
+scripts/run_fake_benchmark.py       No-API deterministic vertical-slice smoke test
+scripts/select_benchmark_run_mode.py  Frozen test/full prompt selection
 ```
 
 The original realization-effect paper and its implementation remain useful as
@@ -193,9 +204,35 @@ make check
 
 Do not make API calls, download model weights, or launch a large experiment as
 part of ordinary tests. Raw generations, model weights, and large activation
-tensors must remain outside Git. The benchmark raw path
-`results/benchmark/<construct>/<model>/<run>/raw/` is already ignored before
-benchmark runs begin.
+tensors must remain outside Git. The shared benchmark raw path
+`results/benchmark/<run_id>/raw/` is already ignored before benchmark runs
+begin. Use the preparation and finalization commands to snapshot, checksum,
+and optionally archive a run; they do not require RunPod credentials until an
+actual archive sync is requested.
+
+The staged execution workflow is: generate a `review` inventory, inspect it,
+generate the complete `full` inventory, derive a `test` subset with
+`scripts/select_benchmark_run_mode.py`, run the one-hour non-confirmatory
+RunPod smoke test, inspect its artifacts, and only then select `full` for the
+complete model run. Test outputs must not be pooled with full-run outputs.
+
+```bash
+./venv/bin/python scripts/prepare_benchmark_run.py \
+  --construct-spec configs/construct_benchmark/constructs/realization_account_closure_v1.json \
+  --construct-spec configs/construct_benchmark/constructs/evidence_diagnosticity_v1.json \
+  --run-config configs/construct_benchmark/run_configs/two_construct_smoke_v1.json \
+  --analysis-spec configs/construct_benchmark/analysis_specs/rsc_benchmark_core_v1.json
+
+./venv/bin/python scripts/finalize_benchmark_run.py \
+  --run-root results/benchmark/two_construct_smoke_v1
+```
+
+Set `RSC_BENCH_WORKSPACE_ROOT` on RunPod to the checked-out project directory
+and `RSC_BENCH_ARCHIVE_URI` to a credential-free `s3://bucket/prefix` before
+finalization. The configured AWS CLI credentials and optional
+`RSC_BENCH_S3_ENDPOINT_URL` remain in the environment, never in Git or run
+manifests. The durable archive is separate from the eventual curated public
+release on Hugging Face or Zenodo.
 
 ## Historical reference
 

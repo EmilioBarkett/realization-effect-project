@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 from dataclasses import replace
 from pathlib import Path
@@ -23,6 +24,7 @@ from construct_benchmark.generation import (
 )
 from construct_benchmark.prompts import PromptRecord, combine_prompt_files, load_prompt_records, validate_prompt_records, write_prompt_records
 from construct_benchmark.registry import ConstructRegistry, load_construct_registry, validate_registry_against_specs
+from construct_benchmark.run_modes import select_prompt_records
 from construct_benchmark.schemas import ConstructSpec, RunConfig
 from activation_analysis.vector_analysis import (
     PromptActivation,
@@ -63,8 +65,10 @@ def _configs() -> tuple[dict[str, ConstructSpec], RunConfig, object]:
 
 
 def _mock_generation_response(model_id: str, messages: list[dict[str, str]], options: dict) -> dict:
-    del model_id, options
+    del model_id
     payload = json.loads(messages[1]["content"])
+    generation_job_id = options["generation_job_id"]
+    job_nonce = hashlib.sha256(generation_job_id.encode("utf-8")).hexdigest()[:12]
     count = int(payload["count"])
     assigned_domains = payload["assigned_content_domains"]
     if payload["generation_mode"] == "paired":
@@ -78,7 +82,10 @@ def _mock_generation_response(model_id: str, messages: list[dict[str, str]], opt
                     "prompts": [
                         {
                             "condition_id": condition_id,
-                            "prompt_text": "A person reviews a newly described item in an unfamiliar setting.",
+                            "prompt_text": (
+                                f"A person reviews item {job_nonce}_{index}_{condition_ids.index(condition_id)} "
+                                "in an unfamiliar setting."
+                            ),
                         }
                         for condition_id in condition_ids
                     ],
@@ -88,6 +95,7 @@ def _mock_generation_response(model_id: str, messages: list[dict[str, str]], opt
         data = {"pairs": pairs}
     else:
         task_schema = payload["item_metadata_schema"]
+        required_category_assignments = payload.get("required_category_assignments", [])
         task_metadata = {}
         for field_name, field_schema in task_schema["properties"].items():
             if field_schema.get("enum"):
@@ -100,13 +108,24 @@ def _mock_generation_response(model_id: str, messages: list[dict[str, str]], opt
                 task_metadata[field_name] = True
             else:
                 task_metadata[field_name] = "mock_value"
+        for field_name, field_value in (required_category_assignments[0] if required_category_assignments else {}).items():
+            task_metadata[field_name] = field_value
         data = {
             "prompts": [
                 {
                     "variant_id": f"mock_variant_{index}",
                     "content_domain": assigned_domains[index],
-                    "task_metadata": task_metadata,
-                    "prompt_text": "A separate task presents a new item and asks for a response.",
+                    "task_metadata": {
+                        **task_metadata,
+                        **(
+                            required_category_assignments[index]
+                            if index < len(required_category_assignments)
+                            else {}
+                        ),
+                    },
+                    "prompt_text": (
+                        f"Independent task item {job_nonce}_{index} asks for a response."
+                    ),
                     "notes": "deterministic mock response",
                 }
                 for index in range(count)
@@ -146,7 +165,7 @@ def _prompt_inventory(specs: dict[str, ConstructSpec]) -> list[PromptRecord]:
                     prompt_role=prompt_role,
                     prompt_text=f"{construct_id} {split} independent task.",
                     condition_id="neutral",
-                    prompt_family=f"{construct_id}_behavior",
+                    prompt_family=f"{construct_id}_{prompt_role}",
                     task_id=spec.independent_behavior_task["task_id"],
                     expected_output_format=spec.independent_behavior_task["response_format"],
                     parser_id=spec.parsing_rules["parser_id"],
@@ -169,6 +188,8 @@ def test_two_construct_configs_are_valid_and_share_execution() -> None:
     )
     assert summary["construct_ids"] == sorted(specs)
     assert plan["construct_count"] == 2
+    assert plan["run_mode"]["mode"] == "test"
+    assert plan["run_mode"]["confirmatory"] is False
     assert plan["shared_execution"]["construct_ids"] == list(run_config.construct_ids)
     assert [stage["scope"] for stage in plan["execution_graph"][:2]] == ["shared", "shared"]
     assert len([stage for stage in plan["execution_graph"] if stage["scope"] == "construct"]) == 10
@@ -253,8 +274,8 @@ def test_wave_one_generation_emits_canonical_records_and_is_deterministic(tmp_pa
 
         result = generate_prompt_records(plan, spec, api_key="test", request_fn=_mock_generation_response)
         assert result.complete is True
-        assert len(result.records) == 36
-        assert result.request_count == 12
+        assert len(result.records) == 60
+        assert result.request_count == 24
         validate_prompt_records(result.records, {spec.construct_id: spec})
         assert {record.split for record in result.records} == set(spec.required_splits)
         assert all(record.metadata["generation_plan_id"] == plan["plan_id"] for record in result.records)
@@ -378,7 +399,7 @@ def test_filtered_models_and_pilot_override_are_explicitly_incomplete() -> None:
     filtered = dry_run_summary(plan, model_aliases={"gpt54"})
     assert filtered["complete_plan"] is False
     assert filtered["selected_model_aliases"] == ["gpt54"]
-    assert filtered["expected_record_count"] == 18
+    assert filtered["expected_record_count"] == 30
 
     pilot = dry_run_summary(plan, count_per_model_override=1)
     full = dry_run_summary(plan)
@@ -405,6 +426,73 @@ def test_filtered_models_and_pilot_override_are_explicitly_incomplete() -> None:
     )
     assert result.complete is False
     assert len(result.records) == 18
+
+
+def test_named_generation_and_model_run_modes_are_explicit_and_deterministic() -> None:
+    spec = load_construct_spec(ROOT / "configs/construct_benchmark/constructs/realization_account_closure_v1.json")
+    plan_path = ROOT / "configs/construct_benchmark/generation_plans/wave1_realization_account_closure_v1.json"
+    plan = load_generation_plan(plan_path, spec)
+    assert plan["run_modes"]["review"]["partial"] is True
+    assert plan["run_modes"]["full"]["partial"] is False
+
+    run_config = load_run_config(
+        ROOT / "configs/construct_benchmark/run_configs/wave1_realization_single_construct_smoke_v1.json"
+    )
+    result = generate_prompt_records(plan, spec, api_key="test", request_fn=_mock_generation_response)
+    selected_a, manifest_a = select_prompt_records(
+        result.records,
+        run_config=run_config,
+        construct_specs={spec.construct_id: spec},
+        mode="test",
+    )
+    selected_b, manifest_b = select_prompt_records(
+        result.records,
+        run_config=run_config,
+        construct_specs={spec.construct_id: spec},
+        mode="test",
+    )
+    assert [record.prompt_id for record in selected_a] == [record.prompt_id for record in selected_b]
+    assert manifest_a == manifest_b
+    assert manifest_a["confirmatory"] is False
+    assert manifest_a["max_runtime_minutes"] == 60
+    assert manifest_a["selected_prompt_count"] == 18
+    assert manifest_a["selected_counts_by_construct_split"] == {
+        "realization_account_closure": {
+            "behavior_eval": 2,
+            "calibration": 2,
+            "direction_heldout": 4,
+            "direction_train": 4,
+            "direction_validation": 4,
+            "steering_eval": 2,
+        }
+    }
+    for split in spec.paired_splits:
+        pair_counts = {}
+        for record in selected_a:
+            if record.split == split:
+                pair_counts[record.pair_id] = pair_counts.get(record.pair_id, 0) + 1
+        assert pair_counts
+        assert set(pair_counts.values()) == {2}
+
+    selected_full, full_manifest = select_prompt_records(
+        result.records,
+        run_config=run_config,
+        construct_specs={spec.construct_id: spec},
+        mode="full",
+    )
+    assert len(selected_full) == len(result.records) == 60
+    assert full_manifest["complete_inventory"] is True
+    assert full_manifest["confirmatory"] is True
+    full_plan = build_run_plan(
+        load_run_config(
+            ROOT / "configs/construct_benchmark/run_configs/wave1_realization_single_construct_smoke_v1.json"
+        ),
+        {spec.construct_id: spec},
+        load_analysis_spec(ANALYSIS_PATH),
+        run_mode="full",
+    )
+    assert full_plan["run_mode"]["mode"] == "full"
+    assert full_plan["run_mode"]["confirmatory"] is True
 
 
 def test_limited_generation_is_explicitly_incomplete() -> None:
@@ -486,6 +574,16 @@ def test_prompt_validation_rejects_duplicate_global_ids() -> None:
 
     with pytest.raises(ValueError, match="Duplicate prompt_id"):
         validate_prompt_records([*records, duplicate], specs)
+
+
+def test_prompt_validation_rejects_reused_text_across_independent_roles() -> None:
+    specs, _, _ = _configs()
+    records = _prompt_inventory(specs)
+    behavior = next(record for record in records if record.prompt_role == "behavior")
+    steering = next(record for record in records if record.prompt_role == "steering")
+    altered = replace(steering, prompt_text=behavior.prompt_text)
+    with pytest.raises(ValueError, match="reuses normalized prompt text"):
+        validate_prompt_records([record for record in records if record is not steering] + [altered], specs)
 
 
 def test_prompt_validation_rejects_role_mismatch_and_missing_task_fields() -> None:

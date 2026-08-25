@@ -20,13 +20,16 @@ At the time of this handoff:
   `src/construct_benchmark/`;
 - construct, run, analysis, prompt, split, and provenance validation exists;
 - train-only direction construction and construct isolation are enforced;
-- `make check` passes under the Python 3.11 `venv` with 70 tests passing and 2
+- `make check` passes under the Python 3.11 `venv` with 79 tests passing and 2
   optional PyTorch tests skipped;
 - no new benchmark prompt dataset has been generated;
 - no API call or model download was made during the planning review;
 - projection margins, calibration, parsing, primary state-transfer scoring,
   control-direction generation, timing-aware injection, and local/RunPod
   planning/execution entrypoints are fixture-tested;
+- independent prompt-role/family validation, pre-registered category schedules,
+  validation-only layer selection, bootstrap intervals, and the no-API fake
+  vertical slice are now implemented and fixture-tested;
 - no representative real-model activation or steering run has validated that
   measurement code, and manipulation/uncertainty checks remain incomplete.
 
@@ -57,14 +60,14 @@ completed for Wave 1:
   one-item-per-cell pilot counts;
 - the overlap audit reports construct, split, family, role, template,
   response-format, and probe/downstream independence metadata;
-- the no-API Wave 1 dry run expands to 48 requests and 144 expected rows with
+- the no-API Wave 1 dry run expands to 96 requests and 240 expected rows with
   token estimates;
-- `make check` passes with 70 tests passing and 2 optional PyTorch tests
+- `make check` passes with 79 tests passing and 2 optional PyTorch tests
   skipped.
 
 No API call, model download, or benchmark dataset generation occurred. The
-remaining external step is the explicitly approved one-item-per-cell pilot
-described below.
+remaining external step is a reviewed one-item-per-cell pilot, followed by a
+single-construct model-side smoke run.
 
 ## Selected 16-construct bank
 
@@ -140,9 +143,9 @@ observing readout or steering results.
 - `reciprocity_obligation`
 - `goal_shielding`
 
-## Immediate blocker to synthetic prompt generation
+## Legacy generator boundary
 
-The active generator in
+The retained legacy generator in
 `src/activation_analysis/openrouter_prompt_generation.py` is still
 realization-specific. It hardcodes the `paper_open` and `realized_closed`
 response fields and describes realization, emotion, risk, casinos, and
@@ -159,10 +162,19 @@ The current generator is missing these canonical output fields:
 - `metadata_json`.
 
 Do not launch new multi-construct generation through that legacy interface.
+Use `src/construct_benchmark/generation.py` and
+`scripts/generate_construct_prompts.py` for benchmark-facing generation. The
+current plans also disable automatic retries and require category assignments
+to match their frozen schedules.
 Existing realization prompts may be adapted and reused if they pass the new
 schema and leakage audits; do not automatically regenerate them.
 
-## Next session implementation plan
+## Historical implementation plan
+
+The sequence below records the earlier implementation plan and is retained as
+handoff history. The current scientific gates are in the root protocol and
+architecture documents; the fake local vertical slice and one-construct
+RunPod configuration now precede any external run.
 
 ### 1. Synchronize scientific scope
 
@@ -329,9 +341,11 @@ whether it is present; never print or persist its value. The key was present in
 the planning session, but a later session must re-check its own environment.
 
 Do not add `.env` files, raw generations, model outputs, or credentials to Git.
-Raw outputs under `results/benchmark/<construct>/<model>/<run>/raw/` are
-ignored. Keep smoke artifacts under `results/test/` and track only small
-reviewed configs, manifests, audits, and curated summaries.
+Raw outputs under `results/benchmark/<run_id>/raw/` are ignored. Keep smoke
+artifacts under `results/test/` and track only small reviewed configs,
+manifests, audits, and curated summaries. The prepared run root is shared
+across constructs; construct-specific artifacts belong below
+`constructs/<construct_id>/`.
 
 ## Definition of ready for synthetic generation
 

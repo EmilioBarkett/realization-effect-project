@@ -11,6 +11,7 @@ from activation_analysis.activation_store import (
     iter_activation_vectors,
     summarize_activation_dataset,
 )
+from activation_analysis.vector_analysis import collect_prompt_mean_activations
 
 
 def _write_jsonl(path: Path, rows: list[dict]) -> None:
@@ -125,6 +126,71 @@ def test_summarize_activation_dataset_counts_vectors(tmp_path: Path) -> None:
             "scenario": 1,
         },
     }
+
+
+def test_collect_prompt_means_keeps_candidate_layers_separate(tmp_path: Path) -> None:
+    run_dir = tmp_path / "multi_layer_run"
+    prompts = [
+        {
+            "prompt_id": "prompt_1",
+            "prompt_text": "Prompt text",
+            "metadata": {"construct_id": "example", "split": "direction_train"},
+        }
+    ]
+    _write_jsonl(run_dir / "prompts.jsonl", prompts)
+    shards = []
+    for layer, value in ((12, 1.0), (18, 3.0)):
+        layer_dir = run_dir / "activations" / f"layer_{layer}"
+        layer_dir.mkdir(parents=True)
+        np.save(layer_dir / "batch_000000.npy", np.full((1, 2, 4), value, dtype=np.float32))
+        _write_jsonl(
+            layer_dir / "batch_000000.jsonl",
+            [
+                {
+                    "prompt_id": "prompt_1",
+                    "activation_site": "resid_post",
+                    "token_mode": "nonpad",
+                    "token_ids": [101, 102],
+                    "token_positions": [0, 1],
+                    "token_regions": ["scenario", "scenario"],
+                    "num_tokens": 2,
+                }
+            ],
+        )
+        shards.append(
+            {
+                "layer": layer,
+                "tensor_file": f"activations/layer_{layer}/batch_000000.npy",
+                "index_file": f"activations/layer_{layer}/batch_000000.jsonl",
+                "shape": [1, 2, 4],
+            }
+        )
+    (run_dir / "manifest.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "0.1.0",
+                "model": {"d_model": 4},
+                "extraction": {"layers": [12, 18], "activation_site": "resid_post", "token_mode": "nonpad"},
+                "stats": {"total_prompts": 1, "total_shards": 2},
+                "shards": shards,
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    activations = collect_prompt_mean_activations(
+        run_dir,
+        layers={12, 18},
+        token_regions={"scenario"},
+    )
+    assert {(activation.prompt_id, activation.layer) for activation in activations} == {
+        ("prompt_1", 12),
+        ("prompt_1", 18),
+    }
+    by_layer = {activation.layer: activation for activation in activations}
+    assert np.allclose(by_layer[12].vector, 1.0)
+    assert np.allclose(by_layer[18].vector, 3.0)
 
 
 def test_iter_activation_vectors_rejects_malformed_index_length(tmp_path: Path) -> None:

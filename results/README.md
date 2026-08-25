@@ -22,9 +22,12 @@ artifacts under `results/final/`; keep large activation tensors, raw steering
 generations, and exploratory checkpoints ignored unless they are explicitly
 needed for publication or review.
 
-Before any generalized benchmark run, add an explicit ignore rule for
-`results/benchmark/<construct>/<model>/<run>/raw/` and record the run manifest
-and split/config hashes.
+Generalized benchmark runs use one shared multi-construct root at
+`results/benchmark/<run_id>/`. Its `raw/` directory is ignored by Git, while
+`constructs/<construct_id>/` keeps directions, readouts, calibration, and
+steering outputs namespaced by construct. The preparation command snapshots
+the frozen configs and run plan; finalization writes `checksums.sha256` and
+can sync the complete run to an S3-compatible archive.
 
 ## Current Final Artifacts
 

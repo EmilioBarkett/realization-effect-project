@@ -52,8 +52,8 @@ Active:
 
 - `src/activation_analysis/`;
 - `src/construct_benchmark/` — shared schemas, canonical prompt records, split
-  validation, registry validation, generic generation, and construct-fan-out
-  run plans;
+  validation, registry validation, generic generation, uncertainty primitives,
+  fake fixtures, and construct-fan-out run plans;
 - `configs/activation_analysis/`;
 - `configs/construct_benchmark/`;
 - `experiments/activation_analysis/`;
@@ -71,8 +71,9 @@ Archived:
 - Projection-margin analysis, neutral/within-condition calibration, strict
   Wave 1 parsing, primary state-transfer scoring, deterministic steering
   controls, and timing-aware injection are implemented and fixture-tested.
-- Prompt-only behavior composition, bootstrap uncertainty, output-accessibility,
-  downstream-persistence, collateral checks, and real-model validation remain.
+- Prompt-only behavior composition, real-run uncertainty orchestration,
+  output-accessibility, downstream-persistence, collateral checks, and
+  real-model validation remain.
 - The 16-entry registry, four specified Wave 1 construct specs, four
   generation plans, generic canonical-record generation adapter, and
   generalized overlap audit are now implemented.
@@ -86,12 +87,13 @@ Archived:
   skipped in the base environment;
 - no API-generated Wave 1 prompt data or representative local activation run
   is currently available for an end-to-end manifest-backed smoke test; the
-  current generation artifact is a no-API dry-run summary.
+  available no-API and fake-fixture artifacts are explicitly non-empirical.
 
 ## Next actions
 
-1. Review the four Wave 1 generation plans and dry-run summary; obtain explicit
-   approval before any external generation.
+1. Run and review `scripts/run_fake_benchmark.py`, then review the four Wave 1
+   generation plans and dry-run summary; obtain explicit approval before any
+   external generation.
 2. Add a representative activation-run fixture and verify the new
    `ActivationVectorRecord` and `iter_activation_vectors()` implementation
    against its manifest and shards.
@@ -99,9 +101,10 @@ Archived:
    keeping construct namespaces intact.
 4. Run the implemented readout and calibration CLIs against that activation
    fixture and verify the frozen hashes and margins.
-5. Execute the timing-aware steering runner on a tiny realization/evidence GPU
-   fixture before expanding to all Wave 1 cells.
-6. Add prompt-only behavior composition, uncertainty, output accessibility,
+5. Execute the timing-aware steering runner for one construct and one model,
+   using candidate-layer validation, five prefill-only doses, and all controls,
+   before expanding to all Wave 1 cells.
+6. Add prompt-only behavior composition, real-run uncertainty, output accessibility,
    downstream persistence, and manipulation checks.
 7. Run the precision simulation before advancing to Waves 2–4 or fitting full
    representation-profile predictors.

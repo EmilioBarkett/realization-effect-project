@@ -38,13 +38,19 @@ archived. It is not the template for new behavioral collection.
 - `src/activation_analysis/steering.py`: reusable intervention primitive;
 - `src/construct_benchmark/`: versioned construct/run/analysis schemas,
   canonical prompt records, split validation, registry validation, generic
-  generation, and shared-activation run plans;
+  generation, shared-activation run plans, and portable storage/archive
+  helpers;
 - `scripts/validate_construct_run.py`: validates a combined inventory and
   emits a construct-namespaced execution manifest;
 - `scripts/validate_construct_registry.py`: validates the frozen 16-entry
   registry against loaded construct specifications;
+- `scripts/prepare_benchmark_run.py` and
+  `scripts/finalize_benchmark_run.py`: workspace preparation, checksums, and
+  optional S3-compatible archival;
 - `scripts/generate_construct_prompts.py`: generic Wave 1 generation CLI with
   dry-run and mock-friendly execution paths;
+- `scripts/run_fake_benchmark.py`: deterministic no-API vertical-slice smoke
+  runner;
 - `configs/construct_benchmark/`: the 16-entry registry, four specified Wave 1
   construct specs, four generation plans, smoke config, and analysis spec;
 - `configs/activation_analysis/` and `experiments/activation_analysis/`;
@@ -72,21 +78,26 @@ src/construct_benchmark/
 ├── readout.py         Implemented train-only directions and held-out projections
 ├── calibration.py     Implemented neutral/within-condition projection scales
 ├── behavior.py        Implemented strict Wave 1 parsing and primary effect metric
-└── steering.py        Implemented condition plans and control directions
+├── steering.py        Implemented condition plans and control directions
+├── uncertainty.py      Implemented pair/item bootstrap interval primitives
+├── fake.py             Implemented deterministic no-model measurement fixtures
+└── storage.py          Implemented workspace, checksum, and archive helpers
 ```
 
-The remaining measurement layer should add manipulation checks, bootstrap
-uncertainty, prompt-only behavior composition, and correspondence analysis as
-the two-construct vertical slice requires them. The later profile layer can add:
+The remaining measurement layer should add downstream manipulation checks,
+prompt-only behavior composition, real-run uncertainty orchestration, and
+correspondence analysis as the two-construct vertical slice requires them. The
+later profile layer can add:
 
 ```text
 profiles.py  correspondence.py
 ```
 
 The registry, generation, prompt-validation, readout, calibration, behavior,
-and steering-plan modules are the current Wave 1 control path. Their numerical
-logic is fixture-tested, but the model-side runner has not been validated on a
-representative activation run or GPU environment.
+steering-plan, uncertainty, and fake-fixture modules are the current Wave 1
+control path. Their numerical logic is fixture-tested, but the model-side
+runner has not been validated on a representative activation run or GPU
+environment.
 
 ## 3. Configuration boundary
 
@@ -149,24 +160,64 @@ vertical slice should implement the primary held-out projection and directed
 state-transfer estimands before adding stability, dimensionality, normalized
 intervention-cost, or out-of-sample profile prediction.
 
+## 4.1 Staged run-mode architecture
+
+Prompt generation is deliberately completed before model-side execution. Each
+generation plan has two named modes: `review` emits one item per model and
+cell for human inspection, while `full` emits the complete frozen inventory.
+Both can be expanded with a no-API dry run. A review inventory is never
+silently promoted to confirmatory data.
+
+The model-side run configuration has corresponding `test` and `full` modes.
+`test` deterministically derives a pair-preserving subset from the full
+inventory, retains every required split, records `confirmatory=false`, selects
+at most two pairs per paired split and two independent-task items per single
+split, and uses a 60-minute engineering budget. `full` selects every prompt, records
+`confirmatory=true`, and has no time cap. The selector writes a separate
+selection manifest containing source and selected inventory hashes, IDs, split
+counts, and the intended budget.
+
+The first RunPod slice therefore has this artifact flow:
+
+```text
+generation review → human prompt audit → full frozen inventory
+                                      ↓
+                       test subset + selection manifest
+                                      ↓
+                 one-hour activation/readout/steering smoke run
+                                      ↓
+                          inspect artifacts and decide
+                                      ↓
+                        full inventory + full model run
+```
+
+The test run is an engineering gate, not an early estimate of the scientific
+effect. Its subset is large enough to preserve paired direction splits,
+neutral calibration, and independent behavior/steering roles, but its output
+cannot support confirmatory claims. The implementation entrypoint is
+`scripts/select_benchmark_run_mode.py`; activation logging records the
+optional wall-clock budget and whether the selected subset completed.
+
 ## 5. Planned execution stages
 
 1. Validate the registry, versioned construct, generation, run, and analysis configs.
-2. Review and, after explicit approval, generate one combined Wave 1 prompt
+2. Review balanced category schedules and distinct behavior/steering/calibration
+   prompt families; after explicit approval, generate one combined Wave 1
    inventory and freeze canonical hashes.
 3. Audit leakage-safe splits for every construct namespace.
 4. Run the prompt-only behavioral baseline per construct.
-5. Log activations once at registered layers, sites, and positions.
-6. Construct one direction per construct from training prompts only.
+5. Log activations once at all registered candidate layers, sites, and positions.
+6. Construct one direction per construct from training prompts only and select
+   the layer using validation prompts only.
 7. Evaluate continuous standardized held-out projection margins per construct.
 8. Calibrate doses from neutral or within-cell training variance per construct and record
    unstandardized magnitudes.
-9. Run independent-task steering with explicit timing and positive, zero,
-   negative, shuffled, and random controls.
+9. Run independent-task prefill-only steering with `[-1, -0.5, 0, 0.5, 1]`,
+   shuffled, and three random controls.
 10. Check downstream persistence, output accessibility, compliance, and
-    collateral behavior.
-11. Parse outputs through construct-specific adapters and compute outcome-
-    appropriate estimands.
+   collateral behavior.
+11. Parse outputs through construct-specific adapters, compute outcome-
+    appropriate estimands, and bootstrap complete pairs/items.
 12. Fit the crossed model × construct × task summary; add profile prediction
     only after the matrix is large enough for out-of-sample evaluation.
 
@@ -187,12 +238,49 @@ Keep ignored:
 - raw model generations;
 - residual tensors and large activation runs;
 - benchmark raw outputs under
-  `results/benchmark/<construct>/<model>/<run>/raw/`.
+  `results/benchmark/<run_id>/raw/`.
 
-The benchmark raw path is already covered by `.gitignore` before the first new
-run.
+The shared benchmark raw path is already covered by `.gitignore` before the
+first new run. Construct-specific outputs remain namespaced below
+`results/benchmark/<run_id>/constructs/<construct_id>/`.
 
-## 7. Implementation gates
+## 7. Automated data lifecycle
+
+The repository now separates execution storage from durable archival. The
+same run layout works on a local machine and on a RunPod network volume:
+
+```text
+results/benchmark/<run_id>/
+├── raw/                    ignored model generations and worker outputs
+├── prompts/               frozen combined prompt inventory
+├── activations/           shared activation run
+├── constructs/<id>/       direction/readout/calibration/steering outputs
+├── config_snapshot/       exact run, analysis, and construct configs
+├── run_plan.json           shared execution graph and hashes
+├── storage_manifest.json   resolved paths and archive policy
+├── checksums.sha256       artifact integrity record
+└── run_status.json         mutable lifecycle status
+```
+
+`scripts/prepare_benchmark_run.py` validates the selected constructs and
+configs, creates this layout, snapshots the frozen inputs, and writes the
+shared run plan. It performs no API calls and does not load model weights.
+
+`scripts/finalize_benchmark_run.py` writes the status and deterministic SHA-256
+inventory, verifies the inventory, and automatically syncs to the configured
+S3-compatible archive when `RSC_BENCH_ARCHIVE_URI` is present and the run
+configuration has `storage.sync_on_finalize=true`. The archive destination is
+always `<archive-prefix>/<run_id>`; credentials and optional endpoint settings
+are read from the process environment and never persisted in manifests.
+
+The local/RunPod workspace is a staging copy. The S3-compatible archive is the
+durable private master. GitHub contains code and small reviewable metadata;
+Hugging Face and Zenodo remain separate, later curation/release targets. This
+automation does not claim that the incomplete end-to-end model runner is
+finished; it wraps the existing model-side stages with reproducible storage
+and handoff semantics.
+
+## 8. Implementation gates
 
 The next work is not a large experiment. It is:
 

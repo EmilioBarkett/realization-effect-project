@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import csv
 import json
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterable, Mapping
@@ -43,6 +44,10 @@ def _optional_text(value: Any) -> str | None:
 
 def _infer_prompt_role(split: str) -> str:
     return SPLIT_PROMPT_ROLE.get(split, "probe")
+
+
+def _normalized_prompt_text(text: str) -> str:
+    return re.sub(r"\s+", " ", text).strip().casefold()
 
 
 @dataclass(frozen=True)
@@ -220,6 +225,10 @@ def validate_prompt_records(
     by_construct: dict[str, list[PromptRecord]] = {construct_id: [] for construct_id in construct_specs}
     pair_groups: dict[tuple[str, str, str], list[PromptRecord]] = {}
     counts_by_split: dict[str, dict[str, int]] = {construct_id: {} for construct_id in construct_specs}
+    text_by_construct: dict[str, dict[str, str]] = {construct_id: {} for construct_id in construct_specs}
+    family_roles_by_construct: dict[str, dict[str, str]] = {
+        construct_id: {} for construct_id in construct_specs
+    }
 
     for record in materialized:
         spec = construct_specs.get(record.construct_id)
@@ -244,6 +253,21 @@ def validate_prompt_records(
             raise ValueError(f"Prompt {record.prompt_id} has empty prompt_text.")
         if not record.prompt_family:
             raise ValueError(f"Prompt {record.prompt_id} requires prompt_family metadata.")
+        normalized_text = _normalized_prompt_text(record.prompt_text)
+        previous_prompt_id = text_by_construct[record.construct_id].get(normalized_text)
+        if previous_prompt_id is not None:
+            raise ValueError(
+                f"Construct {record.construct_id} reuses normalized prompt text across records: "
+                f"{previous_prompt_id!r} and {record.prompt_id!r}."
+            )
+        text_by_construct[record.construct_id][normalized_text] = record.prompt_id
+        previous_role = family_roles_by_construct[record.construct_id].get(record.prompt_family)
+        if previous_role is not None and previous_role != record.prompt_role:
+            raise ValueError(
+                f"Construct {record.construct_id} reuses prompt_family={record.prompt_family!r} "
+                f"across roles {previous_role!r} and {record.prompt_role!r}."
+            )
+        family_roles_by_construct[record.construct_id][record.prompt_family] = record.prompt_role
         if record.prompt_role in {"behavior", "steering", "calibration"}:
             missing_fields = [
                 field_name
@@ -304,4 +328,15 @@ def validate_prompt_records(
             for construct_id, counts in counts_by_split.items()
         },
         "pair_count": len(pair_groups),
+        "prompt_families_by_construct_role": {
+            construct_id: {
+                role: sorted(
+                    family
+                    for family, family_role in family_roles.items()
+                    if family_role == role
+                )
+                for role in sorted(PROMPT_ROLES)
+            }
+            for construct_id, family_roles in family_roles_by_construct.items()
+        },
     }

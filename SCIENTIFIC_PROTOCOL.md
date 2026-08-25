@@ -91,6 +91,20 @@ No validation, held-out, or downstream behavioral prompt may enter direction
 construction. Entire prompt families or task templates should be held out when
 testing generalization, not only paraphrases.
 
+Behavior prompts are generated and stored separately from probe prompts. The
+behavior, steering, and calibration roles each use distinct prompt families,
+and canonical validation rejects normalized prompt-text reuse across records
+or across roles within a construct. A prompt-only behavior baseline is a
+separate estimand from post-steering scoring; the probe-to-downstream episode
+runner still needs real-model validation.
+
+Generation plans pre-register categorical schedules before generation. Wave 1
+cells balance their relevant task factors (for example gain/loss/neutral,
+supporting/contradicting evidence, or setback severity) rather than asking a
+model to choose the dataset composition. Automatic retries are disabled in the
+reviewed Wave 1 plans: a poor pilot is revised at the plan level and regenerated
+only after review.
+
 The legacy generator in `activation_analysis` remains realization-focused and
 is not the interface for new multi-construct data. The benchmark-facing
 `construct_benchmark.generation` adapter now takes semantics from a construct
@@ -114,7 +128,11 @@ direction = mean(positive_train) - mean(negative_train)
 
 The exact sign is fixed by the construct specification before held-out results
 are inspected. Candidate layers, activation site, token/region mode, and
-position mode are registered in the run configuration.
+position mode are registered in the run configuration. When multiple layers
+are registered, the default rule selects the layer with the largest validation
+mean standardized margin on `direction_validation`; held-out prompts are not
+used for this choice. A fixed single-layer run remains available as an
+explicit diagnostic.
 
 The primary decodability estimand is the continuous standardized held-out
 projection margin. Pairwise accuracy, calibration curves, direction stability,
@@ -141,9 +159,18 @@ The intervention timing must use one of the canonical registered values:
 - `every_step`; or
 - `fixed_window`.
 
-The minimum intervention battery includes positive, zero, and negative doses,
-plus a shuffled-label or random-direction control. Wrong-layer or unrelated
-direction controls should be included where feasible.
+The first intervention battery uses prefill-only injection and five registered
+doses:
+
+```text
+-1, -0.5, 0, +0.5, +1
+```
+
+Continuous or generation-time injection is a secondary timing comparison. The
+minimum control battery includes a zero dose, a negative dose, a shuffled-label
+direction, and three reproducible random directions orthogonal to the target
+where the hidden size permits it. Wrong-layer or unrelated-direction controls
+should be included where feasible.
 
 ## 7. Behavioral estimands
 
@@ -231,26 +258,34 @@ implementation:
   neutral/within-condition calibration, strict Wave 1 parsing, directed
   state-transfer scoring, control-direction generation, and timing-aware
   injection are implemented and fixture-tested;
-- real-model execution, prompt-only behavior composition, uncertainty,
-  downstream manipulation checks, and correspondence analysis remain
-  unvalidated or unimplemented end to end;
+- prompt-role/family separation, pre-registered category schedules, validation
+  layer selection, and pair/item bootstrap interval primitives are implemented
+  and fixture-tested;
+- a deterministic `scripts/run_fake_benchmark.py` exercises the vertical slice
+  without APIs, model weights, or a GPU; its outputs are explicitly
+  non-empirical;
+- real-model execution, prompt-only behavior composition, real-run uncertainty
+  reporting, downstream manipulation checks, and correspondence analysis
+  remain unvalidated or unimplemented end to end;
 - the tracked activation iterator now lives in
   `activation_analysis.activation_store` and passes the clean Python 3.11
   `make check` suite; real-run validation remains pending;
 - a single run plan can batch the four Wave 1 inventories through one activation
   pass and then fan out construct-specific analyses;
 - no API-generated prompt dataset, evidence-diagnosticity data, or large
-  benchmark run has been collected; only a no-API dry-run summary exists.
+  benchmark run has been collected; only no-API dry-run and fake-fixture
+  artifacts exist.
 
-Before measurement implementation:
+Before the first real measurement:
 
-1. review the four Wave 1 generation plans and, after explicit approval,
+1. run and review the deterministic fake vertical slice;
+2. review the four Wave 1 generation plans and, after explicit approval,
    connect generated inventories to the canonical combined inventory;
-2. verify `ActivationVectorRecord` and `iter_activation_vectors()` against
+3. verify `ActivationVectorRecord` and `iter_activation_vectors()` against
    existing activation-store manifests;
-3. keep the active activation tests green and add
+4. keep the active activation tests green and add
    iterator/filtering/region/memory-map regression tests;
-4. validate the implemented projection, calibration, parsing, and steering
+5. validate the implemented projection, calibration, parsing, and steering
    adapters, then add manipulation checks and downstream persistence.
 
 Then implement in this order:

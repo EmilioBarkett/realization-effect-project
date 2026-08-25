@@ -524,6 +524,9 @@ train a high-dimensional correspondence model.
   generic canonical-record generation adapter, four generation plans, and
   generalized leakage audit are implemented. The no-API Wave 1 dry run reports
   the expanded job matrix without generating benchmark data.
+- Behavior, steering, and calibration prompt roles have separate families;
+  Wave 1 category schedules are validated before generation and reviewed plans
+  disable automatic retries.
 - Use one combined Wave 1 prompt inventory and one activation logging pass,
   then namespace all direction and outcome artifacts by `construct_id`.
 - Simulate plausible prompt, readout, and steering effect sizes to determine
@@ -542,7 +545,9 @@ train a high-dimensional correspondence model.
   for registered layer or position choices.
 - Implement held-out paired projection margins and training-only
   standardization.
-- Add bootstrap intervals grouped by pair and prompt family.
+- Add bootstrap intervals grouped by complete pairs/items; the reusable
+  primitives and fake-path coverage now exist, while real-run orchestration
+  remains to be validated.
 - Add secondary accuracy, AUC, layer-stability, and context-transfer measures.
 - Record model revision, layer, site, region, roles, signs, prompt hashes,
   normalization, and configuration hashes in direction artifacts.
@@ -555,8 +560,9 @@ train a high-dimensional correspondence model.
   explicitly.
 - Freeze neutral or within-condition calibration variance so dose does not
   mechanically couple decodability and physical intervention strength.
-- Include positive, negative, zero, shuffled, and multiple random-direction
-  controls, with fixed seeds and randomized condition order.
+- Begin with prefill-only doses `[-1, -0.5, 0, 0.5, 1]`, then include shuffled
+  and multiple random-direction controls with fixed seeds and randomized
+  condition order.
 - Measure post-intervention projections at downstream layers, compliance,
   collateral behavior, and output accessibility.
 

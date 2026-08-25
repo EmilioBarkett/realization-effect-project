@@ -29,6 +29,64 @@ DEFAULT_ESTIMATED_INPUT_TOKENS_PER_REQUEST = 1400
 DEFAULT_ESTIMATED_OUTPUT_TOKENS_PER_RECORD = 300
 
 
+def _default_generation_run_modes() -> dict[str, dict[str, Any]]:
+    return {
+        "review": {
+            "purpose": "prompt_review",
+            "count_per_model_per_cell": 1,
+            "partial": True,
+        },
+        "full": {
+            "purpose": "frozen_full_inventory",
+            "count_per_model_per_cell": None,
+            "partial": False,
+        },
+    }
+
+
+def resolve_generation_mode(plan: Mapping[str, Any], mode: str) -> tuple[str, dict[str, Any]]:
+    """Return a validated generation mode from a loaded plan."""
+
+    modes = plan.get("run_modes", _default_generation_run_modes())
+    if not isinstance(modes, Mapping):
+        raise ValueError("run_modes must be an object.")
+    mode_id = _identifier(mode, field_name="generation mode")
+    if mode_id not in modes:
+        raise ValueError(f"Unknown generation mode={mode_id!r}; available modes are {sorted(modes)}.")
+    return mode_id, dict(modes[mode_id])
+
+
+def _validate_generation_run_modes(value: Any) -> dict[str, dict[str, Any]]:
+    raw_modes = _default_generation_run_modes() if value is None else _mapping(value, field_name="run_modes")
+    required_modes = {"review", "full"}
+    missing_modes = required_modes - set(raw_modes)
+    if missing_modes:
+        raise ValueError(f"run_modes is missing required mode(s): {sorted(missing_modes)}")
+    validated: dict[str, dict[str, Any]] = {}
+    for raw_mode_id, raw_mode in raw_modes.items():
+        mode_id = _identifier(raw_mode_id, field_name="run_modes key")
+        mode = _mapping(raw_mode, field_name=f"run_modes.{mode_id}")
+        _text(mode.get("purpose"), field_name=f"run_modes.{mode_id}.purpose")
+        count = mode.get("count_per_model_per_cell")
+        if count is not None and (not isinstance(count, int) or isinstance(count, bool) or count < 1):
+            raise ValueError(
+                f"run_modes.{mode_id}.count_per_model_per_cell must be a positive integer or null."
+            )
+        partial = mode.get("partial")
+        if not isinstance(partial, bool):
+            raise ValueError(f"run_modes.{mode_id}.partial must be a boolean.")
+        if mode_id == "review" and not partial:
+            raise ValueError("run_modes.review.partial must be true.")
+        if mode_id == "full" and (partial or count is not None):
+            raise ValueError(
+                "run_modes.full must have partial=false and count_per_model_per_cell=null."
+            )
+        mode["count_per_model_per_cell"] = count
+        mode["partial"] = partial
+        validated[mode_id] = mode
+    return validated
+
+
 def _slug(value: Any) -> str:
     text = str(value).strip().lower()
     return re.sub(r"[^a-z0-9]+", "_", text).strip("_") or "none"
@@ -62,6 +120,42 @@ def _string_list(value: Any, *, field_name: str) -> list[str]:
     if not isinstance(value, list) or not value or any(not isinstance(item, str) or not item.strip() for item in value):
         raise ValueError(f"{field_name} must be a non-empty list of strings.")
     return [item.strip() for item in value]
+
+
+def _category_balance(value: Any, *, field_name: str, count: int, spec: ConstructSpec) -> dict[str, list[Any]]:
+    if value is None:
+        return {}
+    if not isinstance(value, Mapping):
+        raise ValueError(f"{field_name} must be an object mapping metadata fields to schedules.")
+    properties = dict(spec.independent_behavior_task["item_metadata_schema"]["properties"])
+    validated: dict[str, list[Any]] = {}
+    for field_name_key, raw_schedule in value.items():
+        field = _identifier(field_name_key, field_name=f"{field_name}.field")
+        if field not in properties:
+            raise ValueError(f"{field_name} references unknown task metadata field={field!r}.")
+        property_schema = properties[field]
+        enum = property_schema.get("enum")
+        if isinstance(enum, list) and enum:
+            allowed_values = enum
+        elif property_schema.get("type") == "boolean":
+            allowed_values = [True, False]
+        else:
+            raise ValueError(f"{field_name}.{field} must reference a registered categorical field.")
+        if not isinstance(raw_schedule, list) or len(raw_schedule) != count:
+            raise ValueError(f"{field_name}.{field} must contain exactly {count} scheduled values.")
+        if any(item not in allowed_values for item in raw_schedule):
+            raise ValueError(f"{field_name}.{field} contains values outside the registered categories.")
+        validated[field] = list(raw_schedule)
+    return validated
+
+
+def _expected_category_assignments(job: ConstructGenerationJob, index: int) -> dict[str, Any]:
+    assignments: dict[str, Any] = {}
+    for field, schedule in dict(job.cell.get("category_balance", {})).items():
+        if not schedule:
+            continue
+        assignments[str(field)] = schedule[(job.item_offset + index) % len(schedule)]
+    return assignments
 
 
 @dataclass(frozen=True)
@@ -171,10 +265,14 @@ def load_generation_plan(path: str | Path, spec: ConstructSpec) -> dict[str, Any
             raise ValueError(f"Duplicate model alias: {alias}")
         model_aliases.add(alias)
     generation = _mapping(plan.get("generation", {}), field_name="generation")
+    generation_modes = _validate_generation_run_modes(plan.get("run_modes"))
     if not isinstance(generation.get("seed", 0), int):
         raise ValueError("generation.seed must be an integer.")
     if float(generation.get("temperature", 0.7)) < 0:
         raise ValueError("generation.temperature must be non-negative.")
+    retries = generation.get("retries", 0)
+    if not isinstance(retries, int) or retries < 0:
+        raise ValueError("generation.retries must be a non-negative integer.")
     for estimate_key in (
         "estimated_input_tokens_per_request",
         "estimated_output_tokens_per_record",
@@ -246,6 +344,12 @@ def load_generation_plan(path: str | Path, spec: ConstructSpec) -> dict[str, Any
         count = cell.get("count_per_model", plan.get("default_count_per_cell_per_model", 1))
         if not isinstance(count, int) or count < 1:
             raise ValueError(f"cells[{index}].count_per_model must be a positive integer.")
+        cell["category_balance"] = _category_balance(
+            cell.get("category_balance"),
+            field_name=f"cells[{index}].category_balance",
+            count=count,
+            spec=spec,
+        )
         if mode == "paired":
             condition_ids = cell.get("condition_ids")
             if not isinstance(condition_ids, list) or set(condition_ids) != set(spec.condition_ids):
@@ -270,6 +374,7 @@ def load_generation_plan(path: str | Path, spec: ConstructSpec) -> dict[str, Any
     validated["schema_version"] = schema_version
     validated["plan_id"] = plan_id
     validated["construct_id"] = construct_id
+    validated["run_modes"] = generation_modes
     validated["cells"] = cells
     validated["content_pools"] = pools
     return validated
@@ -540,6 +645,10 @@ def build_generation_messages(spec: ConstructSpec, plan: Mapping[str, Any], job:
         "independent_task": task if job.prompt_role != "probe" else None,
         "item_metadata_schema": task["item_metadata_schema"] if job.prompt_role != "probe" else None,
         "cell_instructions": cell.get("instructions", ""),
+        "category_balance": dict(cell.get("category_balance", {})),
+        "required_category_assignments": [
+            _expected_category_assignments(job, index) for index in range(job.count)
+        ],
         "design_rules": plan.get("design_rules", []),
         "task_composition": plan["task_composition"],
         "forbidden_terms": list(plan.get("forbidden_terms", [])) + list(cell.get("forbidden_terms", [])),
@@ -849,6 +958,15 @@ def _records_from_response(
     expected_format = str(job.cell.get("expected_output_format", task["response_format"]))
     condition_id = str(job.cell.get("condition_id", "neutral"))
     for prompt in parsed:
+        prompt_index = len(records)
+        expected_categories = _expected_category_assignments(job, prompt_index)
+        for field, expected_value in expected_categories.items():
+            actual_value = prompt["task_metadata"].get(field)
+            if actual_value != expected_value:
+                raise ValueError(
+                    f"{job.job_id} prompt {prompt['variant_id']} has {field}={actual_value!r}; "
+                    f"expected the pre-registered category {expected_value!r}."
+                )
         metadata = _record_metadata(
             spec,
             plan,
@@ -957,6 +1075,7 @@ def generate_prompt_records(
                 "api_key": api_key,
                 "seed": job.seed,
                 "temperature": job.temperature,
+                "generation_job_id": job.job_id,
                 "response_schema": response_schema_for_job(job, spec),
             }
             messages = build_generation_messages(spec, plan, job)

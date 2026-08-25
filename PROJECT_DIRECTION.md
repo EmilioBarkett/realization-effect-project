@@ -118,7 +118,8 @@ Every construct follows the same sequence:
 4. Measure the prompt-only behavioral contrast.
 5. Build a linear direction using the training split only.
 6. Evaluate continuous projections on held-out prompts.
-7. Calibrate additive steering doses using training-set projection variation.
+7. Calibrate additive steering doses using neutral or within-condition
+   variation, then begin with prefill-only doses `[-1, -0.5, 0, 0.5, 1]`.
 8. Steer an independent downstream behavioral task.
 9. Run manipulation, compliance, and collateral-behavior checks.
 10. Aggregate construct-level effects with uncertainty.
@@ -179,17 +180,23 @@ benchmark infrastructure implementation**:
   construct definitions and four reviewable generation plans;
 - the benchmark-facing generation adapter emits canonical `PromptRecord`
   rows, supports deterministic mocks and no-API dry runs, and refuses to treat
-  partial inventories as complete;
+  partial inventories as complete; named `review`/`full` generation modes and
+  deterministic model-side `test`/`full` inventory selection are implemented;
 - the prompt-overlap audit reports construct, split, family, role, template,
   response-format, and probe/downstream independence metadata;
 - fixture-tested train-only directions, continuous held-out projection margins,
   neutral/within-condition calibration, strict Wave 1 output parsing, directed
-  state-transfer scoring, deterministic steering controls, and timing-aware
-  injection are implemented;
+  state-transfer scoring, deterministic steering controls, validation-only
+  candidate-layer selection, bootstrap intervals, and timing-aware injection
+  are implemented;
+- behavior, steering, and calibration prompt families are kept separate and
+  Wave 1 task-category schedules are pre-registered in the generation plans;
+- a deterministic fake vertical slice exercises the control plane without an
+  API, model weights, or a GPU;
 - readout, steering-plan, environment-check, remote execution, and scoring CLIs
   now separate frozen scientific decisions from GPU/model execution;
-- prompt-only behavior composition, real-model validation, downstream
-  manipulation checks, uncertainty orchestration, and correspondence analysis
+- prompt-only behavior composition, real-model validation, real-run uncertainty
+  orchestration, downstream manipulation checks, and correspondence analysis
   are not yet implemented end to end;
 - the active vector iterator now lives in `activation_analysis.activation_store`
   and passes the active Python 3.11 `make check` suite; end-to-end validation
@@ -197,20 +204,21 @@ benchmark infrastructure implementation**:
 - a shared activation plan can batch the four Wave 1 constructs without
   pooling directions and can later expand to all registry entries;
 - no API-generated benchmark dataset, model download, or large benchmark run
-  has been launched; the current generation artifact is a no-API dry-run
-  summary only.
+  has been launched; current artifacts are no-API dry-run and fake-fixture
+  outputs only.
 
 ## Next implementation gates
 
-1. Review the four Wave 1 generation plans, expand them with the approved
+1. Run and review the deterministic fake vertical slice, then review the four
+   Wave 1 generation plans and expand them with the approved
    request function only after the no-API dry run is accepted, and connect the
    resulting inventories to the canonical combined activation manifest.
 2. Add a manifest-backed activation-run smoke fixture when a representative
    local run is available, while preserving the passing clean-install checks.
 3. Validate continuous held-out projection margins and neutral/within-condition
    dose calibration on a representative manifest-backed activation run.
-4. Complete the four-construct Wave 1 measurement slice, beginning with the
-   realization/evidence engineering adapters and preserving source-reliability
+4. Complete the one-construct realization measurement slice first, then the
+   realization/evidence engineering pair while preserving source-reliability
    and persistence namespaces.
 5. Add explicit intervention timing, output-accessibility, downstream-
    persistence, and manipulation checks.

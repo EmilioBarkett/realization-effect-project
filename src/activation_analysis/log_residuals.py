@@ -5,6 +5,7 @@ import csv
 import hashlib
 import json
 import re
+import time
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -295,7 +296,24 @@ def _write_manifest(
     layers: list[int],
     shards: list[dict[str, Any]],
     total_prompts: int,
+    selected_prompts: int | None = None,
+    complete: bool | None = None,
+    stopped_by_runtime: bool = False,
+    runtime_seconds: float | None = None,
 ) -> None:
+    stats: dict[str, Any] = {"total_prompts": total_prompts, "total_shards": len(shards)}
+    run_mode = getattr(args, "run_mode", None)
+    max_runtime_minutes = getattr(args, "max_runtime_minutes", None)
+    if run_mode is not None or max_runtime_minutes is not None:
+        stats.update(
+            {
+                "selected_prompts": selected_prompts if selected_prompts is not None else total_prompts,
+                "complete": bool(complete) if complete is not None else True,
+                "stopped_by_runtime": bool(stopped_by_runtime),
+                "max_runtime_minutes": max_runtime_minutes,
+                "runtime_seconds": runtime_seconds,
+            }
+        )
     manifest = {
         "schema_version": "0.1.0",
         "created_at": _utc_now(),
@@ -331,12 +349,20 @@ def _write_manifest(
             "id_column": args.id_column,
             "limit": args.limit,
         },
-        "stats": {
-            "total_prompts": total_prompts,
-            "total_shards": len(shards),
-        },
+        "stats": stats,
         "shards": shards,
     }
+    if run_mode is not None or max_runtime_minutes is not None:
+        manifest["execution"] = {
+            "run_mode": run_mode,
+            "confirmatory": run_mode == "full" if run_mode is not None else None,
+            "max_runtime_minutes": max_runtime_minutes,
+            "selected_prompts": selected_prompts if selected_prompts is not None else total_prompts,
+            "processed_prompts": total_prompts,
+            "complete": bool(complete) if complete is not None else True,
+            "stopped_by_runtime": bool(stopped_by_runtime),
+            "runtime_seconds": runtime_seconds,
+        }
     (output_dir / "manifest.json").write_text(
         json.dumps(manifest, indent=2, ensure_ascii=True) + "\n",
         encoding="utf-8",
@@ -437,6 +463,18 @@ def main() -> None:
         ),
     )
     parser.add_argument("--limit", type=int, default=None)
+    parser.add_argument(
+        "--run-mode",
+        choices=("test", "full"),
+        default=None,
+        help="Optional named benchmark mode to record in the activation manifest.",
+    )
+    parser.add_argument(
+        "--max-runtime-minutes",
+        type=float,
+        default=None,
+        help="Optional wall-clock budget; finishes the current batch and stops before the next one.",
+    )
     parser.add_argument("--revision", default=None)
     parser.add_argument("--local-files-only", action="store_true")
     parser.add_argument("--trust-remote-code", action="store_true")
@@ -452,6 +490,10 @@ def main() -> None:
         raise ValueError("--batch-size must be >= 1.")
     if args.limit is not None and args.limit < 1:
         raise ValueError("--limit must be >= 1 when provided.")
+    if args.max_runtime_minutes is not None and args.max_runtime_minutes <= 0:
+        raise ValueError("--max-runtime-minutes must be positive when provided.")
+    if args.run_mode == "test" and args.max_runtime_minutes is None:
+        raise ValueError("--run-mode test requires --max-runtime-minutes.")
     if bool(args.prompt_csv) == bool(args.emotion_config):
         raise ValueError("Provide exactly one of --prompt-csv or --emotion-config.")
 
@@ -471,6 +513,7 @@ def main() -> None:
         )
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    run_started_at = time.monotonic()
     logger = ResidualStreamLogger(
         args.model_id,
         tokenizer_id=args.tokenizer_id,
@@ -485,13 +528,18 @@ def main() -> None:
         stop_after_last_requested_layer=not args.no_early_stop,
     )
 
-    prompt_path = output_dir / "prompts.jsonl"
-    with prompt_path.open("w", encoding="utf-8") as handle:
-        for record in records:
-            handle.write(json.dumps(asdict(record), ensure_ascii=True) + "\n")
-
     shards: list[dict[str, Any]] = []
+    processed_records: list[PromptRecord] = []
+    stopped_by_runtime = False
+    prompt_path = output_dir / "prompts.jsonl"
+    prompt_path.write_text("", encoding="utf-8")
     for batch_index, batch_records in _batched(records, args.batch_size):
+        if (
+            args.max_runtime_minutes is not None
+            and (time.monotonic() - run_started_at) >= args.max_runtime_minutes * 60
+        ):
+            stopped_by_runtime = True
+            break
         batch = logger.extract_batch(
             [record.prompt_text for record in batch_records],
             [record.prompt_id for record in batch_records],
@@ -512,10 +560,41 @@ def main() -> None:
                 include_token_regions=args.include_token_regions,
             )
         )
+        with prompt_path.open("a", encoding="utf-8") as handle:
+            for record in batch_records:
+                handle.write(json.dumps(asdict(record), ensure_ascii=True) + "\n")
+        processed_records.extend(batch_records)
         print(f"wrote batch {batch_index + 1} ({len(batch_records)} prompts)", flush=True)
 
-    _write_manifest(output_dir, args, logger, args.layers, shards, total_prompts=len(records))
-    print(f"wrote manifest: {output_dir / 'manifest.json'}")
+    if not processed_records:
+        raise RuntimeError("The runtime budget expired before any activation batch completed.")
+    complete = len(processed_records) == len(records)
+    runtime_seconds = round(time.monotonic() - run_started_at, 3)
+    _write_manifest(
+        output_dir,
+        args,
+        logger,
+        args.layers,
+        shards,
+        total_prompts=len(processed_records),
+        selected_prompts=len(records),
+        complete=complete,
+        stopped_by_runtime=stopped_by_runtime or not complete,
+        runtime_seconds=runtime_seconds,
+    )
+    print(
+        json.dumps(
+            {
+                "manifest": str(output_dir / "manifest.json"),
+                "selected_prompts": len(records),
+                "processed_prompts": len(processed_records),
+                "complete": complete,
+                "stopped_by_runtime": stopped_by_runtime or not complete,
+                "runtime_seconds": runtime_seconds,
+            },
+            sort_keys=True,
+        )
+    )
 
 
 if __name__ == "__main__":

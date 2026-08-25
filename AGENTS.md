@@ -44,7 +44,8 @@ direction.
 The project is currently in scientific protocol development and benchmark
 infrastructure implementation. The shared multi-construct control plane,
 16-construct registry, Wave 1 construct specifications, generic generation
-adapter, generation plans, no-API dry-run path, and environment-independent
+adapter, generation plans, no-API dry-run path, deterministic fake vertical
+slice, deterministic prompt run-mode selection, and environment-independent
 measurement core are implemented; real-model end-to-end validation is not.
 
 Do not describe the following as completed:
@@ -58,8 +59,12 @@ Do not describe the following as completed:
 Fixture-tested code now covers train-only directions, held-out standardized
 projection margins, neutral/within-condition calibration, strict Wave 1 output
 parsing, directed state-transfer scoring, deterministic shuffled/random
-controls, timing-aware injection, and readout/steering planning CLIs. These are
-implemented code, not empirical results. PyTorch, Transformers, a concrete
+controls, timing-aware injection, validation-only layer selection,
+independent prompt-role/family checks, pre-registered category schedules,
+bootstrap interval primitives, readout/steering planning CLIs, named
+prompt-generation review/full modes, pair-preserving model-side test/full
+selection, and an optional activation wall-clock guard. These are implemented
+code, not empirical results. PyTorch, Transformers, a concrete
 model revision, model weights, and a representative activation run remain
 absent from the base development environment.
 
@@ -78,6 +83,9 @@ construct-specific paired prompts.
 - `scripts/`: active activation-analysis entrypoints.
 - `scripts/generate_construct_prompts.py`: benchmark-facing generic generation
   CLI with dry-run support.
+- `scripts/select_benchmark_run_mode.py`: deterministic test/full inventory
+  selection without external calls.
+- `scripts/run_fake_benchmark.py`: deterministic no-API vertical-slice runner.
 - `scripts/validate_construct_registry.py`: registry/spec agreement check.
 - `configs/activation_analysis/`: active prompt-generation and probe configs.
 - `experiments/activation_analysis/`: reviewable prompt CSVs.
@@ -124,6 +132,9 @@ For every construct:
 - calibrate steering dose using frozen neutral or within-condition/within-cell
   training variance, not a positive/negative mixture that couples separation to
   intervention magnitude;
+- treat `review` prompt inventories and `test` model runs as engineering
+  artifacts only; use the complete `full` inventory and `full` run mode for
+  confirmatory analysis;
 - include zero, negative, shuffled/random, compliance, and collateral controls;
 - do not select signs, layers, scales, or subsets after seeing held-out results;
 - report uncertainty and retain null results;
@@ -149,8 +160,10 @@ development. Those actions require explicit user intent and a reviewed
 configuration.
 
 Before creating outputs, inspect `.gitignore`. In particular,
-`results/benchmark/<construct>/<model>/<run>/raw/` is already covered by
-`.gitignore` before benchmark runs begin.
+`results/benchmark/<run_id>/raw/` is already covered by `.gitignore` before
+benchmark runs begin. The shared run root is intentionally multi-construct;
+construct-specific outputs live below its `constructs/<construct_id>/`
+namespace.
 
 Run the narrowest relevant check first, then `make check` when the project
 environment is available. The current development baseline uses the Python

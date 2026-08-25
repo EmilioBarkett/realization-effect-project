@@ -1,13 +1,12 @@
 {
   "schema_version": "0.1.0",
-  "run_id": "two_construct_smoke_v1",
+  "run_id": "wave1_realization_single_construct_smoke_v1",
   "construct_ids": [
-    "realization_account_closure",
-    "evidence_diagnosticity"
+    "realization_account_closure"
   ],
   "model": {
-    "model_id": "REPLACE_WITH_LOCAL_MODEL",
-    "tokenizer_id": "REPLACE_WITH_LOCAL_MODEL",
+    "model_id": "mistralai/Mistral-Small-24B-Instruct-2501",
+    "tokenizer_id": "mistralai/Mistral-Small-24B-Instruct-2501",
     "revision": null
   },
   "activation": {
@@ -55,8 +54,8 @@
         }
       }
     },
-    "max_constructs_per_run": 4,
-    "parallel_construct_analysis": true,
+    "max_constructs_per_run": 1,
+    "parallel_construct_analysis": false,
     "shared_model_load": true,
     "shared_activation_pass": true,
     "construct_namespace_required": true

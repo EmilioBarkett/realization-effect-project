@@ -8,6 +8,7 @@ behavioral outcomes, and steering results partitioned by construct.
 
 from __future__ import annotations
 
+import math
 import re
 from dataclasses import dataclass
 from typing import Any, Mapping
@@ -34,6 +35,124 @@ DEFAULT_REQUIRED_SPLITS = (
 PROMPT_ROLES = frozenset({"probe", "behavior", "steering", "calibration"})
 _ID_PATTERN = re.compile(r"^[a-z][a-z0-9_]*$")
 SUPPORTED_SCHEMA_VERSIONS = frozenset({SCHEMA_VERSION})
+DEFAULT_STORAGE_SETTINGS = {
+    "workspace_root_env": "RSC_BENCH_WORKSPACE_ROOT",
+    "archive_uri_env": "RSC_BENCH_ARCHIVE_URI",
+    "sync_endpoint_env": "RSC_BENCH_S3_ENDPOINT_URL",
+    "sync_tool": "aws",
+    "sync_on_finalize": True,
+    "keep_local_copy": True,
+}
+
+
+def _default_execution_run_modes() -> dict[str, Any]:
+    """Return conservative defaults for model-side execution modes.
+
+    Prompt inventories are generated separately. These modes describe how a
+    frozen inventory is selected for model-side work: ``test`` is a bounded
+    engineering run and ``full`` is the complete, confirmatory path.
+    """
+
+    return {
+        "test": {
+            "purpose": "engineering_smoke",
+            "confirmatory": False,
+            "max_runtime_minutes": 60,
+            "prompt_selection": {
+                "strategy": "balanced_pair_preserving",
+                "max_pairs_per_paired_split": 2,
+                "max_items_per_single_split": 2,
+            },
+        },
+        "full": {
+            "purpose": "confirmatory",
+            "confirmatory": True,
+            "max_runtime_minutes": None,
+            "prompt_selection": {"strategy": "all"},
+        },
+    }
+
+
+def _validate_execution_run_modes(value: Any, *, default_mode: Any = "test") -> tuple[dict[str, Any], str]:
+    raw_modes = _default_execution_run_modes() if value is None else _mapping(value, field_name="execution.run_modes")
+    required_modes = {"test", "full"}
+    missing_modes = required_modes - set(raw_modes)
+    if missing_modes:
+        raise ValueError(f"execution.run_modes is missing required mode(s): {sorted(missing_modes)}")
+
+    validated_modes: dict[str, Any] = {}
+    for mode_name, raw_mode in raw_modes.items():
+        mode_id = _validate_id(mode_name, field_name="execution.run_modes key")
+        mode = _mapping(raw_mode, field_name=f"execution.run_modes.{mode_id}")
+        purpose = _nonempty_string(mode.get("purpose"), field_name=f"execution.run_modes.{mode_id}.purpose")
+        confirmatory = mode.get("confirmatory")
+        if not isinstance(confirmatory, bool):
+            raise ValueError(
+                f"execution.run_modes.{mode_id}.confirmatory must be a boolean."
+            )
+        max_runtime = mode.get("max_runtime_minutes")
+        if max_runtime is not None and (
+            not isinstance(max_runtime, (int, float))
+            or isinstance(max_runtime, bool)
+            or not math.isfinite(float(max_runtime))
+            or float(max_runtime) <= 0
+        ):
+            raise ValueError(
+                f"execution.run_modes.{mode_id}.max_runtime_minutes must be positive or null."
+            )
+        selection = _mapping(
+            mode.get("prompt_selection"),
+            field_name=f"execution.run_modes.{mode_id}.prompt_selection",
+        )
+        strategy = _nonempty_string(
+            selection.get("strategy"),
+            field_name=f"execution.run_modes.{mode_id}.prompt_selection.strategy",
+        )
+        if strategy not in {"all", "balanced_pair_preserving"}:
+            raise ValueError(
+                f"execution.run_modes.{mode_id}.prompt_selection.strategy must be "
+                "'all' or 'balanced_pair_preserving'."
+            )
+        if strategy == "balanced_pair_preserving":
+            for field_name in ("max_pairs_per_paired_split", "max_items_per_single_split"):
+                limit = selection.get(field_name)
+                if not isinstance(limit, int) or isinstance(limit, bool) or limit < 1:
+                    raise ValueError(
+                        f"execution.run_modes.{mode_id}.prompt_selection.{field_name} "
+                        "must be a positive integer."
+                    )
+        if mode_id == "test":
+            if confirmatory:
+                raise ValueError("execution.run_modes.test.confirmatory must be false.")
+            if max_runtime is None:
+                raise ValueError("execution.run_modes.test.max_runtime_minutes is required.")
+            if strategy != "balanced_pair_preserving":
+                raise ValueError(
+                    "execution.run_modes.test.prompt_selection.strategy must be "
+                    "'balanced_pair_preserving'."
+                )
+        if mode_id == "full":
+            if not confirmatory:
+                raise ValueError("execution.run_modes.full.confirmatory must be true.")
+            if max_runtime is not None:
+                raise ValueError("execution.run_modes.full.max_runtime_minutes must be null.")
+            if strategy != "all":
+                raise ValueError("execution.run_modes.full.prompt_selection.strategy must be 'all'.")
+        mode["purpose"] = purpose
+        mode["confirmatory"] = confirmatory
+        mode["max_runtime_minutes"] = max_runtime
+        mode["prompt_selection"] = selection
+        validated_modes[mode_id] = mode
+
+    default_mode = _validate_id(
+        default_mode,
+        field_name="execution.default_run_mode",
+    )
+    if default_mode not in validated_modes:
+        raise ValueError(
+            f"execution.default_run_mode={default_mode!r} is not defined in execution.run_modes."
+        )
+    return validated_modes, default_mode
 
 
 def _nonempty_string(value: Any, *, field_name: str) -> str:
@@ -291,6 +410,7 @@ class RunConfig:
     seed: int
     analysis_spec_id: str
     execution: dict[str, Any]
+    storage: dict[str, Any]
     schema_version: str = SCHEMA_VERSION
 
     @classmethod
@@ -308,6 +428,15 @@ class RunConfig:
             raise ValueError("activation.layers must be a non-empty list.")
         if any(not isinstance(layer, int) or layer < 1 for layer in layers):
             raise ValueError("activation.layers must contain positive integers.")
+        if len(set(layers)) != len(layers):
+            raise ValueError("activation.layers must not contain duplicates.")
+        layer_selection = _nonempty_string(
+            activation.get("layer_selection", "validation_max_margin"),
+            field_name="activation.layer_selection",
+        )
+        if layer_selection not in {"validation_max_margin", "fixed"}:
+            raise ValueError("activation.layer_selection must be 'validation_max_margin' or 'fixed'.")
+        activation["layer_selection"] = layer_selection
         _nonempty_string(activation.get("activation_site"), field_name="activation.activation_site")
         _nonempty_string(activation.get("token_mode"), field_name="activation.token_mode")
         _nonempty_string(activation.get("storage_dtype"), field_name="activation.storage_dtype")
@@ -319,8 +448,12 @@ class RunConfig:
         scales = steering.get("scales")
         if not isinstance(scales, (list, tuple)) or not scales:
             raise ValueError("steering.scales must be a non-empty list.")
-        if any(not isinstance(scale, (int, float)) for scale in scales):
-            raise ValueError("steering.scales must contain numbers.")
+        if any(not isinstance(scale, (int, float)) or not math.isfinite(float(scale)) for scale in scales):
+            raise ValueError("steering.scales must contain finite numbers.")
+        if 0.0 not in {float(scale) for scale in scales}:
+            raise ValueError("steering.scales must include a zero-dose condition.")
+        if not any(float(scale) > 0 for scale in scales) or not any(float(scale) < 0 for scale in scales):
+            raise ValueError("steering.scales must include positive and negative doses.")
         position_mode = _nonempty_string(
             steering.get("position_mode"), field_name="steering.position_mode"
         )
@@ -366,6 +499,27 @@ class RunConfig:
             payload.get("analysis_spec_id", "rsc_benchmark_core_v1"), field_name="analysis_spec_id"
         )
         execution = _mapping(payload.get("execution", {}), field_name="execution")
+        validated_run_modes, default_run_mode = _validate_execution_run_modes(
+            execution.get("run_modes"),
+            default_mode=execution.get("default_run_mode", "test"),
+        )
+        execution["run_modes"] = validated_run_modes
+        execution["default_run_mode"] = default_run_mode
+        raw_storage = _mapping(payload.get("storage", {}), field_name="storage")
+        storage = dict(DEFAULT_STORAGE_SETTINGS)
+        storage.update(raw_storage)
+        for field_name in (
+            "workspace_root_env",
+            "archive_uri_env",
+            "sync_endpoint_env",
+            "sync_tool",
+        ):
+            _nonempty_string(storage.get(field_name), field_name=f"storage.{field_name}")
+        if storage["sync_tool"] != "aws":
+            raise ValueError("storage.sync_tool must be 'aws'.")
+        for field_name in ("sync_on_finalize", "keep_local_copy"):
+            if not isinstance(storage[field_name], bool):
+                raise ValueError(f"storage.{field_name} must be a boolean.")
         schema_version = _validate_schema_version(payload.get("schema_version", SCHEMA_VERSION))
         return cls(
             run_id=run_id,
@@ -377,6 +531,7 @@ class RunConfig:
             seed=seed,
             analysis_spec_id=analysis_spec_id,
             execution=execution,
+            storage=storage,
             schema_version=schema_version,
         )
 
@@ -392,6 +547,7 @@ class RunConfig:
             "seed": self.seed,
             "analysis_spec_id": self.analysis_spec_id,
             "execution": dict(self.execution),
+            "storage": dict(self.storage),
         }
 
 

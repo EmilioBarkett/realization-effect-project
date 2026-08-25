@@ -52,6 +52,11 @@ def main() -> None:
     summary = json.loads(args.readout_summary.read_text(encoding="utf-8"))
     if summary.get("construct_id") != spec.construct_id:
         raise SystemExit("Readout summary construct_id does not match the construct specification.")
+    selected_layer = int(
+        summary.get("selected_layer", summary.get("layer", run_config.activation["layers"][0]))
+    )
+    if selected_layer not in set(run_config.activation["layers"]):
+        raise SystemExit("Readout selected a layer that is not registered in the run configuration.")
     calibration = CalibrationResult(**summary["calibration"])
     steering = run_config.steering
     target_direction = np.load(args.direction).astype(np.float32, copy=False)
@@ -88,7 +93,9 @@ def main() -> None:
         "run_id": run_config.run_id,
         "construct_id": spec.construct_id,
         "model": run_config.model,
-        "layer": run_config.activation["layers"][0],
+        "candidate_layers": list(run_config.activation["layers"]),
+        "layer": selected_layer,
+        "layer_selection": summary.get("layer_selection", {}),
         "activation_site": run_config.activation["activation_site"],
         "position_mode": steering["position_mode"],
         "intervention_timing": steering["intervention_timing"],

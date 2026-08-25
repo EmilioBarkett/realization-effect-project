@@ -19,6 +19,7 @@ from construct_benchmark.steering import (
     random_control_direction,
     shuffled_label_direction,
 )
+from construct_benchmark.uncertainty import bootstrap_readout_margin_ci, bootstrap_state_transfer_ci
 
 
 def _activation(
@@ -88,6 +89,45 @@ def test_train_only_direction_calibration_and_heldout_margin() -> None:
     assert readout.pair_count == 2
     assert readout.mean_standardized_margin == pytest.approx(0.75)
     assert readout.pair_accuracy == pytest.approx(0.5)
+
+
+def test_bootstrap_intervals_resample_complete_units() -> None:
+    activations = _activation_fixture()
+    estimate = estimate_train_direction(
+        activations,
+        construct_id="example_construct",
+        positive_condition_id="positive",
+        negative_condition_id="negative",
+    )
+    calibration = estimate_projection_scale(
+        activations,
+        estimate.direction,
+        construct_id="example_construct",
+        method="neutral",
+    )
+    readout = evaluate_heldout_readout(
+        activations,
+        estimate,
+        projection_scale=calibration.projection_scale,
+    )
+    readout_ci = bootstrap_readout_margin_ci(readout.margins, resamples=100, seed=3)
+    assert readout_ci.estimate == pytest.approx(readout.mean_standardized_margin)
+    assert readout_ci.valid_resamples == 100
+    observations = [
+        BehaviorObservation(f"item_{index}", scale, 5.0 + 0.5 * scale + index * 0.1, True)
+        for index in range(5)
+        for scale in (-1.0, 0.0, 1.0)
+    ]
+    effect, effect_ci = bootstrap_state_transfer_ci(
+        observations,
+        positive_scale=1.0,
+        negative_scale=-1.0,
+        resamples=100,
+        seed=3,
+    )
+    assert effect.directed_standardized_effect > 0
+    assert effect_ci.estimate == pytest.approx(effect.directed_standardized_effect)
+    assert 0 < effect_ci.valid_resamples <= 100
 
 
 def test_within_condition_calibration_removes_between_condition_separation() -> None:

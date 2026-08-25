@@ -9,6 +9,7 @@ from typing import Any, Iterable, Mapping
 
 from .config import validate_analysis_spec, validate_run_constructs
 from .prompts import PromptRecord, load_prompt_records, validate_prompt_records
+from .run_modes import resolve_run_mode
 from .schemas import AnalysisSpec, ConstructSpec, RunConfig, SUPPORTED_SCHEMA_VERSIONS
 from .splits import SPLIT_EXECUTION_SCOPE
 
@@ -59,6 +60,8 @@ def build_run_plan(
     *,
     prompt_inventory_path: str | Path | None = None,
     prompt_records: Iterable[PromptRecord] | None = None,
+    output_root: str | Path | None = None,
+    run_mode: str | None = None,
 ) -> dict[str, Any]:
     """Build a deterministic execution plan for one or many constructs.
 
@@ -70,18 +73,22 @@ def build_run_plan(
 
     validate_run_constructs(run_config, dict(construct_specs))
     validate_analysis_spec(run_config, analysis_spec)
+    resolved_run_mode, run_mode_config = resolve_run_mode(run_config, run_mode)
     if prompt_records is not None:
         validate_prompt_records(prompt_records, construct_specs)
     if prompt_inventory_path is not None and Path(prompt_inventory_path).exists() and prompt_records is None:
         records = load_prompt_records(prompt_inventory_path)
         validate_prompt_records(records, construct_specs)
 
-    root = Path(run_config.output_root) / run_config.run_id
+    root = Path(output_root if output_root is not None else run_config.output_root) / run_config.run_id
     ordered_specs = [construct_specs[construct_id] for construct_id in run_config.construct_ids]
     construct_entries = [_construct_entry(spec, root) for spec in ordered_specs]
 
     combined_prompt_path = Path(prompt_inventory_path) if prompt_inventory_path else root / "prompts" / "combined.csv"
     shared_execution = {
+        "run_mode": resolved_run_mode,
+        "run_mode_purpose": run_mode_config["purpose"],
+        "confirmatory": bool(run_mode_config["confirmatory"]),
         "construct_ids": list(run_config.construct_ids),
         "prompt_inventory": str(combined_prompt_path),
         "activation_output": str(root / "activations"),
@@ -180,6 +187,13 @@ def build_run_plan(
         "schema_version": run_config.schema_version,
         "manifest_type": "multi_construct_run_plan",
         "run_id": run_config.run_id,
+        "run_mode": {
+            "mode": resolved_run_mode,
+            "purpose": run_mode_config["purpose"],
+            "confirmatory": bool(run_mode_config["confirmatory"]),
+            "max_runtime_minutes": run_mode_config["max_runtime_minutes"],
+            "prompt_selection": dict(run_mode_config["prompt_selection"]),
+        },
         "construct_count": len(construct_entries),
         "constructs": construct_entries,
         "shared_execution": shared_execution,

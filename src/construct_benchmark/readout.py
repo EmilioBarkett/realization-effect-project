@@ -105,24 +105,25 @@ def estimate_train_direction(
     )
 
 
-def evaluate_heldout_readout(
+def evaluate_split_readout(
     activations: Iterable[PromptActivation],
     estimate: DirectionEstimate,
     *,
     projection_scale: float,
+    split: str,
 ) -> ReadoutResult:
-    """Evaluate the frozen direction on held-out pairs using a frozen scale."""
+    """Evaluate a frozen direction on paired prompts using a frozen scale."""
 
     if not np.isfinite(projection_scale) or projection_scale <= 0:
         raise ValueError("projection_scale must be finite and greater than zero.")
     direction = unit_direction(estimate.direction)
-    pairs = _paired(activations, construct_id=estimate.construct_id, split="direction_heldout")
+    pairs = _paired(activations, construct_id=estimate.construct_id, split=split)
     margins: list[PairProjectionMargin] = []
     for pair_id, members in sorted(pairs.items()):
         positive = members.get(estimate.positive_condition_id)
         negative = members.get(estimate.negative_condition_id)
         if positive is None or negative is None:
-            raise ValueError(f"Held-out pair {pair_id!r} is missing a registered condition member.")
+            raise ValueError(f"{split} pair {pair_id!r} is missing a registered condition member.")
         positive_projection = float(np.dot(np.asarray(positive.vector, dtype=np.float32), direction))
         negative_projection = float(np.dot(np.asarray(negative.vector, dtype=np.float32), direction))
         margins.append(
@@ -136,13 +137,45 @@ def evaluate_heldout_readout(
             )
         )
     if not margins:
-        raise ValueError(f"No complete direction_heldout pairs found for construct_id={estimate.construct_id!r}.")
+        raise ValueError(f"No complete {split} pairs found for construct_id={estimate.construct_id!r}.")
     values = np.asarray([margin.standardized_margin for margin in margins], dtype=np.float64)
     return ReadoutResult(
         construct_id=estimate.construct_id,
-        split="direction_heldout",
+        split=split,
         pair_count=len(margins),
         mean_standardized_margin=float(np.mean(values)),
         pair_accuracy=float(np.mean(values > 0)),
         margins=tuple(margins),
+    )
+
+
+def evaluate_heldout_readout(
+    activations: Iterable[PromptActivation],
+    estimate: DirectionEstimate,
+    *,
+    projection_scale: float,
+) -> ReadoutResult:
+    """Evaluate the frozen direction on held-out pairs using a frozen scale."""
+
+    return evaluate_split_readout(
+        activations,
+        estimate,
+        projection_scale=projection_scale,
+        split="direction_heldout",
+    )
+
+
+def evaluate_validation_readout(
+    activations: Iterable[PromptActivation],
+    estimate: DirectionEstimate,
+    *,
+    projection_scale: float,
+) -> ReadoutResult:
+    """Evaluate a candidate layer on validation pairs for layer selection only."""
+
+    return evaluate_split_readout(
+        activations,
+        estimate,
+        projection_scale=projection_scale,
+        split="direction_validation",
     )
