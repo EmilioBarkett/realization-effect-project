@@ -1,0 +1,162 @@
+{
+  "schema_version": "0.1.0",
+  "plan_id": "wave3_causal_interpretation_prompts_v1",
+  "construct_id": "causal_interpretation",
+  "construct_spec_path": "../constructs/causal_interpretation_v1.json",
+  "wave": 3,
+  "task_composition": {
+    "prompt_order": "probe_then_downstream",
+    "probe_context": "paired_probe_only",
+    "downstream_context": "independent_behavior_task_only",
+    "condition_carryover": "state_only",
+    "surface_text_carryover": "none",
+    "behavior_steering_pool_separation": true
+  },
+  "default_count_per_cell_per_model": 2,
+  "run_modes": {
+    "review": {"purpose": "prompt_review", "count_per_model_per_cell": 1, "partial": true},
+    "full": {"purpose": "frozen_full_inventory", "count_per_model_per_cell": null, "partial": false}
+  },
+  "models": [{"alias": "sonnet", "model": "anthropic/claude-sonnet-4.6"}],
+  "generation": {
+    "temperature": 0.7,
+    "max_tokens": 8000,
+    "seed": 202,
+    "timeout": 120,
+    "retries": 2,
+    "max_items_per_request": 10,
+    "estimated_input_tokens_per_request": 1400,
+    "estimated_output_tokens_per_record": 300
+  },
+  "design_rules": [
+    "Manipulate externally assigned versus case-selected variable representation, not confidence, evidence amount, or verbal use of causal vocabulary.",
+    "Do not use the construct ID, condition IDs, or labels such as causal representation or correlational representation in prompt_text.",
+    "Probe and downstream content pools must use different variables, outcomes, domains, and evidence summaries.",
+    "Within each pair duplicate the same variables, numerical frequencies, graph complexity, evidence amount, source quality, outcome valence, sentence count, and sentence order; change only whether the variable was assigned externally or selected by the cases before outcome measurement.",
+    "Use the assigned-versus-case-selected operationalization rather than causal labels, causal verbs, intervention labels, or association labels in prompt_text.",
+    "Do not infer or alter the preregistered readout sign from generated prose."
+  ],
+  "forbidden_terms": ["causal_interpretation", "causal_representation", "correlational_representation", "causal interpretation", "correlational representation", "causal", "correlational", "cause", "causes", "caused", "intervention", "intervened", "association", "associated", "effect"],
+  "content_pools": {
+    "causal_probe_train": {"role": "probe", "domains": ["forest_management", "nutrition_studies"]},
+    "causal_probe_validation": {"role": "probe", "domains": ["school_attendance", "retail_pricing"]},
+    "causal_probe_heldout": {"role": "probe", "domains": ["river_restoration", "software_reliability"]},
+    "causal_behavior": {"role": "behavior", "domains": ["new_causal_judgment_items"]},
+    "causal_steering": {"role": "steering", "domains": ["new_causal_judgment_items_heldout"]},
+    "causal_calibration": {"role": "calibration", "domains": ["neutral_causal_judgment_items"]}
+  },
+  "behavior_factor_schedule": {
+    "note": "All three behavior-task factors must vary independently. Generate one item per combination; do not allow factors to co-vary. Record task_mode, effect_direction, and association_strength as structured metadata fields on every generated item. In prompt text operationalize task_mode only as external assignment versus case selection.",
+    "factors": {
+      "task_mode": ["external_assignment", "case_selection"],
+      "effect_direction": ["raises_outcome", "lowers_outcome"],
+      "association_strength": ["weak", "strong"]
+    },
+    "required_combinations": [
+      {"task_mode": "external_assignment", "effect_direction": "raises_outcome", "association_strength": "weak"},
+      {"task_mode": "external_assignment", "effect_direction": "raises_outcome", "association_strength": "strong"},
+      {"task_mode": "external_assignment", "effect_direction": "lowers_outcome", "association_strength": "weak"},
+      {"task_mode": "external_assignment", "effect_direction": "lowers_outcome", "association_strength": "strong"},
+      {"task_mode": "case_selection", "effect_direction": "raises_outcome", "association_strength": "weak"},
+      {"task_mode": "case_selection", "effect_direction": "raises_outcome", "association_strength": "strong"},
+      {"task_mode": "case_selection", "effect_direction": "lowers_outcome", "association_strength": "weak"},
+      {"task_mode": "case_selection", "effect_direction": "lowers_outcome", "association_strength": "strong"}
+    ],
+    "required_item_fields": ["task_mode", "effect_direction", "association_strength"],
+    "balance_check": "Each of the 8 combinations must appear at least once per content pool (behavior_eval and steering_eval). Warn if any combination is missing."
+  },
+  "cells": [
+    {
+      "cell_id": "probe_train",
+      "split": "direction_train",
+      "prompt_role": "probe",
+      "mode": "paired",
+      "prompt_family": "causal_probe_train",
+      "content_pool": "causal_probe_train",
+      "condition_ids": ["causal_representation", "correlational_representation"],
+      "count_per_model": 100,
+      "instructions": "Generate the configured number of matched pairs of short variable-and-outcome scenarios. Duplicate the same variable names, numerical frequencies, graph complexity, evidence amount, source quality, outcome valence, sentence count, and sentence order within each pair. Change only whether the variable value was assigned externally before outcome measurement or selected by the cases before outcome measurement. Use varied domains and never use causal, correlational, intervention, association, or effect labels."
+    },
+    {
+      "cell_id": "probe_validation",
+      "split": "direction_validation",
+      "prompt_role": "probe",
+      "mode": "paired",
+      "prompt_family": "causal_probe_validation",
+      "content_pool": "causal_probe_validation",
+      "condition_ids": ["causal_representation", "correlational_representation"],
+      "count_per_model": 40,
+      "instructions": "Generate the configured number of matched validation pairs in new domains. Duplicate variables, numerical frequencies, graph complexity, evidence amount, source quality, outcome valence, sentence count, and sentence order within each pair; vary only external assignment versus case selection before outcome measurement. Avoid templates and entities from training, and forbid causal vocabulary."
+    },
+    {
+      "cell_id": "probe_heldout",
+      "split": "direction_heldout",
+      "prompt_role": "probe",
+      "mode": "paired",
+      "prompt_family": "causal_probe_heldout",
+      "content_pool": "causal_probe_heldout",
+      "condition_ids": ["causal_representation", "correlational_representation"],
+      "count_per_model": 40,
+      "instructions": "Generate the configured number of final held-out matched pairs in domains unused by train and validation. Preserve exact graph, evidence, source-quality, numeric, and sentence matching within each pair; vary only external assignment versus case selection, vary wording and entities across pairs, and do not reveal construct or condition labels."
+    },
+    {
+      "cell_id": "behavior_eval",
+      "split": "behavior_eval",
+      "prompt_role": "behavior",
+      "mode": "single",
+      "prompt_family": "causal_behavior_eval",
+      "content_pool": "causal_behavior",
+      "condition_id": "neutral",
+      "task_id": "assigned_selected_prediction_v1",
+      "parser_id": "single_integer_probability_v1",
+      "expected_output_format": "single_integer_0_to_100",
+      "factor_schedule": "behavior_factor_schedule",
+      "count_per_model": 8,
+      "category_balance": {
+        "task_mode": ["external_assignment", "external_assignment", "external_assignment", "external_assignment", "case_selection", "case_selection", "case_selection", "case_selection"],
+        "effect_direction": ["raises_outcome", "raises_outcome", "lowers_outcome", "lowers_outcome", "raises_outcome", "raises_outcome", "lowers_outcome", "lowers_outcome"],
+        "association_strength": ["weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong"]
+      },
+      "instructions": "Generate one independent probability-prediction item per required combination. In external_assignment items state that the variable value was assigned externally before outcome measurement; in case_selection items state that cases selected the value before outcome measurement. Record all factors exactly and do not use or request a relation label."
+    },
+    {
+      "cell_id": "steering_eval",
+      "split": "steering_eval",
+      "prompt_role": "steering",
+      "mode": "single",
+      "prompt_family": "causal_steering_eval",
+      "content_pool": "causal_steering",
+      "condition_id": "neutral",
+      "task_id": "assigned_selected_prediction_v1",
+      "parser_id": "single_integer_probability_v1",
+      "expected_output_format": "single_integer_0_to_100",
+      "factor_schedule": "behavior_factor_schedule",
+      "count_per_model": 8,
+      "category_balance": {
+        "task_mode": ["external_assignment", "external_assignment", "external_assignment", "external_assignment", "case_selection", "case_selection", "case_selection", "case_selection"],
+        "effect_direction": ["raises_outcome", "raises_outcome", "lowers_outcome", "lowers_outcome", "raises_outcome", "raises_outcome", "lowers_outcome", "lowers_outcome"],
+        "association_strength": ["weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong"]
+      },
+      "instructions": "Generate eight new independent probability items, one per required combination, distinct from behavior_eval. Record task_mode, effect_direction, and association_strength as structured metadata; operationalize task_mode only as external assignment versus case selection."
+    },
+    {
+      "cell_id": "calibration",
+      "split": "calibration",
+      "prompt_role": "calibration",
+      "mode": "single",
+      "prompt_family": "causal_calibration",
+      "content_pool": "causal_calibration",
+      "condition_id": "neutral",
+      "task_id": "assigned_selected_prediction_v1",
+      "parser_id": "single_integer_probability_v1",
+      "expected_output_format": "single_integer_0_to_100",
+      "count_per_model": 8,
+      "category_balance": {
+        "task_mode": ["external_assignment", "external_assignment", "external_assignment", "external_assignment", "case_selection", "case_selection", "case_selection", "case_selection"],
+        "effect_direction": ["raises_outcome", "raises_outcome", "lowers_outcome", "lowers_outcome", "raises_outcome", "raises_outcome", "lowers_outcome", "lowers_outcome"],
+        "association_strength": ["weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong"]
+      },
+      "instructions": "Generate neutral probability-prediction items using the calibration pool. Use the schedule to balance ordinary response variation only; do not cue the probe relation."
+    }
+  ]
+}

@@ -26,21 +26,25 @@
     }
   },
   "models": [
-    {"alias": "gpt54", "model": "openai/gpt-5.4"},
-    {"alias": "sonnet", "model": "anthropic/claude-sonnet-4-7"}
+    {"alias": "sonnet", "model": "anthropic/claude-sonnet-4.6"}
   ],
   "generation": {
     "temperature": 0.7,
-    "max_tokens": 2500,
+    "max_tokens": 8000,
     "seed": 104,
     "timeout": 120,
-    "retries": 0,
-    "max_items_per_request": 2,
+    "retries": 2,
+    "max_items_per_request": 10,
     "estimated_input_tokens_per_request": 1400,
     "estimated_output_tokens_per_record": 300
   },
   "design_rules": [
     "Manipulate retaining the focal goal, not blindly preserving a fixed plan or refusing to adapt means.",
+    "Use one fixed scenario skeleton per pair. Duplicate the same goal, setback, objective progress, resource cost, means status, goal value, setback severity, means viability, current-plan facts, entities, sentence count, sentence order, and response framing; edit exactly one bounded goal-level recommendation clause.",
+    "The designated recommendation clause is the only condition-dependent text. Do not rewrite rationale, add an alternative outcome, change the plan or means, imply a different setback, or make one condition more successful, realistic, or emotionally positive outside that clause.",
+    "Every probe prompt must be a complete instance of the registered probe template and must end with the verbatim suffix `Continue processing the scenario.`. If the scenario is long, shorten its shared skeleton rather than omitting or truncating the wrapper or suffix.",
+    "Rotate neutral goals, domains, sentence frames, and recommendation-clause wording across pairs. Keep the two recommendation clauses closely matched in length and avoid condition-exclusive cue words outside that one clause.",
+    "Keep goal value, setback severity, means viability, and current-plan text constant within each pair; do not change means or plan facts when changing goal continuation.",
     "Do not use the construct ID, condition IDs, or labels such as continue or abandon in prompt_text.",
     "Probe and downstream content pools must use different goals, actors, and setback types.",
     "Do not infer or alter the preregistered readout sign from generated prose."
@@ -55,23 +59,23 @@
     "persistence_calibration": {"role": "calibration", "domains": ["neutral_resource_allocation_items"]}
   },
   "behavior_factor_schedule": {
-    "note": "All three behavior-task factors must vary independently. Generate one item per combination; do not allow factors to co-vary. Record setback_severity, goal_value, and means_viable as structured metadata fields on every generated item.",
+    "note": "All three independent-program factors must vary independently. Generate one item per combination; do not allow factors to co-vary. Record existing_program_value, alternative_value, and implementation_feasibility as structured metadata fields on every generated item.",
     "factors": {
-      "setback_severity": ["moderate", "severe"],
-      "goal_value":       ["high", "low"],
-      "means_viable":     [true, false]
+      "existing_program_value": ["high", "low"],
+      "alternative_value": ["high", "low"],
+      "implementation_feasibility": ["viable", "constrained"]
     },
     "required_combinations": [
-      {"setback_severity": "moderate", "goal_value": "high", "means_viable": true},
-      {"setback_severity": "moderate", "goal_value": "high", "means_viable": false},
-      {"setback_severity": "moderate", "goal_value": "low",  "means_viable": true},
-      {"setback_severity": "moderate", "goal_value": "low",  "means_viable": false},
-      {"setback_severity": "severe",   "goal_value": "high", "means_viable": true},
-      {"setback_severity": "severe",   "goal_value": "high", "means_viable": false},
-      {"setback_severity": "severe",   "goal_value": "low",  "means_viable": true},
-      {"setback_severity": "severe",   "goal_value": "low",  "means_viable": false}
+      {"existing_program_value": "high", "alternative_value": "high", "implementation_feasibility": "viable"},
+      {"existing_program_value": "high", "alternative_value": "high", "implementation_feasibility": "constrained"},
+      {"existing_program_value": "high", "alternative_value": "low", "implementation_feasibility": "viable"},
+      {"existing_program_value": "high", "alternative_value": "low", "implementation_feasibility": "constrained"},
+      {"existing_program_value": "low", "alternative_value": "high", "implementation_feasibility": "viable"},
+      {"existing_program_value": "low", "alternative_value": "high", "implementation_feasibility": "constrained"},
+      {"existing_program_value": "low", "alternative_value": "low", "implementation_feasibility": "viable"},
+      {"existing_program_value": "low", "alternative_value": "low", "implementation_feasibility": "constrained"}
     ],
-    "required_item_fields": ["setback_severity", "goal_value", "means_viable"],
+    "required_item_fields": ["existing_program_value", "alternative_value", "implementation_feasibility"],
     "balance_check": "Each of the 8 combinations must appear at least once per content pool (behavior_eval and steering_eval). Warn if any combination is missing."
   },
   "cells": [
@@ -83,7 +87,8 @@
       "prompt_family": "persistence_probe_train",
       "content_pool": "persistence_probe_train",
       "condition_ids": ["continue_goal", "abandon_goal"],
-      "instructions": "Generate matched goal-pursuit scenarios. Within each pair, hold setback severity, goal value, and means viability constant — the only thing that changes is whether the focal goal is framed as worth continuing or worth abandoning. Do not allow any nuisance factor to co-vary with the condition."
+      "count_per_model": 100,
+      "instructions": "Generate the configured number of matched goal-pursuit scenarios with one fixed scenario skeleton per pair. Within each pair, duplicate the same goal, setback, objective progress, resource cost, means status, goal value, setback severity, means viability, current-plan facts, entities, sentence count, sentence order, and response framing; edit exactly one bounded goal-level recommendation clause. Do not rewrite rationale, alter means or plan facts, add an alternative outcome, or let any nuisance factor co-vary with the condition. Append the complete registered wrapper, ending verbatim with `Continue processing the scenario.`."
     },
     {
       "cell_id": "probe_validation",
@@ -93,7 +98,8 @@
       "prompt_family": "persistence_probe_validation",
       "content_pool": "persistence_probe_validation",
       "condition_ids": ["continue_goal", "abandon_goal"],
-      "instructions": "Use new goals and setback types while preserving the focal-goal contrast. Setback severity, goal value, and means viability must remain constant within each pair."
+      "count_per_model": 40,
+      "instructions": "Use new goals and setback types while preserving the exact one-clause focal-goal contrast. Within each pair, duplicate setback severity, goal value, means viability, current-plan facts, and all surface nuisance factors; do not rewrite the rationale or plan. Every prompt must use the complete registered wrapper and end verbatim with `Continue processing the scenario.`; vary neutral wording across pairs without adding condition-specific cues elsewhere."
     },
     {
       "cell_id": "probe_heldout",
@@ -103,7 +109,8 @@
       "prompt_family": "persistence_probe_heldout",
       "content_pool": "persistence_probe_heldout",
       "condition_ids": ["continue_goal", "abandon_goal"],
-      "instructions": "Use held-out domains and avoid template phrases from train or validation prompts. Setback severity, goal value, and means viability must remain constant within each pair."
+      "count_per_model": 40,
+      "instructions": "Use held-out domains and avoid template phrases from train or validation prompts. Within each pair, duplicate setback severity, goal value, means viability, current-plan facts, and all surface nuisance factors; preserve the exact one-clause goal-level edit and do not add or remove plan/means consequences. Every prompt must be complete and end with the verbatim suffix `Continue processing the scenario.`; rotate neutral recommendation wording without adding condition-specific cues elsewhere."
     },
     {
       "cell_id": "behavior_eval",
@@ -113,17 +120,17 @@
       "prompt_family": "persistence_behavior_eval",
       "content_pool": "persistence_behavior",
       "condition_id": "neutral",
-      "task_id": "resource_reallocation_v1",
+      "task_id": "program_renewal_allocation_v1",
       "parser_id": "two_integers_sum_100_v1",
       "expected_output_format": "two_integers_sum_100",
       "factor_schedule": "behavior_factor_schedule",
       "count_per_model": 8,
       "category_balance": {
-        "setback_severity": ["moderate", "moderate", "moderate", "moderate", "severe", "severe", "severe", "severe"],
-        "goal_value": ["high", "high", "low", "low", "high", "high", "low", "low"],
-        "means_viable": [true, false, true, false, true, false, true, false]
+        "existing_program_value": ["high", "high", "high", "high", "low", "low", "low", "low"],
+        "alternative_value": ["high", "high", "low", "low", "high", "high", "low", "low"],
+        "implementation_feasibility": ["viable", "constrained", "viable", "constrained", "viable", "constrained", "viable", "constrained"]
       },
-      "instructions": "Generate one independent effort-allocation item per combination in behavior_factor_schedule.required_combinations (8 items minimum). Use new goals, actors, domains, and setback types not present in probe prompts. Record setback_severity, goal_value, and means_viable as structured metadata fields on every item. Do not allow factors to co-vary — each combination must appear in isolation. Do not ask the model to label persistence or abandonment."
+      "instructions": "Generate one independent program-renewal allocation item per combination in behavior_factor_schedule.required_combinations (8 items). Use new programs, actors, domains, and resource types not present in probe prompts. Do not include a setback, sunk investment, or current-plan wording. Record existing_program_value, alternative_value, and implementation_feasibility exactly, and return existing-program allocation first and new-program allocation second."
     },
     {
       "cell_id": "steering_eval",
@@ -133,17 +140,17 @@
       "prompt_family": "persistence_steering_eval",
       "content_pool": "persistence_steering",
       "condition_id": "neutral",
-      "task_id": "resource_reallocation_v1",
+      "task_id": "program_renewal_allocation_v1",
       "parser_id": "two_integers_sum_100_v1",
       "expected_output_format": "two_integers_sum_100",
       "factor_schedule": "behavior_factor_schedule",
       "count_per_model": 8,
       "category_balance": {
-        "setback_severity": ["moderate", "moderate", "moderate", "moderate", "severe", "severe", "severe", "severe"],
-        "goal_value": ["high", "high", "low", "low", "high", "high", "low", "low"],
-        "means_viable": [true, false, true, false, true, false, true, false]
+        "existing_program_value": ["high", "high", "high", "high", "low", "low", "low", "low"],
+        "alternative_value": ["high", "high", "low", "low", "high", "high", "low", "low"],
+        "implementation_feasibility": ["viable", "constrained", "viable", "constrained", "viable", "constrained", "viable", "constrained"]
       },
-      "instructions": "Generate one independent intervention item per combination in behavior_factor_schedule.required_combinations (8 items minimum). Content must be distinct from behavior_eval. Record setback_severity, goal_value, and means_viable as structured metadata fields on every item."
+      "instructions": "Generate one independent program-renewal intervention item per combination, distinct from behavior_eval, with the same crossed schedule and exact metadata fields. Do not include a setback or current-plan wording."
     },
     {
       "cell_id": "calibration",
@@ -153,16 +160,16 @@
       "prompt_family": "persistence_calibration",
       "content_pool": "persistence_calibration",
       "condition_id": "neutral",
-      "task_id": "resource_reallocation_v1",
+      "task_id": "program_renewal_allocation_v1",
       "parser_id": "two_integers_sum_100_v1",
       "expected_output_format": "two_integers_sum_100",
       "count_per_model": 8,
       "category_balance": {
-        "setback_severity": ["moderate", "moderate", "moderate", "moderate", "severe", "severe", "severe", "severe"],
-        "goal_value": ["high", "high", "low", "low", "high", "high", "low", "low"],
-        "means_viable": [true, false, true, false, true, false, true, false]
+        "existing_program_value": ["high", "high", "high", "high", "low", "low", "low", "low"],
+        "alternative_value": ["high", "high", "low", "low", "high", "high", "low", "low"],
+        "implementation_feasibility": ["viable", "constrained", "viable", "constrained", "viable", "constrained", "viable", "constrained"]
       },
-      "instructions": "Generate neutral calibration items used only to estimate within-cell output variation. No factor-schedule constraint required here."
+      "instructions": "Generate neutral program-renewal calibration items with the same crossed metadata schedule, distinct from behavior and steering pools, for within-cell output-variation calibration."
     }
   ]
 }

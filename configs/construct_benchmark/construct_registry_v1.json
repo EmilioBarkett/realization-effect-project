@@ -35,84 +35,84 @@
       "construct_id": "reference_frame",
       "family": "decision",
       "wave": 2,
-      "status": "planned",
+      "status": "specified",
       "spec_path": "constructs/reference_frame_v1.json"
     },
     {
       "construct_id": "prior_weighting",
       "family": "epistemic",
       "wave": 2,
-      "status": "planned",
+      "status": "specified",
       "spec_path": "constructs/prior_weighting_v1.json"
     },
     {
       "construct_id": "authority_deference",
       "family": "social",
       "wave": 2,
-      "status": "planned",
+      "status": "specified",
       "spec_path": "constructs/authority_deference_v1.json"
     },
     {
       "construct_id": "exploration_exploitation",
       "family": "agentic",
       "wave": 2,
-      "status": "planned",
+      "status": "specified",
       "spec_path": "constructs/exploration_exploitation_v1.json"
     },
     {
       "construct_id": "ambiguity_orientation",
       "family": "decision",
       "wave": 3,
-      "status": "planned",
+      "status": "specified",
       "spec_path": "constructs/ambiguity_orientation_v1.json"
     },
     {
       "construct_id": "causal_interpretation",
       "family": "epistemic",
       "wave": 3,
-      "status": "planned",
+      "status": "specified",
       "spec_path": "constructs/causal_interpretation_v1.json"
     },
     {
       "construct_id": "consensus_conformity",
       "family": "social",
       "wave": 3,
-      "status": "planned",
+      "status": "specified",
       "spec_path": "constructs/consensus_conformity_v1.json"
     },
     {
       "construct_id": "plan_replanning",
       "family": "agentic",
       "wave": 3,
-      "status": "planned",
+      "status": "specified",
       "spec_path": "constructs/plan_replanning_v1.json"
     },
     {
       "construct_id": "temporal_orientation",
       "family": "decision",
       "wave": 4,
-      "status": "planned",
+      "status": "specified",
       "spec_path": "constructs/temporal_orientation_v1.json"
     },
     {
       "construct_id": "epistemic_uncertainty",
       "family": "epistemic",
       "wave": 4,
-      "status": "planned",
+      "status": "specified",
       "spec_path": "constructs/epistemic_uncertainty_v1.json"
     },
     {
       "construct_id": "reciprocity_obligation",
       "family": "social",
       "wave": 4,
-      "status": "planned",
+      "status": "specified",
       "spec_path": "constructs/reciprocity_obligation_v1.json"
     },
     {
       "construct_id": "goal_shielding",
       "family": "agentic",
       "wave": 4,
-      "status": "planned",
+      "status": "specified",
       "spec_path": "constructs/goal_shielding_v1.json"
     }
   ]

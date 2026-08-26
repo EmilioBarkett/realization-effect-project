@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import random
 import re
 import urllib.error
 from dataclasses import dataclass
@@ -24,9 +25,13 @@ from .splits import SPLIT_PROMPT_ROLE
 
 
 RequestFn = Callable[[str, list[dict[str, str]], dict[str, Any]], dict[str, Any]]
+JobCompletionFn = Callable[["ConstructGenerationJob", tuple[PromptRecord, ...], dict[str, Any]], None]
+JobStartFn = Callable[["ConstructGenerationJob"], None]
 _ID_PATTERN = re.compile(r"^[a-z][a-z0-9_]*$")
 DEFAULT_ESTIMATED_INPUT_TOKENS_PER_REQUEST = 1400
 DEFAULT_ESTIMATED_OUTPUT_TOKENS_PER_RECORD = 300
+MAX_GENERATED_PROMPT_CHARS = 2000
+MAX_GENERATED_NOTES_CHARS = 2000
 
 
 def _default_generation_run_modes() -> dict[str, dict[str, Any]]:
@@ -149,12 +154,151 @@ def _category_balance(value: Any, *, field_name: str, count: int, spec: Construc
     return validated
 
 
+def _paired_metadata_schema(spec: ConstructSpec) -> dict[str, Any] | None:
+    """Return an optional schema for metadata attached to paired prompts.
+
+    Most constructs only need metadata on downstream single prompts.  A
+    construct may opt into paired metadata through its opaque ``metadata``
+    section; keeping this opt-in preserves the existing paired response
+    contract for the other constructs.
+    """
+
+    raw_metadata = dict(spec.metadata or {})
+    raw_schema = raw_metadata.get("paired_item_metadata_schema")
+    if raw_schema is None:
+        return None
+    schema = _mapping(raw_schema, field_name="metadata.paired_item_metadata_schema")
+    properties = _mapping(
+        schema.get("properties"),
+        field_name="metadata.paired_item_metadata_schema.properties",
+    )
+    required = _string_list(
+        schema.get("required"),
+        field_name="metadata.paired_item_metadata_schema.required",
+    )
+    if not required:
+        raise ValueError("metadata.paired_item_metadata_schema.required must not be empty.")
+    if set(required) != set(properties):
+        raise ValueError(
+            "metadata.paired_item_metadata_schema must require every declared property exactly once."
+        )
+    for property_name, raw_property in properties.items():
+        _identifier(property_name, field_name="paired metadata property")
+        property_schema = _mapping(
+            raw_property,
+            field_name=f"metadata.paired_item_metadata_schema.properties.{property_name}",
+        )
+        property_type = _text(
+            property_schema.get("type"),
+            field_name=f"metadata.paired_item_metadata_schema.properties.{property_name}.type",
+        )
+        if property_type not in {"string", "integer", "number", "boolean"}:
+            raise ValueError(f"Unsupported paired metadata type={property_type!r}.")
+        enum = property_schema.get("enum")
+        if enum is not None and (not isinstance(enum, list) or not enum):
+            raise ValueError(
+                f"metadata.paired_item_metadata_schema.properties.{property_name}.enum must be a non-empty list."
+            )
+    schema["required"] = list(required)
+    schema["properties"] = properties
+    return schema
+
+
+def _paired_metadata_schedule(value: Any, *, field_name: str, count: int, spec: ConstructSpec) -> dict[str, Any] | None:
+    """Validate a deterministic per-pair metadata schedule on a paired cell."""
+
+    if value is None:
+        return None
+    schedule = _mapping(value, field_name=field_name)
+    metadata_schema = _paired_metadata_schema(spec)
+    if metadata_schema is None:
+        raise ValueError(f"{field_name} requires metadata.paired_item_metadata_schema.")
+    field = _identifier(schedule.get("field"), field_name=f"{field_name}.field")
+    properties = dict(metadata_schema["properties"])
+    if field not in properties:
+        raise ValueError(f"{field_name}.field={field!r} is not a paired metadata property.")
+    positions = schedule.get("positions")
+    if not isinstance(positions, list) or not positions:
+        raise ValueError(f"{field_name}.positions must be a non-empty list.")
+    property_schema = properties[field]
+    enum = property_schema.get("enum")
+    if isinstance(enum, list) and any(position not in enum for position in positions):
+        raise ValueError(f"{field_name}.positions contains values outside the metadata enum.")
+    repeats = schedule.get("repeats_per_request")
+    request_size = schedule.get("request_size")
+    seed = schedule.get("seed")
+    if not isinstance(repeats, int) or isinstance(repeats, bool) or repeats < 1:
+        raise ValueError(f"{field_name}.repeats_per_request must be a positive integer.")
+    if not isinstance(request_size, int) or isinstance(request_size, bool) or request_size < 1:
+        raise ValueError(f"{field_name}.request_size must be a positive integer.")
+    if request_size != len(positions) * repeats:
+        raise ValueError(
+            f"{field_name}.request_size must equal len(positions) * repeats_per_request."
+        )
+    if not isinstance(seed, int) or isinstance(seed, bool):
+        raise ValueError(f"{field_name}.seed must be an integer.")
+    review_policy = _text(schedule.get("review_policy"), field_name=f"{field_name}.review_policy")
+    if review_policy != "first_scheduled_value":
+        raise ValueError(f"{field_name}.review_policy must be 'first_scheduled_value'.")
+    if count >= request_size and count % request_size:
+        raise ValueError(
+            f"{field_name} requires count_per_model={count} to be divisible by request_size={request_size}."
+        )
+    schedule["field"] = field
+    schedule["positions"] = list(positions)
+    schedule["repeats_per_request"] = repeats
+    schedule["request_size"] = request_size
+    schedule["seed"] = seed
+    schedule["review_policy"] = review_policy
+    return schedule
+
+
+def _paired_metadata_assignment(job: ConstructGenerationJob, index: int) -> dict[str, Any]:
+    schedule = job.cell.get("paired_metadata_schedule")
+    if not isinstance(schedule, Mapping):
+        return {}
+    positions = list(schedule["positions"])
+    schedule_request_size = int(schedule["request_size"])
+
+    # Review requests intentionally contain one pair and retain the first
+    # value from the registered deterministic schedule.  Full requests may be
+    # larger than the plan's historical ten-pair block (for example, a
+    # forty-pair request).  Build a balanced block for the actual request so
+    # every registered position occurs equally often within that request.
+    if job.count == 1:
+        repeats = int(schedule["repeats_per_request"])
+        global_index = int(job.item_offset) + index
+        block_index, block_offset = divmod(global_index, schedule_request_size)
+        block = positions * repeats
+        random.Random(int(schedule["seed"]) + block_index).shuffle(block)
+        return {str(schedule["field"]): block[block_offset]}
+
+    if job.count % len(positions) == 0:
+        repeats = job.count // len(positions)
+        block = positions * repeats
+        # request_index is stable for a chunked cell and keeps retries and
+        # resumed jobs deterministic while allowing arbitrary full request
+        # sizes that are multiples of the number of registered positions.
+        random.Random(int(schedule["seed"]) + max(int(job.request_index) - 1, 0)).shuffle(block)
+        return {str(schedule["field"]): block[index]}
+
+    # Non-full fixtures smaller than the registered request size are retained
+    # for backwards-compatible unit tests; full jobs are rejected by
+    # _validate_paired_job_schedule before this fallback can be used.
+    global_index = int(job.item_offset) + index
+    block_index, block_offset = divmod(global_index, schedule_request_size)
+    block = positions * int(schedule["repeats_per_request"])
+    random.Random(int(schedule["seed"]) + block_index).shuffle(block)
+    return {str(schedule["field"]): block[block_offset]}
+
+
 def _expected_category_assignments(job: ConstructGenerationJob, index: int) -> dict[str, Any]:
     assignments: dict[str, Any] = {}
     for field, schedule in dict(job.cell.get("category_balance", {})).items():
         if not schedule:
             continue
         assignments[str(field)] = schedule[(job.item_offset + index) % len(schedule)]
+    assignments.update(_paired_metadata_assignment(job, index))
     return assignments
 
 
@@ -211,6 +355,7 @@ class GenerationResult:
     jobs: tuple[ConstructGenerationJob, ...]
     request_count: int
     complete: bool
+    request_metadata: tuple[dict[str, Any], ...] = ()
 
     def summary(self) -> dict[str, Any]:
         by_split: dict[str, int] = {}
@@ -222,6 +367,9 @@ class GenerationResult:
             by_model[model_alias] = by_model.get(model_alias, 0) + 1
             if record.condition_id:
                 by_condition[record.condition_id] = by_condition.get(record.condition_id, 0) + 1
+        input_tokens = sum(int(item.get("input_tokens", 0) or 0) for item in self.request_metadata)
+        output_tokens = sum(int(item.get("output_tokens", 0) or 0) for item in self.request_metadata)
+        actual_cost_usd = sum(float(item.get("actual_cost_usd", 0.0) or 0.0) for item in self.request_metadata)
         return {
             "complete": self.complete,
             "construct_ids": sorted({record.construct_id for record in self.records}),
@@ -231,6 +379,10 @@ class GenerationResult:
             "records_by_split": dict(sorted(by_split.items())),
             "records_by_model": dict(sorted(by_model.items())),
             "records_by_condition": dict(sorted(by_condition.items())),
+            "actual_input_tokens": input_tokens,
+            "actual_output_tokens": output_tokens,
+            "actual_total_tokens": input_tokens + output_tokens,
+            "actual_cost_usd": actual_cost_usd,
         }
 
 
@@ -351,12 +503,22 @@ def load_generation_plan(path: str | Path, spec: ConstructSpec) -> dict[str, Any
             spec=spec,
         )
         if mode == "paired":
+            cell["paired_metadata_schedule"] = _paired_metadata_schedule(
+                cell.get("paired_metadata_schedule"),
+                field_name=f"cells[{index}].paired_metadata_schedule",
+                count=count,
+                spec=spec,
+            )
             condition_ids = cell.get("condition_ids")
             if not isinstance(condition_ids, list) or set(condition_ids) != set(spec.condition_ids):
                 raise ValueError(
                     f"cells[{index}].condition_ids must exactly match {list(spec.condition_ids)}."
                 )
         else:
+            if cell.get("paired_metadata_schedule") is not None:
+                raise ValueError(
+                    f"cells[{index}].paired_metadata_schedule is only valid for paired cells."
+                )
             condition_id = str(cell.get("condition_id", "neutral"))
             if condition_id not in {"neutral", *spec.condition_ids}:
                 raise ValueError(f"cells[{index}].condition_id is not a construct condition or neutral.")
@@ -386,6 +548,7 @@ def iter_generation_jobs(
     model_aliases: set[str] | None = None,
     count_per_model_override: int | None = None,
     limit_jobs: int | None = None,
+    splits: set[str] | None = None,
 ) -> Iterable[ConstructGenerationJob]:
     generation = dict(plan.get("generation", {}))
     base_seed = int(generation.get("seed", 0))
@@ -400,6 +563,8 @@ def iter_generation_jobs(
         if model_aliases is not None and alias not in model_aliases:
             continue
         for cell_index, cell in enumerate(plan["cells"]):
+            if splits is not None and str(cell["split"]) not in splits:
+                continue
             count = count_per_model_override if count_per_model_override is not None else int(cell["count_per_model"])
             job_index = model_index * len(plan["cells"]) + cell_index
             yield ConstructGenerationJob(
@@ -455,6 +620,7 @@ def dry_run_summary(
     *,
     model_aliases: set[str] | None = None,
     count_per_model_override: int | None = None,
+    splits: set[str] | None = None,
     input_usd_per_million_tokens: float | None = None,
     output_usd_per_million_tokens: float | None = None,
 ) -> dict[str, Any]:
@@ -463,6 +629,7 @@ def dry_run_summary(
             plan,
             model_aliases=model_aliases,
             count_per_model_override=count_per_model_override,
+            splits=splits,
         )
     )
     max_per_request = int(plan.get("generation", {}).get("max_items_per_request", 0) or 0)
@@ -492,7 +659,12 @@ def dry_run_summary(
     return {
         "plan_id": plan["plan_id"],
         "construct_id": plan["construct_id"],
-        "complete_plan": count_per_model_override is None and selected_model_aliases == planned_model_aliases,
+        "complete_plan": (
+            splits is None
+            and count_per_model_override is None
+            and selected_model_aliases == planned_model_aliases
+        ),
+        "selected_splits": sorted(splits) if splits is not None else None,
         "planned_model_aliases": sorted(planned_model_aliases),
         "selected_model_aliases": sorted(selected_model_aliases),
         "count_per_model_override": count_per_model_override,
@@ -523,6 +695,23 @@ def dry_run_summary(
 
 def response_schema_for_job(job: ConstructGenerationJob, spec: ConstructSpec) -> dict[str, Any]:
     if job.mode == "paired":
+        paired_metadata_schema = _paired_metadata_schema(spec)
+        paired_prompt_required = ["condition_id", "prompt_text"]
+        paired_prompt_properties: dict[str, Any] = {
+            "condition_id": {"type": "string"},
+            "prompt_text": {
+                "type": "string",
+                "maxLength": MAX_GENERATED_PROMPT_CHARS,
+            },
+        }
+        if paired_metadata_schema is not None:
+            paired_prompt_required.append("task_metadata")
+            paired_prompt_properties["task_metadata"] = {
+                "type": "object",
+                "additionalProperties": False,
+                "required": list(paired_metadata_schema["required"]),
+                "properties": dict(paired_metadata_schema["properties"]),
+            }
         return {
             "type": "json_schema",
             "json_schema": {
@@ -540,21 +729,18 @@ def response_schema_for_job(job: ConstructGenerationJob, spec: ConstructSpec) ->
                                 "additionalProperties": False,
                                 "required": ["pair_id", "content_domain", "prompts", "notes"],
                                 "properties": {
-                                    "pair_id": {"type": "string"},
+                                    "pair_id": {"type": "string", "maxLength": 120},
                                     "content_domain": {"type": "string"},
                                     "prompts": {
                                         "type": "array",
                                         "items": {
                                             "type": "object",
                                             "additionalProperties": False,
-                                            "required": ["condition_id", "prompt_text"],
-                                            "properties": {
-                                                "condition_id": {"type": "string"},
-                                                "prompt_text": {"type": "string"},
-                                            },
+                                            "required": paired_prompt_required,
+                                            "properties": paired_prompt_properties,
                                         },
                                     },
-                                    "notes": {"type": "string"},
+                                    "notes": {"type": "string", "maxLength": MAX_GENERATED_NOTES_CHARS},
                                 },
                             },
                         }
@@ -587,7 +773,7 @@ def response_schema_for_job(job: ConstructGenerationJob, spec: ConstructSpec) ->
                                     "notes",
                                 ],
                                 "properties": {
-                                    "variant_id": {"type": "string"},
+                                    "variant_id": {"type": "string", "maxLength": 120},
                                     "content_domain": {"type": "string"},
                                     "task_metadata": {
                                         "type": "object",
@@ -595,8 +781,11 @@ def response_schema_for_job(job: ConstructGenerationJob, spec: ConstructSpec) ->
                                         "required": list(item_metadata_schema["required"]),
                                         "properties": dict(item_metadata_schema["properties"]),
                                     },
-                                    "prompt_text": {"type": "string"},
-                                    "notes": {"type": "string"},
+                                    "prompt_text": {
+                                        "type": "string",
+                                        "maxLength": MAX_GENERATED_PROMPT_CHARS,
+                                    },
+                                    "notes": {"type": "string", "maxLength": MAX_GENERATED_NOTES_CHARS},
                                 },
                             },
                         }
@@ -625,7 +814,10 @@ def build_generation_messages(spec: ConstructSpec, plan: Mapping[str, Any], job:
         "Do not include markdown or commentary. Do not put condition IDs, construct "
         "names, or benchmark labels in prompt_text unless forbidden terms explicitly "
         "allow a lexical control. Preserve independence between probe and downstream "
-        "content pools."
+        "content pools. In paired mode, make each pair a minimal contrast: preserve the "
+        "same actor, entities, quantities, chronology, prose structure, and processing "
+        "instruction, changing only the theory-relevant state needed to distinguish the "
+        "two registered conditions."
     )
     user_payload = {
         "task": "Generate prompts for one registered behavioral construct.",
@@ -644,6 +836,7 @@ def build_generation_messages(spec: ConstructSpec, plan: Mapping[str, Any], job:
         "probe_template": spec.probe_prompt_template if job.prompt_role == "probe" else None,
         "independent_task": task if job.prompt_role != "probe" else None,
         "item_metadata_schema": task["item_metadata_schema"] if job.prompt_role != "probe" else None,
+        "paired_item_metadata_schema": _paired_metadata_schema(spec) if job.mode == "paired" else None,
         "cell_instructions": cell.get("instructions", ""),
         "category_balance": dict(cell.get("category_balance", {})),
         "required_category_assignments": [
@@ -654,7 +847,14 @@ def build_generation_messages(spec: ConstructSpec, plan: Mapping[str, Any], job:
         "forbidden_terms": list(plan.get("forbidden_terms", [])) + list(cell.get("forbidden_terms", [])),
         "output_requirement": (
             "For paired mode return exactly count pairs, and each pair must contain exactly one prompt "
-            "for each condition_id and the assigned content_domain at the corresponding index. For single "
+            "for each condition_id and the assigned content_domain at the corresponding index. The two "
+            "prompt_text values in a pair must be self-contained, closely length-matched minimal contrasts; "
+            "When paired_item_metadata_schema is present, include the required task_metadata object on "
+            "each condition prompt, use the assigned minority_report_position exactly, and use the same "
+            "metadata value in both members of the pair. "
+            "do not change names, numbers, setting, stakes, evidence valence, or response instructions unless "
+            "that field is itself the registered construct manipulation. Keep every prompt_text at or below "
+            f"{MAX_GENERATED_PROMPT_CHARS} characters and notes at or below {MAX_GENERATED_NOTES_CHARS} characters. For single "
             "mode return exactly count prompts with the assigned content_domain at the corresponding index and "
             "task_metadata that exactly follows item_metadata_schema. "
             "Every prompt_text must be a complete model input, not a summary."
@@ -711,6 +911,10 @@ def _validate_text(prompt_text: Any, *, plan: Mapping[str, Any], job: ConstructG
     if not isinstance(prompt_text, str) or not prompt_text.strip():
         raise ValueError(f"{job.job_id} returned an empty or non-string prompt_text.")
     text = prompt_text.strip()
+    if len(text) > MAX_GENERATED_PROMPT_CHARS:
+        raise ValueError(
+            f"{job.job_id} prompt_text exceeds {MAX_GENERATED_PROMPT_CHARS} characters."
+        )
     forbidden_terms = [
         str(term).strip().lower()
         for term in list(plan.get("forbidden_terms", [])) + list(job.cell.get("forbidden_terms", []))
@@ -723,17 +927,22 @@ def _validate_text(prompt_text: Any, *, plan: Mapping[str, Any], job: ConstructG
     return text
 
 
-def _validate_task_metadata(value: Any, *, spec: ConstructSpec, job: ConstructGenerationJob) -> dict[str, Any]:
+def _validate_metadata_schema(
+    value: Any,
+    *,
+    schema: Mapping[str, Any],
+    job: ConstructGenerationJob,
+    context: str,
+) -> dict[str, Any]:
     if not isinstance(value, Mapping):
-        raise ValueError(f"{job.job_id} task_metadata must be an object.")
+        raise ValueError(f"{job.job_id} {context} must be an object.")
     metadata = dict(value)
-    schema = dict(spec.independent_behavior_task["item_metadata_schema"])
     properties = dict(schema["properties"])
     _validate_object_keys(
         metadata,
         allowed=set(properties),
         required=set(schema["required"]),
-        context=f"{job.job_id} task_metadata",
+        context=f"{job.job_id} {context}",
     )
     for field_name, field_schema in properties.items():
         field_value = metadata[field_name]
@@ -745,14 +954,38 @@ def _validate_task_metadata(value: Any, *, spec: ConstructSpec, job: ConstructGe
             "boolean": isinstance(field_value, bool),
         }[field_type]
         if not valid_type:
-            raise ValueError(f"{job.job_id} task_metadata.{field_name} must have type={field_type}.")
+            raise ValueError(f"{job.job_id} {context}.{field_name} must have type={field_type}.")
         if "enum" in field_schema and field_value not in field_schema["enum"]:
-            raise ValueError(f"{job.job_id} task_metadata.{field_name} is outside its registered enum.")
+            raise ValueError(f"{job.job_id} {context}.{field_name} is outside its registered enum.")
         if "minimum" in field_schema and field_value < field_schema["minimum"]:
-            raise ValueError(f"{job.job_id} task_metadata.{field_name} is below its registered minimum.")
+            raise ValueError(f"{job.job_id} {context}.{field_name} is below its registered minimum.")
         if "maximum" in field_schema and field_value > field_schema["maximum"]:
-            raise ValueError(f"{job.job_id} task_metadata.{field_name} is above its registered maximum.")
+            raise ValueError(f"{job.job_id} {context}.{field_name} is above its registered maximum.")
     return metadata
+
+
+def _validate_task_metadata(value: Any, *, spec: ConstructSpec, job: ConstructGenerationJob) -> dict[str, Any]:
+    schema = dict(spec.independent_behavior_task["item_metadata_schema"])
+    return _validate_metadata_schema(
+        value,
+        schema=schema,
+        job=job,
+        context="task_metadata",
+    )
+
+
+def _validate_paired_task_metadata(value: Any, *, spec: ConstructSpec, job: ConstructGenerationJob) -> dict[str, Any]:
+    schema = _paired_metadata_schema(spec)
+    if schema is None:
+        if value is not None:
+            raise ValueError(f"{job.job_id} paired task_metadata is not registered for this construct.")
+        return {}
+    return _validate_metadata_schema(
+        value,
+        schema=schema,
+        job=job,
+        context="paired task_metadata",
+    )
 
 
 def _parse_response(
@@ -775,6 +1008,7 @@ def _parse_response(
         if not isinstance(pairs, list) or len(pairs) != job.count:
             raise ValueError(f"{job.job_id} must return exactly {job.count} pairs.")
         expected_conditions = set(job.cell["condition_ids"])
+        paired_metadata_schema = _paired_metadata_schema(spec)
         seen_pair_ids: set[str] = set()
         parsed: list[dict[str, Any]] = []
         for pair in pairs:
@@ -801,30 +1035,44 @@ def _parse_response(
                 )
             if not isinstance(pair["notes"], str):
                 raise ValueError(f"{job.job_id} pair {pair_id} is missing string notes.")
+            if len(pair["notes"]) > MAX_GENERATED_NOTES_CHARS:
+                raise ValueError(
+                    f"{job.job_id} pair {pair_id} notes exceed {MAX_GENERATED_NOTES_CHARS} characters."
+                )
             prompts = pair.get("prompts")
             if not isinstance(prompts, list) or len(prompts) != len(expected_conditions):
                 raise ValueError(f"{job.job_id} pair {pair_id} has the wrong number of condition prompts.")
             seen_conditions: set[str] = set()
-            prompt_rows: list[dict[str, str]] = []
+            prompt_rows: list[dict[str, Any]] = []
             for prompt in prompts:
                 if not isinstance(prompt, Mapping):
                     raise ValueError(f"{job.job_id} pair {pair_id} contains a non-object prompt.")
+                allowed_prompt_keys = {"condition_id", "prompt_text"}
+                required_prompt_keys = {"condition_id", "prompt_text"}
+                if paired_metadata_schema is not None:
+                    allowed_prompt_keys.add("task_metadata")
+                    required_prompt_keys.add("task_metadata")
                 _validate_object_keys(
                     prompt,
-                    allowed={"condition_id", "prompt_text"},
-                    required={"condition_id", "prompt_text"},
+                    allowed=allowed_prompt_keys,
+                    required=required_prompt_keys,
                     context=f"{job.job_id} pair {pair_id} prompt",
                 )
                 condition_id = _slug(prompt.get("condition_id"))
                 if condition_id not in expected_conditions or condition_id in seen_conditions:
                     raise ValueError(f"{job.job_id} pair {pair_id} has invalid or duplicate condition_id.")
                 seen_conditions.add(condition_id)
-                prompt_rows.append(
-                    {
-                        "condition_id": condition_id,
-                        "prompt_text": _validate_text(prompt.get("prompt_text"), plan=plan, job=job),
-                    }
-                )
+                prompt_row: dict[str, Any] = {
+                    "condition_id": condition_id,
+                    "prompt_text": _validate_text(prompt.get("prompt_text"), plan=plan, job=job),
+                }
+                if paired_metadata_schema is not None:
+                    prompt_row["task_metadata"] = _validate_paired_task_metadata(
+                        prompt.get("task_metadata"),
+                        spec=spec,
+                        job=job,
+                    )
+                prompt_rows.append(prompt_row)
             if seen_conditions != expected_conditions:
                 raise ValueError(f"{job.job_id} pair {pair_id} is missing a condition prompt.")
             parsed.append(
@@ -872,6 +1120,10 @@ def _parse_response(
             )
         if not isinstance(prompt["notes"], str):
             raise ValueError(f"{job.job_id} prompt {variant_id} is missing string notes.")
+        if len(prompt["notes"]) > MAX_GENERATED_NOTES_CHARS:
+            raise ValueError(
+                f"{job.job_id} prompt {variant_id} notes exceed {MAX_GENERATED_NOTES_CHARS} characters."
+            )
         parsed.append(
             {
                 "variant_id": variant_id,
@@ -892,9 +1144,13 @@ def _record_metadata(
     notes: str,
     variant_id: str,
     content_domain: str,
+    generation_metadata: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
-    return {
-        "source": "openrouter_generated",
+    transport = dict(generation_metadata or {})
+    provider = str(transport.get("provider", "openrouter")).strip().lower() or "openrouter"
+    metadata = {
+        "source": f"{provider}_generated",
+        "generation_provider": provider,
         "source_model": job.model_id,
         "source_model_alias": job.model_alias,
         "generation_plan_id": plan["plan_id"],
@@ -913,6 +1169,18 @@ def _record_metadata(
         "expected_readout_positive_condition": spec.positive_condition_id,
         "expected_readout_negative_condition": spec.negative_condition_id,
     }
+    for key in (
+        "response_id",
+        "input_tokens",
+        "output_tokens",
+        "total_tokens",
+        "actual_cost_usd",
+        "reasoning_effort",
+        "seed_supported",
+    ):
+        if key in transport:
+            metadata[f"generation_{key}"] = transport[key]
+    return metadata
 
 
 def _records_from_response(
@@ -923,13 +1191,39 @@ def _records_from_response(
     job: ConstructGenerationJob,
 ) -> list[PromptRecord]:
     parsed = _parse_response(response, spec=spec, plan=plan, job=job)
+    generation_metadata = response.get("_generation_metadata")
+    if generation_metadata is not None and not isinstance(generation_metadata, Mapping):
+        raise ValueError(f"{job.job_id} response _generation_metadata must be an object.")
     task = spec.independent_behavior_task
     records: list[PromptRecord] = []
     if job.mode == "paired":
-        for pair in parsed:
+        paired_metadata_schema = _paired_metadata_schema(spec)
+        for pair_index, pair in enumerate(parsed):
             pair_id = f"{job.job_id}__{pair['pair_id']}"
             for prompt in pair["prompts"]:
                 condition_id = prompt["condition_id"]
+                task_metadata = dict(prompt.get("task_metadata", {}))
+                expected_categories = _expected_category_assignments(job, pair_index)
+                for field, expected_value in expected_categories.items():
+                    actual_value = task_metadata.get(field)
+                    if actual_value != expected_value:
+                        raise ValueError(
+                            f"{job.job_id} pair {pair['pair_id']} condition {condition_id} has "
+                            f"{field}={actual_value!r}; expected the pre-registered category "
+                            f"{expected_value!r}."
+                        )
+                metadata = _record_metadata(
+                    spec,
+                    plan,
+                    job,
+                    notes=str(pair["notes"]),
+                    variant_id=condition_id,
+                    content_domain=pair["content_domain"],
+                    generation_metadata=generation_metadata,
+                )
+                if paired_metadata_schema is not None:
+                    metadata["task_metadata"] = task_metadata
+                    metadata.update(task_metadata)
                 records.append(
                     PromptRecord(
                         prompt_id=f"{pair_id}__{condition_id}",
@@ -941,14 +1235,7 @@ def _records_from_response(
                         pair_id=pair_id,
                         pair_role=condition_id,
                         prompt_family=job.prompt_family,
-                        metadata=_record_metadata(
-                            spec,
-                            plan,
-                            job,
-                            notes=str(pair["notes"]),
-                            variant_id=condition_id,
-                            content_domain=pair["content_domain"],
-                        ),
+                        metadata=metadata,
                     )
                 )
         return records
@@ -974,6 +1261,7 @@ def _records_from_response(
             notes=prompt["notes"],
             variant_id=prompt["variant_id"],
             content_domain=prompt["content_domain"],
+            generation_metadata=generation_metadata,
         )
         metadata["task_metadata"] = dict(prompt["task_metadata"])
         metadata.update(prompt["task_metadata"])
@@ -1018,6 +1306,37 @@ def _chunk_jobs(job: ConstructGenerationJob, max_items_per_request: int) -> Iter
         )
 
 
+def _validate_paired_job_schedule(job: ConstructGenerationJob) -> None:
+    """Require equal registered-position counts in each full paired request."""
+
+    schedule = job.cell.get("paired_metadata_schedule")
+    if not isinstance(schedule, Mapping):
+        return
+    request_size = int(schedule["request_size"])
+    positions = list(schedule["positions"])
+    logical_count = int(job.cell.get("count_per_model", 0))
+    if logical_count >= request_size and job.count != 1 and job.count % len(positions):
+        raise ValueError(
+            f"{job.job_id} must be generated in review-sized one-pair requests or "
+            f"full balanced requests whose size is a positive multiple of {len(positions)} "
+            f"(received {job.count})."
+        )
+    if job.count == 1 or logical_count < request_size:
+        return
+    expected = [
+        _paired_metadata_assignment(job, index)[str(schedule["field"])]
+        for index in range(job.count)
+    ]
+    repeats = job.count // len(positions)
+    expected_counts = {position: repeats for position in positions}
+    observed_counts = {position: expected.count(position) for position in positions}
+    if observed_counts != expected_counts:
+        raise ValueError(
+            f"{job.job_id} schedule does not contain exactly the registered balanced positions: "
+            f"observed={observed_counts}, expected={expected_counts}."
+        )
+
+
 def _request_with_retries(
     request_fn: RequestFn,
     job: ConstructGenerationJob,
@@ -1037,6 +1356,53 @@ def _request_with_retries(
     raise last_error
 
 
+def iter_generation_request_jobs(
+    plan: Mapping[str, Any],
+    *,
+    model_aliases: set[str] | None = None,
+    count_per_model_override: int | None = None,
+    splits: set[str] | None = None,
+) -> Iterable[ConstructGenerationJob]:
+    """Yield the stable request-level jobs used by ``generate_prompt_records``.
+
+    ``iter_generation_jobs`` describes logical cells.  A plan may split one
+    logical cell into several API requests through ``max_items_per_request``;
+    recovery checkpoints need the latter request-level identity, including its
+    deterministic ``part_N`` suffix.
+    """
+
+    max_per_request = int(plan.get("generation", {}).get("max_items_per_request", 0) or 0)
+    for parent_job in iter_generation_jobs(
+        plan,
+        model_aliases=model_aliases,
+        count_per_model_override=count_per_model_override,
+        splits=splits,
+    ):
+        yield from _chunk_jobs(parent_job, max_per_request)
+
+
+def _incomplete_response_reason(response: Mapping[str, Any]) -> str | None:
+    """Return a provider-reported incomplete reason, if one is available."""
+
+    metadata = response.get("_generation_metadata")
+    if not isinstance(metadata, Mapping):
+        return None
+    reason = metadata.get("incomplete_reason") or metadata.get("incomplete_details")
+    if isinstance(reason, Mapping):
+        reason = reason.get("reason") or reason.get("code")
+    status = metadata.get("status") or metadata.get("finish_reason")
+    incomplete = metadata.get("incomplete")
+    if incomplete is True:
+        return str(reason or status or "provider marked response incomplete")
+    if isinstance(reason, str) and reason.strip():
+        normalized = reason.strip().lower()
+        if normalized in {"max_output_tokens", "length", "incomplete", "cancelled", "failed"}:
+            return reason.strip()
+    if isinstance(status, str) and status.strip().lower() in {"incomplete", "cancelled", "failed"}:
+        return str(reason or status).strip()
+    return None
+
+
 def generate_prompt_records(
     plan: Mapping[str, Any],
     spec: ConstructSpec,
@@ -1046,6 +1412,12 @@ def generate_prompt_records(
     model_aliases: set[str] | None = None,
     count_per_model_override: int | None = None,
     limit_jobs: int | None = None,
+    splits: set[str] | None = None,
+    transport_options: Mapping[str, Any] | None = None,
+    completed_job_records: Mapping[str, tuple[PromptRecord, ...]] | None = None,
+    completed_job_metadata: Mapping[str, Mapping[str, Any]] | None = None,
+    on_job_complete: JobCompletionFn | None = None,
+    before_job_request: JobStartFn | None = None,
 ) -> GenerationResult:
     """Generate and validate a complete or explicitly limited inventory."""
 
@@ -1055,23 +1427,44 @@ def generate_prompt_records(
             model_aliases=model_aliases,
             count_per_model_override=count_per_model_override,
             limit_jobs=limit_jobs,
+            splits=splits,
         )
     )
     selected_model_aliases = _planned_model_aliases(plan) if model_aliases is None else set(model_aliases)
     complete = (
         limit_jobs is None
+        and splits is None
         and count_per_model_override is None
         and selected_model_aliases == _planned_model_aliases(plan)
     )
     generation = dict(plan.get("generation", {}))
     max_per_request = int(generation.get("max_items_per_request", 0) or 0)
     records: list[PromptRecord] = []
+    request_metadata: list[dict[str, Any]] = []
     request_count = 0
+    cached_records = dict(completed_job_records or {})
+    cached_metadata = dict(completed_job_metadata or {})
     for parent_job in jobs:
         for job in _chunk_jobs(parent_job, max_per_request):
             request_count += 1
+            _validate_paired_job_schedule(job)
+            if job.job_id in cached_records:
+                recovered = tuple(cached_records[job.job_id])
+                validate_prompt_records(
+                    recovered,
+                    {spec.construct_id: spec},
+                    require_all_splits=False,
+                )
+                records.extend(recovered)
+                metadata = cached_metadata.get(job.job_id)
+                if metadata is not None:
+                    request_metadata.append(dict(metadata))
+                continue
+            if before_job_request is not None:
+                before_job_request(job)
             options = {
                 **generation,
+                **dict(transport_options or {}),
                 "api_key": api_key,
                 "seed": job.seed,
                 "temperature": job.temperature,
@@ -1080,13 +1473,38 @@ def generate_prompt_records(
             }
             messages = build_generation_messages(spec, plan, job)
             response = _request_with_retries(request_fn, job, messages, options)
-            records.extend(_records_from_response(response, spec=spec, plan=plan, job=job))
-    if complete:
-        validate_prompt_records(records, {spec.construct_id: spec})
+            incomplete_reason = _incomplete_response_reason(response)
+            if incomplete_reason is not None:
+                raise ValueError(
+                    f"{job.job_id} response incomplete before prompt parsing "
+                    f"(reason={incomplete_reason}). Increase max_output_tokens or regenerate the job."
+                )
+            raw_metadata = response.get("_generation_metadata")
+            if isinstance(raw_metadata, Mapping):
+                normalized_metadata = dict(raw_metadata)
+                request_metadata.append(normalized_metadata)
+            else:
+                normalized_metadata = {}
+            job_records = tuple(_records_from_response(response, spec=spec, plan=plan, job=job))
+            # Validate each request before exposing it to a recovery callback.
+            # A malformed response therefore cannot become a durable checkpoint.
+            validate_prompt_records(
+                job_records,
+                {spec.construct_id: spec},
+                require_all_splits=False,
+            )
+            records.extend(job_records)
+            if on_job_complete is not None:
+                on_job_complete(job, job_records, normalized_metadata)
+    validate_prompt_records(
+        records,
+        {spec.construct_id: spec},
+        require_all_splits=complete,
+    )
     prompt_ids = [record.prompt_id for record in records]
     if len(prompt_ids) != len(set(prompt_ids)):
         raise ValueError("Generated prompt IDs are not globally unique.")
-    return GenerationResult(tuple(records), jobs, request_count, complete)
+    return GenerationResult(tuple(records), jobs, request_count, complete, tuple(request_metadata))
 
 
 def write_generation_result(result: GenerationResult, path: str | Path) -> int:

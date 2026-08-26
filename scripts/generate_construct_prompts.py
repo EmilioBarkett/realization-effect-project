@@ -23,6 +23,9 @@ from construct_benchmark.generation import (  # noqa: E402
 )
 
 
+VECTOR_SPLITS = {"direction_train", "direction_validation", "direction_heldout"}
+
+
 def _load_plan_and_spec(plan_path: Path, spec_path: Path | None):
     raw_plan = json.loads(plan_path.read_text(encoding="utf-8"))
     if not isinstance(raw_plan, dict):
@@ -62,6 +65,12 @@ def main() -> None:
             "Named API-generation mode. review emits one item per model/cell and is explicitly partial; "
             "full emits the complete frozen inventory."
         ),
+    )
+    parser.add_argument(
+        "--scope",
+        choices=("all", "vector"),
+        default="all",
+        help="Generate the complete plan or only paired train/validation/held-out vector prompts.",
     )
     parser.add_argument("--dry-run", action="store_true", help="Expand plans without making API calls.")
     parser.add_argument("--summary-output", type=Path, default=None)
@@ -116,6 +125,8 @@ def main() -> None:
         plans.append(plan)
         specs.append(spec)
 
+    selected_splits = VECTOR_SPLITS if args.scope == "vector" else None
+
     if args.dry_run:
         selected_mode = args.mode or "full"
         mode_configs = [resolve_generation_mode(plan, selected_mode)[1] for plan in plans]
@@ -134,6 +145,7 @@ def main() -> None:
                 plan,
                 model_aliases=selected_aliases,
                 count_per_model_override=mode_count_override,
+                splits=selected_splits,
                 input_usd_per_million_tokens=args.input_usd_per_million_tokens,
                 output_usd_per_million_tokens=args.output_usd_per_million_tokens,
             )
@@ -142,8 +154,10 @@ def main() -> None:
         for summary, mode_config in zip(summaries, mode_configs, strict=True):
             summary["run_mode"] = selected_mode
             summary["run_mode_purpose"] = mode_config["purpose"]
+            summary["generation_scope"] = args.scope
         aggregate = {
             "run_mode": selected_mode,
+            "generation_scope": args.scope,
             "plan_count": len(summaries),
             "construct_ids": [summary["construct_id"] for summary in summaries],
             "complete_plan": all(summary["complete_plan"] for summary in summaries),
@@ -217,8 +231,9 @@ def main() -> None:
             model_aliases=selected_aliases,
             count_per_model_override=mode_count_override,
             limit_jobs=args.limit_jobs,
+            splits=selected_splits,
         )
-        if not result.complete and not (args.allow_partial or mode_allows_partial):
+        if not result.complete and args.scope == "all" and not (args.allow_partial or mode_allows_partial):
             raise SystemExit(
                 "The requested generation is partial; pass --allow-partial or choose review mode "
                 "to write it explicitly."
@@ -235,11 +250,12 @@ def main() -> None:
                 "output": str(output_path),
                 "run_mode": args.mode,
                 "run_mode_purpose": mode_configs[len(summaries)]["purpose"],
+                "generation_scope": args.scope,
                 **result.summary(),
             }
         )
 
-    output = {"run_mode": args.mode, "plans": summaries}
+    output = {"run_mode": args.mode, "generation_scope": args.scope, "plans": summaries}
     print(json.dumps(output, indent=2, sort_keys=True))
     summary_path = _summary_path(args)
     if summary_path is not None:

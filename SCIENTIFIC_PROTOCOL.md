@@ -43,11 +43,15 @@ must remain explicit: evidence diagnosticity is not updating responsiveness;
 source reliability is not authority status; persistence is not replanning; and
 epistemic uncertainty is not ambiguity orientation.
 
-Wave 1 is the immediate implementation target. Its four construct definitions
-and generation plans are specified, while Waves 2–4 remain planned registry
-entries. Two constructs are the engineering validation slice, four constructs
-form the descriptive Wave 1 pilot, and the full 16-construct matrix is reserved
-for later out-of-sample representation-profile prediction.
+All 16 construct definitions and paired-vector generation plans now exist and
+are marked `specified` in the registry. The Wave 2–4 artifacts are
+preparatory candidate specifications, not completed experiments or generated
+datasets; confirmatory execution remains gated on the Wave 1 measurement gates
+and a precision simulation. The frozen vector-generation scope is 100 train,
+40 validation, and 40 held-out pairs per construct: 2,880 pairs and 5,760
+records across the 16-construct bank. Generation is Sonnet 4.6 only, with a
+four-worker orchestrator, a review pilot before a full inventory, and no
+cross-construct pooling of directions.
 
 These are operational hypotheses. A construct enters a confirmatory analysis
 only after its state definition, directional outcome, parsing rules, and
@@ -98,18 +102,18 @@ or across roles within a construct. A prompt-only behavior baseline is a
 separate estimand from post-steering scoring; the probe-to-downstream episode
 runner still needs real-model validation.
 
-Generation plans pre-register categorical schedules before generation. Wave 1
-cells balance their relevant task factors (for example gain/loss/neutral,
-supporting/contradicting evidence, or setback severity) rather than asking a
-model to choose the dataset composition. Automatic retries are disabled in the
-reviewed Wave 1 plans: a poor pilot is revised at the plan level and regenerated
-only after review.
+Generation plans pre-register categorical schedules before generation. Cells
+balance their relevant task factors rather than asking a model to choose the
+dataset composition. Generation transport retries are set to two where
+configured, but each retry repeats the identical failed request; retries never
+regenerate content or alter a prompt after a content-based failure.
 
 The legacy generator in `activation_analysis` remains realization-focused and
 is not the interface for new multi-construct data. The benchmark-facing
 `construct_benchmark.generation` adapter now takes semantics from a construct
 specification and generation plan, emits canonical prompt records, supports
-deterministic mocks and no-API dry runs, and is the path for Wave 1 generation.
+deterministic mocks and no-API dry runs, and is used by the vector-only
+orchestrator. No API-generated inventory exists yet.
 
 Wave 1 generation plans also freeze task composition: paired probe context is
 presented before the independent downstream task; only an induced internal
@@ -251,9 +255,10 @@ implementation:
   retained;
 - the initial benchmark control plane exists with versioned construct, run,
   analysis, prompt, split, and provenance schemas;
-- the 16-construct registry, four specified Wave 1 construct definitions,
-  four generation plans, generic canonical-record generation adapter, and
-  generalized leakage-audit metadata are implemented;
+- the 16-construct registry, all 16 specified construct definitions and paired
+  generation plans, generic canonical-record generation adapter, and
+  generalized leakage-audit metadata are implemented as prompt-preparation
+  artifacts; Waves 2–4 remain preparatory and gated from confirmatory use;
 - train-only direction estimation, projection-margin measurement,
   neutral/within-condition calibration, strict Wave 1 parsing, directed
   state-transfer scoring, control-direction generation, and timing-aware
@@ -265,22 +270,24 @@ implementation:
   without APIs, model weights, or a GPU; its outputs are explicitly
   non-empirical;
 - real-model execution, prompt-only behavior composition, real-run uncertainty
-  reporting, downstream manipulation checks, and correspondence analysis
-  remain unvalidated or unimplemented end to end;
+  reporting, all-16 downstream parsers and behavior execution, downstream
+  manipulation checks, and correspondence analysis remain unvalidated or
+  unimplemented end to end;
 - the tracked activation iterator now lives in
   `activation_analysis.activation_store` and passes the clean Python 3.11
   `make check` suite; real-run validation remains pending;
-- a single run plan can batch the four Wave 1 inventories through one activation
-  pass and then fan out construct-specific analyses;
-- no API-generated prompt dataset, evidence-diagnosticity data, or large
+- a four-worker vector-only orchestrator can review or prepare the frozen
+  100/40/40 paired-vector inventory per construct, then fan out construct-
+  specific artifacts; this does not execute downstream behavior tasks;
+- no API-generated prompt inventory, evidence-diagnosticity data, or large
   benchmark run has been collected; only no-API dry-run and fake-fixture
   artifacts exist.
 
 Before the first real measurement:
 
-1. run and review the deterministic fake vertical slice;
-2. review the four Wave 1 generation plans and, after explicit approval,
-   connect generated inventories to the canonical combined inventory;
+1. run the all-16 vector review pilot and inspect its structural/audit outputs;
+2. have a human review the prompt pairs, then run the full vector inventory with
+   `--resume` and freeze its manifest and audit outputs;
 3. verify `ActivationVectorRecord` and `iter_activation_vectors()` against
    existing activation-store manifests;
 4. keep the active activation tests green and add
@@ -290,14 +297,16 @@ Before the first real measurement:
 
 Then implement in this order:
 
-1. run the implemented train-only readout on the frozen Wave 1 inventories;
+1. run the implemented train-only readout on the frozen vector inventories for
+   the Wave 1 measurement gate;
 2. validate held-out readout, neutral/within-condition calibration, and
    outcome-specific effect adapters on a representative model;
 3. execute the implemented timing and parsing paths, then add
    output-accessibility and downstream-persistence checks;
 4. precision simulation and expansion decision;
 5. second model family before general conclusions;
-6. Waves 2–4 only after the Wave 1 measurement and construct gates pass.
+6. Waves 2–4 only after the Wave 1 measurement and construct gates pass and
+   the precision simulation supports expansion.
 
 ## 11. Claims this protocol does not support by itself
 

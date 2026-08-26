@@ -1,0 +1,115 @@
+{
+  "schema_version": "0.1.0",
+  "construct_id": "epistemic_uncertainty",
+  "version": "v1",
+  "family": "epistemic",
+  "title": "Epistemic uncertainty",
+  "description": "Whether a decision-maker treats a genuinely borderline or equivocal information state as settled enough for commitment or as still open enough to warrant further information seeking, distinct from desirability and decision stakes.",
+  "contrast_conditions": [
+    {
+      "condition_id": "resolved_state",
+      "label": "Resolved information state",
+      "definition": "The scenario uses a genuinely borderline or equivocal evidence profile, with identical evidence content shared with its matched unresolved member, and one information-status clause records that the decision-maker regards the focal question as settled for this decision. This is an epistemic assessment by the decision-maker, not an objective conclusion mechanically forced by a threshold or calculation; stakes and option desirability remain independently specified."
+    },
+    {
+      "condition_id": "unresolved_state",
+      "label": "Unresolved information state",
+      "definition": "The scenario uses the same genuinely borderline or equivocal evidence profile, with identical evidence content to its matched resolved member, and one information-status clause records that the decision-maker regards the focal question as still open for this decision. This is an epistemic assessment by the decision-maker, not a change in evidence content, valence, quality, or objective availability; stakes and option desirability remain independently specified."
+    }
+  ],
+  "probe_prompt_template": "Read the following short information-state scenario. Track whether the decision-maker treats the focal question as settled or still open separately from what the evidence literally reports and from the desirability, stakes, and cost of acting. Do not resolve the evidence yourself.\n\nScenario:\n{scenario}\n\nContinue processing the scenario.",
+  "independent_behavior_task": {
+    "task_id": "information_seeking_commitment_v1",
+    "task_family": "seek_information_or_commit",
+    "prompt_template": "Consider a new decision in which exactly one specified binary information check is available before choosing an option. Allocate exactly 100 points between seeking that single check and committing to the current option. The item must not use an unknown probability, lottery, or ambiguous number of checks. Use a new domain and do not reuse probe entities or evidence.",
+    "primary_outcome": "seek_information_allocation",
+    "secondary_outcomes": ["commit_now_allocation", "compliance"],
+    "response_format": "two_integers_sum_100",
+    "item_metadata_schema": {
+      "required": ["information_value", "search_cost", "decision_stakes", "check_count", "check_type"],
+      "properties": {
+        "information_value": {"type": "string", "enum": ["low", "high"]},
+        "search_cost": {"type": "string", "enum": ["low", "high"]},
+        "decision_stakes": {"type": "string", "enum": ["low", "high"]},
+        "check_count": {"type": "string", "enum": ["one"]},
+        "check_type": {"type": "string", "enum": ["binary"]}
+      }
+    },
+    "independence_requirements": [
+      "Use new domains, options, actors, and information checks not present in probe prompts.",
+      "Cross information value, search cost, and decision stakes independently.",
+      "Use exactly one fixed binary checking option in every item; do not introduce unknown probabilities, lotteries, or multiple checking options.",
+      "Do not ask the model to label the information state or to report certainty."
+    ]
+  },
+  "expected_direction": {
+    "readout": {
+      "positive_condition": "unresolved_state",
+      "negative_condition": "resolved_state",
+      "estimand": "heldout_projection_margin"
+    },
+    "behavior": {
+      "outcome": "seek_information_allocation",
+      "estimand": "information_state_by_value_and_cost_effect",
+      "expected_by_information_value": {
+        "low": "unresolved_state increases information-seeking allocation modestly",
+        "high": "unresolved_state increases information-seeking allocation"
+      },
+      "direction_status": "preregister_before_data_collection",
+      "warning": "This construct concerns represented information state, not generalized indecision, confidence, or a policy to seek information regardless of cost."
+    }
+  },
+  "parsing_rules": {
+    "parser_id": "two_integers_sum_100_v1",
+    "valid_ranges": {
+      "seek_information_allocation": [0, 100],
+      "commit_now_allocation": [0, 100]
+    },
+    "sum_constraint": 100,
+    "invalid_response_policy": "exclude_from_outcome_denominator_and_report_compliance",
+    "extra_text_policy": "invalid"
+  },
+  "required_splits": ["direction_train", "direction_validation", "direction_heldout", "behavior_eval", "steering_eval", "calibration"],
+  "paired_splits": ["direction_train", "direction_validation", "direction_heldout"],
+  "controls": [
+    "information_value_search_cost_and_stakes_crossing",
+    "resolved_and_unresolved_state_balance",
+    "identical_evidence_content_with_status_only_edit",
+    "no_evidence_valence_or_quality_change_in_unresolved_clause",
+    "new_domain_behavior_task",
+    "lexical_overlap_audit",
+    "neutral_behavior_prompt",
+    "shuffled_pair_labels",
+    "random_direction",
+    "compliance_and_collateral_response_controls"
+  ],
+  "metadata": {
+    "primary_question": "Does an unresolved-information direction transfer to seeking additional information in an independent decision?",
+    "probe_state_is": "represented_epistemic_information_state",
+    "not_claimed_as": "generic hesitation or confidence",
+    "paired_probe_contract": {
+      "shared_evidence": "The evidence count, source, report content, valence, limitations, quantities if any, and quality are identical within each pair. The shared evidence must be genuinely borderline or equivocal rather than objectively decisive or objectively indecisive.",
+      "evidence_profile": {
+        "required": [
+          "Use at least two materially relevant observations or indicators that point in different directions, or one explicitly limited observation whose interpretation has a credible margin; the evidence must be genuinely borderline or equivocal.",
+          "A reasonable decision-maker could regard the same evidence as settled or still open without any change to the evidence, its valence, its quality, or its limitations.",
+          "Keep the focal question interpretive or predictive enough that no single observation mechanically answers it; do not make the status depend on a regulatory rule, hard cutoff, pass/fail gate, or exact calculation."
+        ],
+        "forbidden": [
+          "A single conclusive measurement, an exact percentage or count that mechanically determines the answer, or evidence that is plainly all one way.",
+          "Regulatory thresholds, legal standards, pass/fail gates, hard cutoffs, or arithmetic comparisons such as above/below a limit.",
+          "Words that make the evidence objectively decisive or objectively indecisive, including proves, conclusive, definitive, determines, impossible to answer, or inconclusive."
+        ]
+      },
+      "resolved_status_clause": "The decision-maker treats the focal question as settled for this decision, given the report and its stated limitations.",
+      "unresolved_status_clause": "The decision-maker treats the focal question as still open for this decision, given the report and its stated limitations.",
+      "forbidden_unresolved_semantics": [
+        "the evidence does not or fails to support the claim",
+        "the evidence contradicts, confirms, or favors a claim",
+        "the evidence is weak, insufficient, missing, or lower quality",
+        "the evidence is objectively decisive or objectively indecisive",
+        "the status follows mechanically from a threshold, cutoff, pass/fail rule, or arithmetic comparison"
+      ]
+    }
+  }
+}

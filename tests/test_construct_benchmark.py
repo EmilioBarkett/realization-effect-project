@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
+import re
 from dataclasses import replace
 from pathlib import Path
 
@@ -55,6 +56,9 @@ WAVE1_CONSTRUCT_PATHS = [
     ROOT / "configs/construct_benchmark/constructs/persistence_continuation_v1.json",
 ]
 WAVE1_RUN_CONFIG_PATH = ROOT / "configs/construct_benchmark/run_configs/wave1_four_construct_smoke_v1.json"
+ALL_GENERATION_PLAN_PATHS = sorted(
+    (ROOT / "configs/construct_benchmark/generation_plans").glob("wave[1-4]_*.json")
+)
 
 
 def _configs() -> tuple[dict[str, ConstructSpec], RunConfig, object]:
@@ -73,8 +77,28 @@ def _mock_generation_response(model_id: str, messages: list[dict[str, str]], opt
     assigned_domains = payload["assigned_content_domains"]
     if payload["generation_mode"] == "paired":
         condition_ids = [condition["condition_id"] for condition in payload["condition_definitions"]]
+        paired_schema = payload.get("paired_item_metadata_schema")
+        required_category_assignments = payload.get("required_category_assignments", [])
         pairs = []
         for index in range(count):
+            paired_task_metadata = {}
+            if paired_schema:
+                for field_name, field_schema in paired_schema["properties"].items():
+                    if field_schema.get("enum"):
+                        paired_task_metadata[field_name] = field_schema["enum"][0]
+                    elif field_schema["type"] == "integer":
+                        paired_task_metadata[field_name] = int(field_schema.get("minimum", 0))
+                    elif field_schema["type"] == "number":
+                        paired_task_metadata[field_name] = float(field_schema.get("minimum", 0))
+                    elif field_schema["type"] == "boolean":
+                        paired_task_metadata[field_name] = True
+                    else:
+                        paired_task_metadata[field_name] = "mock_value"
+                paired_task_metadata.update(
+                    required_category_assignments[index]
+                    if index < len(required_category_assignments)
+                    else {}
+                )
             pairs.append(
                 {
                     "pair_id": f"mock_pair_{index}",
@@ -85,6 +109,11 @@ def _mock_generation_response(model_id: str, messages: list[dict[str, str]], opt
                             "prompt_text": (
                                 f"A person reviews item {job_nonce}_{index}_{condition_ids.index(condition_id)} "
                                 "in an unfamiliar setting."
+                            ),
+                            **(
+                                {"task_metadata": dict(paired_task_metadata)}
+                                if paired_schema
+                                else {}
                             ),
                         }
                         for condition_id in condition_ids
@@ -212,20 +241,15 @@ def test_two_construct_configs_are_valid_and_share_execution() -> None:
     )
 
 
-def test_construct_registry_freezes_wave_one_and_agrees_with_specs() -> None:
+def test_construct_registry_freezes_all_waves_and_agrees_with_specs() -> None:
     registry = load_construct_registry(REGISTRY_PATH)
     specs = load_construct_specs(
-        [
-            ROOT / "configs/construct_benchmark/constructs/realization_account_closure_v1.json",
-            ROOT / "configs/construct_benchmark/constructs/evidence_diagnosticity_v1.json",
-            ROOT / "configs/construct_benchmark/constructs/source_reliability_v1.json",
-            ROOT / "configs/construct_benchmark/constructs/persistence_continuation_v1.json",
-        ]
+        [REGISTRY_PATH.parent / entry.spec_path for entry in registry.entries]
     )
     summary = validate_registry_against_specs(registry, specs)
     assert summary["construct_count"] == 16
-    assert summary["specified_count"] == 4
-    assert summary["planned_count"] == 12
+    assert summary["specified_count"] == 16
+    assert summary["planned_count"] == 0
     assert summary["construct_ids_by_wave"]["1"] == [
         "realization_account_closure",
         "evidence_diagnosticity",
@@ -316,6 +340,40 @@ def test_wave_one_generation_emits_canonical_records_and_is_deterministic(tmp_pa
         assert [record.prompt_id for record in jsonl_records] == [record.prompt_id for record in result.records]
 
 
+def test_source_reliability_materializes_balanced_paired_position_metadata() -> None:
+    spec = load_construct_spec(ROOT / "configs/construct_benchmark/constructs/source_reliability_v1.json")
+    plan = load_generation_plan(
+        ROOT / "configs/construct_benchmark/generation_plans/wave1_source_reliability_v1.json",
+        spec,
+    )
+    result = generate_prompt_records(plan, spec, api_key="test", request_fn=_mock_generation_response)
+    vector_records = [record for record in result.records if record.split in spec.paired_splits]
+    assert vector_records
+    for split in spec.paired_splits:
+        split_records = [record for record in vector_records if record.split == split]
+        positions = [record.metadata["minority_report_position"] for record in split_records]
+        expected_count = next(cell for cell in plan["cells"] if cell["split"] == split)["count_per_model"]
+        assert len(split_records) == expected_count * 2
+        assert all(positions.count(position) == expected_count * 2 // 5 for position in range(1, 6))
+        by_pair: dict[str, set[object]] = {}
+        for record in split_records:
+            by_pair.setdefault(str(record.pair_id), set()).add(record.metadata["minority_report_position"])
+        assert by_pair
+        assert all(values and len(values) == 1 for values in by_pair.values())
+
+    missing_metadata = list(result.records)
+    first = missing_metadata[0]
+    first_metadata = dict(first.metadata)
+    first_metadata.pop("minority_report_position")
+    nested = dict(first_metadata.get("task_metadata", {}))
+    nested.pop("minority_report_position", None)
+    first_metadata["task_metadata"] = nested
+    missing_metadata[0] = replace(first, metadata=first_metadata)
+    with pytest.raises(ValueError, match="missing required metadata field"):
+        validate_prompt_records(missing_metadata, {spec.construct_id: spec}, require_all_splits=False)
+
+
+
 def test_generation_rejects_wrong_fields_missing_pairs_duplicate_ids_and_forbidden_text() -> None:
     spec = load_construct_spec(ROOT / "configs/construct_benchmark/constructs/source_reliability_v1.json")
     plan_path = ROOT / "configs/construct_benchmark/generation_plans/wave1_source_reliability_v1.json"
@@ -325,7 +383,7 @@ def test_generation_rejects_wrong_fields_missing_pairs_duplicate_ids_and_forbidd
         del model_id, messages, options
         return {"choices": [{"message": {"content": json.dumps({"pairs": []})}}]}
 
-    with pytest.raises(ValueError, match="exactly 2 pairs"):
+    with pytest.raises(ValueError, match=r"exactly \d+ pairs"):
         generate_prompt_records(plan, spec, api_key="test", request_fn=missing_pair_response)
 
     def duplicate_pair_response(model_id: str, messages: list[dict[str, str]], options: dict) -> dict:
@@ -361,6 +419,17 @@ def test_generation_rejects_wrong_fields_missing_pairs_duplicate_ids_and_forbidd
     with pytest.raises(ValueError, match="unexpected field"):
         generate_prompt_records(plan, spec, api_key="test", request_fn=wrong_field_response)
 
+    def wrong_paired_metadata_response(model_id: str, messages: list[dict[str, str]], options: dict) -> dict:
+        response = _mock_generation_response(model_id, messages, options)
+        payload = json.loads(response["choices"][0]["message"]["content"])
+        if payload.get("pairs"):
+            payload["pairs"][0]["prompts"][0]["task_metadata"]["minority_report_position"] = 99
+        response["choices"][0]["message"]["content"] = json.dumps(payload)
+        return response
+
+    with pytest.raises(ValueError, match="outside its registered enum"):
+        generate_prompt_records(plan, spec, api_key="test", request_fn=wrong_paired_metadata_response)
+
     def missing_task_metadata_response(model_id: str, messages: list[dict[str, str]], options: dict) -> dict:
         response = _mock_generation_response(model_id, messages, options)
         payload = json.loads(response["choices"][0]["message"]["content"])
@@ -371,6 +440,29 @@ def test_generation_rejects_wrong_fields_missing_pairs_duplicate_ids_and_forbidd
 
     with pytest.raises(ValueError, match="missing required field"):
         generate_prompt_records(plan, spec, api_key="test", request_fn=missing_task_metadata_response)
+
+
+def test_generation_reports_provider_max_output_token_incomplete_response() -> None:
+    spec = load_construct_spec(ROOT / "configs/construct_benchmark/constructs/source_reliability_v1.json")
+    plan = load_generation_plan(
+        ROOT / "configs/construct_benchmark/generation_plans/wave1_source_reliability_v1.json",
+        spec,
+    )
+
+    def incomplete_response(model_id: str, messages: list[dict[str, str]], options: dict) -> dict:
+        del model_id, messages, options
+        return {
+            "choices": [{"message": {"content": '{"pairs": []}'}}],
+            "_generation_metadata": {
+                "provider": "openai",
+                "status": "incomplete",
+                "incomplete": True,
+                "incomplete_reason": "max_output_tokens",
+            },
+        }
+
+    with pytest.raises(ValueError, match=r"response incomplete.*max_output_tokens"):
+        generate_prompt_records(plan, spec, api_key="test", request_fn=incomplete_response)
 
 
 def test_generation_plan_requires_all_wave_one_splits(tmp_path: Path) -> None:
@@ -392,22 +484,21 @@ def test_generation_plan_requires_all_wave_one_splits(tmp_path: Path) -> None:
         load_generation_plan(missing_composition_path, spec)
 
 
-def test_filtered_models_and_pilot_override_are_explicitly_incomplete() -> None:
+def test_single_generator_plan_and_pilot_override_are_explicit() -> None:
     spec = load_construct_spec(ROOT / "configs/construct_benchmark/constructs/source_reliability_v1.json")
     plan_path = ROOT / "configs/construct_benchmark/generation_plans/wave1_source_reliability_v1.json"
     plan = load_generation_plan(plan_path, spec)
 
-    filtered = dry_run_summary(plan, model_aliases={"gpt54"})
-    assert filtered["complete_plan"] is False
-    assert filtered["selected_model_aliases"] == ["gpt54"]
-    assert filtered["expected_record_count"] == 36
+    full = dry_run_summary(plan)
+    assert full["complete_plan"] is True
+    assert full["selected_model_aliases"] == ["sonnet"]
+    assert full["expected_record_count"] == 456
 
     pilot = dry_run_summary(plan, count_per_model_override=1)
-    full = dry_run_summary(plan)
     assert pilot["complete_plan"] is False
     assert pilot["count_per_model_override"] == 1
-    assert pilot["expected_record_count"] == 18
-    assert pilot["request_count"] == 12
+    assert pilot["expected_record_count"] == 9
+    assert pilot["request_count"] == 6
     assert pilot["estimated_output_tokens"] < full["estimated_output_tokens"]
 
     priced = dry_run_summary(
@@ -426,7 +517,50 @@ def test_filtered_models_and_pilot_override_are_explicitly_incomplete() -> None:
         count_per_model_override=1,
     )
     assert result.complete is False
-    assert len(result.records) == 18
+    assert len(result.records) == 9
+
+
+def test_vector_scope_generates_and_validates_only_paired_splits() -> None:
+    spec = load_construct_spec(
+        ROOT / "configs/construct_benchmark/constructs/realization_account_closure_v1.json"
+    )
+    plan = load_generation_plan(
+        ROOT / "configs/construct_benchmark/generation_plans/wave1_realization_account_closure_v1.json",
+        spec,
+    )
+    vector_splits = {"direction_train", "direction_validation", "direction_heldout"}
+    summary = dry_run_summary(plan, splits=vector_splits)
+    assert summary["complete_plan"] is False
+    assert summary["selected_splits"] == sorted(vector_splits)
+    assert set(summary["records_by_split"]) == vector_splits
+
+    result = generate_prompt_records(
+        plan,
+        spec,
+        api_key="test",
+        request_fn=_mock_generation_response,
+        splits=vector_splits,
+    )
+    assert result.complete is False
+    assert {record.split for record in result.records} == vector_splits
+    validate_prompt_records(
+        result.records,
+        {spec.construct_id: spec},
+        require_all_splits=False,
+    )
+    with pytest.raises(ValueError, match="missing required splits"):
+        validate_prompt_records(result.records, {spec.construct_id: spec})
+
+
+def test_cell_instructions_do_not_override_named_mode_counts() -> None:
+    for plan_path in ALL_GENERATION_PLAN_PATHS:
+        plan = json.loads(plan_path.read_text(encoding="utf-8"))
+        for cell in plan["cells"]:
+            instructions = str(cell.get("instructions", ""))
+            assert re.search(r"\bgenerate\s+\d+\b", instructions, flags=re.IGNORECASE) is None, (
+                plan_path,
+                cell["cell_id"],
+            )
 
 
 def test_crossed_wave_one_factor_schedules_are_complete() -> None:
@@ -438,12 +572,12 @@ def test_crossed_wave_one_factor_schedules_are_complete() -> None:
             tuple(combination[field] for field in fields)
             for combination in schedule["required_combinations"]
         }
-        assert len(required) == 8
+        assert len(required) == len(schedule["required_combinations"])
         for cell in plan["cells"]:
             if cell["split"] not in {"behavior_eval", "steering_eval"}:
                 continue
             observed = set(zip(*(cell["category_balance"][field] for field in fields), strict=True))
-            assert cell["count_per_model"] == 8
+            assert cell["count_per_model"] == len(required)
             assert observed == required
 
 
@@ -499,7 +633,8 @@ def test_named_generation_and_model_run_modes_are_explicit_and_deterministic() -
         construct_specs={spec.construct_id: spec},
         mode="full",
     )
-    assert len(selected_full) == len(result.records) == 60
+    assert len(selected_full) == len(result.records)
+    assert len(result.records) == dry_run_summary(plan)["expected_record_count"]
     assert full_manifest["complete_inventory"] is True
     assert full_manifest["confirmatory"] is True
     full_plan = build_run_plan(

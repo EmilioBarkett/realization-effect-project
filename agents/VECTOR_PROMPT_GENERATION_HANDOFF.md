@@ -1,0 +1,119 @@
+# Vector prompt-generation handoff
+
+**Status:** the Sonnet 4.6 review pilot is complete for all 16 constructs and
+the full vector inventory is complete for 14 of 16 constructs. OpenRouter
+credits were exhausted before `prior_weighting` and
+`causal_interpretation` could be finalized.
+
+## Scope and scientific status
+
+The versioned registry contains all 16 construct entries, and all 16 have
+paired-vector construct specifications and generation plans marked
+`specified`. Waves 2–4 are preparatory candidate artifacts. They are not
+completed experiments and remain gated from confirmatory model execution by
+the Wave 1 measurement gates and the precision simulation.
+
+The vector-only scope is frozen at 100 `direction_train` pairs, 40
+`direction_validation` pairs, and 40 `direction_heldout` pairs per construct.
+That is 180 pairs / 360 records per construct, or 2,880 pairs / 5,760 records
+across all 16 constructs. Downstream single prompts are intentionally excluded
+from this inventory; all-16 downstream parsers and behavior execution are not
+implemented end to end.
+
+## Generation contract
+
+- Model: `anthropic/claude-sonnet-4.6` only, under the alias `sonnet`.
+- Orchestration: four workers, one construct-scoped output per construct, then
+  a combined manifest/inventory.
+- Sequence: no-API review pilot → human prompt-pair audit → full inventory.
+- Review mode emits one pair per paired cell for inspection. Full mode emits
+  the frozen 100/40/40 paired inventory.
+- `--resume` reuses only outputs that pass the expected-count and hash checks.
+- Transport retries are at most two repeats of the identical failed request.
+  They never regenerate content or alter a prompt after a content-based
+  failure.
+
+API-generated artifacts exist under
+`results/benchmark/vector_prompts_v1/`. The reviewed pilot contains 48 pairs
+/ 96 records. The current full directory contains 2,520 pairs / 5,040 records:
+180 pairs / 360 records for each of 14 constructs, with the required 100/40/40
+train/validation/held-out split. `prior_weighting` and
+`causal_interpretation` are absent. Do not describe the all-16 inventory as
+complete until those two files and the final combined manifest exist.
+
+OpenRouter connectivity and authentication were verified. Generation stopped
+on 2026-08-25 when the credits endpoint reported 1,450 total credits and
+1,449.41279901 used (about 0.59 remaining). The API returned HTTP 402 with
+`in_flight_budget_exhausted` even after the requested wait and a sequential
+retry. No RunPod or activation run was attempted.
+
+## Completed review pilot
+
+```bash
+./venv/bin/python scripts/generate_all_vector_prompts.py \
+  --registry configs/construct_benchmark/construct_registry_v1.json \
+  --waves all --mode review --workers 4 \
+  --output-dir results/benchmark/vector_prompts_v1/review_v2 --resume
+```
+
+The review run completed for all 16 constructs. It caught and corrected a
+reference-frame labeling error before the full run. The current review
+manifest reports 48 valid pairs / 96 records. Earlier files named
+`*_superseded*.csv` are retained review history and are not canonical inputs.
+
+## Full vector inventory
+
+```bash
+./venv/bin/python scripts/generate_all_vector_prompts.py \
+  --registry configs/construct_benchmark/construct_registry_v1.json \
+  --waves all --mode full --workers 1 \
+  --output-dir results/benchmark/vector_prompts_v1/prompts \
+  --resume
+```
+
+After credits are replenished, rerun this exact resumable command. It will
+hash/count-validate and skip the existing 14 constructs, then generate only
+the missing two and build `combined.csv` plus
+`vector_prompt_manifest.json`. One worker is intentional: four workers were
+useful initially but triggered OpenRouter's in-flight spending ceiling near
+the end. The command is prompt generation, not activation or behavior
+execution.
+
+## QA audit
+
+```bash
+./venv/bin/python scripts/audit_vector_pairs.py \
+  --input results/benchmark/vector_prompts_v1/prompts/combined.csv \
+  --summary-output results/benchmark/vector_prompts_v1/prompts/vector_pair_audit.json \
+  --flags-output results/benchmark/vector_prompts_v1/prompts/vector_pair_flags.csv \
+  --fail-on-severe
+```
+
+The audit entrypoint is structural and lexical QA for paired rows, split
+counts, leakage, and nuisance matching. Human review remains required for
+semantic construct validity and for disposition of non-hard flags. A
+14-construct audit was stopped after more than 13 minutes because the current
+cross-pair near-duplicate search scales poorly; optimize or scope that phase
+before treating full-inventory audit latency as acceptable. Generation-time
+schema/count/split validation did pass for every written construct.
+
+## Checks completed
+
+- Review: 16/16 constructs, 48 pairs / 96 records.
+- Full: 14/16 constructs, 2,520 pairs / 5,040 records.
+- Every completed full construct: 100 train, 40 validation, 40 held-out pairs.
+- `make check`: lint and compilation clean; 113 tests passed, 2 optional
+  PyTorch-dependent tests skipped.
+- No activation logging, vector construction, steering, or empirical model
+  result was produced.
+
+## Gates and handoff assumptions
+
+The review/full vector artifacts are repository preparation, not measurement
+results. Before confirmatory claims, retain the frozen manifests, review/audit
+outputs, model and prompt hashes, split counts, and transport logs; then run
+the Wave 1 measurement and precision gates. Do not treat a successful vector
+inventory as evidence of decodability, behavioral sensitivity, or
+steerability. Keep independent downstream tasks separate from probe text,
+labels, and entities; only an induced model state may carry over in a later
+model-side episode.

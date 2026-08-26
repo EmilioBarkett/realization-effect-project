@@ -1,0 +1,97 @@
+{
+  "schema_version": "0.1.0",
+  "construct_id": "authority_deference",
+  "version": "v1",
+  "family": "social",
+  "title": "Legitimate-authority deference",
+  "description": "Whether a legitimate specialist's recommendation is represented as something to follow or as something to independently check, distinct from source track record, status seeking, or generic compliance.",
+  "contrast_conditions": [
+    {
+      "condition_id": "defer_to_authority",
+      "label": "Defer to legitimate authority",
+      "definition": "The scenario represents a credentialed and role-appropriate specialist's recommendation as a sufficient basis for action."
+    },
+    {
+      "condition_id": "verify_independently",
+      "label": "Verify independently",
+      "definition": "The scenario represents independent checking against direct evidence as warranted even when a credentialed specialist has made a recommendation."
+    }
+  ],
+  "probe_prompt_template": "Read the following short social-information scenario. Track how a role-appropriate specialist's recommendation should be handled separately from unrelated qualities of the adviser or the final action.\n\nScenario:\n{scenario}\n\nContinue processing the scenario.",
+  "independent_behavior_task": {
+    "task_id": "advice_direct_evidence_choice_v1",
+    "task_family": "authority_evidence_conflict_choice",
+    "prompt_template": "In a separate decision, a credentialed specialist recommends one action and a direct measurement may agree or conflict. Return exactly 1 to follow the specialist's recommendation or 2 to use the direct measurement. Use only this item's information.",
+    "primary_outcome": "advice_choice",
+    "secondary_outcomes": ["direct_evidence_choice", "compliance"],
+    "response_format": "single_integer_1_or_2",
+    "item_metadata_schema": {
+      "required": ["evidence_relation", "direct_evidence_quality", "consequence_cost", "source_track_record", "peer_consensus"],
+      "properties": {
+        "evidence_relation": {"type": "string", "enum": ["agreement", "conflict"]},
+        "direct_evidence_quality": {"type": "string", "enum": ["weak", "strong"]},
+        "consequence_cost": {"type": "string", "enum": ["low", "high"]},
+        "source_track_record": {"type": "string", "enum": ["neutral"]},
+        "peer_consensus": {"type": "string", "enum": ["none"]}
+      }
+    },
+    "independence_requirements": [
+      "Use new professions, domains, names, and decisions not present in probe prompts.",
+      "Keep the specialist credential and role legitimacy constant across items, with a neutral source track record and no peer consensus information.",
+      "Cross agreement versus conflict with direct-evidence quality and consequence cost.",
+      "Do not ask the model to classify deference, authority, or verification, and do not include popularity, peer agreement, or source-accuracy history."
+    ]
+  },
+  "expected_direction": {
+    "readout": {
+      "positive_condition": "defer_to_authority",
+      "negative_condition": "verify_independently",
+      "estimand": "heldout_projection_margin"
+    },
+    "behavior": {
+      "outcome": "advice_choice",
+      "estimand": "authority_deference_by_evidence_relation_effect",
+      "expected_by_evidence_relation": {
+        "agreement": "defer_to_authority has a small or ceiling-limited effect because both options agree",
+        "conflict": "defer_to_authority increases choosing the specialist recommendation, especially when direct evidence is strong"
+      },
+      "direction_status": "preregister_before_data_collection",
+      "warning": "This construct concerns deference to a legitimate role, not source reliability, popularity, coercion, or generic instruction following."
+    }
+  },
+  "parsing_rules": {
+    "parser_id": "single_integer_choice_1_or_2_v1",
+    "valid_values": {"choice": [1, 2]},
+    "choice_mapping": {"1": "follow_specialist", "2": "use_direct_measurement"},
+    "invalid_response_policy": "exclude_from_outcome_denominator_and_report_compliance",
+    "extra_text_policy": "invalid"
+  },
+  "required_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout",
+    "behavior_eval",
+    "steering_eval",
+    "calibration"
+  ],
+  "paired_splits": ["direction_train", "direction_validation", "direction_heldout"],
+  "controls": [
+    "legitimate_role_constant",
+    "direct_evidence_quality_crossing",
+    "agreement_and_conflict_balance",
+    "consequence_cost_crossing",
+    "source_track_record_control",
+    "peer_consensus_exclusion",
+    "new_domain_behavior_task",
+    "lexical_overlap_audit",
+    "neutral_behavior_prompt",
+    "shuffled_pair_labels",
+    "random_direction"
+  ],
+  "metadata": {
+    "primary_question": "Does a legitimate-role deference direction transfer when specialist advice conflicts with direct evidence?",
+    "probe_state_is": "authority_deference_state",
+    "not_claimed_as": "source_reliability_or_generic_social_compliance",
+    "nuisance_factors": ["role_legitimacy", "direct_evidence_quality", "evidence_relation", "consequence_cost"]
+  }
+}

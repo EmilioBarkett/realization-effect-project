@@ -1,0 +1,205 @@
+{
+  "schema_version": "0.1.0",
+  "plan_id": "wave3_plan_replanning_prompts_v1",
+  "construct_id": "plan_replanning",
+  "construct_spec_path": "../constructs/plan_replanning_v1.json",
+  "wave": 3,
+  "task_composition": {
+    "prompt_order": "probe_then_downstream",
+    "probe_context": "paired_probe_only",
+    "downstream_context": "independent_behavior_task_only",
+    "condition_carryover": "state_only",
+    "surface_text_carryover": "none",
+    "behavior_steering_pool_separation": true
+  },
+  "default_count_per_cell_per_model": 2,
+  "run_modes": {
+    "review": {"purpose": "prompt_review", "count_per_model_per_cell": 1, "partial": true},
+    "full": {"purpose": "frozen_full_inventory", "count_per_model_per_cell": null, "partial": false}
+  },
+  "models": [{"alias": "sonnet", "model": "anthropic/claude-sonnet-4.6"}],
+  "generation": {
+    "temperature": 0.7,
+    "max_tokens": 8000,
+    "seed": 204,
+    "timeout": 120,
+    "retries": 2,
+    "max_items_per_request": 10,
+    "estimated_input_tokens_per_request": 1400,
+    "estimated_output_tokens_per_record": 300
+  },
+  "design_rules": [
+    "Manipulate adaptation of means after a constraint change while the focal goal remains feasible and valuable. The original and alternative means must both remain feasible and usable after the change; the original means become less suitable or efficient, not unavailable. Do not manipulate goal switching, abandonment, generic flexibility, or persistence after a setback.",
+    "Do not use the construct ID, condition IDs, or labels such as adapt plan or preserve plan in prompt_text.",
+    "Probe and downstream content pools must use different projects, goals, actors, domains, and constraint types.",
+    "Within each paired probe, duplicate the same focal goal, goal value, changed constraint, original route, alternative route, original-route feasibility, alternative-route feasibility, relative suitability, objective progress, stakes, entities, sentence count, and sentence order. State that both routes remain feasible and usable after the change and that the original route is less suitable or efficient; change only whether the means are revised or retained.",
+    "The adaptation member and preserve member must differ only in the means-choice clause: adaptation selects the alternative means, while preserve selects the original means. Keep the focal goal valuable and feasible, and keep both means feasible, in both members.",
+    "Never introduce setback, sunk-cost, distractor, competing-goal, abandonment, or persistence language, and never make the original route unavailable, infeasible, impossible, blocked, out of service, or unusable.",
+    "Every probe prompt must be a complete instance of the registered probe_prompt_template and must end with the exact final characters `Continue processing the scenario.`; use that suffix once as an absolute terminator and append no text or whitespace after it.",
+    "Do not infer or alter the preregistered readout sign from generated prose."
+  ],
+  "rejection_criteria": [
+    "Reject any probe prompt_text whose final characters are not exactly `Continue processing the scenario.` or that contains any character or text after the suffix.",
+    "Reject any paired probe when the original means are described as `not feasible`, `infeasible`, `impossible`, `cannot work`, `can't work`, `cannot use`, `can't use`, unavailable, blocked, out of service, inaccessible, prohibited, unsafe, or unusable after the changed constraint.",
+    "Reject any paired probe when the original and alternative means do not both remain feasible and usable after the changed constraint, or when the original means are removed rather than merely made less suitable or efficient.",
+    "Reject any paired probe when the focal goal is not valuable and feasible in both members, or when the changed constraint alters goal value, goal feasibility, progress, stakes, or any other nuisance factor.",
+    "Reject any paired probe when the adaptation and preserve members differ outside the one means-choice clause, including route descriptions, feasibility, suitability, efficiency, chronology, entities, or response framing.",
+    "Reject any prompt containing a construct name, condition ID, condition label, or forbidden neighbor concept."
+  ],
+  "pair_quality_checks": {
+    "required_shared_properties": [
+      "focal goal",
+      "goal value",
+      "goal feasibility",
+      "changed constraint",
+      "original means",
+      "alternative means",
+      "original means feasibility after change",
+      "alternative means feasibility after change",
+      "relative suitability or efficiency",
+      "objective progress",
+      "stakes",
+      "entities",
+      "sentence order",
+      "terminal suffix"
+    ],
+    "feasibility_requirement": "Both original and alternative means remain feasible and usable after the changed constraint; the original means are less suitable or efficient but remain available.",
+    "goal_requirement": "The same focal goal remains valuable and feasible in both pair members.",
+    "condition_edit": "One means-choice clause only: adaptation selects the alternative means, and preserve selects the original means.",
+    "normalized_pair_text": {
+      "replace_only": "the means-choice clause",
+      "required_identical": true
+    },
+    "reject_if": [
+      "the original means are not feasible, impossible, cannot work, unavailable, blocked, or unusable after the changed constraint",
+      "the original means are not less suitable or efficient but are instead removed or made impossible",
+      "the original and alternative means have different feasibility across pair members",
+      "the focal goal is not valuable and feasible in both members",
+      "any text outside the one means-choice clause differs",
+      "either prompt is missing the registered wrapper or does not end with the exact terminal suffix"
+    ]
+  },
+  "forbidden_terms": ["plan_replanning", "adapt_plan", "preserve_plan", "plan replanning", "replanning", "plan adaptation", "setback", "sunk cost", "sunk-cost", "abandon", "abandonment", "persistence", "competing goal", "distractor", "not feasible", "infeasible", "impossible", "cannot work", "can't work", "cannot use", "can't use", "unavailable", "blocked", "out of service", "inaccessible", "prohibited", "unsafe", "unusable"],
+  "content_pools": {
+    "replanning_probe_train": {"role": "probe", "domains": ["event_logistics", "equipment_maintenance"]},
+    "replanning_probe_validation": {"role": "probe", "domains": ["software_migration", "community_gardens"]},
+    "replanning_probe_heldout": {"role": "probe", "domains": ["field_research", "small_business_operations"]},
+    "replanning_behavior": {"role": "behavior", "domains": ["new_changed_constraint_items"]},
+    "replanning_steering": {"role": "steering", "domains": ["new_changed_constraint_items_heldout"]},
+    "replanning_calibration": {"role": "calibration", "domains": ["neutral_changed_constraint_items"]}
+  },
+  "behavior_factor_schedule": {
+    "note": "All three behavior-task factors must vary independently. Generate one item per combination; do not allow factors to co-vary. Record constraint_change, alternative_quality, and goal_value as structured metadata fields on every generated item.",
+    "factors": {
+      "constraint_change": ["minor", "major"],
+      "alternative_quality": ["weak", "strong"],
+      "goal_value": ["high", "low"]
+    },
+    "required_combinations": [
+      {"constraint_change": "minor", "alternative_quality": "weak", "goal_value": "high"},
+      {"constraint_change": "minor", "alternative_quality": "strong", "goal_value": "high"},
+      {"constraint_change": "minor", "alternative_quality": "weak", "goal_value": "low"},
+      {"constraint_change": "minor", "alternative_quality": "strong", "goal_value": "low"},
+      {"constraint_change": "major", "alternative_quality": "weak", "goal_value": "high"},
+      {"constraint_change": "major", "alternative_quality": "strong", "goal_value": "high"},
+      {"constraint_change": "major", "alternative_quality": "weak", "goal_value": "low"},
+      {"constraint_change": "major", "alternative_quality": "strong", "goal_value": "low"}
+    ],
+    "required_item_fields": ["constraint_change", "alternative_quality", "goal_value"],
+    "balance_check": "Each of the 8 combinations must appear at least once per content pool (behavior_eval and steering_eval). Warn if any combination is missing."
+  },
+  "cells": [
+    {
+      "cell_id": "probe_train",
+      "split": "direction_train",
+      "prompt_role": "probe",
+      "mode": "paired",
+      "prompt_family": "replanning_probe_train",
+      "content_pool": "replanning_probe_train",
+      "condition_ids": ["adapt_plan", "preserve_plan"],
+      "count_per_model": 100,
+      "instructions": "Generate the configured number of matched pairs of short goal-pursuit scenarios. Duplicate the same focal goal, goal value, changed constraint, original route, alternative route, original-route feasibility, alternative-route feasibility, relative suitability, objective progress, stakes, entities, sentence count, and sentence order within each pair. Both the original and alternative means must remain feasible and usable after the constraint change; state that the original means are less suitable or efficient, not removed. Change only one means-choice clause: the adaptation member selects the alternative means and the preserve member selects the original means. State that the focal goal remains feasible and valuable in both members. Do not use setback, sunk-cost, distractor, competing-goal, abandonment, persistence, not feasible, impossible, cannot work, unavailable, blocked, out-of-service, or unusable language. Every prompt must use the complete registered wrapper and end with the exact suffix `Continue processing the scenario.` as its final characters."
+    },
+    {
+      "cell_id": "probe_validation",
+      "split": "direction_validation",
+      "prompt_role": "probe",
+      "mode": "paired",
+      "prompt_family": "replanning_probe_validation",
+      "content_pool": "replanning_probe_validation",
+      "condition_ids": ["adapt_plan", "preserve_plan"],
+      "count_per_model": 40,
+      "instructions": "Generate the configured number of matched validation pairs in new domains and with new constraint types. Duplicate the same feasible and valuable focal goal, original and alternative means, changed constraint, route feasibility, relative suitability, objective progress, stakes, entities, sentence count, and sentence order within each pair. Both means must remain feasible and usable after the change, while the original is less suitable or efficient. Vary only the one means-choice clause between adaptation and preserve; do not make the original route unavailable or impossible. Avoid training templates and forbidden neighbor concepts. Every prompt must be complete and end with the exact suffix `Continue processing the scenario.` as its final characters."
+    },
+    {
+      "cell_id": "probe_heldout",
+      "split": "direction_heldout",
+      "prompt_role": "probe",
+      "mode": "paired",
+      "prompt_family": "replanning_probe_heldout",
+      "content_pool": "replanning_probe_heldout",
+      "condition_ids": ["adapt_plan", "preserve_plan"],
+      "count_per_model": 40,
+      "instructions": "Generate the configured number of final held-out matched pairs in domains unused by train and validation. Keep the same focal goal feasible and valuable in both members, ensure both original and alternative means remain feasible and usable after the changed constraint, and make the original means less suitable or efficient rather than impossible. Preserve all route, constraint, relative-suitability, progress, stake, entity, and sentence nuisance controls within pairs. Vary only the means-choice clause, do not reveal construct or condition labels, and reject any prompt that says the original route is not feasible, impossible, cannot work, unavailable, blocked, or unusable. Every prompt must be complete and end with the exact suffix `Continue processing the scenario.` as its final characters."
+    },
+    {
+      "cell_id": "behavior_eval",
+      "split": "behavior_eval",
+      "prompt_role": "behavior",
+      "mode": "single",
+      "prompt_family": "replanning_behavior_eval",
+      "content_pool": "replanning_behavior",
+      "condition_id": "neutral",
+      "task_id": "changed_constraint_plan_allocation_v1",
+      "parser_id": "two_integers_sum_100_v1",
+      "expected_output_format": "two_integers_sum_100",
+      "factor_schedule": "behavior_factor_schedule",
+      "count_per_model": 8,
+      "category_balance": {
+        "constraint_change": ["minor", "minor", "minor", "minor", "major", "major", "major", "major"],
+        "alternative_quality": ["weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong"],
+        "goal_value": ["high", "high", "low", "low", "high", "high", "low", "low"]
+      },
+      "instructions": "Generate one independent allocation item per required combination. State one focal goal that remains feasible and valuable, present original and revised means after a changed constraint, and record all factors exactly. Request exactly two integers on separate lines in this order: revised_plan_allocation first, original_plan_allocation second. Do not ask the model to label plan adaptation or persistence."
+    },
+    {
+      "cell_id": "steering_eval",
+      "split": "steering_eval",
+      "prompt_role": "steering",
+      "mode": "single",
+      "prompt_family": "replanning_steering_eval",
+      "content_pool": "replanning_steering",
+      "condition_id": "neutral",
+      "task_id": "changed_constraint_plan_allocation_v1",
+      "parser_id": "two_integers_sum_100_v1",
+      "expected_output_format": "two_integers_sum_100",
+      "factor_schedule": "behavior_factor_schedule",
+      "count_per_model": 8,
+      "category_balance": {
+        "constraint_change": ["minor", "minor", "minor", "minor", "major", "major", "major", "major"],
+        "alternative_quality": ["weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong"],
+        "goal_value": ["high", "high", "low", "low", "high", "high", "low", "low"]
+      },
+      "instructions": "Generate eight new independent allocation items, one per required combination, distinct from behavior_eval. Keep the focal goal feasible and valuable, record constraint_change, alternative_quality, and goal_value as structured metadata, and request exactly two integers on separate lines in this order: revised_plan_allocation first, original_plan_allocation second."
+    },
+    {
+      "cell_id": "calibration",
+      "split": "calibration",
+      "prompt_role": "calibration",
+      "mode": "single",
+      "prompt_family": "replanning_calibration",
+      "content_pool": "replanning_calibration",
+      "condition_id": "neutral",
+      "task_id": "changed_constraint_plan_allocation_v1",
+      "parser_id": "two_integers_sum_100_v1",
+      "expected_output_format": "two_integers_sum_100",
+      "count_per_model": 8,
+      "category_balance": {
+        "constraint_change": ["minor", "minor", "minor", "minor", "major", "major", "major", "major"],
+        "alternative_quality": ["weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong"],
+        "goal_value": ["high", "high", "low", "low", "high", "high", "low", "low"]
+      },
+      "instructions": "Generate neutral changed-constraint allocation items from the calibration pool. Keep the focal goal feasible and valuable, balance factors for response variation only, request exactly two integers on separate lines in the order revised_plan_allocation then original_plan_allocation, and do not cue the probe state."
+    }
+  ]
+}

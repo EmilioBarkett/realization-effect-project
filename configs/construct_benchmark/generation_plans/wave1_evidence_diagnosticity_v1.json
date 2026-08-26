@@ -26,25 +26,48 @@
     }
   },
   "models": [
-    {"alias": "gpt54", "model": "openai/gpt-5.4"},
     {"alias": "sonnet", "model": "anthropic/claude-sonnet-4.6"}
   ],
   "generation": {
     "temperature": 0.7,
-    "max_tokens": 2500,
+    "max_tokens": 8000,
     "seed": 102,
     "timeout": 120,
-    "retries": 0,
-    "max_items_per_request": 2,
+    "retries": 2,
+    "max_items_per_request": 10,
     "estimated_input_tokens_per_request": 1400,
     "estimated_output_tokens_per_record": 300
   },
   "design_rules": [
-    "Manipulate evidence diagnosticity, not evidence polarity; cross supporting and contradicting content.",
+    "Manipulate likelihood-ratio separation, not evidence polarity, source reliability, amount, or surface clarity.",
+    "For every pair, duplicate the same observation, entities, numbers, source, polarity, sentence count, sentence order, and wording; edit only the two stated frequency numerators under the focal hypothesis versus alternatives.",
+    "Use a common denominator of 100 for both probabilities in both members of each pair. The high condition must satisfy absolute log LR >= ln(10) = 2.302585093 (LR >= 10 or LR <= 0.1); the low condition must satisfy absolute log LR <= ln(1.25) = 0.223143551 (0.8 <= LR <= 1.25). Reject any pair that does not satisfy these numeric bounds.",
+    "Use explicit frequencies under the focal hypothesis and alternatives so diagnosticity is an inferential likelihood ratio rather than a generic strong/weak adjective. Do not rely on rounded prose or labels to establish the ratio.",
+    "Balance supporting and contradicting observation polarity across every paired split and hold polarity constant within each pair.",
+    "Cross prior probability, supporting and contradicting polarity, and likelihood separation independently in downstream tasks.",
     "Do not use the construct ID, condition IDs, or labels such as high/low diagnosticity in prompt_text.",
     "Probe and downstream content pools must use different hypotheses and evidence entities.",
     "Do not infer or alter the preregistered readout sign from generated prose."
   ],
+  "pair_quality_checks": {
+    "likelihood_ratio_definition": "LR = P(observation | focal hypothesis) / P(observation | alternatives)",
+    "frequency_fields": ["p_observation_given_hypothesis", "p_observation_given_alternatives"],
+    "required_denominator": 100,
+    "same_denominator_within_pair": true,
+    "high": {
+      "minimum_absolute_log_likelihood_ratio": 2.302585093,
+      "accepted_likelihood_ratio": "LR >= 10 or LR <= 0.1"
+    },
+    "low": {
+      "maximum_absolute_log_likelihood_ratio": 0.223143551,
+      "accepted_likelihood_ratio": "0.8 <= LR <= 1.25"
+    },
+    "reject_if": [
+      "high condition is within the low-condition LR interval",
+      "low condition falls outside the registered near-one LR interval",
+      "the pair changes denominator, source, polarity, observation count, or any other nuisance factor"
+    ]
+  },
   "forbidden_terms": ["evidence_diagnosticity", "high_diagnosticity", "low_diagnosticity", "diagnosticity"],
   "content_pools": {
     "evidence_probe_train": {"role": "probe", "domains": ["archaeology", "ecology"]},
@@ -55,11 +78,11 @@
     "evidence_calibration": {"role": "calibration", "domains": ["neutral_probability_items"]}
   },
   "cells": [
-    {"cell_id": "probe_train", "split": "direction_train", "prompt_role": "probe", "mode": "paired", "prompt_family": "evidence_probe_train", "content_pool": "evidence_probe_train", "condition_ids": ["high_diagnosticity", "low_diagnosticity"], "instructions": "Generate matched evidence scenarios where reliability and specificity make one version more informative than the other, while crossing support versus contradiction."},
-    {"cell_id": "probe_validation", "split": "direction_validation", "prompt_role": "probe", "mode": "paired", "prompt_family": "evidence_probe_validation", "content_pool": "evidence_probe_validation", "condition_ids": ["high_diagnosticity", "low_diagnosticity"], "instructions": "Use new hypotheses and evidence sources while keeping diagnosticity separate from polarity."},
-    {"cell_id": "probe_heldout", "split": "direction_heldout", "prompt_role": "probe", "mode": "paired", "prompt_family": "evidence_probe_heldout", "content_pool": "evidence_probe_heldout", "condition_ids": ["high_diagnosticity", "low_diagnosticity"], "instructions": "Use held-out domains and avoid template phrases from train or validation prompts."},
-    {"cell_id": "behavior_eval", "split": "behavior_eval", "prompt_role": "behavior", "mode": "single", "prompt_family": "evidence_behavior_eval", "content_pool": "evidence_behavior", "condition_id": "neutral", "task_id": "belief_update_magnitude_v1", "parser_id": "single_integer_probability_v1", "expected_output_format": "single_integer_0_to_100", "count_per_model": 6, "category_balance": {"evidence_valence": ["supporting", "contradicting", "supporting", "contradicting", "supporting", "contradicting"], "evidence_strength": ["weak", "moderate", "strong", "weak", "moderate", "strong"]}, "instructions": "Generate an independent prior-and-evidence probability-update task without asking the model to label diagnosticity."},
-    {"cell_id": "steering_eval", "split": "steering_eval", "prompt_role": "steering", "mode": "single", "prompt_family": "evidence_steering_eval", "content_pool": "evidence_steering", "condition_id": "neutral", "task_id": "belief_update_magnitude_v1", "parser_id": "single_integer_probability_v1", "expected_output_format": "single_integer_0_to_100", "count_per_model": 6, "category_balance": {"evidence_valence": ["supporting", "contradicting", "supporting", "contradicting", "supporting", "contradicting"], "evidence_strength": ["weak", "moderate", "strong", "weak", "moderate", "strong"]}, "instructions": "Generate an independent intervention task with new hypotheses and evidence items."},
-    {"cell_id": "calibration", "split": "calibration", "prompt_role": "calibration", "mode": "single", "prompt_family": "evidence_calibration", "content_pool": "evidence_calibration", "condition_id": "neutral", "task_id": "belief_update_magnitude_v1", "parser_id": "single_integer_probability_v1", "expected_output_format": "single_integer_0_to_100", "count_per_model": 6, "category_balance": {"evidence_valence": ["supporting", "contradicting", "supporting", "contradicting", "supporting", "contradicting"], "evidence_strength": ["weak", "moderate", "strong", "weak", "moderate", "strong"]}, "instructions": "Generate neutral calibration items used only to estimate within-cell output variation."}
+    {"cell_id": "probe_train", "split": "direction_train", "prompt_role": "probe", "mode": "paired", "prompt_family": "evidence_probe_train", "content_pool": "evidence_probe_train", "condition_ids": ["high_diagnosticity", "low_diagnosticity"], "count_per_model": 100, "instructions": "Generate matched evidence scenarios with the same denominator of 100 in both conditions. Use high frequencies with LR >=10 (or <=0.1) and low frequencies with LR between 0.8 and 1.25; duplicate the same observation, source, entities, polarity, sentence count, and wording within each pair, editing only the two frequency numerators."},
+    {"cell_id": "probe_validation", "split": "direction_validation", "prompt_role": "probe", "mode": "paired", "prompt_family": "evidence_probe_validation", "content_pool": "evidence_probe_validation", "condition_ids": ["high_diagnosticity", "low_diagnosticity"], "count_per_model": 40, "instructions": "Use new hypotheses and evidence sources with denominator 100 and the registered thresholds: high LR >=10 or <=0.1, low LR between 0.8 and 1.25. Preserve the same minimal frequency edit, polarity, source reliability, amount, clarity, and wording within each pair."},
+    {"cell_id": "probe_heldout", "split": "direction_heldout", "prompt_role": "probe", "mode": "paired", "prompt_family": "evidence_probe_heldout", "content_pool": "evidence_probe_heldout", "condition_ids": ["high_diagnosticity", "low_diagnosticity"], "count_per_model": 40, "instructions": "Use held-out domains and templates with denominator 100 and the registered thresholds: high LR >=10 or <=0.1, low LR between 0.8 and 1.25. Preserve the minimal frequency edit and keep polarity, source, amount, clarity, wording, and all other nuisance factors constant within each pair."},
+    {"cell_id": "behavior_eval", "split": "behavior_eval", "prompt_role": "behavior", "mode": "single", "prompt_family": "evidence_behavior_eval", "content_pool": "evidence_behavior", "condition_id": "neutral", "task_id": "belief_update_magnitude_v1", "parser_id": "single_integer_probability_v1", "expected_output_format": "single_integer_0_to_100", "factor_schedule": "behavior_factor_schedule", "count_per_model": 18, "category_balance": {"prior_probability": [20, 20, 20, 20, 20, 20, 50, 50, 50, 50, 50, 50, 80, 80, 80, 80, 80, 80], "evidence_valence": ["supporting", "supporting", "supporting", "contradicting", "contradicting", "contradicting", "supporting", "supporting", "supporting", "contradicting", "contradicting", "contradicting", "supporting", "supporting", "supporting", "contradicting", "contradicting", "contradicting"], "likelihood_separation": ["weak", "moderate", "strong", "weak", "moderate", "strong", "weak", "moderate", "strong", "weak", "moderate", "strong", "weak", "moderate", "strong", "weak", "moderate", "strong"]}, "instructions": "Generate one independent posterior-probability item per crossed combination. Record prior_probability, evidence_valence, and likelihood_separation exactly. For weak use absolute log LR <= ln(1.25), for strong use absolute log LR >= ln(10), and state numerical frequencies rather than generic strength adjectives; do not ask the model to label diagnosticity."},
+    {"cell_id": "steering_eval", "split": "steering_eval", "prompt_role": "steering", "mode": "single", "prompt_family": "evidence_steering_eval", "content_pool": "evidence_steering", "condition_id": "neutral", "task_id": "belief_update_magnitude_v1", "parser_id": "single_integer_probability_v1", "expected_output_format": "single_integer_0_to_100", "factor_schedule": "behavior_factor_schedule", "count_per_model": 18, "category_balance": {"prior_probability": [20, 20, 20, 20, 20, 20, 50, 50, 50, 50, 50, 50, 80, 80, 80, 80, 80, 80], "evidence_valence": ["supporting", "supporting", "supporting", "contradicting", "contradicting", "contradicting", "supporting", "supporting", "supporting", "contradicting", "contradicting", "contradicting", "supporting", "supporting", "supporting", "contradicting", "contradicting", "contradicting"], "likelihood_separation": ["weak", "moderate", "strong", "weak", "moderate", "strong", "weak", "moderate", "strong", "weak", "moderate", "strong", "weak", "moderate", "strong", "weak", "moderate", "strong"]}, "instructions": "Generate an independent intervention set distinct from behavior_eval with the same crossed schedule and exact metadata fields. For weak use absolute log LR <= ln(1.25), for strong use absolute log LR >= ln(10), state numerical frequencies, and keep hypotheses and evidence items new."},
+    {"cell_id": "calibration", "split": "calibration", "prompt_role": "calibration", "mode": "single", "prompt_family": "evidence_calibration", "content_pool": "evidence_calibration", "condition_id": "neutral", "task_id": "belief_update_magnitude_v1", "parser_id": "single_integer_probability_v1", "expected_output_format": "single_integer_0_to_100", "factor_schedule": "behavior_factor_schedule", "count_per_model": 18, "category_balance": {"prior_probability": [20, 20, 20, 20, 20, 20, 50, 50, 50, 50, 50, 50, 80, 80, 80, 80, 80, 80], "evidence_valence": ["supporting", "supporting", "supporting", "contradicting", "contradicting", "contradicting", "supporting", "supporting", "supporting", "contradicting", "contradicting", "contradicting", "supporting", "supporting", "supporting", "contradicting", "contradicting", "contradicting"], "likelihood_separation": ["weak", "moderate", "strong", "weak", "moderate", "strong", "weak", "moderate", "strong", "weak", "moderate", "strong", "weak", "moderate", "strong", "weak", "moderate", "strong"]}, "instructions": "Generate neutral calibration items with the same crossed metadata schedule, distinct from behavior and steering pools, for within-cell output-variation calibration. For weak use absolute log LR <= ln(1.25), for strong use absolute log LR >= ln(10), and state numerical frequencies."}
   ]
 }

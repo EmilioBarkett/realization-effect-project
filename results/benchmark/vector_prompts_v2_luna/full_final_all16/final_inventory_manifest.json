@@ -1,0 +1,247 @@
+{
+  "accepted_inventory_cost_usd": 1.9146208,
+  "combined_path": "combined.csv",
+  "combined_sha256": "646c2b7575695723b5625b6f425d210abce84653728b78ca5ef7a1f830ec84ba",
+  "confirmatory": false,
+  "construct_count": 16,
+  "constructs": [
+    {
+      "accepted_inventory_cost_usd": 0.27875,
+      "construct_id": "realization_account_closure",
+      "pair_count": 180,
+      "record_count": 360,
+      "source_csv_sha256": "170e088f8cdb793d898a967c601b82d57b4fe15f0ed7559888287fa330cb1fd0",
+      "source_manifest_sha256": "51fbccb11cff9ee571f471734328e46567e3f0438b00fb974249cc6b3aeb3208",
+      "split_counts": {
+        "direction_heldout": 80,
+        "direction_train": 200,
+        "direction_validation": 80
+      }
+    },
+    {
+      "accepted_inventory_cost_usd": 0.08072399999999999,
+      "construct_id": "evidence_diagnosticity",
+      "pair_count": 180,
+      "record_count": 360,
+      "source_csv_sha256": "1d828f54c1d3e028a7546731909f7d7654eabd18792f972a5dece28ebb6f322f",
+      "source_manifest_sha256": "e7378bdec1930ff4401f90060c7163da9b7515ea08a318ba3330f0a7dbbc8e64",
+      "split_counts": {
+        "direction_heldout": 80,
+        "direction_train": 200,
+        "direction_validation": 80
+      }
+    },
+    {
+      "accepted_inventory_cost_usd": 0.19901960000000002,
+      "construct_id": "source_reliability",
+      "pair_count": 180,
+      "record_count": 360,
+      "source_csv_sha256": "cf3607f88961def4c684e2f54158da89b1d54ec392a88dcdfa8c978f641e6ad8",
+      "source_manifest_sha256": "f659cbf0879f8b19db39b5485931220451eeae3d105e5086b36259f9e5164909",
+      "split_counts": {
+        "direction_heldout": 80,
+        "direction_train": 200,
+        "direction_validation": 80
+      }
+    },
+    {
+      "accepted_inventory_cost_usd": 0.15196800000000002,
+      "construct_id": "persistence_continuation",
+      "pair_count": 180,
+      "record_count": 360,
+      "source_csv_sha256": "2562af104645a631a09899008917e2220f4e3d5c95780681a4663d54fd201c7a",
+      "source_manifest_sha256": "c9e02337bebacdf1f3fab45cd1b66d8e737eb783fcb06973b2ea954651644af6",
+      "split_counts": {
+        "direction_heldout": 80,
+        "direction_train": 200,
+        "direction_validation": 80
+      }
+    },
+    {
+      "accepted_inventory_cost_usd": 0.061163,
+      "construct_id": "reference_frame",
+      "pair_count": 180,
+      "record_count": 360,
+      "source_csv_sha256": "8bdf24332f8cf96c4e6a9a4a92e41d588eb10ca3f3c3eafe6baba87913fcb4f3",
+      "source_manifest_sha256": "42c2601f3de45c5c7ef555c9d2ea0128016538145a325906563d426f33585948",
+      "split_counts": {
+        "direction_heldout": 80,
+        "direction_train": 200,
+        "direction_validation": 80
+      }
+    },
+    {
+      "accepted_inventory_cost_usd": 0.06947779999999999,
+      "construct_id": "prior_weighting",
+      "pair_count": 180,
+      "record_count": 360,
+      "source_csv_sha256": "65c6ed5869d12ead29a23652233c62fe12638501bbe7bbbb10b530d08bf87e9e",
+      "source_manifest_sha256": "379fadab19fd546f11b4818c0cfeb0a5df3ef62a08dc9c5d8d1e82cd3c84d562",
+      "split_counts": {
+        "direction_heldout": 80,
+        "direction_train": 200,
+        "direction_validation": 80
+      }
+    },
+    {
+      "accepted_inventory_cost_usd": 0.07137779999999999,
+      "construct_id": "authority_deference",
+      "pair_count": 180,
+      "record_count": 360,
+      "source_csv_sha256": "a082b401579e97871c880fbe7239af0a1db9272d6546fb8daef6f836b33dea88",
+      "source_manifest_sha256": "7309cb179a8437ea2c6bc1365138993198d4f9218efd427da0ac664f1bfcb9db",
+      "split_counts": {
+        "direction_heldout": 80,
+        "direction_train": 200,
+        "direction_validation": 80
+      }
+    },
+    {
+      "accepted_inventory_cost_usd": 0.09250699999999999,
+      "construct_id": "exploration_exploitation",
+      "pair_count": 180,
+      "record_count": 360,
+      "source_csv_sha256": "99780f94477db2d472696a2cd8a0cb359f77eee0ebbafac3cd1a0fda9174451f",
+      "source_manifest_sha256": "3b2bff2488c2ae4ed9ec6c1d871836a271196b46e0a4ca5d44007be6035bce15",
+      "split_counts": {
+        "direction_heldout": 80,
+        "direction_train": 200,
+        "direction_validation": 80
+      }
+    },
+    {
+      "accepted_inventory_cost_usd": 0.11941500000000001,
+      "construct_id": "ambiguity_orientation",
+      "pair_count": 180,
+      "record_count": 360,
+      "source_csv_sha256": "0edfaa4f24763e61f2466c148732f2b65e2ba30fd20dfb8bf4b60df349d7a747",
+      "source_manifest_sha256": "e5ecbdbc69e1e8935360da19d92a80615a1ca0ecc78278cb2bb7f2132b332c54",
+      "split_counts": {
+        "direction_heldout": 80,
+        "direction_train": 200,
+        "direction_validation": 80
+      }
+    },
+    {
+      "accepted_inventory_cost_usd": 0.0842618,
+      "construct_id": "causal_interpretation",
+      "pair_count": 180,
+      "record_count": 360,
+      "source_csv_sha256": "8aad2b3b1b395688e9cf6ffd54d1ec53429eac0322f20e8f8aa3341ab8546e20",
+      "source_manifest_sha256": "58263bfcb813dc2b5cc51e9c145fd0e60c726949227cc01e64efbf0d8d80c543",
+      "split_counts": {
+        "direction_heldout": 80,
+        "direction_train": 200,
+        "direction_validation": 80
+      }
+    },
+    {
+      "accepted_inventory_cost_usd": 0.1122878,
+      "construct_id": "consensus_conformity",
+      "pair_count": 180,
+      "record_count": 360,
+      "source_csv_sha256": "d49201a717b24719e4135cbd387282f227a71fed103a735354c094ecdf652f3a",
+      "source_manifest_sha256": "6809498c9b25fdd522e9e3f8412b2e624879bee8ae8c711de8b6a863859d139d",
+      "split_counts": {
+        "direction_heldout": 80,
+        "direction_train": 200,
+        "direction_validation": 80
+      }
+    },
+    {
+      "accepted_inventory_cost_usd": 0.1254218,
+      "construct_id": "plan_replanning",
+      "pair_count": 180,
+      "record_count": 360,
+      "source_csv_sha256": "2f493e97011240272cfc66cd8d20380e7055a09760f6fa0308a8a7b6f67326e4",
+      "source_manifest_sha256": "6b0a605b91b2269ebe273e9101c684b397741e558fa97a45e681320932d05c7f",
+      "split_counts": {
+        "direction_heldout": 80,
+        "direction_train": 200,
+        "direction_validation": 80
+      }
+    },
+    {
+      "accepted_inventory_cost_usd": 0.1253996,
+      "construct_id": "temporal_orientation",
+      "pair_count": 180,
+      "record_count": 360,
+      "source_csv_sha256": "5a48fe69cf0aee8e109d76a9faaeabb0de4c81d0c24c60ff454e997f4adfbf20",
+      "source_manifest_sha256": "049e739feaebf003ac337f84a32d6b456a91c62003a362872fe017918ae8e566",
+      "split_counts": {
+        "direction_heldout": 80,
+        "direction_train": 200,
+        "direction_validation": 80
+      }
+    },
+    {
+      "accepted_inventory_cost_usd": 0.140123,
+      "construct_id": "epistemic_uncertainty",
+      "pair_count": 180,
+      "record_count": 360,
+      "source_csv_sha256": "f16f1ac28696db1b7c3c0ccc33dd9453e894a9aa0ebdcef4d4c7a6ec549c1b87",
+      "source_manifest_sha256": "f2436be3452374b73931f7b872a8d6331bc058a5542bd845cb9443656071b363",
+      "split_counts": {
+        "direction_heldout": 80,
+        "direction_train": 200,
+        "direction_validation": 80
+      }
+    },
+    {
+      "accepted_inventory_cost_usd": 0.11504779999999999,
+      "construct_id": "reciprocity_obligation",
+      "pair_count": 180,
+      "record_count": 360,
+      "source_csv_sha256": "f678a0dc031abc6f38433126dec7d1da10d12335df341f12b44166dc78d2f90b",
+      "source_manifest_sha256": "7cc724a88ae2dbc54fec0b6ef93d4548a40786c49e32c81d56f7426dd52faa4b",
+      "split_counts": {
+        "direction_heldout": 80,
+        "direction_train": 200,
+        "direction_validation": 80
+      }
+    },
+    {
+      "accepted_inventory_cost_usd": 0.0876768,
+      "construct_id": "goal_shielding",
+      "pair_count": 180,
+      "record_count": 360,
+      "source_csv_sha256": "496beae09ed6b3007eb19dcf702f42a05863a2f7c9eb47489b6099b4a147bcbf",
+      "source_manifest_sha256": "8b3bc2a3ffe18237870df466bfc31ed1823f2cbb057a1e8b97165484a077525a",
+      "split_counts": {
+        "direction_heldout": 80,
+        "direction_train": 200,
+        "direction_validation": 80
+      }
+    }
+  ],
+  "created_at": "2026-08-26T06:40:07.641325+00:00",
+  "expected_generic_audit_flags": {
+    "numeric_difference": 360,
+    "persistence_entity_like": 30,
+    "reciprocity_usb_entity_like": 5,
+    "source_count_word_entity_like": 10
+  },
+  "manifest_type": "final_vector_prompt_inventory",
+  "note": "Full frozen vector/probe inventory only. Behavior, calibration, and steering-task prompts are outside this artifact.",
+  "pair_count": 2880,
+  "record_count": 5760,
+  "schema_version": "1",
+  "scope": "vector",
+  "scope_partial": true,
+  "source_intermediate_artifacts_committed": false,
+  "split_record_counts": {
+    "direction_heldout": 1280,
+    "direction_train": 3200,
+    "direction_validation": 1280
+  },
+  "validation": {
+    "canonical_schema": "passed",
+    "consolidated_structural_qa": "0 hard failures; 0 balance failures; 0 cross-split/cross-construct duplicate flags",
+    "construct_namespace_and_pair_validation": "passed",
+    "epistemic_repair": "0 audit flags",
+    "independent_semantic_sweep": "passed; no genuine blockers",
+    "per_construct_split_counts": "passed",
+    "reference_frame_repair": "180/180 arithmetic; 0 nonnumeric mismatches",
+    "repository_check": "146 passed, 2 skipped"
+  }
+}

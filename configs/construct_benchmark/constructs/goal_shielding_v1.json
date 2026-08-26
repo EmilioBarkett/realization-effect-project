@@ -1,0 +1,86 @@
+{
+  "schema_version": "0.1.0",
+  "construct_id": "goal_shielding",
+  "version": "v1",
+  "family": "agentic",
+  "title": "Goal shielding",
+  "description": "Whether a focal objective is represented as receiving attentional priority at a shared decision point in the presence of a competing demand, distinct from persistence after failure and from preserving a fixed plan. Neither condition prescribes a different completion order or later action; both objectives remain available and feasible.",
+  "contrast_conditions": [
+    {
+      "condition_id": "shield_focal_goal",
+      "label": "Shield the focal objective",
+      "definition": "At a shared decision point, the scenario makes the focal objective receive attentional priority while the competing demand is present; both objectives remain available and feasible."
+    },
+    {
+      "condition_id": "attend_competing_goal",
+      "label": "Attend to the competing objective",
+      "definition": "At the same kind of decision point, the scenario makes the competing demand receive attentional priority while the focal objective remains present; both objectives remain available and feasible."
+    }
+  ],
+  "probe_prompt_template": "Read the following short goal-management scenario. At the shared decision point, track which objective receives attentional priority separately from whether the focal objective is valuable, whether a setback occurred, and whether the plan should be revised. Do not infer a different order of later completion from the attentional-priority state.\n\nScenario:\n{scenario}\n\nContinue processing the scenario.",
+  "independent_behavior_task": {
+    "task_id": "attention_allocation_v1",
+    "task_family": "focal_competing_attention_allocation",
+    "prompt_template": "Consider a new situation with a focal task and an unrelated distractor competing for limited attention. Allocate exactly 100 attention points between the focal task and the distractor. Use new domains and do not reuse the probe objectives.",
+    "primary_outcome": "focal_task_attention",
+    "secondary_outcomes": ["distractor_attention", "compliance"],
+    "response_format": "two_integers_sum_100",
+    "item_metadata_schema": {
+      "required": ["distractor_salience", "focal_urgency", "switching_cost"],
+      "properties": {
+        "distractor_salience": {"type": "string", "enum": ["low", "high"]},
+        "focal_urgency": {"type": "string", "enum": ["low", "high"]},
+        "switching_cost": {"type": "string", "enum": ["low", "high"]}
+      }
+    },
+    "independence_requirements": [
+      "Use new domains, actors, tasks, and distractors not present in probe prompts.",
+      "Cross distractor salience, focal urgency, and switching cost independently.",
+      "Do not ask the model to label goal shielding, persistence, or plan flexibility."
+    ]
+  },
+  "expected_direction": {
+    "readout": {
+      "positive_condition": "shield_focal_goal",
+      "negative_condition": "attend_competing_goal",
+      "estimand": "heldout_projection_margin"
+    },
+    "behavior": {
+      "outcome": "focal_task_attention",
+      "estimand": "goal_priority_by_salience_and_urgency_effect",
+      "expected_by_focal_urgency": {
+        "low": "shield_focal_goal increases focal-task attention modestly",
+        "high": "shield_focal_goal increases focal-task attention"
+      },
+      "direction_status": "preregister_before_data_collection",
+      "warning": "This construct concerns attentional priority under competition, not refusing to adapt means or continuing after a setback."
+    }
+  },
+  "parsing_rules": {
+    "parser_id": "two_integers_sum_100_v1",
+    "valid_ranges": {
+      "focal_task_attention": [0, 100],
+      "distractor_attention": [0, 100]
+    },
+    "sum_constraint": 100,
+    "invalid_response_policy": "exclude_from_outcome_denominator_and_report_compliance",
+    "extra_text_policy": "invalid"
+  },
+  "required_splits": ["direction_train", "direction_validation", "direction_heldout", "behavior_eval", "steering_eval", "calibration"],
+  "paired_splits": ["direction_train", "direction_validation", "direction_heldout"],
+  "controls": [
+    "distractor_salience_urgency_and_switching_cost_crossing",
+    "no_setback_or_plan_revision_leakage",
+    "new_domain_behavior_task",
+    "lexical_overlap_audit",
+    "neutral_behavior_prompt",
+    "shuffled_pair_labels",
+    "random_direction",
+    "compliance_and_collateral_response_controls"
+  ],
+  "metadata": {
+    "primary_question": "Does an attentional-priority direction transfer to maintaining focus on an independent task under distraction?",
+    "probe_state_is": "represented_focal_objective_priority",
+    "not_claimed_as": "generic persistence or plan rigidity"
+  }
+}

@@ -1,0 +1,166 @@
+{
+  "schema_version": "0.1.0",
+  "plan_id": "wave4_temporal_orientation_prompts_v1",
+  "construct_id": "temporal_orientation",
+  "construct_spec_path": "../constructs/temporal_orientation_v1.json",
+  "wave": 4,
+  "task_composition": {
+    "prompt_order": "probe_then_downstream",
+    "probe_context": "paired_probe_only",
+    "downstream_context": "independent_behavior_task_only",
+    "condition_carryover": "state_only",
+    "surface_text_carryover": "none",
+    "behavior_steering_pool_separation": true
+  },
+  "default_count_per_cell_per_model": 2,
+  "run_modes": {
+    "review": {"purpose": "prompt_review", "count_per_model_per_cell": 1, "partial": true},
+    "full": {"purpose": "frozen_full_inventory", "count_per_model_per_cell": null, "partial": false}
+  },
+  "models": [
+    {"alias": "sonnet", "model": "anthropic/claude-sonnet-4.6"}
+  ],
+  "generation": {
+    "temperature": 0.7,
+    "max_tokens": 8000,
+    "seed": 402,
+    "timeout": 120,
+    "retries": 2,
+    "max_items_per_request": 10,
+    "estimated_input_tokens_per_request": 1400,
+    "estimated_output_tokens_per_record": 300
+  },
+  "design_rules": [
+    "Manipulate which consequence horizon is foregrounded, not objective payoff, probability, or feasibility.",
+    "Use one fixed scenario skeleton per pair. Duplicate the same actors, options, objective outcomes, amounts, probabilities, delays, stakes, feasibility, urgency, desirability, sentence count, sentence order, and response framing; edit exactly one focal-horizon clause.",
+    "Both members must mention the same immediate and longer-horizon consequences with the same objective outcome profile. The focal-horizon clause is the only condition-dependent text: do not add, remove, improve, worsen, or revalue an outcome, and do not make one option more urgent, attractive, probable, or feasible.",
+    "Every probe prompt must be a complete instance of the registered probe template and must end with the verbatim suffix `Continue processing the scenario.`. If the scenario is long, shorten its shared skeleton rather than omitting or truncating the wrapper or suffix.",
+    "Rotate neutral domains, actors, sentence frames, and focal-horizon wording across pairs. Keep the two focal-horizon clauses closely matched in length and avoid condition-exclusive time, desirability, or urgency cues outside that one clause.",
+    "Do not use the construct ID, condition IDs, or condition labels in prompt_text.",
+    "Probe and downstream content pools must use different domains, actors, and outcomes.",
+    "Do not infer or alter the preregistered readout sign from generated prose."
+  ],
+  "forbidden_terms": ["temporal_orientation", "immediate_focus", "long_horizon_focus", "temporal orientation"],
+  "content_pools": {
+    "temporal_probe_train": {"role": "probe", "domains": ["urban_planning", "household_routines"]},
+    "temporal_probe_validation": {"role": "probe", "domains": ["event_scheduling", "equipment_maintenance"]},
+    "temporal_probe_heldout": {"role": "probe", "domains": ["conservation", "public_services"]},
+    "temporal_behavior": {"role": "behavior", "domains": ["new_intertemporal_items"]},
+    "temporal_steering": {"role": "steering", "domains": ["new_intertemporal_items_heldout"]},
+    "temporal_calibration": {"role": "calibration", "domains": ["neutral_intertemporal_items"]}
+  },
+  "behavior_factor_schedule": {
+    "note": "Cross all three downstream factors independently in behavior_eval and steering_eval; record the scheduled values as structured metadata.",
+    "factors": {
+      "delay_gap": ["small", "large"],
+      "relative_later_bonus": ["modest", "large"],
+      "immediate_option_quality": ["low", "high"]
+    },
+    "required_combinations": [
+      {"delay_gap": "small", "relative_later_bonus": "modest", "immediate_option_quality": "low"},
+      {"delay_gap": "small", "relative_later_bonus": "modest", "immediate_option_quality": "high"},
+      {"delay_gap": "small", "relative_later_bonus": "large", "immediate_option_quality": "low"},
+      {"delay_gap": "small", "relative_later_bonus": "large", "immediate_option_quality": "high"},
+      {"delay_gap": "large", "relative_later_bonus": "modest", "immediate_option_quality": "low"},
+      {"delay_gap": "large", "relative_later_bonus": "modest", "immediate_option_quality": "high"},
+      {"delay_gap": "large", "relative_later_bonus": "large", "immediate_option_quality": "low"},
+      {"delay_gap": "large", "relative_later_bonus": "large", "immediate_option_quality": "high"}
+    ],
+    "required_item_fields": ["delay_gap", "relative_later_bonus", "immediate_option_quality"],
+    "balance_check": "Each combination must appear once per behavior and steering content pool per model."
+  },
+  "cells": [
+    {
+      "cell_id": "probe_train",
+      "split": "direction_train",
+      "prompt_role": "probe",
+      "mode": "paired",
+      "prompt_family": "temporal_probe_train",
+      "content_pool": "temporal_probe_train",
+      "condition_ids": ["immediate_focus", "long_horizon_focus"],
+      "count_per_model": 100,
+      "instructions": "Generate the configured number of matched pairs of short decision scenarios with one fixed scenario skeleton per pair. Duplicate the same actors, options, objective outcomes, amounts, probabilities, delays, stakes, feasibility, urgency, desirability, sentence count, sentence order, and response framing. Both members must mention the same immediate and longer-horizon consequences; edit exactly one focal-horizon clause and do not add, remove, improve, worsen, or revalue an outcome. Use varied surface forms and complete probe-template wrappers ending verbatim with `Continue processing the scenario.`; do not state the condition label."
+    },
+    {
+      "cell_id": "probe_validation",
+      "split": "direction_validation",
+      "prompt_role": "probe",
+      "mode": "paired",
+      "prompt_family": "temporal_probe_validation",
+      "content_pool": "temporal_probe_validation",
+      "condition_ids": ["immediate_focus", "long_horizon_focus"],
+      "count_per_model": 40,
+      "instructions": "Generate the configured number of new matched pairs in held-apart domains. Keep the complete objective outcome profile, probabilities, delays, stakes, feasibility, desirability, and all other nuisance factors fixed within a pair; edit only one focal-horizon clause. Every prompt must use the complete registered wrapper and end verbatim with `Continue processing the scenario.`; avoid train phrasing, entities, and condition-specific urgency or desirability cues outside that clause."
+    },
+    {
+      "cell_id": "probe_heldout",
+      "split": "direction_heldout",
+      "prompt_role": "probe",
+      "mode": "paired",
+      "prompt_family": "temporal_probe_heldout",
+      "content_pool": "temporal_probe_heldout",
+      "condition_ids": ["immediate_focus", "long_horizon_focus"],
+      "count_per_model": 40,
+      "instructions": "Generate the configured number of novel held-out matched pairs. Preserve the same objective outcome profile, amounts, probabilities, delays, feasibility, stakes, desirability, and response framing within each pair; change only which horizon is foregrounded. Every prompt must be complete and end with the verbatim suffix `Continue processing the scenario.`; avoid template phrases from train and validation and do not change objective values or option quality."
+    },
+    {
+      "cell_id": "behavior_eval",
+      "split": "behavior_eval",
+      "prompt_role": "behavior",
+      "mode": "single",
+      "prompt_family": "temporal_behavior_eval",
+      "content_pool": "temporal_behavior",
+      "condition_id": "neutral",
+      "task_id": "intertemporal_allocation_v1",
+      "parser_id": "two_integers_sum_100_v1",
+      "expected_output_format": "two_integers_sum_100",
+      "factor_schedule": "behavior_factor_schedule",
+      "count_per_model": 8,
+      "category_balance": {
+        "delay_gap": ["small", "small", "small", "small", "large", "large", "large", "large"],
+        "relative_later_bonus": ["modest", "modest", "large", "large", "modest", "modest", "large", "large"],
+        "immediate_option_quality": ["low", "high", "low", "high", "low", "high", "low", "high"]
+      },
+      "instructions": "Generate exactly one new-domain allocation item for each required combination. Include both options and ask for two integer allocations summing to 100; never ask the model to label its temporal orientation."
+    },
+    {
+      "cell_id": "steering_eval",
+      "split": "steering_eval",
+      "prompt_role": "steering",
+      "mode": "single",
+      "prompt_family": "temporal_steering_eval",
+      "content_pool": "temporal_steering",
+      "condition_id": "neutral",
+      "task_id": "intertemporal_allocation_v1",
+      "parser_id": "two_integers_sum_100_v1",
+      "expected_output_format": "two_integers_sum_100",
+      "factor_schedule": "behavior_factor_schedule",
+      "count_per_model": 8,
+      "category_balance": {
+        "delay_gap": ["small", "small", "small", "small", "large", "large", "large", "large"],
+        "relative_later_bonus": ["modest", "modest", "large", "large", "modest", "modest", "large", "large"],
+        "immediate_option_quality": ["low", "high", "low", "high", "low", "high", "low", "high"]
+      },
+      "instructions": "Generate exactly one independent held-out allocation item for each required combination. Content must be distinct from behavior_eval and from every probe pool."
+    },
+    {
+      "cell_id": "calibration",
+      "split": "calibration",
+      "prompt_role": "calibration",
+      "mode": "single",
+      "prompt_family": "temporal_calibration",
+      "content_pool": "temporal_calibration",
+      "condition_id": "neutral",
+      "task_id": "intertemporal_allocation_v1",
+      "parser_id": "two_integers_sum_100_v1",
+      "expected_output_format": "two_integers_sum_100",
+      "count_per_model": 8,
+      "category_balance": {
+        "delay_gap": ["small", "small", "small", "small", "large", "large", "large", "large"],
+        "relative_later_bonus": ["modest", "modest", "large", "large", "modest", "modest", "large", "large"],
+        "immediate_option_quality": ["low", "high", "low", "high", "low", "high", "low", "high"]
+      },
+      "instructions": "Generate neutral allocation items used only to estimate within-cell output variation; do not reuse behavior or steering content."
+    }
+  ]
+}

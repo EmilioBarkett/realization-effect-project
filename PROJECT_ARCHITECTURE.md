@@ -1,8 +1,10 @@
 # Current project architecture
 
 **Status:** the shared multi-construct control plane, 16-construct registry,
-Wave 1 synthetic-prompt path, and environment-independent measurement core are
-implemented. Real-model execution and manipulation-check validation remain.
+all-16 preparatory construct specifications and paired-vector plans, vector-only
+prompt orchestrator, and environment-independent measurement core are
+implemented. Real-model execution, all-16 downstream behavior parsing, and
+manipulation-check validation remain.
 
 ## 1. Architectural principle
 
@@ -12,7 +14,7 @@ control-plane layer:
 ```text
 active activation primitives + active paired-prompt generator
                               ↓
-          construct registry/specs + generation plans + shared run plan
+          construct registry/specs + vector generation plans + shared run plan
                               ↓
              cross-construct decodability/steerability analysis
 ```
@@ -47,12 +49,15 @@ archived. It is not the template for new behavioral collection.
 - `scripts/prepare_benchmark_run.py` and
   `scripts/finalize_benchmark_run.py`: workspace preparation, checksums, and
   optional S3-compatible archival;
-- `scripts/generate_construct_prompts.py`: generic Wave 1 generation CLI with
-  dry-run and mock-friendly execution paths;
+- `scripts/generate_construct_prompts.py`: generic plan-level generation CLI
+  with dry-run and mock-friendly execution paths;
+- `scripts/generate_all_vector_prompts.py`: four-worker, vector-only
+  review/full orchestrator for the frozen paired inventory;
+- `scripts/audit_vector_pairs.py`: structural pair/leakage audit entrypoint;
 - `scripts/run_fake_benchmark.py`: deterministic no-API vertical-slice smoke
   runner;
-- `configs/construct_benchmark/`: the 16-entry registry, four specified Wave 1
-  construct specs, four generation plans, smoke config, and analysis spec;
+- `configs/construct_benchmark/`: the 16-entry registry, all 16 specified
+  construct specs and paired generation plans, smoke config, and analysis spec;
 - `configs/activation_analysis/` and `experiments/activation_analysis/`;
 - active prompt-generation, logging, evaluation, validation, and audit scripts.
 
@@ -95,9 +100,9 @@ profiles.py  correspondence.py
 
 The registry, generation, prompt-validation, readout, calibration, behavior,
 steering-plan, uncertainty, and fake-fixture modules are the current Wave 1
-control path. Their numerical logic is fixture-tested, but the model-side
-runner has not been validated on a representative activation run or GPU
-environment.
+control path. The all-16 generation artifacts are preparatory candidate
+specifications; their model-side runner and all-16 downstream behavior parsers
+have not been validated on a representative activation run or GPU environment.
 
 ## 3. Configuration boundary
 
@@ -132,7 +137,7 @@ silently lose construct identity.
 ## 4. Shared and construct-scoped data flow
 
 ```text
-16-entry registry → specified Wave 1 construct specs → generation plans
+16-entry registry → specified candidate construct specs → vector generation plans
       ↓
 one combined prompt inventory + split/leakage validation
       ↓
@@ -149,7 +154,11 @@ independent behavior task                          independent behavior task
        construct summaries and crossed model × construct × task analysis
 ```
 
-The benchmark-facing generator creates reviewable canonical rows first.
+The benchmark-facing generator creates reviewable canonical rows first. The
+vector orchestrator is Sonnet 4.6 only, uses four workers, and freezes 100
+train, 40 validation, and 40 held-out pairs per construct (2,880 pairs and
+5,760 records in the full 16-construct inventory). It never submits downstream
+single prompts. No API-generated inventory exists yet.
 Activation logging and behavioral execution consume those frozen rows rather
 than silently generating or changing prompts during a run. The legacy
 realization-only generator remains an archived-compatible activation-analysis
@@ -163,10 +172,13 @@ intervention-cost, or out-of-sample profile prediction.
 ## 4.1 Staged run-mode architecture
 
 Prompt generation is deliberately completed before model-side execution. Each
-generation plan has two named modes: `review` emits one item per model and
-cell for human inspection, while `full` emits the complete frozen inventory.
+generation plan has two named modes: `review` emits one pair per paired cell
+for human inspection, while `full` emits the complete frozen vector inventory.
 Both can be expanded with a no-API dry run. A review inventory is never
 silently promoted to confirmatory data.
+
+Transport retries are limited to two identical repeats of a failed request;
+they never regenerate content or alter a prompt after a content-based failure.
 
 The model-side run configuration has corresponding `test` and `full` modes.
 `test` deterministically derives a pair-preserving subset from the full
@@ -177,10 +189,10 @@ split, and uses a 60-minute engineering budget. `full` selects every prompt, rec
 selection manifest containing source and selected inventory hashes, IDs, split
 counts, and the intended budget.
 
-The first RunPod slice therefore has this artifact flow:
+The first model-side slice therefore has this artifact flow:
 
 ```text
-generation review → human prompt audit → full frozen inventory
+all-16 vector review → human prompt audit → full frozen inventory
                                       ↓
                        test subset + selection manifest
                                       ↓
@@ -201,11 +213,12 @@ optional wall-clock budget and whether the selected subset completed.
 ## 5. Planned execution stages
 
 1. Validate the registry, versioned construct, generation, run, and analysis configs.
-2. Review balanced category schedules and distinct behavior/steering/calibration
-   prompt families; after explicit approval, generate one combined Wave 1
-   inventory and freeze canonical hashes.
+2. Run the four-worker all-16 vector review pilot, audit paired rows, and obtain
+   human approval; then generate the full vector inventory with `--resume` and
+   freeze canonical hashes.
 3. Audit leakage-safe splits for every construct namespace.
-4. Run the prompt-only behavioral baseline per construct.
+4. Run the prompt-only behavioral baseline per construct only where its
+   construct-specific parser and task execution are implemented.
 5. Log activations once at all registered candidate layers, sites, and positions.
 6. Construct one direction per construct from training prompts only and select
    the layer using validation prompts only.
@@ -219,7 +232,8 @@ optional wall-clock budget and whether the selected subset completed.
 11. Parse outputs through construct-specific adapters, compute outcome-
     appropriate estimands, and bootstrap complete pairs/items.
 12. Fit the crossed model × construct × task summary; add profile prediction
-    only after the matrix is large enough for out-of-sample evaluation.
+    only after the matrix is large enough for out-of-sample evaluation and the
+    precision simulation supports expansion beyond Wave 1.
 
 ## 6. Artifact policy
 
@@ -284,13 +298,15 @@ and handoff semantics.
 
 The next work is not a large experiment. It is:
 
-1. review the no-API Wave 1 dry-run summary and generation plans;
-2. validate the combined generated inventory against a representative
+1. run and review the no-API all-16 vector-prompt pilot, then audit paired
+   rows with `scripts/audit_vector_pairs.py`;
+2. after human approval, validate the combined full vector inventory against a representative
    manifest-backed activation fixture when one is available;
 3. validate held-out projection margins and neutral/within-condition calibration
    on a representative activation run;
-4. validate the Wave 1 task adapters, beginning with the realization/evidence
-   engineering slice while retaining source-reliability and persistence cells;
+4. validate the implemented Wave 1 task adapters, beginning with the
+   realization/evidence engineering slice while retaining source-reliability
+   and persistence cells; all-16 downstream parsers remain future work;
 5. add timing, manipulation, output-accessibility, and downstream-persistence
    checks;
 6. run the precision simulation before advancing to Waves 2–4 or fitting

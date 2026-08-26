@@ -96,11 +96,20 @@ Execution is balanced one construct per family per wave:
 | 3 — uncertainty/adaptation | `ambiguity_orientation` | `causal_interpretation` | `consensus_conformity` | `plan_replanning` |
 | 4 — horizon/goal management | `temporal_orientation` | `epistemic_uncertainty` | `reciprocity_obligation` | `goal_shielding` |
 
-Wave 1 is the immediate implementation target. Its four construct specs and
-generation plans are defined; the other twelve entries are registry-planned
-and intentionally do not yet have generated prompt inventories. The distinction
-between source reliability and authority deference, and between diagnosticity
-and updating responsiveness, is substantive rather than cosmetic.
+All 16 construct specifications and paired-vector generation plans now exist
+and are marked `specified` in the registry. Waves 2–4 are preparatory candidate
+specifications, not completed experiments or generated datasets. Their use for
+confirmatory model execution remains gated on the Wave 1 measurement gates and
+the precision simulation. The distinction between source reliability and
+authority deference, and between diagnosticity and updating responsiveness, is
+substantive rather than cosmetic.
+
+The vector-only generation scope is frozen at 100 train pairs, 40 validation
+pairs, and 40 held-out pairs per construct (2,880 pairs / 5,760 records across
+the 16-construct bank). Generation is orchestrated with four workers and uses
+`anthropic/claude-sonnet-4.6` only. The required sequence is a `review` pilot,
+human QA, then the complete `full` inventory. No API-generated inventory exists
+yet.
 
 The maturity claims are staged: two constructs validate the engineering
 vertical slice, four constructs support a descriptive pilot, and the full
@@ -176,8 +185,9 @@ benchmark infrastructure implementation**:
 - the initial `construct_benchmark` control-plane package now exists;
 - construct, run, analysis, prompt, split, and provenance schemas are now
   implemented;
-- the versioned 16-construct registry exists, with four specified Wave 1
-  construct definitions and four reviewable generation plans;
+- the versioned 16-construct registry exists, with all 16 construct
+  specifications and paired-vector generation plans marked `specified`; Waves
+  2–4 remain preparatory candidate artifacts gated from confirmatory execution;
 - the benchmark-facing generation adapter emits canonical `PromptRecord`
   rows, supports deterministic mocks and no-API dry runs, and refuses to treat
   partial inventories as complete; named `review`/`full` generation modes and
@@ -190,7 +200,12 @@ benchmark infrastructure implementation**:
   candidate-layer selection, bootstrap intervals, and timing-aware injection
   are implemented;
 - behavior, steering, and calibration prompt families are kept separate and
-  Wave 1 task-category schedules are pre-registered in the generation plans;
+  task-category schedules are pre-registered in the generation plans;
+- the vector-only all-registry orchestrator supports a four-worker review/full
+  workflow, per-construct outputs, combined manifests, and `--resume`; the
+  paired vector scope is 100/40/40 per construct;
+- `scripts/audit_vector_pairs.py` is the QA audit entry point for structural,
+  nuisance, and leakage review of generated vector pairs;
 - a deterministic fake vertical slice exercises the control plane without an
   API, model weights, or a GPU;
 - readout, steering-plan, environment-check, remote execution, and scoring CLIs
@@ -209,10 +224,11 @@ benchmark infrastructure implementation**:
 
 ## Next implementation gates
 
-1. Run and review the deterministic fake vertical slice, then review the four
-   Wave 1 generation plans and expand them with the approved
-   request function only after the no-API dry run is accepted, and connect the
-   resulting inventories to the canonical combined activation manifest.
+1. Run and review the deterministic fake vertical slice, then run the
+   four-worker `review` vector-prompt pilot for all 16 constructs. Inspect it
+   with `scripts/audit_vector_pairs.py`; only after review should the complete
+   `full` inventory be generated and connected to the canonical combined
+   activation manifest.
 2. Add a manifest-backed activation-run smoke fixture when a representative
    local run is available, while preserving the passing clean-install checks.
 3. Validate continuous held-out projection margins and neutral/within-condition
@@ -223,7 +239,7 @@ benchmark infrastructure implementation**:
 5. Add explicit intervention timing, output-accessibility, downstream-
    persistence, and manipulation checks.
 6. Run the precision simulation before fitting representation-profile
-   predictors or advancing to Waves 2–4.
+   predictors or treating Waves 2–4 as confirmatory model work.
 
 Until these gates are passed, documentation should describe the benchmark as
 an implemented control plane and fixture-tested measurement core without a

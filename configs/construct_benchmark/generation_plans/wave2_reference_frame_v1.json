@@ -1,0 +1,130 @@
+{
+  "schema_version": "0.1.0",
+  "plan_id": "wave2_reference_frame_prompts_v1",
+  "construct_id": "reference_frame",
+  "construct_spec_path": "../constructs/reference_frame_v1.json",
+  "wave": 2,
+  "task_composition": {
+    "prompt_order": "probe_then_downstream",
+    "probe_context": "paired_probe_only",
+    "downstream_context": "independent_behavior_task_only",
+    "condition_carryover": "state_only",
+    "surface_text_carryover": "none",
+    "behavior_steering_pool_separation": true
+  },
+  "default_count_per_cell_per_model": 2,
+  "run_modes": {
+    "review": {"purpose": "prompt_review", "count_per_model_per_cell": 1, "partial": true},
+    "full": {"purpose": "frozen_full_inventory", "count_per_model_per_cell": null, "partial": false}
+  },
+  "models": [
+    {"alias": "sonnet", "model": "anthropic/claude-sonnet-4.6"}
+  ],
+  "generation": {
+    "temperature": 0.7,
+    "max_tokens": 8000,
+    "seed": 201,
+    "timeout": 120,
+    "retries": 2,
+    "max_items_per_request": 10,
+    "estimated_input_tokens_per_request": 1500,
+    "estimated_output_tokens_per_record": 320
+  },
+  "design_rules": [
+    "Manipulate only the stated reference point: keep the objective outcome identical within each pair and place the benchmark an equal distance below versus above that outcome. Interpret above and below as numerical relations only, never as better/worse performance.",
+    "Represent the benchmark with a number-invariant unit phrase in every pair, such as `cracked-board count is N`, `water volume is N liters`, or an explicitly signed/net/change/balance phrase such as `inventory balance is N units`, so changing N cannot change a noun, verb, article, determiner, inflection, unit label, or any other grammatical token.",
+    "For naturally nonnegative physical counts and quantities—including crates, liters, boards, items, counts, and ordinary quantities or amounts—both benchmark numeric values must be nonnegative. Choose the fixed objective outcome O and positive offset d so O-d is at least zero; never use a leading minus sign for a bare count or quantity.",
+    "A negative benchmark is permitted only when the unit phrase explicitly denotes a signed, net, change, or balance quantity and the scenario makes a value below zero meaningful. Reject a bare negative physical quantity and reject a signed marker that does not describe a genuinely signed quantity.",
+    "Use symmetric arithmetic in every pair: with fixed objective outcome O and positive offset d, the above-reference member uses benchmark O-d and the below-reference member uses benchmark O+d. Apply the same domain-plausibility rule in both review and full generation modes.",
+    "After replacing only the benchmark numeric token (including an optional leading minus sign only in an explicitly signed unit phrase) in each pair with `<BENCHMARK>`, normalize whitespace and punctuation spacing and require the complete prompt texts to be identical; reject the pair if any other token differs.",
+    "Cross gain, loss, and neutral surface outcomes without letting outcome valence identify the paired condition.",
+    "Keep realization status out of probe scenarios: do not use pending, posted, received, paid, finalized, settled, or account-closure cues; depict a contemporaneous outcome relative to the benchmark.",
+    "Do not use construct ID, condition IDs, or labels such as above reference, below reference, or reference frame in prompt_text.",
+    "Probe and downstream pools must use disjoint domains, entities, and templates.",
+    "Do not infer or alter the preregistered readout sign from generated prose."
+  ],
+  "pair_quality_checks": {
+    "benchmark_representation": "number_invariant_unit_phrase",
+    "benchmark_examples": [
+      "cracked-board count is N",
+      "water volume is N liters",
+      "inventory balance is N units"
+    ],
+    "domain_plausibility": {
+      "naturally_nonnegative_units": [
+        "counts",
+        "crates",
+        "liters",
+        "boards",
+        "items",
+        "ordinary quantities",
+        "ordinary amounts"
+      ],
+      "nonnegative_rule": "Both benchmark values must be >= 0 for naturally nonnegative units; choose O and d so the lower value O-d remains >= 0.",
+      "signed_unit_markers": ["signed", "net", "change", "balance"],
+      "signed_rule": "A negative value is valid only when the unit phrase explicitly contains a signed, net, change, or balance marker and a value below zero is meaningful in that domain.",
+      "review_and_full_required": true
+    },
+    "symmetric_arithmetic": {
+      "formula": "above_reference benchmark = O-d; below_reference benchmark = O+d",
+      "offset": "d > 0 and equal in absolute value for both members",
+      "objective_outcome_fixed": true
+    },
+    "normalized_pair_text": {
+      "replace_only": "the benchmark numeric token, including an optional leading minus sign only in an explicitly signed unit phrase",
+      "replacement": "<BENCHMARK>",
+      "normalization": "whitespace and punctuation spacing",
+      "required_identical": true
+    },
+    "reject_if": [
+      "the benchmark number changes a singular/plural noun, verb, article, determiner, inflection, unit label, or punctuation",
+      "a naturally nonnegative count or quantity uses a negative benchmark value",
+      "a negative benchmark lacks an explicit signed, net, change, or balance unit marker or is not meaningful for the stated domain",
+      "the two benchmark values are not equally distant from the fixed objective outcome or the lower nonnegative benchmark is below zero",
+      "either member changes the objective outcome, event status, or any non-benchmark token",
+      "the complete pair texts are not identical after replacing only the benchmark numeric token with <BENCHMARK> and normalizing whitespace and punctuation spacing"
+    ]
+  },
+  "forbidden_terms": ["reference_frame", "above_reference", "below_reference", "reference frame", "above reference", "below reference", "pending", "posted", "received", "paid", "finalized", "settled", "account closure"],
+  "content_pools": {
+    "reference_probe_train": {"role": "probe", "domains": ["workshop_targets", "festival_attendance"]},
+    "reference_probe_validation": {"role": "probe", "domains": ["harvest_forecasts", "library_services"]},
+    "reference_probe_heldout": {"role": "probe", "domains": ["water_usage", "delivery_windows"]},
+    "reference_behavior": {"role": "behavior", "domains": ["new_sure_risky_items"]},
+    "reference_steering": {"role": "steering", "domains": ["new_sure_risky_items_heldout"]},
+    "reference_calibration": {"role": "calibration", "domains": ["neutral_sure_risky_items"]}
+  },
+  "behavior_factor_schedule": {
+    "note": "Cross payoff_frame, stake_level, and risk_probability independently; one item per combination.",
+    "factors": {
+      "payoff_frame": ["gain", "loss", "neutral"],
+      "stake_level": ["low", "high"],
+      "risk_probability": ["even", "uneven"]
+    },
+    "required_combinations": [
+      {"payoff_frame": "gain", "stake_level": "low", "risk_probability": "even"},
+      {"payoff_frame": "gain", "stake_level": "low", "risk_probability": "uneven"},
+      {"payoff_frame": "gain", "stake_level": "high", "risk_probability": "even"},
+      {"payoff_frame": "gain", "stake_level": "high", "risk_probability": "uneven"},
+      {"payoff_frame": "loss", "stake_level": "low", "risk_probability": "even"},
+      {"payoff_frame": "loss", "stake_level": "low", "risk_probability": "uneven"},
+      {"payoff_frame": "loss", "stake_level": "high", "risk_probability": "even"},
+      {"payoff_frame": "loss", "stake_level": "high", "risk_probability": "uneven"},
+      {"payoff_frame": "neutral", "stake_level": "low", "risk_probability": "even"},
+      {"payoff_frame": "neutral", "stake_level": "low", "risk_probability": "uneven"},
+      {"payoff_frame": "neutral", "stake_level": "high", "risk_probability": "even"},
+      {"payoff_frame": "neutral", "stake_level": "high", "risk_probability": "uneven"}
+    ],
+    "required_item_fields": ["payoff_frame", "stake_level", "risk_probability"],
+    "balance_check": "Each of the 12 combinations must appear once per behavior and steering content pool."
+  },
+  "cells": [
+    {"cell_id": "probe_train", "split": "direction_train", "prompt_role": "probe", "mode": "paired", "prompt_family": "reference_probe_train", "content_pool": "reference_probe_train", "condition_ids": ["above_reference", "below_reference"], "count_per_model": 100, "instructions": "Generate matched third-person scenarios. Use the exact same actor, domain, objective outcome amount, event status, sentence structure, and wording within each pair. Represent the benchmark with a number-invariant unit phrase such as `cracked-board count is N`, `water volume is N liters`, or an explicitly signed/net/change/balance phrase such as `inventory balance is N units`; change only the benchmark numeric token. For above_reference, use benchmark O-d; for below_reference, use benchmark O+d, with fixed outcome O and equal positive offset d. For crates, liters, boards, items, counts, and other naturally nonnegative quantities or amounts, both benchmarks must be >= 0, so choose O and d accordingly and never use a leading minus sign. A negative benchmark is allowed only with an explicit signed, net, change, or balance unit where below zero is meaningful. Apply these domain checks in both review and full generation modes. After replacing only the benchmark numeric token (including an optional leading minus sign only in an explicitly signed unit phrase) with `<BENCHMARK>` and normalizing whitespace and punctuation spacing, the complete pair texts must be identical. Reject any singular/plural, noun, verb, article, determiner, inflection, unit-label, or punctuation change caused by the number. Ignore whether higher or lower performance is desirable. Do not change the outcome amount and do not use account-closure language."},
+    {"cell_id": "probe_validation", "split": "direction_validation", "prompt_role": "probe", "mode": "paired", "prompt_family": "reference_probe_validation", "content_pool": "reference_probe_validation", "condition_ids": ["above_reference", "below_reference"], "count_per_model": 40, "instructions": "Use new domains and entities. Keep the objective outcome amount and all prose identical within each pair. Use a number-invariant unit phrase for the benchmark and change only its benchmark numeric token. Use symmetric arithmetic around fixed outcome O: above_reference = O-d and below_reference = O+d for the same positive offset d. For crates, liters, boards, items, counts, and other naturally nonnegative quantities or amounts, require both benchmarks >= 0 and never use a leading minus sign. Permit a negative value only with an explicit signed, net, change, or balance unit whose domain makes below zero meaningful. Apply this domain gate in review and full modes. After replacing only the benchmark numeric token with `<BENCHMARK>` and normalizing whitespace and punctuation spacing, require complete text identity; reject any grammar, noun-number, article, unit-label, or punctuation change. Keep event status constant and exclude closure cues."},
+    {"cell_id": "probe_heldout", "split": "direction_heldout", "prompt_role": "probe", "mode": "paired", "prompt_family": "reference_probe_heldout", "content_pool": "reference_probe_heldout", "condition_ids": ["above_reference", "below_reference"], "count_per_model": 40, "instructions": "Use held-out domains and templates. Keep the objective outcome amount and all non-benchmark facts identical within each pair. Use a number-invariant unit phrase for the benchmark and change only its benchmark numeric token. Assign labels from the outcome's numerical position with symmetric arithmetic: for fixed outcome O, above_reference uses O-d and below_reference uses O+d at the same positive distance d. This rule is unchanged where lower may be desirable. For crates, liters, boards, items, counts, and other naturally nonnegative quantities or amounts, both benchmarks must be >= 0; never use a leading minus sign. A negative benchmark is permitted only in an explicitly signed, net, change, or balance unit phrase where below zero is meaningful. Apply these domain-plausibility checks in review and full modes. Example only: for an outcome of 50, above_reference uses 40 and below_reference uses 60. After replacing only the benchmark numeric token with `<BENCHMARK>` and normalizing whitespace and punctuation spacing, require complete text identity; reject any grammar, noun-number, article, unit-label, or punctuation change. Avoid train/validation phrases and exclude closure cues."},
+    {"cell_id": "behavior_eval", "split": "behavior_eval", "prompt_role": "behavior", "mode": "single", "prompt_family": "reference_behavior_eval", "content_pool": "reference_behavior", "condition_id": "neutral", "task_id": "sure_risky_choice_v1", "parser_id": "single_integer_choice_1_or_2_v1", "expected_output_format": "single_integer_1_or_2", "factor_schedule": "behavior_factor_schedule", "count_per_model": 12, "category_balance": {"payoff_frame": ["gain", "gain", "gain", "gain", "loss", "loss", "loss", "loss", "neutral", "neutral", "neutral", "neutral"], "stake_level": ["low", "low", "high", "high", "low", "low", "high", "high", "low", "low", "high", "high"], "risk_probability": ["even", "uneven", "even", "uneven", "even", "uneven", "even", "uneven", "even", "uneven", "even", "uneven"]}, "instructions": "Generate one independent sure-versus-risky item for each required combination. Use new domains and amounts, record all three metadata fields exactly, and never ask the model to name the target construct."},
+    {"cell_id": "steering_eval", "split": "steering_eval", "prompt_role": "steering", "mode": "single", "prompt_family": "reference_steering_eval", "content_pool": "reference_steering", "condition_id": "neutral", "task_id": "sure_risky_choice_v1", "parser_id": "single_integer_choice_1_or_2_v1", "expected_output_format": "single_integer_1_or_2", "factor_schedule": "behavior_factor_schedule", "count_per_model": 12, "category_balance": {"payoff_frame": ["gain", "gain", "gain", "gain", "loss", "loss", "loss", "loss", "neutral", "neutral", "neutral", "neutral"], "stake_level": ["low", "low", "high", "high", "low", "low", "high", "high", "low", "low", "high", "high"], "risk_probability": ["even", "uneven", "even", "uneven", "even", "uneven", "even", "uneven", "even", "uneven", "even", "uneven"]}, "instructions": "Generate an independent set distinct from behavior_eval, with the same crossed schedule and exact metadata fields."
+    },
+    {"cell_id": "calibration", "split": "calibration", "prompt_role": "calibration", "mode": "single", "prompt_family": "reference_calibration", "content_pool": "reference_calibration", "condition_id": "neutral", "task_id": "sure_risky_choice_v1", "parser_id": "single_integer_choice_1_or_2_v1", "expected_output_format": "single_integer_1_or_2", "count_per_model": 12, "category_balance": {"payoff_frame": ["gain", "gain", "gain", "gain", "loss", "loss", "loss", "loss", "neutral", "neutral", "neutral", "neutral"], "stake_level": ["low", "low", "high", "high", "low", "low", "high", "high", "low", "low", "high", "high"], "risk_probability": ["even", "uneven", "even", "uneven", "even", "uneven", "even", "uneven", "even", "uneven", "even", "uneven"]}, "instructions": "Generate neutral items for within-cell output-variation calibration, distinct from behavior and steering pools."}
+  ]
+}

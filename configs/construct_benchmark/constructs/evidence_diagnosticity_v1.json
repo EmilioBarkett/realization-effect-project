@@ -4,38 +4,47 @@
   "version": "v1",
   "family": "epistemic",
   "title": "Evidence diagnosticity",
-  "description": "Whether presented evidence is represented as highly diagnostic or weakly diagnostic for the focal hypothesis, without identifying the direction of belief polarity.",
+  "description": "Whether an observation is represented as strongly or weakly discriminating between a focal hypothesis and alternatives, independently of the observation's polarity, source reliability, and surface clarity.",
   "contrast_conditions": [
     {
       "condition_id": "high_diagnosticity",
       "label": "Highly diagnostic evidence",
-      "definition": "The evidence is described as reliable, specific, and strongly informative for distinguishing the focal hypothesis from alternatives."
+      "definition": "The observation has a large, preregistered likelihood ratio for distinguishing the focal hypothesis from alternatives: the absolute log likelihood ratio is at least ln(10) = 2.302585093 (LR >= 10 or LR <= 0.1); source reliability, amount of information, clarity, and wording are held constant.",
+      "likelihood_ratio_constraint": {
+        "minimum_absolute_log_likelihood_ratio": 2.302585093,
+        "accepted_likelihood_ratio": "LR >= 10 or LR <= 0.1"
+      }
     },
     {
       "condition_id": "low_diagnosticity",
       "label": "Weakly diagnostic evidence",
-      "definition": "The evidence is described as noisy, nonspecific, or only weakly informative for distinguishing the focal hypothesis from alternatives."
+      "definition": "The observation has a likelihood ratio near 1 for distinguishing the focal hypothesis from alternatives: the absolute log likelihood ratio is at most ln(1.25) = 0.223143551 (0.8 <= LR <= 1.25); source reliability, amount of information, clarity, and wording are held constant.",
+      "likelihood_ratio_constraint": {
+        "maximum_absolute_log_likelihood_ratio": 0.223143551,
+        "accepted_likelihood_ratio": "0.8 <= LR <= 1.25"
+      }
     }
   ],
-  "probe_prompt_template": "Read the following short epistemic scenario. Track the evidential quality separately from whether the evidence supports or contradicts the focal hypothesis.\n\nScenario:\n{scenario}\n\nContinue processing the scenario.",
+  "probe_prompt_template": "Read the following short epistemic scenario. Track how strongly the observation discriminates between the focal hypothesis and its alternatives separately from whether it supports or contradicts the hypothesis.\n\nScenario:\n{scenario}\n\nContinue processing the scenario.",
   "independent_behavior_task": {
     "task_id": "belief_update_magnitude_v1",
     "task_family": "sequential_belief_update",
-    "prompt_template": "You have a prior probability for a hypothesis and then receive a separate piece of evidence. Report your posterior probability from 0 to 100. The task varies whether the evidence supports or contradicts the hypothesis and is independent of the probe wording.",
+    "prompt_template": "You have a prior probability for a hypothesis and then receive a separate observation. Report the posterior probability from 0 to 100 as one integer. The item specifies whether the observation supports or contradicts the hypothesis and how far its likelihood ratio is from 1. Compute the absolute update as abs(posterior minus prior). The task is independent of the probe wording.",
     "primary_outcome": "absolute_posterior_update",
     "secondary_outcomes": ["posterior_calibration", "confidence"],
     "response_format": "single_integer_0_to_100",
     "item_metadata_schema": {
-      "required": ["prior_probability", "evidence_valence", "evidence_strength"],
+      "required": ["prior_probability", "evidence_valence", "likelihood_separation"],
       "properties": {
-        "prior_probability": {"type": "integer", "minimum": 0, "maximum": 100},
+        "prior_probability": {"type": "integer", "enum": [20, 50, 80], "minimum": 0, "maximum": 100},
         "evidence_valence": {"type": "string", "enum": ["supporting", "contradicting"]},
-        "evidence_strength": {"type": "string", "enum": ["weak", "moderate", "strong"]}
+        "likelihood_separation": {"type": "string", "enum": ["weak", "moderate", "strong"]}
       }
     },
     "independence_requirements": [
       "Use new hypotheses and evidence items not present in probe prompts.",
-      "Cross supporting and contradicting evidence across diagnosticity conditions.",
+      "Cross prior probability, supporting and contradicting polarity, and likelihood separation independently.",
+      "Represent likelihood separation with stated frequencies under the hypothesis and alternatives rather than generic strong/weak adjectives. For weak items use absolute log LR <= ln(1.25); for strong items use absolute log LR >= ln(10); keep moderate items in the intermediate range.",
       "Do not ask the model to classify evidence as high or low diagnosticity."
     ]
   },
@@ -47,10 +56,10 @@
     },
     "behavior": {
       "outcome": "absolute_posterior_update",
-      "estimand": "diagnosticity_by_evidence_valence_effect",
+      "estimand": "diagnosticity_by_evidence_valence_and_prior_effect",
       "expected_by_evidence_valence": {
-        "supporting": "high_diagnosticity_increases_update_magnitude",
-        "contradicting": "high_diagnosticity_increases_update_magnitude"
+        "supporting": "high_diagnosticity increases absolute_posterior_update at fixed prior",
+        "contradicting": "high_diagnosticity increases absolute_posterior_update at fixed prior"
       },
       "direction_status": "preregister_before_data_collection",
       "warning": "This construct represents perceived evidence diagnosticity, not belief polarity or an unrestricted updating policy."
@@ -58,9 +67,8 @@
   },
   "parsing_rules": {
     "parser_id": "single_integer_probability_v1",
-    "valid_ranges": {
-      "posterior_probability": [0, 100]
-    },
+    "valid_ranges": {"posterior_probability": [0, 100]},
+    "derived_outcome": "absolute_posterior_update = abs(posterior_probability - prior_probability)",
     "invalid_response_policy": "exclude_from_outcome_denominator_and_report_compliance",
     "extra_text_policy": "invalid"
   },
@@ -88,6 +96,24 @@
   "metadata": {
     "primary_question": "Is a diagnosticity direction decodable, and does it transfer to the magnitude of an independent belief update?",
     "probe_state_is": "perceived_evidence_diagnosticity",
-    "belief_polarity_is": "a separate task factor, not the construct definition"
+    "belief_polarity_is": "a separate task factor, not the construct definition",
+    "likelihood_ratio_definition": "LR = P(observation | focal hypothesis) / P(observation | alternatives)",
+    "registered_likelihood_ratio_thresholds": {
+      "high": {
+        "minimum_absolute_log_likelihood_ratio": 2.302585093,
+        "minimum_ratio_from_one": 10.0,
+        "accepted_likelihood_ratio": "LR >= 10 or LR <= 0.1"
+      },
+      "low": {
+        "maximum_absolute_log_likelihood_ratio": 0.223143551,
+        "maximum_ratio_from_one": 1.25,
+        "accepted_likelihood_ratio": "0.8 <= LR <= 1.25"
+      }
+    },
+    "frequency_protocol": {
+      "required_denominator": 100,
+      "same_denominator_within_pair": true,
+      "same_nuisance_factors_within_pair": true
+    }
   }
 }

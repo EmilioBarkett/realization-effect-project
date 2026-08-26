@@ -1,0 +1,96 @@
+{
+  "schema_version": "0.1.0",
+  "construct_id": "causal_interpretation",
+  "version": "v1",
+  "family": "epistemic",
+  "title": "Causal interpretation",
+  "description": "Whether a relationship is represented in terms of what changing a variable would produce or only as an association observed in existing cases, distinct from confidence and generic prediction accuracy.",
+  "contrast_conditions": [
+    {
+      "condition_id": "causal_representation",
+      "label": "Causal representation",
+      "definition": "The scenario is represented using a variable value assigned externally before the outcome is measured, so the assigned-versus-outcome relation is tracked."
+    },
+    {
+      "condition_id": "correlational_representation",
+      "label": "Correlational representation",
+      "definition": "The scenario is represented using a variable value selected by the cases before the outcome is measured, so the case-selected relation is tracked without treating it as a consequence of external assignment."
+    }
+  ],
+  "probe_prompt_template": "Read the following short information scenario. Track how variable assignment relates to the outcome separately from the strength of the evidence and from whether the outcome is desirable.\n\nScenario:\n{scenario}\n\nContinue processing the scenario.",
+  "independent_behavior_task": {
+    "task_id": "assigned_selected_prediction_v1",
+    "task_family": "causal_prediction",
+    "prompt_template": "Consider a separate variable-and-outcome question. Depending on the item, the variable value was either assigned externally before the outcome was measured or selected by the cases before the outcome was measured. Report the outcome probability from 0 to 100. Use new variables, domains, and evidence summaries, and do not ask the model to label the relation.",
+    "primary_outcome": "target_outcome_probability",
+    "secondary_outcomes": ["assigned_selected_contrast", "compliance"],
+    "response_format": "single_integer_0_to_100",
+    "item_metadata_schema": {
+      "required": ["task_mode", "effect_direction", "association_strength"],
+      "properties": {
+        "task_mode": {"type": "string", "enum": ["external_assignment", "case_selection"]},
+        "effect_direction": {"type": "string", "enum": ["raises_outcome", "lowers_outcome"]},
+        "association_strength": {"type": "string", "enum": ["weak", "strong"]}
+      }
+    },
+    "independence_requirements": [
+      "Use new variables, outcomes, domains, and evidence summaries not present in probe prompts.",
+      "Cross externally assigned versus case-selected variable values with outcome direction and association strength independently.",
+      "Do not ask the model to classify the relation or use causal vocabulary; ask only for the registered probability response."
+    ]
+  },
+  "expected_direction": {
+    "readout": {
+      "positive_condition": "causal_representation",
+      "negative_condition": "correlational_representation",
+      "estimand": "heldout_projection_margin"
+    },
+    "behavior": {
+      "outcome": "target_outcome_probability",
+      "estimand": "causal_interpretation_by_task_mode_effect",
+      "expected_by_task_mode": {
+        "external_assignment": "causal_representation follows the item-specific assigned-variable consequence more closely than correlational_representation",
+        "case_selection": "causal_representation distinguishes case-selected association from assigned-variable consequences rather than applying a generic mean shift"
+      },
+      "direction_status": "preregister_before_data_collection",
+    "warning": "This construct concerns externally assigned versus case-selected variable representation, not confidence, verbal causal vocabulary, evidence amount, or unrestricted prediction skill."
+    }
+  },
+  "parsing_rules": {
+    "parser_id": "single_integer_probability_v1",
+    "valid_ranges": {
+      "target_outcome_probability": [0, 100]
+    },
+    "invalid_response_policy": "exclude_from_outcome_denominator_and_report_compliance",
+    "extra_text_policy": "invalid"
+  },
+  "required_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout",
+    "behavior_eval",
+    "steering_eval",
+    "calibration"
+  ],
+  "paired_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout"
+  ],
+  "controls": [
+    "external_assignment_and_case_selection_task_modes",
+    "effect_direction_crossing",
+    "association_strength_crossing",
+    "matched_graph_complexity_and_evidence_amount",
+    "new_domain_behavior_task",
+    "lexical_overlap_audit",
+    "neutral_behavior_prompt",
+    "shuffled_pair_labels",
+    "random_direction"
+  ],
+  "metadata": {
+    "primary_question": "Is a causal-versus-observational representation decodable, and does it transfer to intervention-versus-observation prediction in a new domain?",
+    "probe_state_is": "causal_interpretation_state",
+    "not_claimed_as": "confidence_or_generic_prediction_accuracy"
+  }
+}

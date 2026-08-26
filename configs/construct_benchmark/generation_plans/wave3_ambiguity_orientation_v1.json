@@ -1,0 +1,188 @@
+{
+  "schema_version": "0.1.0",
+  "plan_id": "wave3_ambiguity_orientation_prompts_v1",
+  "construct_id": "ambiguity_orientation",
+  "construct_spec_path": "../constructs/ambiguity_orientation_v1.json",
+  "wave": 3,
+  "task_composition": {
+    "prompt_order": "probe_then_downstream",
+    "probe_context": "paired_probe_only",
+    "downstream_context": "independent_behavior_task_only",
+    "condition_carryover": "state_only",
+    "surface_text_carryover": "none",
+    "behavior_steering_pool_separation": true
+  },
+  "default_count_per_cell_per_model": 2,
+  "run_modes": {
+    "review": {
+      "purpose": "prompt_review",
+      "count_per_model_per_cell": 1,
+      "partial": true
+    },
+    "full": {
+      "purpose": "frozen_full_inventory",
+      "count_per_model_per_cell": null,
+      "partial": false
+    }
+  },
+  "models": [
+    {"alias": "sonnet", "model": "anthropic/claude-sonnet-4.6"}
+  ],
+  "generation": {
+    "temperature": 0.7,
+    "max_tokens": 8000,
+    "seed": 201,
+    "timeout": 120,
+    "retries": 2,
+    "max_items_per_request": 10,
+    "estimated_input_tokens_per_request": 1400,
+    "estimated_output_tokens_per_record": 300
+  },
+  "design_rules": [
+    "Manipulate willingness to act on an explicitly bounded numeric probability interval, not payoff preference, risk preference, arithmetic skill, or uncertainty caused by missing evidence.",
+    "Use one fixed scenario skeleton per pair. Duplicate the same entities, outcomes, stakes, option quality, payoff amounts, expected-value statement or calculation, numeric probability interval, interval width, sentence count, sentence order, and response framing; the expected value must be numerically and verbally symmetric across both members. Edit exactly one decision-maker handling clause.",
+    "The handling clause is the only condition-dependent text: the proceed member treats the stated interval as sufficient to act, while the resolve member explicitly says that the interval is insufficient to commit and seeks one precise probability before committing. Never write that the resolve member uses the interval to seek precision, uses the interval to obtain precision, or treats the interval as a method for obtaining precision. Do not change the options, probabilities, expected value, consequences, evidence, rationale, or action outcome, and never add an expected-value explanation to only one member.",
+    "Every probe prompt must be a complete instance of the registered probe template and must end with the verbatim suffix `Continue processing the scenario.`. If the scenario is long, shorten its shared skeleton rather than omitting or truncating the wrapper or suffix.",
+    "Rotate neutral domains, actors, sentence frames, and handling-clause wording across pairs. Use neutral rotated clauses (for example, treating the stated range as enough to decide versus stating that the range is insufficient to commit and asking for one exact estimate) rather than repeating the same target words such as accept, resolve, ambiguity, or precise. Keep the two handling clauses closely matched in length and avoid condition-exclusive cue words outside that one clause.",
+    "Do not use the construct ID, condition IDs, or labels such as accept ambiguity or resolve ambiguity in prompt_text.",
+    "Probe and downstream content pools must use different domains, entities, stakes, and item identifiers.",
+    "Within each paired probe, duplicate the same entities, outcomes, stakes, option quality, payoff amounts, expected value, numeric probability interval, interval width, sentence count, sentence order, and response framing. The expected-value statement or calculation must remain identical and numerically symmetric; edit only the decision-maker handling clause between treating the interval as sufficient and stating that it is insufficient to commit while seeking one precise probability.",
+    "Never introduce generic unknown-probability, missing-evidence, or epistemic-uncertainty language; every item must state the same bounded numeric interval in both members of a pair.",
+    "Do not infer or alter the preregistered readout sign from generated prose."
+  ],
+  "forbidden_terms": ["ambiguity_orientation", "accept_ambiguity", "resolve_ambiguity", "ambiguity orientation", "ambiguity tolerance", "ambiguity aversion", "epistemic uncertainty", "unknown probability", "missing evidence", "uses the interval to seek precision", "use the interval to seek precision", "uses the interval to obtain precision", "use the interval to obtain precision"],
+  "content_pools": {
+    "ambiguity_probe_train": {"role": "probe", "domains": ["water_management", "wildlife_estimates"]},
+    "ambiguity_probe_validation": {"role": "probe", "domains": ["museum_visits", "agricultural_forecasts"]},
+    "ambiguity_probe_heldout": {"role": "probe", "domains": ["public_transport_demand", "product_safety"]},
+    "ambiguity_behavior": {"role": "behavior", "domains": ["new_lottery_items"]},
+    "ambiguity_steering": {"role": "steering", "domains": ["new_lottery_items_heldout"]},
+    "ambiguity_calibration": {"role": "calibration", "domains": ["neutral_lottery_items"]}
+  },
+  "behavior_factor_schedule": {
+    "note": "All four behavior-task factors must vary independently. Generate one item per combination; do not allow factors to co-vary. Record known_lottery_quality, unknown_lottery_quality, payoff_scale, and ambiguity_range_width as structured metadata fields on every generated item.",
+    "factors": {
+      "known_lottery_quality": ["favorable", "unfavorable"],
+      "unknown_lottery_quality": ["favorable", "unfavorable"],
+      "payoff_scale": ["small", "large"],
+      "ambiguity_range_width": ["narrow", "wide"]
+    },
+    "required_combinations": [
+      {"known_lottery_quality": "favorable", "unknown_lottery_quality": "favorable", "payoff_scale": "small", "ambiguity_range_width": "narrow"},
+      {"known_lottery_quality": "favorable", "unknown_lottery_quality": "favorable", "payoff_scale": "small", "ambiguity_range_width": "wide"},
+      {"known_lottery_quality": "favorable", "unknown_lottery_quality": "unfavorable", "payoff_scale": "small", "ambiguity_range_width": "narrow"},
+      {"known_lottery_quality": "favorable", "unknown_lottery_quality": "unfavorable", "payoff_scale": "small", "ambiguity_range_width": "wide"},
+      {"known_lottery_quality": "unfavorable", "unknown_lottery_quality": "favorable", "payoff_scale": "small", "ambiguity_range_width": "narrow"},
+      {"known_lottery_quality": "unfavorable", "unknown_lottery_quality": "favorable", "payoff_scale": "small", "ambiguity_range_width": "wide"},
+      {"known_lottery_quality": "unfavorable", "unknown_lottery_quality": "unfavorable", "payoff_scale": "small", "ambiguity_range_width": "narrow"},
+      {"known_lottery_quality": "unfavorable", "unknown_lottery_quality": "unfavorable", "payoff_scale": "small", "ambiguity_range_width": "wide"},
+      {"known_lottery_quality": "favorable", "unknown_lottery_quality": "favorable", "payoff_scale": "large", "ambiguity_range_width": "narrow"},
+      {"known_lottery_quality": "favorable", "unknown_lottery_quality": "favorable", "payoff_scale": "large", "ambiguity_range_width": "wide"},
+      {"known_lottery_quality": "favorable", "unknown_lottery_quality": "unfavorable", "payoff_scale": "large", "ambiguity_range_width": "narrow"},
+      {"known_lottery_quality": "favorable", "unknown_lottery_quality": "unfavorable", "payoff_scale": "large", "ambiguity_range_width": "wide"},
+      {"known_lottery_quality": "unfavorable", "unknown_lottery_quality": "favorable", "payoff_scale": "large", "ambiguity_range_width": "narrow"},
+      {"known_lottery_quality": "unfavorable", "unknown_lottery_quality": "favorable", "payoff_scale": "large", "ambiguity_range_width": "wide"},
+      {"known_lottery_quality": "unfavorable", "unknown_lottery_quality": "unfavorable", "payoff_scale": "large", "ambiguity_range_width": "narrow"},
+      {"known_lottery_quality": "unfavorable", "unknown_lottery_quality": "unfavorable", "payoff_scale": "large", "ambiguity_range_width": "wide"}
+    ],
+    "required_item_fields": ["known_lottery_quality", "unknown_lottery_quality", "payoff_scale", "ambiguity_range_width"],
+    "balance_check": "Each of the 16 combinations must appear at least once per content pool (behavior_eval and steering_eval). Warn if any combination is missing."
+  },
+  "cells": [
+    {
+      "cell_id": "probe_train",
+      "split": "direction_train",
+      "prompt_role": "probe",
+      "mode": "paired",
+      "prompt_family": "ambiguity_probe_train",
+      "content_pool": "ambiguity_probe_train",
+      "condition_ids": ["accept_ambiguity", "resolve_ambiguity"],
+      "count_per_model": 100,
+      "instructions": "Generate the configured number of matched pairs of short scenarios with one fixed scenario skeleton per pair. Duplicate the same entities, outcomes, stakes, option quality, payoff amounts, expected-value statement or calculation, explicit bounded numeric probability interval, interval width, sentence count, sentence order, and response framing. Edit exactly one decision-maker handling clause: one member proceeds using the interval, the other seeks one precise probability before committing. Do not add an expected-value explanation, evidence, or rationale to only one member. Use varied surface forms and complete probe-template wrappers ending verbatim with `Continue processing the scenario.`; do not use construct labels."
+    },
+    {
+      "cell_id": "probe_validation",
+      "split": "direction_validation",
+      "prompt_role": "probe",
+      "mode": "paired",
+      "prompt_family": "ambiguity_probe_validation",
+      "content_pool": "ambiguity_probe_validation",
+      "condition_ids": ["accept_ambiguity", "resolve_ambiguity"],
+      "count_per_model": 40,
+      "instructions": "Generate the configured number of held-new-domain matched pairs. Duplicate every entity, outcome, stake, option-quality fact, payoff amount, expected-value statement, explicit bounded numeric interval, interval width, sentence structure, and response framing within each pair; change only the one handling clause. Do not add or remove evidence or expected-value reasoning. Use complete wrappers ending verbatim with `Continue processing the scenario.`; avoid train-domain entities, repeated templates, and condition-specific cues outside the handling clause."
+    },
+    {
+      "cell_id": "probe_heldout",
+      "split": "direction_heldout",
+      "prompt_role": "probe",
+      "mode": "paired",
+      "prompt_family": "ambiguity_probe_heldout",
+      "content_pool": "ambiguity_probe_heldout",
+      "condition_ids": ["accept_ambiguity", "resolve_ambiguity"],
+      "count_per_model": 40,
+      "instructions": "Generate the configured number of final held-out matched pairs in domains not used by train or validation. Preserve the exact within-pair nuisance controls, including option quality, payoff amounts, expected value, explicit bounded numeric interval, interval width, and sentence structure, while changing only the handling clause. Every prompt must be complete and end with the verbatim suffix `Continue processing the scenario.`; vary wording, actors, and entities across pairs without adding condition-specific cues elsewhere or revealing construct labels."
+    },
+    {
+      "cell_id": "behavior_eval",
+      "split": "behavior_eval",
+      "prompt_role": "behavior",
+      "mode": "single",
+      "prompt_family": "ambiguity_behavior_eval",
+      "content_pool": "ambiguity_behavior",
+      "condition_id": "neutral",
+      "task_id": "known_unknown_lottery_allocation_v1",
+      "parser_id": "two_integers_sum_100_v1",
+      "expected_output_format": "two_integers_sum_100",
+      "factor_schedule": "behavior_factor_schedule",
+      "count_per_model": 16,
+      "category_balance": {
+        "known_lottery_quality": ["favorable", "favorable", "favorable", "favorable", "unfavorable", "unfavorable", "unfavorable", "unfavorable", "favorable", "favorable", "favorable", "favorable", "unfavorable", "unfavorable", "unfavorable", "unfavorable"],
+        "unknown_lottery_quality": ["favorable", "favorable", "unfavorable", "unfavorable", "favorable", "favorable", "unfavorable", "unfavorable", "favorable", "favorable", "unfavorable", "unfavorable", "favorable", "favorable", "unfavorable", "unfavorable"],
+        "payoff_scale": ["small", "small", "small", "small", "small", "small", "small", "small", "large", "large", "large", "large", "large", "large", "large", "large"],
+        "ambiguity_range_width": ["narrow", "wide", "narrow", "wide", "narrow", "wide", "narrow", "wide", "narrow", "wide", "narrow", "wide", "narrow", "wide", "narrow", "wide"]
+      },
+      "instructions": "Generate one independent allocation item per required combination in behavior_factor_schedule. Present one stated-probability option and one option with an explicit bounded numeric probability interval; control option quality, payoff scale, and interval width by metadata. Record all four fields exactly, present the facts without an asymmetric expected-value explanation, and do not ask the model to label its orientation."
+    },
+    {
+      "cell_id": "steering_eval",
+      "split": "steering_eval",
+      "prompt_role": "steering",
+      "mode": "single",
+      "prompt_family": "ambiguity_steering_eval",
+      "content_pool": "ambiguity_steering",
+      "condition_id": "neutral",
+      "task_id": "known_unknown_lottery_allocation_v1",
+      "parser_id": "two_integers_sum_100_v1",
+      "expected_output_format": "two_integers_sum_100",
+      "factor_schedule": "behavior_factor_schedule",
+      "count_per_model": 16,
+      "category_balance": {
+        "known_lottery_quality": ["favorable", "favorable", "favorable", "favorable", "unfavorable", "unfavorable", "unfavorable", "unfavorable", "favorable", "favorable", "favorable", "favorable", "unfavorable", "unfavorable", "unfavorable", "unfavorable"],
+        "unknown_lottery_quality": ["favorable", "favorable", "unfavorable", "unfavorable", "favorable", "favorable", "unfavorable", "unfavorable", "favorable", "favorable", "unfavorable", "unfavorable", "favorable", "favorable", "unfavorable", "unfavorable"],
+        "payoff_scale": ["small", "small", "small", "small", "small", "small", "small", "small", "large", "large", "large", "large", "large", "large", "large", "large"],
+        "ambiguity_range_width": ["narrow", "wide", "narrow", "wide", "narrow", "wide", "narrow", "wide", "narrow", "wide", "narrow", "wide", "narrow", "wide", "narrow", "wide"]
+      },
+      "instructions": "Generate the configured number of new independent allocation items, one per required combination, using content distinct from behavior_eval. Record known_lottery_quality, unknown_lottery_quality, payoff_scale, and ambiguity_range_width as structured metadata."
+    },
+    {
+      "cell_id": "calibration",
+      "split": "calibration",
+      "prompt_role": "calibration",
+      "mode": "single",
+      "prompt_family": "ambiguity_calibration",
+      "content_pool": "ambiguity_calibration",
+      "condition_id": "neutral",
+      "task_id": "known_unknown_lottery_allocation_v1",
+      "parser_id": "two_integers_sum_100_v1",
+      "expected_output_format": "two_integers_sum_100",
+      "count_per_model": 16,
+      "category_balance": {
+        "known_lottery_quality": ["favorable", "favorable", "favorable", "favorable", "unfavorable", "unfavorable", "unfavorable", "unfavorable", "favorable", "favorable", "favorable", "favorable", "unfavorable", "unfavorable", "unfavorable", "unfavorable"],
+        "unknown_lottery_quality": ["favorable", "favorable", "unfavorable", "unfavorable", "favorable", "favorable", "unfavorable", "unfavorable", "favorable", "favorable", "unfavorable", "unfavorable", "favorable", "favorable", "unfavorable", "unfavorable"],
+        "payoff_scale": ["small", "small", "small", "small", "small", "small", "small", "small", "large", "large", "large", "large", "large", "large", "large", "large"],
+        "ambiguity_range_width": ["narrow", "wide", "narrow", "wide", "narrow", "wide", "narrow", "wide", "narrow", "wide", "narrow", "wide", "narrow", "wide", "narrow", "wide"]
+      },
+      "instructions": "Generate neutral allocation items using a third content pool. Use the crossed metadata schedule only to balance ordinary response variation; do not cue the probe state or ask for a style label."
+    }
+  ]
+}

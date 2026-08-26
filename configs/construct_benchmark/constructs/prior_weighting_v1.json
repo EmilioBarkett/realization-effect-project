@@ -1,0 +1,91 @@
+{
+  "schema_version": "0.1.0",
+  "construct_id": "prior_weighting",
+  "version": "v1",
+  "family": "epistemic",
+  "title": "Prior versus case-evidence weighting",
+  "description": "Whether reasoning is represented as anchored more strongly to a registered base rate or as responsive more strongly to case-specific evidence, without identifying evidence polarity or diagnosticity as the construct.",
+  "contrast_conditions": [
+    {
+      "condition_id": "prior_sensitive",
+      "label": "Prior/base-rate sensitive",
+      "definition": "The reasoning state preserves and gives substantial weight to the base rate or prior probability when interpreting a new case."
+    },
+    {
+      "condition_id": "case_evidence_sensitive",
+      "label": "Case-evidence sensitive",
+      "definition": "The reasoning state gives substantial weight to case-specific evidence when interpreting a new case, relative to the registered base rate."
+    }
+  ],
+  "probe_prompt_template": "Read the following short reasoning scenario. Track how the base rate and case-specific evidence are weighted separately from whether the evidence supports or contradicts the hypothesis.\n\nScenario:\n{scenario}\n\nContinue processing the scenario.",
+  "independent_behavior_task": {
+    "task_id": "structured_bayesian_judgment_v1",
+    "task_family": "prior_evidence_probability_judgment",
+    "prompt_template": "In a separate probability judgment, start with the stated prior probability and then consider one case-specific result whose evidential force is fixed at the registered moderate level. Report the posterior probability from 0 to 100 as one integer. Use only the numbers and evidence described in this item.",
+    "primary_outcome": "prior_anchor_distance",
+    "secondary_outcomes": ["posterior_probability", "absolute_update", "compliance"],
+    "response_format": "single_integer_0_to_100",
+    "item_metadata_schema": {
+      "required": ["prior_probability", "evidence_valence", "evidence_strength"],
+      "properties": {
+        "prior_probability": {"type": "integer", "enum": [20, 50, 80]},
+        "evidence_valence": {"type": "string", "enum": ["supporting", "contradicting"]},
+        "evidence_strength": {"type": "string", "enum": ["moderate"]}
+      }
+    },
+    "independence_requirements": [
+      "Use new hypotheses, domains, entities, and evidence items not present in probe prompts.",
+      "Cross low, middle, and high priors with supporting and contradicting evidence.",
+      "Hold case-evidence force at the registered moderate level; do not vary diagnosticity, reliability, specificity, or noise.",
+      "Do not ask the model to label the reasoning style or to repeat the probe scenario."
+    ]
+  },
+  "expected_direction": {
+    "readout": {
+      "positive_condition": "prior_sensitive",
+      "negative_condition": "case_evidence_sensitive",
+      "estimand": "heldout_projection_margin"
+    },
+    "behavior": {
+      "outcome": "prior_anchor_distance",
+      "estimand": "prior_evidence_weighting_by_prior_and_valence",
+      "expected_by_evidence_strength": {
+        "moderate": "prior_sensitive produces a smaller posterior distance from the stated prior than case_evidence_sensitive"
+      },
+      "direction_status": "preregister_before_data_collection",
+      "warning": "This construct concerns relative prior-versus-case weighting, not evidence diagnosticity, evidence polarity, or calibration quality alone."
+    }
+  },
+  "parsing_rules": {
+    "parser_id": "single_integer_probability_v1",
+    "valid_ranges": {"posterior_probability": [0, 100]},
+    "invalid_response_policy": "exclude_from_outcome_denominator_and_report_compliance",
+    "extra_text_policy": "invalid"
+  },
+  "required_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout",
+    "behavior_eval",
+    "steering_eval",
+    "calibration"
+  ],
+  "paired_splits": ["direction_train", "direction_validation", "direction_heldout"],
+  "controls": [
+    "prior_probability_crossing",
+    "supporting_and_contradicting_evidence",
+    "diagnosticity_constant_at_moderate_force",
+    "new_domain_behavior_task",
+    "lexical_overlap_audit",
+    "neutral_behavior_prompt",
+    "shuffled_pair_labels",
+    "random_direction"
+  ],
+  "metadata": {
+    "primary_question": "Does a prior-versus-case weighting direction transfer to posterior judgments in new domains?",
+    "probe_state_is": "relative_prior_evidence_weighting",
+    "not_claimed_as": "evidence_diagnosticity_or_generic_belief_confidence",
+    "nuisance_factors": ["prior_probability", "evidence_valence", "fixed_moderate_evidence_strength", "hypothesis_domain"],
+    "diagnosticity_control": "fixed_moderate_case_evidence_force"
+  }
+}

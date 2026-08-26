@@ -1,0 +1,331 @@
+{
+  "schema_version": "0.1.0",
+  "plan_id": "wave4_epistemic_uncertainty_prompts_v1",
+  "construct_id": "epistemic_uncertainty",
+  "construct_spec_path": "../constructs/epistemic_uncertainty_v1.json",
+  "wave": 4,
+  "task_composition": {
+    "prompt_order": "probe_then_downstream",
+    "probe_context": "paired_probe_only",
+    "downstream_context": "independent_behavior_task_only",
+    "condition_carryover": "state_only",
+    "surface_text_carryover": "none",
+    "behavior_steering_pool_separation": true
+  },
+  "default_count_per_cell_per_model": 2,
+  "run_modes": {
+    "review": {"purpose": "prompt_review", "count_per_model_per_cell": 1, "partial": true},
+    "full": {"purpose": "frozen_full_inventory", "count_per_model_per_cell": null, "partial": false}
+  },
+  "models": [
+    {"alias": "sonnet", "model": "anthropic/claude-sonnet-4.6"}
+  ],
+  "generation": {
+    "temperature": 0.7,
+    "max_tokens": 8000,
+    "seed": 404,
+    "timeout": 120,
+    "retries": 2,
+    "max_items_per_request": 10,
+    "estimated_input_tokens_per_request": 1400,
+    "estimated_output_tokens_per_record": 300
+  },
+  "design_rules": [
+    "Manipulate the decision-maker's epistemic assessment of whether the focal information state is settled or still open, not desirability, stakes, or the cost of checking.",
+    "Start every pair with a genuinely borderline or equivocal shared evidence profile: use at least two materially relevant observations or indicators with different implications, or one explicitly scoped observation with a credible interpretive margin. A reasonable decision-maker must be able to regard this same evidence as either settled or still open.",
+    "Do not use regulatory or legal standards, hard thresholds, pass/fail gates, exact cutoffs, exact counts, percentages, ratios, or arithmetic comparisons that mechanically determine the answer. Do not use a single conclusive measurement or evidence that is plainly all one way. Do not label the evidence as borderline, equivocal, ambiguous, decisive, or inconclusive in prompt_text; show the underlying observations and limitations instead.",
+    "Use one fixed scenario skeleton per pair. Duplicate the same evidence count, source identity and reliability, report content and valence, quantities if any, evidence limitations, actors, options, consequences, stakes, checking cost, sentence count, sentence order, and response framing; edit exactly one information-status clause.",
+    "The information-status clause is the only condition-dependent text. Do not add or remove reports, numbers, source credentials, evidence quality, evidence valence, quantifiers, consequences, or checking costs; never make one member more reliable, more detailed, or lower quality. The clause must attribute the status to the decision-maker's assessment rather than assert an objective property of the evidence.",
+    "Use the registered status-clause contract exactly: the resolved member says that the decision-maker treats the focal question as settled for this decision, while the unresolved member says that the decision-maker treats it as still open for this decision, given the same report and its stated limitations. The unresolved clause must not say that the evidence does not or fails to support, contradicts, confirms, favors, or is weak, insufficient, missing, or lower quality; those are evidence-valence or evidence-quality changes.",
+    "Every probe prompt must be a complete instance of the registered probe template and must end with the verbatim suffix `Continue processing the scenario.`. If the scenario is long, shorten its shared skeleton rather than omitting or truncating the wrapper or suffix.",
+    "Rotate neutral domains, actors, sentence frames, and information-status wording across pairs. Keep the two status clauses closely matched in length and avoid condition-exclusive cue words outside that one clause.",
+    "Use exactly one fixed binary checking option in every downstream item; exclude unknown probabilities, lotteries, and ambiguous or multiple checking options.",
+    "Do not use the construct ID, condition IDs, or condition labels in prompt_text.",
+    "Probe, behavior, steering, and calibration pools must use disjoint evidence entities and domains.",
+    "Do not infer or alter the preregistered readout sign from generated prose."
+  ],
+  "pair_quality_checks": {
+    "required_shared_properties": [
+      "focal question",
+      "evidence count",
+      "source identity and reliability",
+      "report content and valence",
+      "quantities and units if any",
+      "evidence quality",
+      "actors",
+      "options",
+      "consequences",
+      "stakes",
+      "checking cost",
+      "sentence order",
+      "response framing",
+      "terminal suffix"
+    ],
+    "condition_edit": "one information-status clause only",
+    "status_clause_contract": {
+      "resolved": "The decision-maker treats the focal question as settled for this decision, given the report and its stated limitations.",
+      "unresolved": "The decision-maker treats the focal question as still open for this decision, given the report and its stated limitations.",
+      "evidence_content_identical": true,
+      "forbidden_unresolved_semantics": [
+        "the evidence does not, does not sufficiently, or fails to support the claim",
+        "the evidence contradicts, confirms, refutes, or favors a claim",
+        "the evidence is weak, insufficient, missing, or lower quality",
+        "the evidence or report is objectively decisive or objectively indecisive",
+        "the status follows mechanically from a threshold, cutoff, pass/fail rule, or arithmetic comparison"
+      ]
+    },
+    "evidence_profile": {
+      "required": [
+        "The shared evidence contains at least two materially relevant observations or indicators with different implications, or one explicitly scoped observation with a credible interpretive margin.",
+        "The shared evidence is genuinely borderline or equivocal without being labeled that way in prompt_text; a reasonable decision-maker could make either status assessment while holding the evidence fixed.",
+        "The focal question is interpretive or predictive enough that no single observation mechanically answers it, and the evidence profile has no regulatory/legal threshold, hard cutoff, pass/fail gate, exact count, percentage, ratio, or arithmetic comparison that decides it."
+      ],
+      "reject_if": [
+        "the evidence is plainly all one way, contains a single conclusive measurement, or makes one status assessment objectively unavoidable",
+        "the evidence uses a regulatory/legal standard, hard threshold, pass/fail gate, exact cutoff, exact count, percentage, ratio, or arithmetic comparison to determine the answer",
+        "the prompt merely labels the evidence borderline, equivocal, ambiguous, decisive, or inconclusive without presenting a plausible underlying information profile"
+      ]
+    },
+    "plausibility_review": {
+      "pass_condition": "An independent reviewer can state in one sentence why a reasonable decision-maker could treat the same evidence as either settled or still open, without changing evidence content, valence, quality, or limitations.",
+      "reject_if": [
+        "the reviewer must invent a missing fact, threshold, probability, or evidence-quality difference to make either status plausible",
+        "the shared evidence itself clearly proves, rules out, or mechanically decides the focal answer",
+        "the only explanation for the contrast is that the generator changed what the evidence says rather than the decision-maker's assessment"
+      ]
+    },
+    "normalized_pair_text": {
+      "replace_only": "the information-status clause",
+      "required_identical": true
+    },
+    "reject_if": [
+      "the unresolved status clause changes evidence valence, content, quantity, source, reliability, quality, or numeric values",
+      "the unresolved status clause says the evidence does not or fails to support, contradicts, confirms, refutes, or favors a claim",
+      "the unresolved status clause says the evidence is weak, insufficient, missing, or lower quality",
+      "the resolved clause does not attribute the settled assessment to the decision-maker",
+      "the unresolved clause does not attribute the still-open assessment to the decision-maker",
+      "the shared evidence is not genuinely borderline or equivocal, or a reasonable decision-maker could not plausibly make either assessment",
+      "the shared evidence contains a regulatory/legal threshold, hard cutoff, pass/fail gate, exact count, percentage, ratio, or arithmetic comparison that mechanically determines the answer",
+      "the prompt uses objectively decisive or objectively indecisive wording, including proves, conclusive, definitive, determines, or inconclusive",
+      "any text outside the one information-status clause differs, including stakes, desirability, checking cost, consequences, or response framing",
+      "the pair is not a closely length-matched minimal contrast"
+    ]
+  },
+  "rejection_criteria": [
+    "Reject any probe prompt_text whose final characters are not exactly `Continue processing the scenario.`.",
+    "Reject any prompt_text that contains the suffix before its final occurrence or has any character or text after the suffix, including notes, condition labels, or response instructions.",
+    "Reject any pair when the resolved member does not say that the decision-maker treats the focal question as settled for this decision or the unresolved member does not say that the decision-maker treats it as still open for this decision, given the same report and its stated limitations.",
+    "Reject any unresolved clause that says the evidence does not or fails to support, contradicts, confirms, refutes, or favors a claim, or that describes the evidence as weak, insufficient, missing, or lower quality.",
+    "Reject any pair whose shared evidence is plainly all one way, objectively decisive or indecisive, based on a single conclusive measurement, or not plausibly open to either decision-maker assessment.",
+    "Reject any pair whose shared evidence uses a regulatory/legal standard, hard threshold, pass/fail gate, exact cutoff, exact count, percentage, ratio, or arithmetic comparison that mechanically determines the answer.",
+    "Reject any pair when evidence count, source, report content, valence, quantities if any, quality, reliability, limitations, actors, stakes, checking cost, consequences, or response framing differ outside the single information-status clause.",
+    "Reject any pair whose normalized prompt texts are not identical after replacing only the information-status clause, or that is not a closely length-matched minimal contrast.",
+    "Reject any prompt that omits the registered wrapper or uses a condition ID, construct name, or forbidden label in prompt_text."
+  ],
+  "forbidden_terms": [
+    "epistemic_uncertainty",
+    "resolved_state",
+    "unresolved_state",
+    "epistemic uncertainty",
+    "the evidence settles",
+    "the report settles",
+    "settles the focal question",
+    "the focal question is settled",
+    "the evidence does not settle",
+    "the report does not settle",
+    "leaves the focal question open",
+    "the focal question remains open",
+    "objectively settled",
+    "objectively unresolved",
+    "objectively decisive",
+    "objectively indecisive",
+    "objective conclusion",
+    "decisive evidence",
+    "indecisive evidence",
+    "conclusive evidence",
+    "conclusive",
+    "definitive",
+    "proves",
+    "proven",
+    "determines the answer",
+    "the evidence determines",
+    "the report determines",
+    "inconclusive",
+    "unambiguously",
+    "regulatory threshold",
+    "regulatory limit",
+    "legal threshold",
+    "hard threshold",
+    "hard cutoff",
+    "pass/fail gate",
+    "pass-fail gate",
+    "pass/fail",
+    "pass-fail",
+    "above the limit",
+    "below the limit",
+    "exceeds the threshold",
+    "meets the threshold",
+    "exact cutoff",
+    "exact count",
+    "percentage",
+    "percent",
+    "ratio",
+    "arithmetic comparison",
+    "borderline evidence",
+    "equivocal evidence",
+    "ambiguous evidence",
+    "lottery",
+    "lotteries",
+    "unknown probability",
+    "unknown probabilities",
+    "multiple checks",
+    "several checks",
+    "does not support",
+    "doesn't support",
+    "fails to support",
+    "cannot support",
+    "not supported",
+    "contradicts the claim",
+    "confirms the claim",
+    "refutes the claim",
+    "favors the claim",
+    "weak evidence",
+    "insufficient evidence",
+    "missing evidence",
+    "lower-quality evidence",
+    "lower quality evidence",
+    "additional evidence is needed",
+    "more evidence is needed",
+    "not enough evidence"
+  ],
+  "content_pools": {
+    "uncertainty_probe_train": {"role": "probe", "domains": ["quality_control", "wildlife_monitoring"]},
+    "uncertainty_probe_validation": {"role": "probe", "domains": ["software_testing", "medical_triage"]},
+    "uncertainty_probe_heldout": {"role": "probe", "domains": ["weather_services", "historical_archives"]},
+    "uncertainty_behavior": {"role": "behavior", "domains": ["new_information_check_items"]},
+    "uncertainty_steering": {"role": "steering", "domains": ["new_information_check_items_heldout"]},
+    "uncertainty_calibration": {"role": "calibration", "domains": ["neutral_information_check_items"]}
+  },
+  "behavior_factor_schedule": {
+    "note": "Cross information value, search cost, and decision stakes independently in behavior_eval and steering_eval.",
+    "factors": {
+      "information_value": ["low", "high"],
+      "search_cost": ["low", "high"],
+      "decision_stakes": ["low", "high"],
+      "check_count": ["one"],
+      "check_type": ["binary"]
+    },
+    "required_combinations": [
+      {"information_value": "low", "search_cost": "low", "decision_stakes": "low", "check_count": "one", "check_type": "binary"},
+      {"information_value": "low", "search_cost": "low", "decision_stakes": "high", "check_count": "one", "check_type": "binary"},
+      {"information_value": "low", "search_cost": "high", "decision_stakes": "low", "check_count": "one", "check_type": "binary"},
+      {"information_value": "low", "search_cost": "high", "decision_stakes": "high", "check_count": "one", "check_type": "binary"},
+      {"information_value": "high", "search_cost": "low", "decision_stakes": "low", "check_count": "one", "check_type": "binary"},
+      {"information_value": "high", "search_cost": "low", "decision_stakes": "high", "check_count": "one", "check_type": "binary"},
+      {"information_value": "high", "search_cost": "high", "decision_stakes": "low", "check_count": "one", "check_type": "binary"},
+      {"information_value": "high", "search_cost": "high", "decision_stakes": "high", "check_count": "one", "check_type": "binary"}
+    ],
+    "required_item_fields": ["information_value", "search_cost", "decision_stakes", "check_count", "check_type"],
+    "balance_check": "Each combination must appear once per behavior and steering content pool per model."
+  },
+  "cells": [
+    {
+      "cell_id": "probe_train",
+      "split": "direction_train",
+      "prompt_role": "probe",
+      "mode": "paired",
+      "prompt_family": "uncertainty_probe_train",
+      "content_pool": "uncertainty_probe_train",
+      "condition_ids": ["resolved_state", "unresolved_state"],
+      "count_per_model": 100,
+      "instructions": "Generate the configured number of matched pairs of short information-state scenarios. Start each pair with a genuinely borderline or equivocal shared evidence profile: include at least two materially relevant observations or indicators with different implications, or one explicitly scoped observation with a credible interpretive margin, so a reasonable decision-maker could plausibly treat the same evidence as settled or still open. Do not use regulatory/legal standards, hard thresholds, pass/fail gates, exact counts, percentages, ratios, arithmetic comparisons, a single conclusive measurement, or evidence plainly all one way; do not label the profile borderline or equivocal in prompt_text. Duplicate the same evidence count, source identity and reliability, report content and valence, quantities if any, evidence limitations, desirability, stakes, actors, action options, checking cost, sentence count, sentence order, and response framing. Edit exactly one information-status clause: the resolved member must say that the decision-maker treats the focal question as settled for this decision, while the unresolved member must say that the decision-maker treats it as still open for this decision, given the same report and its stated limitations. Never say that the evidence does not or fails to support, contradicts, confirms, refutes, favors, proves, determines, or is weak/insufficient/missing; those change evidence meaning or make the status objectively decisive. Use varied surface forms and complete probe-template wrappers ending verbatim with `Continue processing the scenario.`; do not state the condition label."
+    },
+    {
+      "cell_id": "probe_validation",
+      "split": "direction_validation",
+      "prompt_role": "probe",
+      "mode": "paired",
+      "prompt_family": "uncertainty_probe_validation",
+      "content_pool": "uncertainty_probe_validation",
+      "condition_ids": ["resolved_state", "unresolved_state"],
+      "count_per_model": 40,
+      "instructions": "Generate the configured number of new matched pairs in held-apart domains. Build each pair from genuinely borderline or equivocal shared evidence with at least two relevant observations or indicators having different implications, or one explicitly scoped observation with a credible interpretive margin; a reasonable decision-maker must plausibly be able to make either status assessment. Do not use regulatory/legal standards, hard thresholds, pass/fail gates, exact counts, percentages, ratios, arithmetic comparisons, a single conclusive measurement, or plainly one-way evidence, and do not label the profile borderline or equivocal. Preserve the exact one-clause information-status contrast: the resolved member says that the decision-maker treats the focal question as settled for this decision, and the unresolved member says that the decision-maker treats it as still open for this decision, given the same report and its stated limitations. Keep evidence count, report content and valence, source reliability, evidence quality and limitations, quantities if any, stakes, desirability, options, and all other nuisance factors fixed within each pair. Never use does-not-support, contradiction, confirmation, proof, determination, weak-evidence, or insufficient-evidence wording for either member. Every prompt must use the complete registered wrapper and end verbatim with `Continue processing the scenario.`; vary neutral wording without adding condition-specific cues elsewhere."
+    },
+    {
+      "cell_id": "probe_heldout",
+      "split": "direction_heldout",
+      "prompt_role": "probe",
+      "mode": "paired",
+      "prompt_family": "uncertainty_probe_heldout",
+      "content_pool": "uncertainty_probe_heldout",
+      "condition_ids": ["resolved_state", "unresolved_state"],
+      "count_per_model": 40,
+      "instructions": "Generate the configured number of novel held-out matched pairs, avoiding train and validation entities and wording. Begin with genuinely borderline or equivocal shared evidence: include at least two relevant observations or indicators with different implications, or one explicitly scoped observation with a credible interpretive margin, and make it plausible for a reasonable decision-maker to regard the same evidence as either settled or still open. Do not use regulatory/legal standards, hard thresholds, pass/fail gates, exact counts, percentages, ratios, arithmetic comparisons, a single conclusive measurement, plainly one-way evidence, or labels such as borderline or equivocal. Change only one information-status clause: the resolved member says the decision-maker treats the focal question as settled for this decision, while the unresolved member says the decision-maker treats it as still open for this decision, given the same report and its stated limitations. Do not change evidence count, source identity or reliability, report content or valence, evidence quality or limitations, quantities if any, stakes, desirability, checking cost, or option consequences. Reject any wording about evidence not supporting, contradicting, confirming, refuting, favoring, proving, determining, being weak/insufficient/missing, or being objectively decisive or indecisive. Every prompt must be complete and end with the verbatim suffix `Continue processing the scenario.`; do not add condition-specific cues elsewhere."
+    },
+    {
+      "cell_id": "behavior_eval",
+      "split": "behavior_eval",
+      "prompt_role": "behavior",
+      "mode": "single",
+      "prompt_family": "uncertainty_behavior_eval",
+      "content_pool": "uncertainty_behavior",
+      "condition_id": "neutral",
+      "task_id": "information_seeking_commitment_v1",
+      "parser_id": "two_integers_sum_100_v1",
+      "expected_output_format": "two_integers_sum_100",
+      "factor_schedule": "behavior_factor_schedule",
+      "count_per_model": 8,
+      "category_balance": {
+        "information_value": ["low", "low", "low", "low", "high", "high", "high", "high"],
+        "search_cost": ["low", "low", "high", "high", "low", "low", "high", "high"],
+        "decision_stakes": ["low", "high", "low", "high", "low", "high", "low", "high"],
+        "check_count": ["one", "one", "one", "one", "one", "one", "one", "one"],
+        "check_type": ["binary", "binary", "binary", "binary", "binary", "binary", "binary", "binary"]
+      },
+      "instructions": "Generate exactly one independent decision item for each required combination. Include a current option and exactly one fixed binary check, ask for two integer allocations summing to 100, and exclude unknown probabilities, lotteries, source-reliability cues, and evidence-quantity cues. Vary only the scheduled information value, search cost, and decision stakes; never ask the model to label the information state."
+    },
+    {
+      "cell_id": "steering_eval",
+      "split": "steering_eval",
+      "prompt_role": "steering",
+      "mode": "single",
+      "prompt_family": "uncertainty_steering_eval",
+      "content_pool": "uncertainty_steering",
+      "condition_id": "neutral",
+      "task_id": "information_seeking_commitment_v1",
+      "parser_id": "two_integers_sum_100_v1",
+      "expected_output_format": "two_integers_sum_100",
+      "factor_schedule": "behavior_factor_schedule",
+      "count_per_model": 8,
+      "category_balance": {
+        "information_value": ["low", "low", "low", "low", "high", "high", "high", "high"],
+        "search_cost": ["low", "low", "high", "high", "low", "low", "high", "high"],
+        "decision_stakes": ["low", "high", "low", "high", "low", "high", "low", "high"],
+        "check_count": ["one", "one", "one", "one", "one", "one", "one", "one"],
+        "check_type": ["binary", "binary", "binary", "binary", "binary", "binary", "binary", "binary"]
+      },
+      "instructions": "Generate exactly one independent held-out decision item for each required combination with exactly one fixed binary check. Content must be distinct from behavior_eval and all probe pools; vary only scheduled information value, search cost, and decision stakes, and exclude unknown probabilities, lotteries, source-reliability cues, and evidence-quantity cues."
+    },
+    {
+      "cell_id": "calibration",
+      "split": "calibration",
+      "prompt_role": "calibration",
+      "mode": "single",
+      "prompt_family": "uncertainty_calibration",
+      "content_pool": "uncertainty_calibration",
+      "condition_id": "neutral",
+      "task_id": "information_seeking_commitment_v1",
+      "parser_id": "two_integers_sum_100_v1",
+      "expected_output_format": "two_integers_sum_100",
+      "count_per_model": 8,
+      "category_balance": {
+        "information_value": ["low", "low", "low", "low", "high", "high", "high", "high"],
+        "search_cost": ["low", "low", "high", "high", "low", "low", "high", "high"],
+        "decision_stakes": ["low", "high", "low", "high", "low", "high", "low", "high"],
+        "check_count": ["one", "one", "one", "one", "one", "one", "one", "one"],
+        "check_type": ["binary", "binary", "binary", "binary", "binary", "binary", "binary", "binary"]
+      },
+      "instructions": "Generate neutral information-check items with exactly one fixed binary check, used only to estimate within-cell output variation; do not reuse behavior or steering content."
+    }
+  ]
+}

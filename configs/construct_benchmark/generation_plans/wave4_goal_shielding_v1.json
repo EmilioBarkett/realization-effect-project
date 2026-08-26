@@ -1,0 +1,208 @@
+{
+  "schema_version": "0.1.0",
+  "plan_id": "wave4_goal_shielding_prompts_v1",
+  "construct_id": "goal_shielding",
+  "construct_spec_path": "../constructs/goal_shielding_v1.json",
+  "wave": 4,
+  "task_composition": {
+    "prompt_order": "probe_then_downstream",
+    "probe_context": "paired_probe_only",
+    "downstream_context": "independent_behavior_task_only",
+    "condition_carryover": "state_only",
+    "surface_text_carryover": "none",
+    "behavior_steering_pool_separation": true
+  },
+  "default_count_per_cell_per_model": 2,
+  "run_modes": {
+    "review": {"purpose": "prompt_review", "count_per_model_per_cell": 1, "partial": true},
+    "full": {"purpose": "frozen_full_inventory", "count_per_model_per_cell": null, "partial": false}
+  },
+  "models": [
+    {"alias": "sonnet", "model": "anthropic/claude-sonnet-4.6"}
+  ],
+  "generation": {
+    "temperature": 0.7,
+    "max_tokens": 8000,
+    "seed": 408,
+    "timeout": 120,
+    "retries": 2,
+    "max_items_per_request": 10,
+    "estimated_input_tokens_per_request": 1400,
+    "estimated_output_tokens_per_record": 300
+  },
+  "design_rules": [
+    "Manipulate which objective receives attentional priority under competition, not persistence after a setback or preservation of a fixed plan.",
+    "Use one fixed scenario skeleton per pair. Duplicate the same focal objective, distractor, urgency, salience, effort, setting, actors, task value, consequences, availability, feasibility, decision point, chronology, sentence count, sentence order, and response framing; edit exactly one short attentional-priority clause.",
+    "The attentional-priority clause is the only condition-dependent text. Both objectives must be currently available and feasible at the same decision point. Do not add a setback, plan revision, failure, urgency, value, salience, effort, consequence, completion, or availability difference to either member, and do not rewrite the surrounding rationale.",
+    "Keep timing and order neutral and identical within each pair: use a present-tense decision-point clause only. Do not say that either objective is handled now, later, afterward, before, or after the other, and do not state a future response, deferral, completion order, or abandonment. The priority clause must not imply any of those changes.",
+    "Every probe prompt must be a complete instance of the registered probe template and must end with the verbatim suffix `Continue processing the scenario.`. If the scenario is long, shorten its shared skeleton rather than omitting or truncating the wrapper or suffix.",
+    "Rotate neutral domains, actors, sentence frames, and priority-clause wording across pairs. Keep the two priority clauses closely matched in length and avoid condition-exclusive persistence, urgency, value, timing, or order cues outside that one clause.",
+    "Do not use the construct ID, condition IDs, or condition labels in prompt_text.",
+    "Probe, behavior, steering, and calibration pools must use disjoint tasks, actors, and domains.",
+    "Do not infer or alter the preregistered readout sign from generated prose."
+  ],
+  "pair_quality_checks": {
+    "required_shared_properties": [
+      "focal objective",
+      "competing objective",
+      "availability",
+      "feasibility",
+      "urgency",
+      "salience",
+      "effort",
+      "setting",
+      "actors",
+      "value",
+      "consequences",
+      "decision point",
+      "chronology",
+      "sentence order",
+      "response framing",
+      "terminal suffix"
+    ],
+    "condition_edit": "one short present-tense attentional-priority clause naming which objective receives attention at the shared decision point",
+    "timing_neutrality": "Neither member may prescribe now/later/after/before/then ordering, future completion, deferral, or abandonment; both objectives remain available and feasible.",
+    "normalized_pair_text": {
+      "replace_only": "the attentional-priority clause",
+      "required_identical": true
+    },
+    "reject_if": [
+      "either member contains a condition-specific now/later/after/before/then cue or a future action that is absent or inconsistent in the other member",
+      "the attentional-priority clause implies that one objective is completed, deferred, unavailable, infeasible, abandoned, or handled in a different order",
+      "any text outside the one attentional-priority clause differs, including availability, feasibility, urgency, value, salience, effort, consequences, chronology, or response framing",
+      "the pair is not a closely length-matched minimal contrast",
+      "either prompt is missing the registered wrapper or does not end with the exact terminal suffix `Continue processing the scenario.`"
+    ]
+  },
+  "rejection_criteria": [
+    "Reject any prompt_text whose final characters are not exactly `Continue processing the scenario.`.",
+    "Reject any prompt_text that contains the suffix before its final occurrence, or has any character or text after the suffix, including a response request, rationale, timing instruction, future action, notes, or condition label.",
+    "Reject any pair when either member contains a condition-specific now/later/after/before/then cue, future action, deferral, completion order, or abandonment that is absent or inconsistent in the other member.",
+    "Reject any pair when the attentional-priority clause changes availability, feasibility, urgency, value, salience, effort, consequences, chronology, or response framing, or implies that one objective is completed, deferred, unavailable, infeasible, or abandoned.",
+    "Reject any pair whose normalized prompt texts are not identical after replacing only the one short present-tense attentional-priority clause; retain the same decision point, shared skeleton, and terminal suffix.",
+    "Reject any pair that is not a closely length-matched minimal contrast or that omits the complete registered probe wrapper."
+  ],
+  "forbidden_terms": ["goal_shielding", "shield_focal_goal", "attend_competing_goal", "goal shielding", "continuing the focal task", "continue the focal task"],
+  "content_pools": {
+    "shielding_probe_train": {"role": "probe", "domains": ["exam_preparation", "kitchen_workflows"]},
+    "shielding_probe_validation": {"role": "probe", "domains": ["warehouse_operations", "music_rehearsals"]},
+    "shielding_probe_heldout": {"role": "probe", "domains": ["data_analysis", "community_campaigns"]},
+    "shielding_behavior": {"role": "behavior", "domains": ["new_attention_allocation_items"]},
+    "shielding_steering": {"role": "steering", "domains": ["new_attention_allocation_items_heldout"]},
+    "shielding_calibration": {"role": "calibration", "domains": ["neutral_attention_allocation_items"]}
+  },
+  "behavior_factor_schedule": {
+    "note": "Cross distractor salience, focal urgency, and switching cost independently in behavior_eval and steering_eval.",
+    "factors": {
+      "distractor_salience": ["low", "high"],
+      "focal_urgency": ["low", "high"],
+      "switching_cost": ["low", "high"]
+    },
+    "required_combinations": [
+      {"distractor_salience": "low", "focal_urgency": "low", "switching_cost": "low"},
+      {"distractor_salience": "low", "focal_urgency": "low", "switching_cost": "high"},
+      {"distractor_salience": "low", "focal_urgency": "high", "switching_cost": "low"},
+      {"distractor_salience": "low", "focal_urgency": "high", "switching_cost": "high"},
+      {"distractor_salience": "high", "focal_urgency": "low", "switching_cost": "low"},
+      {"distractor_salience": "high", "focal_urgency": "low", "switching_cost": "high"},
+      {"distractor_salience": "high", "focal_urgency": "high", "switching_cost": "low"},
+      {"distractor_salience": "high", "focal_urgency": "high", "switching_cost": "high"}
+    ],
+    "required_item_fields": ["distractor_salience", "focal_urgency", "switching_cost"],
+    "balance_check": "Each combination must appear once per behavior and steering content pool."
+  },
+  "cells": [
+    {
+      "cell_id": "probe_train",
+      "split": "direction_train",
+      "prompt_role": "probe",
+      "mode": "paired",
+      "prompt_family": "shielding_probe_train",
+      "content_pool": "shielding_probe_train",
+      "condition_ids": ["shield_focal_goal", "attend_competing_goal"],
+      "count_per_model": 100,
+      "instructions": "Generate the configured number of matched pairs of short goal-management scenarios with one fixed scenario skeleton per pair. Duplicate the same focal objective, distractor, urgency, salience, effort, setting, actors, task value, consequences, availability, feasibility, shared decision point, chronology, sentence count, sentence order, and response framing; edit exactly one short present-tense attentional-priority clause naming which objective receives attention, yielding a minimal, closely length-matched contrast. Both objectives must remain available and feasible. Keep timing neutral: do not add now/later/after/before/then language, future action, deferral, completion order, or abandonment. Use varied surface forms and complete probe-template wrappers ending with the verbatim suffix `Continue processing the scenario.`; do not state the condition label."
+    },
+    {
+      "cell_id": "probe_validation",
+      "split": "direction_validation",
+      "prompt_role": "probe",
+      "mode": "paired",
+      "prompt_family": "shielding_probe_validation",
+      "content_pool": "shielding_probe_validation",
+      "condition_ids": ["shield_focal_goal", "attend_competing_goal"],
+      "count_per_model": 40,
+      "instructions": "Generate the configured number of new matched pairs in held-apart domains. Preserve the exact one-clause, present-tense attentional-priority contrast at a shared decision point, with focal objective, distractor, availability, feasibility, urgency, salience, effort, setting, value, consequences, chronology, and all other nuisance factors fixed within each pair; produce a minimal, closely length-matched contrast, do not rewrite rationale, and do not add a setback/plan-revision, future-action, deferral, completion-order, or abandonment cue. Both objectives must remain available and feasible. Every prompt must use the complete registered wrapper and end with the verbatim suffix `Continue processing the scenario.`; vary neutral wording without adding condition-specific timing or order cues elsewhere."
+    },
+    {
+      "cell_id": "probe_heldout",
+      "split": "direction_heldout",
+      "prompt_role": "probe",
+      "mode": "paired",
+      "prompt_family": "shielding_probe_heldout",
+      "content_pool": "shielding_probe_heldout",
+      "condition_ids": ["shield_focal_goal", "attend_competing_goal"],
+      "count_per_model": 40,
+      "instructions": "Generate the configured number of novel held-out matched pairs, avoiding train and validation entities and wording. Keep the full scenario skeleton and outcome profile identical within each pair, including availability, feasibility, decision point, and chronology, and change only one short present-tense attentional-priority clause to make a minimal, closely length-matched contrast. Both objectives must be available and feasible in both members. Do not introduce failure, abandonment, persistence, fixed-plan, now/later, before/after, future-action, deferral, or completion-order language. Every prompt must be complete and end with the verbatim suffix `Continue processing the scenario.`; avoid condition-specific urgency, value, effort, timing, or order cues outside that clause."
+    },
+    {
+      "cell_id": "behavior_eval",
+      "split": "behavior_eval",
+      "prompt_role": "behavior",
+      "mode": "single",
+      "prompt_family": "shielding_behavior_eval",
+      "content_pool": "shielding_behavior",
+      "condition_id": "neutral",
+      "task_id": "attention_allocation_v1",
+      "parser_id": "two_integers_sum_100_v1",
+      "expected_output_format": "two_integers_sum_100",
+      "factor_schedule": "behavior_factor_schedule",
+      "count_per_model": 8,
+      "category_balance": {
+        "distractor_salience": ["low", "low", "low", "low", "high", "high", "high", "high"],
+        "focal_urgency": ["low", "low", "high", "high", "low", "low", "high", "high"],
+        "switching_cost": ["low", "high", "low", "high", "low", "high", "low", "high"]
+      },
+      "instructions": "Generate exactly one new-domain attention-allocation item for each required combination. Include a focal task and unrelated distractor, ask for two integer allocations summing to 100 between the tasks, avoid persistence/continuation wording, and never ask the model to label attentional priority."
+    },
+    {
+      "cell_id": "steering_eval",
+      "split": "steering_eval",
+      "prompt_role": "steering",
+      "mode": "single",
+      "prompt_family": "shielding_steering_eval",
+      "content_pool": "shielding_steering",
+      "condition_id": "neutral",
+      "task_id": "attention_allocation_v1",
+      "parser_id": "two_integers_sum_100_v1",
+      "expected_output_format": "two_integers_sum_100",
+      "factor_schedule": "behavior_factor_schedule",
+      "count_per_model": 8,
+      "category_balance": {
+        "distractor_salience": ["low", "low", "low", "low", "high", "high", "high", "high"],
+        "focal_urgency": ["low", "low", "high", "high", "low", "low", "high", "high"],
+        "switching_cost": ["low", "high", "low", "high", "low", "high", "low", "high"]
+      },
+      "instructions": "Generate exactly one independent held-out attention-allocation item for each required combination. Phrase the response as allocation of attention between tasks rather than continuation; content must be distinct from behavior_eval and all probe pools."
+    },
+    {
+      "cell_id": "calibration",
+      "split": "calibration",
+      "prompt_role": "calibration",
+      "mode": "single",
+      "prompt_family": "shielding_calibration",
+      "content_pool": "shielding_calibration",
+      "condition_id": "neutral",
+      "task_id": "attention_allocation_v1",
+      "parser_id": "two_integers_sum_100_v1",
+      "expected_output_format": "two_integers_sum_100",
+      "count_per_model": 8,
+      "category_balance": {
+        "distractor_salience": ["low", "low", "low", "low", "high", "high", "high", "high"],
+        "focal_urgency": ["low", "low", "high", "high", "low", "low", "high", "high"],
+        "switching_cost": ["low", "high", "low", "high", "low", "high", "low", "high"]
+      },
+      "instructions": "Generate neutral attention-allocation items used only to estimate within-cell output variation; do not reuse behavior or steering content."
+    }
+  ]
+}

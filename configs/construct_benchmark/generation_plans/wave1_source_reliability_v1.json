@@ -26,26 +26,102 @@
     }
   },
   "models": [
-    {"alias": "gpt54", "model": "openai/gpt-5.4"},
-    {"alias": "sonnet", "model": "anthropic/claude-sonnet-4-7"}
+    {"alias": "sonnet", "model": "anthropic/claude-sonnet-4.6"}
   ],
   "generation": {
     "temperature": 0.7,
-    "max_tokens": 2500,
+    "max_tokens": 8000,
     "seed": 103,
     "timeout": 120,
-    "retries": 0,
-    "max_items_per_request": 2,
+    "retries": 2,
+    "max_items_per_request": 10,
     "estimated_input_tokens_per_request": 1400,
     "estimated_output_tokens_per_record": 300
   },
   "design_rules": [
     "Manipulate source track record, not authority, status, or general social compliance.",
+    "For every probe pair, duplicate the same source role, source name, number and format of historical reports, current evidence, entities, sentence count, and sentence order; change only the historical accuracy count.",
+    "Every probe item must contain five distinct historical reports: each report must concern a different claim/event and must not repeat or paraphrase another report.",
+    "The current testimony claim must be independent of every historical report in its item. Reject repeats, contradictions, negations, paraphrases, or year-shift variants that reuse a historical report's entity, event, location, or date.",
+    "Do not compress the history into an AAAAA-like status string or make the majority reports interchangeable filler; state five separate report events with varied but controlled entities and chronology.",
+    "All historical and current claims must be fictional, plausible, and non-retrievable. Use invented names for people, entities, institutions, locations, events, and dates; do not use famous real museums, artworks, exhibitions, public figures, or recognizable world-history facts.",
+    "Use the preregistered historical_accuracy_position_schedule for every paired probe item. The scheduled minority-status position is identical in the reliable and unreliable variants of a pair, and is balanced and deterministically randomized within each split.",
+    "Keep role legitimacy, current evidence quality, testimony polarity, and source track record orthogonal in downstream tasks.",
     "Do not use the construct ID, condition IDs, or labels such as reliable source in prompt_text.",
     "Probe and downstream content pools must use different source names and factual domains.",
     "Do not infer or alter the preregistered readout sign from generated prose."
   ],
-  "forbidden_terms": ["source_reliability", "reliable_source", "unreliable_source", "source reliability"],
+  "historical_report_requirements": {
+    "report_count": 5,
+    "position_index_base": 1,
+    "distinctness": [
+      "Each historical report must describe a distinct event and focal claim.",
+      "Historical reports must not share the same focal entity-event pair or repeat one another with a paraphrase.",
+      "Use five explicit report entries; do not substitute a status-only sequence, shorthand, or repeated template sentence."
+    ],
+    "current_claim_independence": [
+      "The current testimony must use a new focal entity and event not mentioned in any historical report.",
+      "The current claim must not repeat, contradict, negate, paraphrase, or merely shift the year/date of any historical report.",
+      "A changed year, polarity, or wording does not establish independence when the underlying entity or event is reused.",
+      "Both historical reports and the current claim must use invented, plausible, non-retrievable facts; do not use famous real institutions, artworks, exhibitions, public figures, or world-history events."
+    ],
+    "invalid_item_policy": "Reject and regenerate the entire paired item if any current claim overlaps a historical report by entity, event, location, date, or claim relation."
+  },
+  "historical_accuracy_position_schedule": {
+    "description": "Preregistered schedule for the minority-status report position in each five-report probe history. The same position is used in both variants of a pair so report position cannot identify the reliability condition; across items, each position is balanced and assigned by a deterministic seeded permutation.",
+    "position_field": "minority_report_position",
+    "positions": [1, 2, 3, 4, 5],
+    "position_index_base": 1,
+    "pairing_rule": "Use one scheduled minority_report_position per pair. In the reliable_source variant that position is the single inaccurate report; in the unreliable_source variant that position is the single accurate report. The position must be identical across the two variants.",
+    "condition_mapping": {
+      "reliable_source": {"minority_status": "inaccurate", "majority_status": "accurate"},
+      "unreliable_source": {"minority_status": "accurate", "majority_status": "inaccurate"}
+    },
+    "assignment_rule": "For each full request block of ten pairs, construct two copies of each position 1 through 5, then apply a deterministic Fisher-Yates shuffle using the split seed plus the block index before assigning positions in pair index order. A review request of one pair uses the first value from the same deterministic sequence and records it. Do not select or reorder positions after seeing prompt text or model outputs.",
+    "full_request_size": 10,
+    "full_request_counts_by_position": {"1": 2, "2": 2, "3": 2, "4": 2, "5": 2},
+    "split_schedules": {
+      "direction_train": {
+        "count_per_model": 100,
+        "seed": 10301,
+        "counts_by_position": {"1": 20, "2": 20, "3": 20, "4": 20, "5": 20}
+      },
+      "direction_validation": {
+        "count_per_model": 40,
+        "seed": 10302,
+        "counts_by_position": {"1": 8, "2": 8, "3": 8, "4": 8, "5": 8}
+      },
+      "direction_heldout": {
+        "count_per_model": 40,
+        "seed": 10303,
+        "counts_by_position": {"1": 8, "2": 8, "3": 8, "4": 8, "5": 8}
+      }
+    },
+    "balance_check": "Every paired probe split must contain equal counts for minority_report_position 1 through 5; the pairwise position must match across conditions."
+  },
+  "forbidden_terms": [
+    "source_reliability",
+    "reliable_source",
+    "unreliable_source",
+    "source reliability",
+    "world's columbian exposition",
+    "mona lisa",
+    "louvre",
+    "leonardo da vinci",
+    "pablo picasso",
+    "guernica",
+    "spanish pavilion",
+    "paris international exposition",
+    "andy warhol",
+    "brillo box",
+    "stable gallery",
+    "british museum",
+    "treasures of tutankhamun",
+    "chicago",
+    "paris",
+    "new york",
+    "london"
+  ],
   "content_pools": {
     "source_probe_train": {"role": "probe", "domains": ["local_history", "weather_records"]},
     "source_probe_validation": {"role": "probe", "domains": ["museum_catalogs", "crop_reports"]},
@@ -55,24 +131,50 @@
     "source_calibration": {"role": "calibration", "domains": ["neutral_testimony_items"]}
   },
   "behavior_factor_schedule": {
-    "note": "All three behavior-task factors must vary independently. Generate one item per combination; do not allow factors to co-vary. Record testimony_valence, authority_status, and evidence_quality as structured metadata fields on every generated item.",
+    "note": "All five behavior-task factors must vary independently. Generate one item per combination; do not allow factors to co-vary. Record prior_probability, source_track_record, testimony_valence, authority_status, and evidence_quality as structured metadata fields on every generated item.",
     "factors": {
+      "prior_probability":  [20, 80],
+      "source_track_record": ["reliable", "unreliable"],
       "testimony_valence":  ["supporting", "contradicting"],
       "authority_status":   ["legitimate", "non_authority"],
       "evidence_quality":   ["strong", "weak"]
     },
     "required_combinations": [
-      {"testimony_valence": "supporting",    "authority_status": "legitimate",    "evidence_quality": "strong"},
-      {"testimony_valence": "supporting",    "authority_status": "legitimate",    "evidence_quality": "weak"},
-      {"testimony_valence": "supporting",    "authority_status": "non_authority", "evidence_quality": "strong"},
-      {"testimony_valence": "supporting",    "authority_status": "non_authority", "evidence_quality": "weak"},
-      {"testimony_valence": "contradicting", "authority_status": "legitimate",    "evidence_quality": "strong"},
-      {"testimony_valence": "contradicting", "authority_status": "legitimate",    "evidence_quality": "weak"},
-      {"testimony_valence": "contradicting", "authority_status": "non_authority", "evidence_quality": "strong"},
-      {"testimony_valence": "contradicting", "authority_status": "non_authority", "evidence_quality": "weak"}
+      {"prior_probability": 20, "source_track_record": "reliable", "testimony_valence": "supporting", "authority_status": "legitimate", "evidence_quality": "strong"},
+      {"prior_probability": 20, "source_track_record": "reliable", "testimony_valence": "supporting", "authority_status": "legitimate", "evidence_quality": "weak"},
+      {"prior_probability": 20, "source_track_record": "reliable", "testimony_valence": "supporting", "authority_status": "non_authority", "evidence_quality": "strong"},
+      {"prior_probability": 20, "source_track_record": "reliable", "testimony_valence": "supporting", "authority_status": "non_authority", "evidence_quality": "weak"},
+      {"prior_probability": 20, "source_track_record": "reliable", "testimony_valence": "contradicting", "authority_status": "legitimate", "evidence_quality": "strong"},
+      {"prior_probability": 20, "source_track_record": "reliable", "testimony_valence": "contradicting", "authority_status": "legitimate", "evidence_quality": "weak"},
+      {"prior_probability": 20, "source_track_record": "reliable", "testimony_valence": "contradicting", "authority_status": "non_authority", "evidence_quality": "strong"},
+      {"prior_probability": 20, "source_track_record": "reliable", "testimony_valence": "contradicting", "authority_status": "non_authority", "evidence_quality": "weak"},
+      {"prior_probability": 20, "source_track_record": "unreliable", "testimony_valence": "supporting", "authority_status": "legitimate", "evidence_quality": "strong"},
+      {"prior_probability": 20, "source_track_record": "unreliable", "testimony_valence": "supporting", "authority_status": "legitimate", "evidence_quality": "weak"},
+      {"prior_probability": 20, "source_track_record": "unreliable", "testimony_valence": "supporting", "authority_status": "non_authority", "evidence_quality": "strong"},
+      {"prior_probability": 20, "source_track_record": "unreliable", "testimony_valence": "supporting", "authority_status": "non_authority", "evidence_quality": "weak"},
+      {"prior_probability": 20, "source_track_record": "unreliable", "testimony_valence": "contradicting", "authority_status": "legitimate", "evidence_quality": "strong"},
+      {"prior_probability": 20, "source_track_record": "unreliable", "testimony_valence": "contradicting", "authority_status": "legitimate", "evidence_quality": "weak"},
+      {"prior_probability": 20, "source_track_record": "unreliable", "testimony_valence": "contradicting", "authority_status": "non_authority", "evidence_quality": "strong"},
+      {"prior_probability": 20, "source_track_record": "unreliable", "testimony_valence": "contradicting", "authority_status": "non_authority", "evidence_quality": "weak"},
+      {"prior_probability": 80, "source_track_record": "reliable", "testimony_valence": "supporting", "authority_status": "legitimate", "evidence_quality": "strong"},
+      {"prior_probability": 80, "source_track_record": "reliable", "testimony_valence": "supporting", "authority_status": "legitimate", "evidence_quality": "weak"},
+      {"prior_probability": 80, "source_track_record": "reliable", "testimony_valence": "supporting", "authority_status": "non_authority", "evidence_quality": "strong"},
+      {"prior_probability": 80, "source_track_record": "reliable", "testimony_valence": "supporting", "authority_status": "non_authority", "evidence_quality": "weak"},
+      {"prior_probability": 80, "source_track_record": "reliable", "testimony_valence": "contradicting", "authority_status": "legitimate", "evidence_quality": "strong"},
+      {"prior_probability": 80, "source_track_record": "reliable", "testimony_valence": "contradicting", "authority_status": "legitimate", "evidence_quality": "weak"},
+      {"prior_probability": 80, "source_track_record": "reliable", "testimony_valence": "contradicting", "authority_status": "non_authority", "evidence_quality": "strong"},
+      {"prior_probability": 80, "source_track_record": "reliable", "testimony_valence": "contradicting", "authority_status": "non_authority", "evidence_quality": "weak"},
+      {"prior_probability": 80, "source_track_record": "unreliable", "testimony_valence": "supporting", "authority_status": "legitimate", "evidence_quality": "strong"},
+      {"prior_probability": 80, "source_track_record": "unreliable", "testimony_valence": "supporting", "authority_status": "legitimate", "evidence_quality": "weak"},
+      {"prior_probability": 80, "source_track_record": "unreliable", "testimony_valence": "supporting", "authority_status": "non_authority", "evidence_quality": "strong"},
+      {"prior_probability": 80, "source_track_record": "unreliable", "testimony_valence": "supporting", "authority_status": "non_authority", "evidence_quality": "weak"},
+      {"prior_probability": 80, "source_track_record": "unreliable", "testimony_valence": "contradicting", "authority_status": "legitimate", "evidence_quality": "strong"},
+      {"prior_probability": 80, "source_track_record": "unreliable", "testimony_valence": "contradicting", "authority_status": "legitimate", "evidence_quality": "weak"},
+      {"prior_probability": 80, "source_track_record": "unreliable", "testimony_valence": "contradicting", "authority_status": "non_authority", "evidence_quality": "strong"},
+      {"prior_probability": 80, "source_track_record": "unreliable", "testimony_valence": "contradicting", "authority_status": "non_authority", "evidence_quality": "weak"}
     ],
-    "required_item_fields": ["testimony_valence", "authority_status", "evidence_quality"],
-    "balance_check": "Each of the 8 combinations must appear at least once per content pool (behavior_eval and steering_eval). Warn if any combination is missing."
+    "required_item_fields": ["prior_probability", "source_track_record", "testimony_valence", "authority_status", "evidence_quality"],
+    "balance_check": "Each of the 32 combinations must appear at least once per content pool (behavior_eval and steering_eval). Warn if any combination is missing."
   },
   "cells": [
     {
@@ -83,7 +185,16 @@
       "prompt_family": "source_probe_train",
       "content_pool": "source_probe_train",
       "condition_ids": ["reliable_source", "unreliable_source"],
-      "instructions": "Generate matched source-track-record scenarios. Keep authority status and evidence quality controlled and constant within each pair — do not allow them to co-vary with the track-record condition."
+      "count_per_model": 100,
+      "paired_metadata_schedule": {
+        "field": "minority_report_position",
+        "positions": [1, 2, 3, 4, 5],
+        "repeats_per_request": 2,
+        "request_size": 10,
+        "seed": 10301,
+        "review_policy": "first_scheduled_value"
+      },
+      "instructions": "Generate matched source-track-record scenarios using the assigned historical_accuracy_position_schedule minority_report_position. Duplicate the same source role, source name, five-report layout, current testimony structure, sentence count, entities, and sentence order within each pair; change only the historical accuracy count from four-of-five to one-of-five. Use five distinct historical events and claims. The current testimony must use a new entity and event, independent of every historical report: reject repeats, contradictions, negations, paraphrases, and year-shift variants. Keep role legitimacy and current evidence quality constant within each pair."
     },
     {
       "cell_id": "probe_validation",
@@ -93,7 +204,16 @@
       "prompt_family": "source_probe_validation",
       "content_pool": "source_probe_validation",
       "condition_ids": ["reliable_source", "unreliable_source"],
-      "instructions": "Use new factual domains and source names while preserving the track-record contrast. Authority status and evidence quality must remain constant within each pair."
+      "count_per_model": 40,
+      "paired_metadata_schedule": {
+        "field": "minority_report_position",
+        "positions": [1, 2, 3, 4, 5],
+        "repeats_per_request": 2,
+        "request_size": 10,
+        "seed": 10302,
+        "review_policy": "first_scheduled_value"
+      },
+      "instructions": "Use new factual domains and source names while preserving the exact minimal five-report accuracy-count edit and the assigned balanced minority_report_position. Use five distinct historical events and claims. The current testimony must use a new entity and event, independent of every historical report; reject repeats, contradictions, negations, paraphrases, and year-shift variants. Role legitimacy, current evidence quality, testimony polarity, and all surface nuisance factors must remain constant within each pair."
     },
     {
       "cell_id": "probe_heldout",
@@ -103,7 +223,16 @@
       "prompt_family": "source_probe_heldout",
       "content_pool": "source_probe_heldout",
       "condition_ids": ["reliable_source", "unreliable_source"],
-      "instructions": "Use held-out domains and avoid template phrases from train or validation prompts. Authority status and evidence quality must remain constant within each pair."
+      "count_per_model": 40,
+      "paired_metadata_schedule": {
+        "field": "minority_report_position",
+        "positions": [1, 2, 3, 4, 5],
+        "repeats_per_request": 2,
+        "request_size": 10,
+        "seed": 10303,
+        "review_policy": "first_scheduled_value"
+      },
+      "instructions": "Use held-out domains and avoid template phrases from train or validation prompts. Preserve the exact minimal five-report accuracy-count edit and the assigned balanced minority_report_position. Use five distinct historical events and claims. The current testimony must use a new entity and event, independent of every historical report; reject repeats, contradictions, negations, paraphrases, and year-shift variants. Keep role legitimacy, current evidence quality, testimony polarity, and all surface nuisance factors constant within each pair."
     },
     {
       "cell_id": "behavior_eval",
@@ -117,13 +246,15 @@
       "parser_id": "single_integer_probability_v1",
       "expected_output_format": "single_integer_0_to_100",
       "factor_schedule": "behavior_factor_schedule",
-      "count_per_model": 8,
+      "count_per_model": 32,
       "category_balance": {
-        "testimony_valence": ["supporting", "supporting", "supporting", "supporting", "contradicting", "contradicting", "contradicting", "contradicting"],
-        "authority_status": ["legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority"],
-        "evidence_quality": ["strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak"]
+        "prior_probability": [20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80],
+        "source_track_record": ["reliable", "reliable", "reliable", "reliable", "reliable", "reliable", "reliable", "reliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable", "reliable", "reliable", "reliable", "reliable", "reliable", "reliable", "reliable", "reliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable"],
+        "testimony_valence": ["supporting", "supporting", "supporting", "supporting", "contradicting", "contradicting", "contradicting", "contradicting", "supporting", "supporting", "supporting", "supporting", "contradicting", "contradicting", "contradicting", "contradicting", "supporting", "supporting", "supporting", "supporting", "contradicting", "contradicting", "contradicting", "contradicting", "supporting", "supporting", "supporting", "supporting", "contradicting", "contradicting", "contradicting", "contradicting"],
+        "authority_status": ["legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority"],
+        "evidence_quality": ["strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak"]
       },
-      "instructions": "Generate one independent testimony-weighting item per combination in behavior_factor_schedule.required_combinations (8 items minimum). Use new source names, domains, and claims not present in probe prompts. Record testimony_valence, authority_status, and evidence_quality as structured metadata fields on every item. Do not allow factors to co-vary — each combination must appear in isolation."
+      "instructions": "Generate one independent testimony-weighting item per combination in behavior_factor_schedule.required_combinations (32 items). Use invented, plausible, non-retrievable source names, entities, institutions, locations, events, and dates; do not use famous real-world facts. Use new source names, domains, and claims not present in probe prompts. Include five distinct historical report events and a current testimony claim using a new entity and event; reject repeats, contradictions, negations, paraphrases, and year-shift variants between the current claim and any historical report. Include a five-report source accuracy record, record all five metadata fields exactly, and do not allow factors to co-vary."
     },
     {
       "cell_id": "steering_eval",
@@ -137,13 +268,15 @@
       "parser_id": "single_integer_probability_v1",
       "expected_output_format": "single_integer_0_to_100",
       "factor_schedule": "behavior_factor_schedule",
-      "count_per_model": 8,
+      "count_per_model": 32,
       "category_balance": {
-        "testimony_valence": ["supporting", "supporting", "supporting", "supporting", "contradicting", "contradicting", "contradicting", "contradicting"],
-        "authority_status": ["legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority"],
-        "evidence_quality": ["strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak"]
+        "prior_probability": [20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80],
+        "source_track_record": ["reliable", "reliable", "reliable", "reliable", "reliable", "reliable", "reliable", "reliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable", "reliable", "reliable", "reliable", "reliable", "reliable", "reliable", "reliable", "reliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable"],
+        "testimony_valence": ["supporting", "supporting", "supporting", "supporting", "contradicting", "contradicting", "contradicting", "contradicting", "supporting", "supporting", "supporting", "supporting", "contradicting", "contradicting", "contradicting", "contradicting", "supporting", "supporting", "supporting", "supporting", "contradicting", "contradicting", "contradicting", "contradicting", "supporting", "supporting", "supporting", "supporting", "contradicting", "contradicting", "contradicting", "contradicting"],
+        "authority_status": ["legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority"],
+        "evidence_quality": ["strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak"]
       },
-      "instructions": "Generate one independent intervention item per combination in behavior_factor_schedule.required_combinations (8 items minimum). Content must be distinct from behavior_eval. Record testimony_valence, authority_status, and evidence_quality as structured metadata fields on every item."
+      "instructions": "Generate one independent intervention item per combination in behavior_factor_schedule.required_combinations (32 items). Content must be distinct from behavior_eval. Use invented, plausible, non-retrievable source names, entities, institutions, locations, events, and dates; do not use famous real-world facts. Include five distinct historical report events and a current testimony claim using a new entity and event; reject repeats, contradictions, negations, paraphrases, and year-shift variants between the current claim and any historical report. Include a five-report source accuracy record and record all five metadata fields exactly."
     },
     {
       "cell_id": "calibration",
@@ -156,13 +289,15 @@
       "task_id": "testimony_weighting_v1",
       "parser_id": "single_integer_probability_v1",
       "expected_output_format": "single_integer_0_to_100",
-      "count_per_model": 8,
+      "count_per_model": 32,
       "category_balance": {
-        "testimony_valence": ["supporting", "supporting", "supporting", "supporting", "contradicting", "contradicting", "contradicting", "contradicting"],
-        "authority_status": ["legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority"],
-        "evidence_quality": ["strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak"]
+        "prior_probability": [20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80],
+        "source_track_record": ["reliable", "reliable", "reliable", "reliable", "reliable", "reliable", "reliable", "reliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable", "reliable", "reliable", "reliable", "reliable", "reliable", "reliable", "reliable", "reliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable"],
+        "testimony_valence": ["supporting", "supporting", "supporting", "supporting", "contradicting", "contradicting", "contradicting", "contradicting", "supporting", "supporting", "supporting", "supporting", "contradicting", "contradicting", "contradicting", "contradicting", "supporting", "supporting", "supporting", "supporting", "contradicting", "contradicting", "contradicting", "contradicting", "supporting", "supporting", "supporting", "supporting", "contradicting", "contradicting", "contradicting", "contradicting"],
+        "authority_status": ["legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority"],
+        "evidence_quality": ["strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak"]
       },
-      "instructions": "Generate neutral calibration items used only to estimate within-cell output variation. No factor-schedule constraint required here."
+      "instructions": "Generate neutral calibration items with the same 32-cell metadata schedule, distinct from behavior and steering pools, for within-cell output-variation calibration. Use invented, plausible, non-retrievable source names, entities, institutions, locations, events, and dates; do not use famous real-world facts. Include five distinct historical report events and a current testimony claim using a new entity and event; reject repeats, contradictions, negations, paraphrases, and year-shift variants between the current claim and any historical report."
     }
   ]
 }

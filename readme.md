@@ -39,7 +39,7 @@ automatically a causal control signal. The detailed proposal treats this as a
 representation–steerability correspondence problem rather than a steering
 leaderboard.
 
-## Frozen construct bank and Wave 1
+## Frozen construct bank and staged execution
 
 The benchmark is deliberately broader than behavioral economics. The selected
 bank contains 16 theory-relevant constructs balanced across four families; the
@@ -53,12 +53,16 @@ versioned registry is
 | 3 — uncertainty/adaptation | `ambiguity_orientation` | `causal_interpretation` | `consensus_conformity` | `plan_replanning` |
 | 4 — horizon/goal management | `temporal_orientation` | `epistemic_uncertainty` | `reciprocity_obligation` | `goal_shielding` |
 
-Wave 1 is the immediate implementation target. Two constructs validate the
-engineering vertical slice, four support a descriptive pilot, and the full
-16-construct matrix is reserved for later out-of-sample prediction of
-representation profiles. Source reliability is distinct from authority
-deference; persistence is distinct from replanning; and evidence diagnosticity
-is not automatically updating responsiveness.
+All 16 construct definitions and paired-vector generation plans now exist and
+are marked `specified` in the registry. Waves 2–4 are preparatory candidate
+specifications, not completed experiments or generated datasets; confirmatory
+execution remains gated on Wave 1 measurement gates and a precision simulation.
+The vector-only inventory is frozen at 100 train, 40 validation, and 40
+held-out pairs per construct: 2,880 pairs and 5,760 records total. Generation
+uses Sonnet 4.6 only and a four-worker orchestrator, with a review pilot before
+the full inventory. Source reliability is distinct from authority deference;
+persistence is distinct from replanning; and evidence diagnosticity is not
+automatically updating responsiveness.
 
 Specification gaming in coding agents is not the current project direction;
 that proposal is preserved as historical material outside the active scope.
@@ -111,10 +115,13 @@ Implemented control plane:
 
 - `src/construct_benchmark/` — construct, run, analysis, prompt, split, and
   provenance schemas;
-- the versioned 16-construct registry with four specified Wave 1 construct
+- the versioned 16-construct registry with all 16 specified candidate construct
   definitions;
-- the generic benchmark-facing prompt generator and four reviewable Wave 1
-  generation plans, including no-API dry-run support;
+- the generic benchmark-facing prompt generator, all 16 paired-vector
+  generation plans, and the four-worker vector-only review/full orchestrator,
+  including no-API dry-run support;
+- the structural pair/leakage QA entrypoint at
+  `scripts/audit_vector_pairs.py`;
 - explicit `review`/`full` prompt-generation modes and deterministic
   pair-preserving `test`/`full` model-run selection;
 - separate behavior, steering, and calibration prompt-family validation plus
@@ -141,11 +148,12 @@ Still not implemented or validated end to end:
 
 - prompt-only behavior composition and real-run uncertainty orchestration;
 - output-accessibility, downstream-persistence, and collateral manipulation checks;
+- all-16 downstream parsers and behavior execution;
 - the Wave 1 experiments and API-generated prompt data.
 
-The repository contains no external model call or model download. The no-API
-generator dry-run and the fake vertical-slice runner are software artifacts
-only; neither is an empirical benchmark result.
+No API-generated inventory exists. The no-API generator dry run and the fake
+vertical-slice runner are software artifacts only; neither is an empirical
+benchmark result.
 
 The active vector path now uses the tracked iterator in
 `activation_analysis.activation_store`; the obsolete SAE-only tests are
@@ -171,6 +179,8 @@ src/construct_benchmark/            Shared schemas, prompt validation, run plans
 results/benchmark/<run_id>/         Portable run workspace and raw artifacts
 scripts/run_fake_benchmark.py       No-API deterministic vertical-slice smoke test
 scripts/select_benchmark_run_mode.py  Frozen test/full prompt selection
+scripts/generate_all_vector_prompts.py  Review/full vector-only prompt orchestrator
+scripts/audit_vector_pairs.py        Structural vector-pair QA audit
 ```
 
 The original realization-effect paper and its implementation remain useful as
@@ -191,6 +201,8 @@ planning documents are indexed in
   protocol;
 - [`PROJECT_ARCHITECTURE.md`](PROJECT_ARCHITECTURE.md) — current engineering
   architecture and implementation roadmap;
+- [`agents/VECTOR_PROMPT_GENERATION_HANDOFF.md`](agents/VECTOR_PROMPT_GENERATION_HANDOFF.md)
+  — vector-only review/full generation contract and handoff;
 - [`AGENTS.md`](AGENTS.md) — instructions and invariants for coding agents;
 - [`agents/`](agents/) — maintainer handoffs and GPU execution notes.
 
@@ -210,11 +222,43 @@ begin. Use the preparation and finalization commands to snapshot, checksum,
 and optionally archive a run; they do not require RunPod credentials until an
 actual archive sync is requested.
 
-The staged execution workflow is: generate a `review` inventory, inspect it,
-generate the complete `full` inventory, derive a `test` subset with
+The staged execution workflow is: run the all-16 vector `review` pilot, inspect
+and audit it, generate the complete `full` inventory, derive a `test` subset with
 `scripts/select_benchmark_run_mode.py`, run the one-hour non-confirmatory
 RunPod smoke test, inspect its artifacts, and only then select `full` for the
 complete model run. Test outputs must not be pooled with full-run outputs.
+
+The vector review pilot can be run without an API:
+
+```bash
+./venv/bin/python scripts/generate_all_vector_prompts.py \
+  --registry configs/construct_benchmark/construct_registry_v1.json \
+  --waves all --mode review --workers 4 --dry-run
+```
+
+After human review and when external connectivity is available, the full
+vector inventory is generated with resumability:
+
+```bash
+./venv/bin/python scripts/generate_all_vector_prompts.py \
+  --registry configs/construct_benchmark/construct_registry_v1.json \
+  --waves all --mode full --workers 4 \
+  --output-dir results/benchmark/vector_prompts_v1/prompts \
+  --resume
+```
+
+The QA entrypoint is:
+
+```bash
+./venv/bin/python scripts/audit_vector_pairs.py \
+  --input results/benchmark/vector_prompts_v1/prompts/combined.csv \
+  --summary-output results/benchmark/vector_prompts_v1/prompts/vector_pair_audit.json \
+  --flags-output results/benchmark/vector_prompts_v1/prompts/vector_pair_flags.csv \
+  --fail-on-severe
+```
+
+Generation transport retries repeat an identical failed request at most twice;
+they never regenerate content or alter a prompt after a content-based failure.
 
 ```bash
 ./venv/bin/python scripts/prepare_benchmark_run.py \

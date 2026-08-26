@@ -1,0 +1,114 @@
+{
+  "schema_version": "0.1.0",
+  "construct_id": "reference_frame",
+  "version": "v1",
+  "family": "decision",
+  "title": "Reference-frame position",
+  "description": "Whether an outcome is represented as above or below a salient reference point, while keeping objective outcome magnitude and decision domain separate from the relative position.",
+  "contrast_conditions": [
+    {
+      "condition_id": "above_reference",
+      "label": "Above the reference point",
+      "definition": "The focal outcome exceeds the stated benchmark, expectation, or comparison point while the objective outcome remains explicitly specified."
+    },
+    {
+      "condition_id": "below_reference",
+      "label": "Below the reference point",
+      "definition": "The focal outcome falls short of the stated benchmark, expectation, or comparison point while the objective outcome remains explicitly specified."
+    }
+  ],
+  "probe_prompt_template": "Read the following short decision scenario. Track the focal outcome's position relative to the stated benchmark separately from its objective amount and from any later choice.\n\nScenario:\n{scenario}\n\nContinue processing the scenario.",
+  "independent_behavior_task": {
+    "task_id": "sure_risky_choice_v1",
+    "task_family": "reference_dependent_risk_choice",
+    "prompt_template": "In a separate decision, choose between a sure option and a risky option with a stated probability. Return exactly 1 for the sure option or 2 for the risky option. Use the numerical payoffs and stated probability in this item; do not infer probability from an earlier scenario or describe that scenario.",
+    "primary_outcome": "risky_choice",
+    "secondary_outcomes": ["sure_choice", "compliance"],
+    "response_format": "single_integer_1_or_2",
+    "item_metadata_schema": {
+      "required": ["payoff_frame", "stake_level", "risk_probability"],
+      "properties": {
+        "payoff_frame": {"type": "string", "enum": ["gain", "loss", "neutral"]},
+        "stake_level": {"type": "string", "enum": ["low", "high"]},
+        "risk_probability": {"type": "string", "enum": ["even", "uneven"]}
+      }
+    },
+    "independence_requirements": [
+      "Use new domains, entities, and payoff amounts not present in probe prompts.",
+      "Cross gain, loss, and neutral payoff frames with stake level and risk probability, including both even and uneven stated probabilities.",
+      "Do not ask the model to classify a reference frame or to mention the probe state.",
+      "Keep the sure-versus-risky response choice independent of probe wording and entities."
+    ]
+  },
+  "expected_direction": {
+    "readout": {
+      "positive_condition": "above_reference",
+      "negative_condition": "below_reference",
+      "estimand": "heldout_projection_margin"
+    },
+    "behavior": {
+      "outcome": "risky_choice",
+      "estimand": "reference_position_by_payoff_frame_interaction",
+      "expected_by_payoff_frame": {
+        "gain": "above_reference_minus_below_reference decreases risky choice",
+        "loss": "above_reference_minus_below_reference increases risky choice",
+        "neutral": "above_reference_minus_below_reference is near zero"
+      },
+      "direction_status": "preregister_before_data_collection",
+      "warning": "This construct concerns relative position to a reference point, not objective wealth, generic positivity, or a fixed risk-policy parameter."
+    }
+  },
+  "parsing_rules": {
+    "parser_id": "single_integer_choice_1_or_2_v1",
+    "valid_values": {"choice": [1, 2]},
+    "choice_mapping": {"1": "sure_option", "2": "risky_option"},
+    "invalid_response_policy": "exclude_from_outcome_denominator_and_report_compliance",
+    "extra_text_policy": "invalid"
+  },
+  "required_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout",
+    "behavior_eval",
+    "steering_eval",
+    "calibration"
+  ],
+  "paired_splits": ["direction_train", "direction_validation", "direction_heldout"],
+  "controls": [
+    "objective_amount_and_reference_position_crossing",
+    "gain_loss_neutral_balance",
+    "stake_level_and_probability_crossing",
+    "realization_status_exclusion",
+    "numeric_benchmark_only_pair_edit",
+    "number_invariant_benchmark_units",
+    "domain_plausible_benchmark_values",
+    "symmetric_reference_arithmetic",
+    "signed_unit_semantics",
+    "new_domain_behavior_task",
+    "lexical_overlap_audit",
+    "neutral_behavior_prompt",
+    "shuffled_pair_labels",
+    "random_direction"
+  ],
+  "metadata": {
+    "primary_question": "Does a train-only relative-reference direction transfer to an independent sure-versus-risky choice?",
+    "probe_state_is": "relative_reference_position",
+    "not_claimed_as": "objective_wealth_or_generic_risk_preference",
+    "nuisance_factors": ["objective_outcome_amount", "reference_magnitude", "outcome_domain", "surface_valence", "realization_status"],
+    "benchmark_domain_policy": {
+      "naturally_nonnegative_units": [
+        "counts",
+        "crates",
+        "liters",
+        "boards",
+        "items",
+        "ordinary quantities",
+        "ordinary amounts"
+      ],
+      "nonnegative_rule": "For a naturally nonnegative unit, both benchmark values in a pair must be greater than or equal to zero; choose the objective outcome and symmetric offset so the lower benchmark is still domain-plausible.",
+      "signed_unit_markers": ["signed", "net", "change", "balance"],
+      "signed_rule": "A negative benchmark is allowed only when the unit phrase explicitly denotes a signed, net, change, or balance quantity and the scenario makes a value below zero meaningful. A bare negative count or quantity is invalid.",
+      "pair_arithmetic": "For fixed outcome O and positive offset d, above_reference uses O-d and below_reference uses O+d, with equal absolute distance in both members."
+    }
+  }
+}

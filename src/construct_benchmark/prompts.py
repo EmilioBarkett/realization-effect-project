@@ -212,8 +212,10 @@ def _validate_global_prompt_ids(records: Iterable[PromptRecord]) -> None:
 def validate_prompt_records(
     records: Iterable[PromptRecord],
     construct_specs: Mapping[str, ConstructSpec],
+    *,
+    require_all_splits: bool = True,
 ) -> dict[str, Any]:
-    """Validate IDs, pairs, construct namespaces, and split coverage."""
+    """Validate IDs, pairs, construct namespaces, and optional full split coverage."""
 
     materialized = list(records)
     if not materialized:
@@ -291,6 +293,35 @@ def validate_prompt_records(
                 raise ValueError(f"Prompt {record.prompt_id} uses unknown condition_id={record.condition_id!r}.")
             if record.pair_role != record.condition_id:
                 raise ValueError(f"Prompt {record.prompt_id} pair_role must equal condition_id.")
+            paired_schema = dict(spec.metadata or {}).get("paired_item_metadata_schema")
+            if isinstance(paired_schema, Mapping):
+                properties = paired_schema.get("properties", {})
+                required = paired_schema.get("required", [])
+                nested_metadata = record.metadata.get("task_metadata")
+                nested_metadata = nested_metadata if isinstance(nested_metadata, Mapping) else {}
+                for field_name in required:
+                    if field_name not in record.metadata and field_name not in nested_metadata:
+                        raise ValueError(
+                            f"Paired prompt {record.prompt_id} is missing required metadata field {field_name!r}."
+                        )
+                    value = record.metadata.get(field_name, nested_metadata.get(field_name))
+                    field_schema = properties.get(field_name, {})
+                    field_type = field_schema.get("type")
+                    valid_type = {
+                        "string": isinstance(value, str),
+                        "integer": isinstance(value, int) and not isinstance(value, bool),
+                        "number": isinstance(value, (int, float)) and not isinstance(value, bool),
+                        "boolean": isinstance(value, bool),
+                    }.get(field_type, False)
+                    if not valid_type:
+                        raise ValueError(
+                            f"Paired prompt {record.prompt_id} metadata.{field_name} has invalid type."
+                        )
+                    enum = field_schema.get("enum")
+                    if isinstance(enum, list) and value not in enum:
+                        raise ValueError(
+                            f"Paired prompt {record.prompt_id} metadata.{field_name} is outside its registered enum."
+                        )
             pair_key = (record.construct_id, record.split, record.pair_id)
             pair_groups.setdefault(pair_key, []).append(record)
         elif record.condition_id not in {None, "", "neutral", *spec.condition_ids}:
@@ -304,9 +335,10 @@ def validate_prompt_records(
     for construct_id, spec in construct_specs.items():
         if not by_construct[construct_id]:
             raise ValueError(f"No prompt records supplied for construct {construct_id}.")
-        missing_splits = set(spec.required_splits) - set(counts_by_split[construct_id])
-        if missing_splits:
-            raise ValueError(f"Construct {construct_id} is missing required splits: {sorted(missing_splits)}")
+        if require_all_splits:
+            missing_splits = set(spec.required_splits) - set(counts_by_split[construct_id])
+            if missing_splits:
+                raise ValueError(f"Construct {construct_id} is missing required splits: {sorted(missing_splits)}")
 
     for pair_key, pair_records in pair_groups.items():
         construct_id, split, pair_id = pair_key
@@ -318,6 +350,22 @@ def validate_prompt_records(
             raise ValueError(
                 f"Pair {construct_id}/{split}/{pair_id} must contain both conditions {spec.condition_ids}."
             )
+        paired_schema = dict(spec.metadata or {}).get("paired_item_metadata_schema")
+        if isinstance(paired_schema, Mapping):
+            required = paired_schema.get("required", [])
+            first_metadata = pair_records[0].metadata
+            first_nested = first_metadata.get("task_metadata")
+            first_nested = first_nested if isinstance(first_nested, Mapping) else {}
+            for field_name in required:
+                first_value = first_metadata.get(field_name, first_nested.get(field_name))
+                for record in pair_records[1:]:
+                    nested = record.metadata.get("task_metadata")
+                    nested = nested if isinstance(nested, Mapping) else {}
+                    value = record.metadata.get(field_name, nested.get(field_name))
+                    if value != first_value:
+                        raise ValueError(
+                            f"Pair {construct_id}/{split}/{pair_id} has mismatched metadata field {field_name!r}."
+                        )
 
     return {
         "total_prompts": len(materialized),

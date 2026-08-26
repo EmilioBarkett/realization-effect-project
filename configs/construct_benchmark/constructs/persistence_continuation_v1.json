@@ -19,23 +19,24 @@
   ],
   "probe_prompt_template": "Read the following short third-person goal-pursuit scenario. Track whether the focal goal is being continued or abandoned separately from whether the current plan or means should be revised.\n\nScenario:\n{scenario}\n\nContinue processing the scenario.",
   "independent_behavior_task": {
-    "task_id": "resource_reallocation_v1",
+    "task_id": "program_renewal_allocation_v1",
     "task_family": "goal_persistence_allocation",
-    "prompt_template": "Consider a separate project after a setback. Allocate exactly 100 effort points between continuing the focal project and starting an alternative project. The item must use a new domain and must not reuse the earlier goal or plan.",
-    "primary_outcome": "continue_allocation",
-    "secondary_outcomes": ["alternative_allocation", "compliance"],
+    "prompt_template": "In a separate domain, allocate exactly 100 resource points between maintaining an existing program and launching a new program. Return exactly two integers on separate lines: first the existing-program allocation and second the new-program allocation. Use only the stated program value, alternative value, and implementation feasibility; do not mention the earlier scenario.",
+    "primary_outcome": "existing_program_allocation",
+    "secondary_outcomes": ["new_program_allocation", "compliance"],
     "response_format": "two_integers_sum_100",
     "item_metadata_schema": {
-      "required": ["setback_severity", "goal_value", "means_viable"],
+      "required": ["existing_program_value", "alternative_value", "implementation_feasibility"],
       "properties": {
-        "setback_severity": {"type": "string", "enum": ["moderate", "severe"]},
-        "goal_value": {"type": "string", "enum": ["high", "low"]},
-        "means_viable": {"type": "boolean"}
+        "existing_program_value": {"type": "string", "enum": ["high", "low"]},
+        "alternative_value": {"type": "string", "enum": ["high", "low"]},
+        "implementation_feasibility": {"type": "string", "enum": ["viable", "constrained"]}
       }
     },
     "independence_requirements": [
-      "Use new goals, actors, domains, and setback types not present in probe prompts.",
-      "Cross whether the original means remain viable with whether the focal goal remains valuable.",
+      "Use new programs, actors, domains, and resource types not present in probe prompts.",
+      "Cross existing-program value, alternative-program value, and implementation feasibility independently.",
+      "Do not include a setback, sunk investment, or current-plan wording from the probe task.",
       "Do not ask the model to classify persistence or abandonment."
     ]
   },
@@ -46,22 +47,27 @@
       "estimand": "heldout_projection_margin"
     },
     "behavior": {
-      "outcome": "continue_allocation",
-      "estimand": "persistence_by_setback_cost_effect",
-      "expected_by_setback": {
-        "moderate": "continue_goal increases continuation allocation",
-        "severe": "continue_goal increases continuation allocation less or not at all"
+      "outcome": "existing_program_allocation",
+      "estimand": "persistence_by_program_value_and_feasibility_effect",
+      "expected_by_existing_program_value": {
+        "high": "continue_goal increases existing-program allocation, with the effect largest when implementation is viable",
+        "low": "continue_goal increases existing-program allocation less or not at all"
+      },
+      "expected_by_implementation_feasibility": {
+        "viable": "continue_goal increases existing-program allocation",
+        "constrained": "continue_goal effect is attenuated"
       },
       "direction_status": "preregister_before_data_collection",
-      "warning": "This construct concerns retaining a goal, not preserving a fixed plan or refusing to adapt means."
+      "warning": "This construct concerns retaining a focal goal, not preserving a fixed plan, ignoring program value, or refusing to adapt means."
     }
   },
   "parsing_rules": {
     "parser_id": "two_integers_sum_100_v1",
     "valid_ranges": {
-      "continue_allocation": [0, 100],
-      "alternative_allocation": [0, 100]
+      "existing_program_allocation": [0, 100],
+      "new_program_allocation": [0, 100]
     },
+    "field_order": ["existing_program_allocation", "new_program_allocation"],
     "sum_constraint": 100,
     "invalid_response_policy": "exclude_from_outcome_denominator_and_report_compliance",
     "extra_text_policy": "invalid"
@@ -80,17 +86,18 @@
     "direction_heldout"
   ],
   "controls": [
-    "goal_value_and_means_crossing",
+    "program_value_and_feasibility_crossing",
     "setback_severity_balance",
-    "new_domain_behavior_task",
+    "independent_program_behavior_task",
     "lexical_overlap_audit",
     "neutral_behavior_prompt",
     "shuffled_pair_labels",
     "random_direction"
   ],
   "metadata": {
-    "primary_question": "Does a goal-continuation direction transfer to resource allocation after an independent setback?",
+    "primary_question": "Does a goal-continuation direction transfer to independent program-renewal allocation?",
     "probe_state_is": "goal_persistence_state",
-    "not_claimed_as": "plan_inflexibility_or_generic_agentic_drive"
+    "not_claimed_as": "plan_inflexibility_or_generic_agentic_drive",
+    "nuisance_factors": ["setback_severity", "goal_value", "means_viability", "program_domain", "alternative_value"]
   }
 }

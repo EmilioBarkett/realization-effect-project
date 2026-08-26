@@ -1,0 +1,104 @@
+{
+  "schema_version": "0.1.0",
+  "construct_id": "reciprocity_obligation",
+  "version": "v1",
+  "family": "social",
+  "title": "Reciprocity obligation",
+  "description": "Whether a social exchange is represented as creating an expectation to reciprocate, distinct from general helpfulness, politeness, or authority compliance.",
+  "contrast_conditions": [
+    {
+      "condition_id": "reciprocal_exchange",
+      "label": "Reciprocal exchange expectation",
+      "definition": "The scenario includes a completed, observable transfer of a concrete benefit directed to the focal person. The matched neutral member has the same contact and current-request frame; do not add an interpretation, social norm, or instruction about what the transfer should prompt."
+    },
+    {
+      "condition_id": "no_reciprocal_exchange",
+      "label": "No reciprocal exchange expectation",
+      "definition": "The scenario includes a completed, ordinary, observable neutral contact with no benefit transfer, while keeping the current request and social setting comparable. The neutral contact must not be a withheld, failed, refused, unaccepted, attempted, or merely proximate transfer."
+    }
+  ],
+  "probe_prompt_template": "Read the following short interpersonal scenario. Track the concrete sequence of prior contact and the current request, including who did what, the requester's need, the effort required, and the relationship details.\n\nScenario:\n{scenario}\n\nContinue processing the scenario.",
+  "independent_behavior_task": {
+    "task_id": "help_allocation_v1",
+    "task_family": "return_help_allocation",
+    "prompt_template": "Consider a new situation with two people requesting limited help. Both requesters have matched status, likability, familiarity, and neutral prior contact; only one previously helped you. Allocate exactly 100 effort points between helping the prior helper and helping the other requester. Use new actors and events and do not reuse the probe interaction.",
+    "primary_outcome": "prior_helper_allocation",
+    "secondary_outcomes": ["other_requester_allocation", "compliance"],
+    "response_format": "two_integers_sum_100",
+    "item_metadata_schema": {
+      "required": ["prior_help_magnitude", "requester_need", "effort_cost", "prior_contact", "requester_status", "requester_likability", "requester_familiarity"],
+      "properties": {
+        "prior_help_magnitude": {"type": "string", "enum": ["small", "large"]},
+        "requester_need": {"type": "string", "enum": ["low", "high"]},
+        "effort_cost": {"type": "string", "enum": ["low", "high"]},
+        "prior_contact": {"type": "string", "enum": ["matched_neutral"]},
+        "requester_status": {"type": "string", "enum": ["matched"]},
+        "requester_likability": {"type": "string", "enum": ["matched"]},
+        "requester_familiarity": {"type": "string", "enum": ["matched"]}
+      }
+    },
+    "independence_requirements": [
+      "Use new domains, actors, requests, and prior-help events not present in probe prompts.",
+      "Cross prior-help magnitude, requester need, and effort cost independently.",
+      "Match requester status, likability, and familiarity; give both requesters the same neutral prior contact apart from the focal prior-help event.",
+      "Do not ask the model to label reciprocity or to explain a social obligation."
+    ]
+  },
+  "expected_direction": {
+    "readout": {
+      "positive_condition": "reciprocal_exchange",
+      "negative_condition": "no_reciprocal_exchange",
+      "estimand": "heldout_projection_margin"
+    },
+    "behavior": {
+      "outcome": "prior_helper_allocation",
+      "estimand": "reciprocity_by_need_and_effort_cost_effect",
+      "expected_by_prior_help_magnitude": {
+        "small": "reciprocal_exchange increases allocation to the prior helper modestly",
+        "large": "reciprocal_exchange increases allocation to the prior helper"
+      },
+      "direction_status": "preregister_before_data_collection",
+      "warning": "This construct concerns a return-exchange state, not generic kindness, social desirability, or compliance with authority."
+    }
+  },
+  "parsing_rules": {
+    "parser_id": "two_integers_sum_100_v1",
+    "valid_ranges": {
+      "prior_helper_allocation": [0, 100],
+      "other_requester_allocation": [0, 100]
+    },
+    "sum_constraint": 100,
+    "invalid_response_policy": "exclude_from_outcome_denominator_and_report_compliance",
+    "extra_text_policy": "invalid"
+  },
+  "required_splits": ["direction_train", "direction_validation", "direction_heldout", "behavior_eval", "steering_eval", "calibration"],
+  "paired_splits": ["direction_train", "direction_validation", "direction_heldout"],
+  "controls": [
+    "prior_help_need_and_effort_cost_crossing",
+    "neutral_prior_contact_control",
+    "completed_neutral_contact_only",
+    "no_withholding_failed_or_proximate_transfer_cues",
+    "status_likability_familiarity_matching",
+    "new_domain_behavior_task",
+    "lexical_overlap_audit",
+    "neutral_behavior_prompt",
+    "shuffled_pair_labels",
+    "random_direction",
+    "compliance_and_collateral_response_controls"
+  ],
+  "metadata": {
+    "primary_question": "Does a reciprocal-exchange direction transfer to allocating help toward a prior helper in an independent interaction?",
+    "probe_state_is": "represented_reciprocal_expectation",
+    "not_claimed_as": "generic prosociality or obedience",
+    "paired_probe_contract": {
+      "shared_frame": "Actors, time, setting, relationship, current request, social attributes, and response framing are identical within each pair.",
+      "neutral_contact": "The no-reciprocal member contains completed ordinary observable contact, such as a greeting or neutral conversation, with no attempted or proximate benefit transfer.",
+      "benefit_transfer": "The reciprocal member differs only in replacing that contact span with an actual completed transfer of a concrete benefit to the focal person.",
+      "forbidden_neutral_contact_semantics": [
+        "withheld, failed, refused, declined, attempted, or unaccepted transfer",
+        "placing or leaving a benefit beside, near, or within reach of the focal person",
+        "mere proximity without an actual transfer"
+      ]
+    }
+  }
+}

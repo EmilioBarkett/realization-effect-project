@@ -1,0 +1,87 @@
+{
+  "schema_version": "0.1.0",
+  "construct_id": "temporal_orientation",
+  "version": "v1",
+  "family": "decision",
+  "title": "Temporal orientation",
+  "description": "Whether a decision context is represented with priority on immediate consequences or on consequences that unfold over a longer horizon, distinct from the objective size of a later reward.",
+  "contrast_conditions": [
+    {
+      "condition_id": "immediate_focus",
+      "label": "Immediate-consequence focus",
+      "definition": "The scenario makes near-term consequences and upcoming demands the focal consideration for the decision maker."
+    },
+    {
+      "condition_id": "long_horizon_focus",
+      "label": "Long-horizon consequence focus",
+      "definition": "The scenario makes consequences that unfold over a longer horizon and future requirements the focal consideration for the decision maker."
+    }
+  ],
+  "probe_prompt_template": "Read the following short decision scenario. Track which consequence horizon is being foregrounded separately from the objective value, probability, and feasibility of the options.\n\nScenario:\n{scenario}\n\nContinue processing the scenario.",
+  "independent_behavior_task": {
+    "task_id": "intertemporal_allocation_v1",
+    "task_family": "sooner_later_allocation",
+    "prompt_template": "Consider a new choice between a smaller-sooner outcome and a larger-later outcome. Allocate exactly 100 points between the two options. Use a new domain and do not reuse the actors, goals, or scenarios from the probe prompts.",
+    "primary_outcome": "larger_later_allocation",
+    "secondary_outcomes": ["smaller_sooner_allocation", "compliance"],
+    "response_format": "two_integers_sum_100",
+    "item_metadata_schema": {
+      "required": ["delay_gap", "relative_later_bonus", "immediate_option_quality"],
+      "properties": {
+        "delay_gap": {"type": "string", "enum": ["small", "large"]},
+        "relative_later_bonus": {"type": "string", "enum": ["modest", "large"]},
+        "immediate_option_quality": {"type": "string", "enum": ["low", "high"]}
+      }
+    },
+    "independence_requirements": [
+      "Use new domains, actors, and outcomes not present in probe prompts.",
+      "Cross delay gap, relative later bonus, and immediate-option quality independently.",
+      "Do not ask the model to classify its temporal orientation or to repeat a probe label."
+    ]
+  },
+  "expected_direction": {
+    "readout": {
+      "positive_condition": "long_horizon_focus",
+      "negative_condition": "immediate_focus",
+      "estimand": "heldout_projection_margin"
+    },
+    "behavior": {
+      "outcome": "larger_later_allocation",
+      "estimand": "temporal_orientation_by_delay_and_bonus_effect",
+      "expected_by_delay_gap": {
+        "small": "long_horizon_focus increases larger-later allocation",
+        "large": "long_horizon_focus increases larger-later allocation"
+      },
+      "direction_status": "preregister_before_data_collection",
+      "warning": "This construct concerns represented consequence horizon, not a claim about a stable discount rate or objective reward valuation. The downstream allocation is a transfer task and must not be interpreted as estimating a discount-rate mechanism."
+    }
+  },
+  "parsing_rules": {
+    "parser_id": "two_integers_sum_100_v1",
+    "valid_ranges": {
+      "larger_later_allocation": [0, 100],
+      "smaller_sooner_allocation": [0, 100]
+    },
+    "sum_constraint": 100,
+    "invalid_response_policy": "exclude_from_outcome_denominator_and_report_compliance",
+    "extra_text_policy": "invalid"
+  },
+  "required_splits": ["direction_train", "direction_validation", "direction_heldout", "behavior_eval", "steering_eval", "calibration"],
+  "paired_splits": ["direction_train", "direction_validation", "direction_heldout"],
+  "controls": [
+    "delay_gap_and_later_bonus_crossing",
+    "immediate_option_quality_balance",
+    "new_domain_behavior_task",
+    "lexical_overlap_audit",
+    "neutral_behavior_prompt",
+    "shuffled_pair_labels",
+    "random_direction",
+    "compliance_and_collateral_response_controls"
+  ],
+  "metadata": {
+    "primary_question": "Does a consequence-horizon direction transfer to an independent sooner-versus-later allocation?",
+    "probe_state_is": "represented_temporal_consequence_focus",
+    "not_claimed_as": "a universal temporal discounting parameter",
+    "analysis_caveat": "Do not interpret larger-later allocation as a discount-rate estimate; report it as a directed transfer outcome under the registered task factors."
+  }
+}

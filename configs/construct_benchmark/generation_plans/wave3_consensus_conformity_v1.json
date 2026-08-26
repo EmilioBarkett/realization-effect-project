@@ -1,0 +1,223 @@
+{
+  "schema_version": "0.1.0",
+  "plan_id": "wave3_consensus_conformity_prompts_v1",
+  "construct_id": "consensus_conformity",
+  "construct_spec_path": "../constructs/consensus_conformity_v1.json",
+  "wave": 3,
+  "task_composition": {
+    "prompt_order": "probe_then_downstream",
+    "probe_context": "paired_probe_only",
+    "downstream_context": "independent_behavior_task_only",
+    "condition_carryover": "state_only",
+    "surface_text_carryover": "none",
+    "behavior_steering_pool_separation": true
+  },
+  "default_count_per_cell_per_model": 2,
+  "run_modes": {
+    "review": {"purpose": "prompt_review", "count_per_model_per_cell": 1, "partial": true},
+    "full": {"purpose": "frozen_full_inventory", "count_per_model_per_cell": null, "partial": false}
+  },
+  "models": [{"alias": "sonnet", "model": "anthropic/claude-sonnet-4.6"}],
+  "generation": {
+    "temperature": 0.7,
+    "max_tokens": 8000,
+    "seed": 203,
+    "timeout": 120,
+    "retries": 2,
+    "max_items_per_request": 10,
+    "estimated_input_tokens_per_request": 1400,
+    "estimated_output_tokens_per_record": 300
+  },
+  "design_rules": [
+    "Manipulate the weight given to shared ordinary-peer judgments, not authority, source reliability, or general compliance.",
+    "Do not use the construct ID, condition IDs, or labels such as follow consensus or independent judgment in prompt_text.",
+    "Probe and downstream content pools must use different peer names, factual domains, claims, and evidence items.",
+    "Within each paired probe, duplicate the same peer answers, peer count, ordinary peer status, private evidence content and strength, private-evidence relation to the peers, claim difficulty, entity names, sentence count, and sentence order; change only whether the decision maker aligns with the shared answer or evaluates it independently.",
+    "Keep peers ordinary and non-authoritative, with no credentials, source history, or status cues; private evidence must be crossed as agreeing with or conflicting with peers independently of its strength.",
+    "Within each paired probe, use the identical downstream response format and request in both members: same answer type, answer choices, output order, number of reasons, and wording/location before the suffix. The only pair difference is the registered stance clause. Do not put an explicit answer, answer choice, date, number, named outcome, or other target response content in one member only; if such content is necessary, mirror it verbatim in the other member.",
+    "Every generated prompt_text in every cell must be a complete model input whose final characters are exactly `Continue processing the scenario.`. Append no trailing whitespace, punctuation, answer, rationale, response-format request, stance instruction, notes, or other text after that suffix; use the suffix only once and only at the end.",
+    "In every paired probe, put the condition-specific answer or stance instruction and the request for the downstream answer inside the Scenario block before the terminal suffix. Complete all scenario and response instructions first, then append the suffix exactly once as the final text; never use the suffix as a mid-prompt divider or append condition-specific text after it.",
+    "In behavior, steering, and calibration prompts, put the task and response-format instruction before the same terminal suffix. The suffix is an absolute terminator for every prompt_text, not a separator before an answer instruction.",
+    "Do not infer or alter the preregistered readout sign from generated prose.",
+    "Apply the preregistered stance_surface_schedule to paired probes. Choose one listed variant for each generation job, use the same `Decision stance: ` carrier and clause structure in both members of every pair, and cycle the variants in the registered order across jobs and cells. The four permitted lowercase clause pairs are: `weight` — `the shared peer answer should receive substantial weight in the final choice, even though private evidence is available.` versus `the shared peer answer should receive limited weight in the final choice, with private evidence assessed independently.`; `guide` — `let the shared peer answer guide the final choice strongly, while considering the private evidence.` versus `let the shared peer answer inform but not determine the final choice, while assessing private evidence independently.`; `basis` — `use the shared peer answer as a strong basis for the final choice, despite the private evidence.` versus `use the private evidence as the primary basis for the final choice, despite the shared peer answer.`; `priority` — `give the shared peer answer priority in the final choice; keep private evidence in view.` versus `give private evidence priority in the final choice; keep the shared peer answer in view.`. Insert the selected clause immediately after the carrier with no line break and a lowercase first word; never begin a sentence or line with Treat, Weigh, Use, Let, Give, Follow, or Assess.",
+    "Begin probe_train with the `weight` variant, probe_validation with `guide`, and probe_heldout with `basis`; then continue cycling the preregistered variants across successive generation jobs."
+  ],
+  "rejection_criteria": [
+    "Reject any prompt_text whose final characters are not exactly `Continue processing the scenario.`.",
+    "Reject any prompt_text that contains the suffix anywhere before its final occurrence, or has any character or text after the suffix, including an answer request, stance/decision rule, rationale request, response-format instruction, notes, or condition label.",
+    "Reject any paired prompt when its condition-specific answer or stance instruction is absent from the Scenario block before the suffix, or when that instruction is supplied only after the suffix.",
+    "Reject any pair whose downstream response format or request differs across conditions in answer type, choices, output order, number of reasons, wording, or placement before the suffix.",
+    "Reject any pair when one condition contains an explicit answer, answer choice, date, number, named outcome, or other target response content that is not mirrored verbatim in the other condition; a condition-specific stance clause must not supply the scenario answer.",
+    "Reject any prompt that omits the registered wrapper or treats the suffix as a mid-prompt delimiter; shorten shared scenario content instead of truncating or moving the wrapper.",
+    "Reject any paired probe that does not use one entry from stance_surface_schedule, puts the condition-specific stance at the start of a sentence with an initial capital, or changes the shared carrier, punctuation, or clause structure between pair members."
+  ],
+  "forbidden_terms": ["consensus_conformity", "follow_consensus", "independent_judgment", "consensus conformity", "consensus", "conformity", "group agreement"],
+  "stance_surface_schedule": {
+    "assignment_unit": "generation_job",
+    "cycle_order": ["weight", "guide", "basis", "priority"],
+    "cell_start_variant": {
+      "probe_train": "weight",
+      "probe_validation": "guide",
+      "probe_heldout": "basis"
+    },
+    "carrier": "Decision stance: ",
+    "pair_rule": "Choose one variant for a generation job, keep the carrier and sentence structure identical in both members of every pair in that job, and cycle through cycle_order across successive jobs. The two variant clauses may differ only in the registered social-information weighting state; never move the stance to another sentence or add a condition-specific answer.",
+    "capitalization_rule": "Write the variant clause immediately after the carrier with a lowercase first word and no intervening line break. Never begin a sentence or line with Treat, Weigh, Use, Let, Give, Follow, or Assess.",
+    "variants": [
+      {
+        "variant_id": "weight",
+        "follow_consensus": "the shared peer answer should receive substantial weight in the final choice, even though private evidence is available.",
+        "independent_judgment": "the shared peer answer should receive limited weight in the final choice, with private evidence assessed independently."
+      },
+      {
+        "variant_id": "guide",
+        "follow_consensus": "let the shared peer answer guide the final choice strongly, while considering the private evidence.",
+        "independent_judgment": "let the shared peer answer inform but not determine the final choice, while assessing private evidence independently."
+      },
+      {
+        "variant_id": "basis",
+        "follow_consensus": "use the shared peer answer as a strong basis for the final choice, despite the private evidence.",
+        "independent_judgment": "use the private evidence as the primary basis for the final choice, despite the shared peer answer."
+      },
+      {
+        "variant_id": "priority",
+        "follow_consensus": "give the shared peer answer priority in the final choice; keep private evidence in view.",
+        "independent_judgment": "give private evidence priority in the final choice; keep the shared peer answer in view."
+      }
+    ]
+  },
+  "content_pools": {
+    "consensus_probe_train": {"role": "probe", "domains": ["workplace_reviews", "community_planning"]},
+    "consensus_probe_validation": {"role": "probe", "domains": ["museum_catalogs", "garden_trials"]},
+    "consensus_probe_heldout": {"role": "probe", "domains": ["shipping_estimates", "language_surveys"]},
+    "consensus_behavior": {"role": "behavior", "domains": ["new_peer_judgment_items"]},
+    "consensus_steering": {"role": "steering", "domains": ["new_peer_judgment_items_heldout"]},
+    "consensus_calibration": {"role": "calibration", "domains": ["neutral_peer_judgment_items"]}
+  },
+  "behavior_factor_schedule": {
+    "note": "All four behavior-task factors must vary independently. Generate one item per combination; do not allow factors to co-vary. Record peer_judgment_direction, private_evidence_relation, private_evidence_strength, and peer_count as structured metadata fields on every generated item.",
+    "factors": {
+      "peer_judgment_direction": ["supports_claim", "contradicts_claim"],
+      "private_evidence_relation": ["agrees_with_peers", "conflicts_with_peers"],
+      "private_evidence_strength": ["weak", "strong"],
+      "peer_count": ["small", "large"]
+    },
+    "required_combinations": [
+      {"peer_judgment_direction": "supports_claim", "private_evidence_relation": "agrees_with_peers", "private_evidence_strength": "weak", "peer_count": "small"},
+      {"peer_judgment_direction": "supports_claim", "private_evidence_relation": "agrees_with_peers", "private_evidence_strength": "weak", "peer_count": "large"},
+      {"peer_judgment_direction": "supports_claim", "private_evidence_relation": "agrees_with_peers", "private_evidence_strength": "strong", "peer_count": "small"},
+      {"peer_judgment_direction": "supports_claim", "private_evidence_relation": "agrees_with_peers", "private_evidence_strength": "strong", "peer_count": "large"},
+      {"peer_judgment_direction": "supports_claim", "private_evidence_relation": "conflicts_with_peers", "private_evidence_strength": "weak", "peer_count": "small"},
+      {"peer_judgment_direction": "supports_claim", "private_evidence_relation": "conflicts_with_peers", "private_evidence_strength": "weak", "peer_count": "large"},
+      {"peer_judgment_direction": "supports_claim", "private_evidence_relation": "conflicts_with_peers", "private_evidence_strength": "strong", "peer_count": "small"},
+      {"peer_judgment_direction": "supports_claim", "private_evidence_relation": "conflicts_with_peers", "private_evidence_strength": "strong", "peer_count": "large"},
+      {"peer_judgment_direction": "contradicts_claim", "private_evidence_relation": "agrees_with_peers", "private_evidence_strength": "weak", "peer_count": "small"},
+      {"peer_judgment_direction": "contradicts_claim", "private_evidence_relation": "agrees_with_peers", "private_evidence_strength": "weak", "peer_count": "large"},
+      {"peer_judgment_direction": "contradicts_claim", "private_evidence_relation": "agrees_with_peers", "private_evidence_strength": "strong", "peer_count": "small"},
+      {"peer_judgment_direction": "contradicts_claim", "private_evidence_relation": "agrees_with_peers", "private_evidence_strength": "strong", "peer_count": "large"},
+      {"peer_judgment_direction": "contradicts_claim", "private_evidence_relation": "conflicts_with_peers", "private_evidence_strength": "weak", "peer_count": "small"},
+      {"peer_judgment_direction": "contradicts_claim", "private_evidence_relation": "conflicts_with_peers", "private_evidence_strength": "weak", "peer_count": "large"},
+      {"peer_judgment_direction": "contradicts_claim", "private_evidence_relation": "conflicts_with_peers", "private_evidence_strength": "strong", "peer_count": "small"},
+      {"peer_judgment_direction": "contradicts_claim", "private_evidence_relation": "conflicts_with_peers", "private_evidence_strength": "strong", "peer_count": "large"}
+    ],
+    "required_item_fields": ["peer_judgment_direction", "private_evidence_relation", "private_evidence_strength", "peer_count"],
+    "balance_check": "Each of the 16 combinations must appear at least once per content pool (behavior_eval and steering_eval). Warn if any combination is missing."
+  },
+  "cells": [
+    {
+      "cell_id": "probe_train",
+      "split": "direction_train",
+      "prompt_role": "probe",
+      "mode": "paired",
+      "prompt_family": "consensus_probe_train",
+      "content_pool": "consensus_probe_train",
+      "condition_ids": ["follow_consensus", "independent_judgment"],
+      "count_per_model": 100,
+      "instructions": "Generate the configured number of matched social-information pairs. Duplicate the same peer answers, peer count, ordinary peer status, private evidence content, relation of private evidence to peers, claim difficulty, entities, sentence count, and sentence order within each pair; vary only whether the decision maker aligns with the shared peer answer or evaluates it independently. Use exactly the same downstream response format and request in both members, with identical answer type, output order, number of reasons, wording, and placement before the final suffix. Do not include an explicit answer, answer choice, date, number, named outcome, or other target response content in one condition only; mirror any necessary content verbatim in both. Put the condition-specific stance rule inside the Scenario block before the final suffix. Append `Continue processing the scenario.` exactly once as the final characters; never append any answer, stance, rationale, formatting request, or other text after it. Use varied domains and never request a condition label."
+    },
+    {
+      "cell_id": "probe_validation",
+      "split": "direction_validation",
+      "prompt_role": "probe",
+      "mode": "paired",
+      "prompt_family": "consensus_probe_validation",
+      "content_pool": "consensus_probe_validation",
+      "condition_ids": ["follow_consensus", "independent_judgment"],
+      "count_per_model": 40,
+      "instructions": "Generate the configured number of matched validation pairs in new domains and with new peer names. Duplicate all peer answers, counts, status, private evidence relation and strength, claim difficulty, entities, sentence count, and sentence order within each pair; change only the decision-maker stance. Use exactly the same downstream response format and request in both members, with identical answer type, output order, number of reasons, wording, and placement before the final suffix. Do not include an explicit answer, answer choice, date, number, named outcome, or other target response content in one condition only; mirror any necessary content verbatim in both. Put the condition-specific stance rule inside the Scenario block before the final suffix. Append `Continue processing the scenario.` exactly once as the final characters; never append any answer, stance, rationale, formatting request, or other text after it. Avoid training templates."
+    },
+    {
+      "cell_id": "probe_heldout",
+      "split": "direction_heldout",
+      "prompt_role": "probe",
+      "mode": "paired",
+      "prompt_family": "consensus_probe_heldout",
+      "content_pool": "consensus_probe_heldout",
+      "condition_ids": ["follow_consensus", "independent_judgment"],
+      "count_per_model": 40,
+      "instructions": "Generate the configured number of final held-out matched pairs in domains unused by train and validation. Preserve all within-pair nuisance controls, including private-evidence relation and sentence structure; vary only the decision-maker stance and vary surface form across pairs. Use exactly the same downstream response format and request in both members, with identical answer type, output order, number of reasons, wording, and placement before the final suffix. Do not include an explicit answer, answer choice, date, number, named outcome, or other target response content in one condition only; mirror any necessary content verbatim in both. Put the condition-specific stance rule inside the Scenario block before the final suffix. Append `Continue processing the scenario.` exactly once as the final characters; never append any answer, stance, rationale, formatting request, or other text after it. Do not reveal construct or condition labels."
+    },
+    {
+      "cell_id": "behavior_eval",
+      "split": "behavior_eval",
+      "prompt_role": "behavior",
+      "mode": "single",
+      "prompt_family": "consensus_behavior_eval",
+      "content_pool": "consensus_behavior",
+      "condition_id": "neutral",
+      "task_id": "peer_judgment_probability_v1",
+      "parser_id": "single_integer_probability_v1",
+      "expected_output_format": "single_integer_0_to_100",
+      "factor_schedule": "behavior_factor_schedule",
+      "count_per_model": 16,
+      "category_balance": {
+        "peer_judgment_direction": ["supports_claim", "supports_claim", "supports_claim", "supports_claim", "supports_claim", "supports_claim", "supports_claim", "supports_claim", "contradicts_claim", "contradicts_claim", "contradicts_claim", "contradicts_claim", "contradicts_claim", "contradicts_claim", "contradicts_claim", "contradicts_claim"],
+        "private_evidence_relation": ["agrees_with_peers", "agrees_with_peers", "agrees_with_peers", "agrees_with_peers", "conflicts_with_peers", "conflicts_with_peers", "conflicts_with_peers", "conflicts_with_peers", "agrees_with_peers", "agrees_with_peers", "agrees_with_peers", "agrees_with_peers", "conflicts_with_peers", "conflicts_with_peers", "conflicts_with_peers", "conflicts_with_peers"],
+        "private_evidence_strength": ["weak", "weak", "strong", "strong", "weak", "weak", "strong", "strong", "weak", "weak", "strong", "strong", "weak", "weak", "strong", "strong"],
+        "peer_count": ["small", "large", "small", "large", "small", "large", "small", "large", "small", "large", "small", "large", "small", "large", "small", "large"]
+      },
+      "instructions": "Generate one independent factual probability item per required combination. Use ordinary peers with no status or expertise cue, cross private-evidence relation, private-evidence strength, peer count, and peer judgment direction independently, and record all metadata fields exactly. Put the probability-answer and response-format instruction before the final suffix. Append `Continue processing the scenario.` exactly once as the final characters; do not append any answer instruction or other text after it. Do not ask the model to label conformity or independence."
+    },
+    {
+      "cell_id": "steering_eval",
+      "split": "steering_eval",
+      "prompt_role": "steering",
+      "mode": "single",
+      "prompt_family": "consensus_steering_eval",
+      "content_pool": "consensus_steering",
+      "condition_id": "neutral",
+      "task_id": "peer_judgment_probability_v1",
+      "parser_id": "single_integer_probability_v1",
+      "expected_output_format": "single_integer_0_to_100",
+      "factor_schedule": "behavior_factor_schedule",
+      "count_per_model": 16,
+      "category_balance": {
+        "peer_judgment_direction": ["supports_claim", "supports_claim", "supports_claim", "supports_claim", "supports_claim", "supports_claim", "supports_claim", "supports_claim", "contradicts_claim", "contradicts_claim", "contradicts_claim", "contradicts_claim", "contradicts_claim", "contradicts_claim", "contradicts_claim", "contradicts_claim"],
+        "private_evidence_relation": ["agrees_with_peers", "agrees_with_peers", "agrees_with_peers", "agrees_with_peers", "conflicts_with_peers", "conflicts_with_peers", "conflicts_with_peers", "conflicts_with_peers", "agrees_with_peers", "agrees_with_peers", "agrees_with_peers", "agrees_with_peers", "conflicts_with_peers", "conflicts_with_peers", "conflicts_with_peers", "conflicts_with_peers"],
+        "private_evidence_strength": ["weak", "weak", "strong", "strong", "weak", "weak", "strong", "strong", "weak", "weak", "strong", "strong", "weak", "weak", "strong", "strong"],
+        "peer_count": ["small", "large", "small", "large", "small", "large", "small", "large", "small", "large", "small", "large", "small", "large", "small", "large"]
+      },
+      "instructions": "Generate the configured number of new independent factual probability items, one per required combination, distinct from behavior_eval. Record peer_judgment_direction, private_evidence_relation, private_evidence_strength, and peer_count as structured metadata. Put the probability-answer and response-format instruction before the final suffix. Append `Continue processing the scenario.` exactly once as the final characters; do not append any answer instruction or other text after it."
+    },
+    {
+      "cell_id": "calibration",
+      "split": "calibration",
+      "prompt_role": "calibration",
+      "mode": "single",
+      "prompt_family": "consensus_calibration",
+      "content_pool": "consensus_calibration",
+      "condition_id": "neutral",
+      "task_id": "peer_judgment_probability_v1",
+      "parser_id": "single_integer_probability_v1",
+      "expected_output_format": "single_integer_0_to_100",
+      "count_per_model": 16,
+      "category_balance": {
+        "peer_judgment_direction": ["supports_claim", "supports_claim", "supports_claim", "supports_claim", "supports_claim", "supports_claim", "supports_claim", "supports_claim", "contradicts_claim", "contradicts_claim", "contradicts_claim", "contradicts_claim", "contradicts_claim", "contradicts_claim", "contradicts_claim", "contradicts_claim"],
+        "private_evidence_relation": ["agrees_with_peers", "agrees_with_peers", "agrees_with_peers", "agrees_with_peers", "conflicts_with_peers", "conflicts_with_peers", "conflicts_with_peers", "conflicts_with_peers", "agrees_with_peers", "agrees_with_peers", "agrees_with_peers", "agrees_with_peers", "conflicts_with_peers", "conflicts_with_peers", "conflicts_with_peers", "conflicts_with_peers"],
+        "private_evidence_strength": ["weak", "weak", "strong", "strong", "weak", "weak", "strong", "strong", "weak", "weak", "strong", "strong", "weak", "weak", "strong", "strong"],
+        "peer_count": ["small", "large", "small", "large", "small", "large", "small", "large", "small", "large", "small", "large", "small", "large", "small", "large"]
+      },
+      "instructions": "Generate neutral probability items from the calibration pool. Balance the three metadata factors for response variation only and do not cue the probe state. Put the probability-answer and response-format instruction before the final suffix. Append `Continue processing the scenario.` exactly once as the final characters; do not append any answer instruction or other text after it."
+    }
+  ]
+}

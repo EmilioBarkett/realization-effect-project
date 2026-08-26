@@ -1,0 +1,97 @@
+{
+  "schema_version": "0.1.0",
+  "construct_id": "consensus_conformity",
+  "version": "v1",
+  "family": "social",
+  "title": "Consensus conformity",
+  "description": "Whether a group's shared judgment is represented as a reason to align one's answer or as information to consider without surrendering independent judgment, distinct from authority deference and source reliability.",
+  "contrast_conditions": [
+    {
+      "condition_id": "follow_consensus",
+      "label": "Follow the group judgment",
+      "definition": "The decision maker treats a shared peer judgment as a strong reason to align with the group's answer, even when private evidence is available."
+    },
+    {
+      "condition_id": "independent_judgment",
+      "label": "Maintain independent judgment",
+      "definition": "The decision maker weighs private evidence independently and does not treat agreement among peers as decisive merely because it is shared."
+    }
+  ],
+  "probe_prompt_template": "Read the following short social-information scenario. Track how a shared peer judgment is handled separately from the peers' expertise, status, and the quality of the private evidence.\n\nScenario:\n{scenario}\n\nContinue processing the scenario.",
+  "independent_behavior_task": {
+    "task_id": "peer_judgment_probability_v1",
+    "task_family": "social_information_weighting",
+    "prompt_template": "Consider a separate factual question with private evidence and answers from several ordinary peers. Report the probability that the focal claim is true from 0 to 100. The peer responses and private evidence are controlled as task factors; do not ask the model to label its social decision style.",
+    "primary_outcome": "claim_probability",
+    "secondary_outcomes": ["peer_consistent_probability", "compliance"],
+    "response_format": "single_integer_0_to_100",
+    "item_metadata_schema": {
+    "required": ["peer_judgment_direction", "private_evidence_relation", "private_evidence_strength", "peer_count"],
+      "properties": {
+        "peer_judgment_direction": {"type": "string", "enum": ["supports_claim", "contradicts_claim"]},
+        "private_evidence_relation": {"type": "string", "enum": ["agrees_with_peers", "conflicts_with_peers"]},
+        "private_evidence_strength": {"type": "string", "enum": ["weak", "strong"]},
+        "peer_count": {"type": "string", "enum": ["small", "large"]}
+      }
+    },
+    "independence_requirements": [
+      "Use new factual domains, claims, peer names, and evidence items not present in probe prompts.",
+      "Cross peer judgment direction, private evidence relation, private evidence strength, and peer count independently.",
+      "Peers must have no special authority or status cues; do not ask the model to classify conformity or independence."
+    ]
+  },
+  "expected_direction": {
+    "readout": {
+      "positive_condition": "follow_consensus",
+      "negative_condition": "independent_judgment",
+      "estimand": "heldout_projection_margin"
+    },
+    "behavior": {
+      "outcome": "claim_probability",
+      "estimand": "peer_judgment_by_private_evidence_effect",
+      "expected_by_private_evidence": {
+        "conflicts_with_peers": "follow_consensus moves claim_probability toward the peer judgment more than independent_judgment, especially when private evidence is strong",
+        "agrees_with_peers": "follow_consensus has a small or ceiling-limited additional effect when private evidence agrees with the peers"
+      },
+      "direction_status": "preregister_before_data_collection",
+      "warning": "This construct concerns peer agreement as social information, not obedience to authority, source reliability, or generic compliance."
+    }
+  },
+  "parsing_rules": {
+    "parser_id": "single_integer_probability_v1",
+    "valid_ranges": {
+      "claim_probability": [0, 100]
+    },
+    "invalid_response_policy": "exclude_from_outcome_denominator_and_report_compliance",
+    "extra_text_policy": "invalid"
+  },
+  "required_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout",
+    "behavior_eval",
+    "steering_eval",
+    "calibration"
+  ],
+  "paired_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout"
+  ],
+  "controls": [
+    "peer_judgment_direction_crossing",
+    "private_evidence_strength_crossing",
+    "peer_count_crossing",
+    "ordinary_peer_status_control",
+    "new_domain_behavior_task",
+    "lexical_overlap_audit",
+    "neutral_behavior_prompt",
+    "shuffled_pair_labels",
+    "random_direction"
+  ],
+  "metadata": {
+    "primary_question": "Is a peer-agreement orientation decodable, and does it transfer to weighting controlled peer judgments in a new factual task?",
+    "probe_state_is": "consensus_conformity_state",
+    "not_claimed_as": "authority_deference_or_generic_social_compliance"
+  }
+}

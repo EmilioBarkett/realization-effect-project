@@ -1,0 +1,102 @@
+{
+  "schema_version": "0.1.0",
+  "construct_id": "plan_replanning",
+  "version": "v1",
+  "family": "agentic",
+  "title": "Plan replanning",
+  "description": "Whether a focal goal is represented as compatible with revising the means after constraints change, versus preserving the original means even when those means remain feasible but become less suitable or efficient, distinct from abandoning the goal itself.",
+  "contrast_conditions": [
+    {
+      "condition_id": "adapt_plan",
+      "label": "Adapt the means",
+      "definition": "The decision maker preserves a focal goal that remains feasible and valuable in the scenario while revising the route, schedule, or means when changed constraints make the original means less suitable or efficient; both the original and alternative means remain feasible and usable."
+    },
+    {
+      "condition_id": "preserve_plan",
+      "label": "Preserve the current plan",
+      "definition": "The decision maker keeps the original route, schedule, or means despite changed constraints, even though those original means remain feasible and usable but are less suitable or efficient than an available alternative, while the same focal goal remains feasible and valuable."
+    }
+  ],
+  "probe_prompt_template": "Read the following short third-person goal-pursuit scenario. Track whether the means are revised after a constraint changes separately from whether the focal goal remains valuable. Both the original and alternative means remain feasible and usable; the changed constraint makes the original means less suitable or efficient.\n\nScenario:\n{scenario}\n\nContinue processing the scenario.",
+  "independent_behavior_task": {
+    "task_id": "changed_constraint_plan_allocation_v1",
+    "task_family": "adaptive_plan_allocation",
+    "prompt_template": "Consider a separate project with one focal goal that remains feasible and valuable throughout and two possible ways to pursue it. A new constraint makes the original way less suitable or efficient, while both the original and revised ways remain feasible and usable; it does not replace the goal or introduce a competing goal. Allocate exactly 100 effort points between the original way and a revised way. Use a new domain, actors, and constraint type; do not ask the model to label its planning style.",
+    "primary_outcome": "revised_plan_allocation",
+    "secondary_outcomes": ["original_plan_allocation", "compliance"],
+    "response_format": "two_integers_sum_100",
+    "item_metadata_schema": {
+      "required": ["constraint_change", "alternative_quality", "goal_value"],
+      "properties": {
+        "constraint_change": {"type": "string", "enum": ["minor", "major"]},
+        "alternative_quality": {"type": "string", "enum": ["weak", "strong"]},
+        "goal_value": {"type": "string", "enum": ["high", "low"]}
+      }
+    },
+    "independence_requirements": [
+      "Use new projects, goals, actors, domains, and constraint types not present in probe prompts.",
+      "Cross constraint change, alternative quality, and goal value independently.",
+      "Keep both the original and revised means feasible and usable after the constraint change; make the original means less suitable or efficient rather than removing their feasibility.",
+      "Keep the focal goal intact and do not ask the model to classify plan adaptation, persistence, or abandonment."
+    ]
+  },
+  "expected_direction": {
+    "readout": {
+      "positive_condition": "adapt_plan",
+      "negative_condition": "preserve_plan",
+      "estimand": "heldout_projection_margin"
+    },
+    "behavior": {
+      "outcome": "revised_plan_allocation",
+      "estimand": "plan_adaptation_by_constraint_change_effect",
+      "expected_by_constraint_change": {
+        "minor": "adapt_plan may produce a modest increase in revised-plan allocation when the alternative is viable",
+        "major": "adapt_plan increases revised-plan allocation more strongly, especially when the alternative is strong and the focal goal remains valuable"
+      },
+      "direction_status": "preregister_before_data_collection",
+      "warning": "This construct concerns revising means while retaining a goal, not abandoning the goal, generic flexibility, or persistence after a setback."
+    }
+  },
+  "parsing_rules": {
+    "parser_id": "two_integers_sum_100_v1",
+    "valid_ranges": {
+      "revised_plan_allocation": [0, 100],
+      "original_plan_allocation": [0, 100]
+    },
+    "sum_constraint": 100,
+    "invalid_response_policy": "exclude_from_outcome_denominator_and_report_compliance",
+    "extra_text_policy": "invalid",
+    "field_order": ["revised_plan_allocation", "original_plan_allocation"]
+  },
+  "required_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout",
+    "behavior_eval",
+    "steering_eval",
+    "calibration"
+  ],
+  "paired_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout"
+  ],
+  "controls": [
+    "constraint_change_crossing",
+    "alternative_quality_crossing",
+    "goal_value_crossing",
+    "goal_retention_control",
+    "original_means_feasibility_control",
+    "relative_means_suitability_control",
+    "new_domain_behavior_task",
+    "lexical_overlap_audit",
+    "neutral_behavior_prompt",
+    "shuffled_pair_labels",
+    "random_direction"
+  ],
+  "metadata": {
+    "primary_question": "Is a means-adaptation direction decodable, and does it transfer to revising a plan after an independent constraint change?",
+    "probe_state_is": "plan_adaptation_state",
+    "not_claimed_as": "goal_abandonment_or_generic_agentic_drive"
+  }
+}

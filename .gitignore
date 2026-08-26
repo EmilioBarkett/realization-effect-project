@@ -44,6 +44,13 @@ results/final/**
 results/final/activation_vectors/behavior_runs/**
 results/benchmark/*/raw/
 results/benchmark/*/*/*/raw/
+
+# Prompt-generation working runs are local artifacts. Keep only the frozen,
+# reviewed all-construct inventory required by downstream activation runs.
+results/benchmark/vector_prompts_v1/
+results/benchmark/vector_prompts_v2_luna/**
+!results/benchmark/vector_prompts_v2_luna/full_final_all16/
+!results/benchmark/vector_prompts_v2_luna/full_final_all16/**
 data/interpretability/activations/
 data/interpretability/sae_runs/
 

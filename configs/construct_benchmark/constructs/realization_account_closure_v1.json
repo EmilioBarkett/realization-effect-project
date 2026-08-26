@@ -4,36 +4,39 @@
   "version": "v1",
   "family": "decision",
   "title": "Realization and account closure",
-  "description": "Whether an outcome is represented as still open or as closed, posted, settled, or otherwise accounted for.",
+  "description": "Whether an identical outcome is represented as provisional and unresolved or as finalized in its accounting status, while amount, ownership, timing, and availability remain constant.",
   "contrast_conditions": [
     {
       "condition_id": "open_pending",
       "label": "Open or pending",
-      "definition": "The outcome is visible or expected but remains on account, in play, provisional, or not finally settled."
+      "definition": "The identical outcome remains recorded as provisional and unresolved; its amount, ownership, timing, and availability are unchanged."
     },
     {
       "condition_id": "closed_settled",
       "label": "Closed or settled",
-      "definition": "The same outcome has been posted, received, paid, sold, submitted, or otherwise finalized."
+      "definition": "The identical outcome is recorded as finalized, with the same amount, ownership, timing, and availability; only its accounting status has changed."
     }
   ],
   "probe_prompt_template": "Read the following short third-person scenario. Preserve the situation in working memory without answering the downstream task.\n\nScenario:\n{scenario}\n\nContinue processing the scenario.",
   "independent_behavior_task": {
     "task_id": "realization_risk_choice_v1",
     "task_family": "decision_under_uncertainty",
-    "prompt_template": "Consider this separate decision scenario. Choose an allocation from 1 to 1000 and a risk preference from 1 to 5. The response must not mention or reuse the earlier account-closure scenario.",
+    "prompt_template": "Consider a separate choice between a sure option and a risky option. Return exactly two integers on separate lines: first an allocation from 1 to 1000; second a risk preference from 1 to 5, where 1 means strongly avoid risk and 5 means strongly seek risk. Use the stated payoff frame and probability. Do not mention or reuse the earlier scenario.",
     "primary_outcome": "risk_preference",
     "secondary_outcomes": ["allocation_amount"],
     "response_format": "two_integers_on_separate_lines",
     "item_metadata_schema": {
-      "required": ["outcome_valence"],
+      "required": ["outcome_valence", "stake_level", "risk_probability"],
       "properties": {
-        "outcome_valence": {"type": "string", "enum": ["gain", "loss", "neutral"]}
+        "outcome_valence": {"type": "string", "enum": ["gain", "loss", "neutral"]},
+        "stake_level": {"type": "string", "enum": ["low", "high"]},
+        "risk_probability": {"type": "string", "enum": ["even", "uneven"]}
       }
     },
     "independence_requirements": [
-      "No lexical reuse of probe scenario entities or closure terms.",
+      "No lexical reuse of probe scenario entities or accounting-status terms.",
       "Use a new decision domain and new item identifiers.",
+      "Cross payoff frame, stake level, and risk probability independently.",
       "Do not reveal the target construct in the behavior prompt."
     ]
   },
@@ -56,10 +59,9 @@
   },
   "parsing_rules": {
     "parser_id": "two_integers_risk_choice_v1",
-    "valid_ranges": {
-      "allocation_amount": [1, 1000],
-      "risk_preference": [1, 5]
-    },
+    "valid_ranges": {"allocation_amount": [1, 1000], "risk_preference": [1, 5]},
+    "field_order": ["allocation_amount", "risk_preference"],
+    "risk_preference_anchors": {"1": "strongly_avoid_risk", "5": "strongly_seek_risk"},
     "invalid_response_policy": "exclude_from_outcome_denominator_and_report_compliance",
     "extra_text_policy": "invalid"
   },
