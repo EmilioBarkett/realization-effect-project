@@ -1,9 +1,9 @@
 # Vector prompt-generation handoff
 
-**Status:** the Sonnet 4.6 review pilot is complete for all 16 constructs and
-the full vector inventory is complete for 14 of 16 constructs. OpenRouter
-credits were exhausted before `prior_weighting` and
-`causal_interpretation` could be finalized.
+**Status:** the Sonnet 4.6 review pilot and the complete all-16 vector/probe
+inventory are available. The current canonical inventory is the v2 artifact
+under `results/benchmark/vector_prompts_v2_luna/full_final_all16/`; this
+handoff supersedes the earlier v1 credit-exhaustion snapshot.
 
 ## Scope and scientific status
 
@@ -34,12 +34,12 @@ implemented end to end.
   failure.
 
 API-generated artifacts exist under
-`results/benchmark/vector_prompts_v1/`. The reviewed pilot contains 48 pairs
-/ 96 records. The current full directory contains 2,520 pairs / 5,040 records:
-180 pairs / 360 records for each of 14 constructs, with the required 100/40/40
-train/validation/held-out split. `prior_weighting` and
-`causal_interpretation` are absent. Do not describe the all-16 inventory as
-complete until those two files and the final combined manifest exist.
+`results/benchmark/vector_prompts_v2_luna/`. The canonical full inventory
+contains 2,880 pairs / 5,760 records: 180 pairs / 360 records for each of all
+16 constructs, with the required 100/40/40 train/validation/held-out split.
+Its `final_inventory_manifest.json` records `confirmatory: false` and
+`scope_partial: true`: behavior, calibration, and steering-task prompts are
+outside this vector/probe-only artifact.
 
 OpenRouter connectivity and authentication were verified. Generation stopped
 on 2026-08-25 when the credits endpoint reported 1,450 total credits and
@@ -61,7 +61,7 @@ reference-frame labeling error before the full run. The current review
 manifest reports 48 valid pairs / 96 records. Earlier files named
 `*_superseded*.csv` are retained review history and are not canonical inputs.
 
-## Full vector inventory
+## Earlier v1 generation command
 
 ```bash
 ./venv/bin/python scripts/generate_all_vector_prompts.py \
@@ -71,13 +71,10 @@ manifest reports 48 valid pairs / 96 records. Earlier files named
   --resume
 ```
 
-After credits are replenished, rerun this exact resumable command. It will
-hash/count-validate and skip the existing 14 constructs, then generate only
-the missing two and build `combined.csv` plus
-`vector_prompt_manifest.json`. One worker is intentional: four workers were
-useful initially but triggered OpenRouter's in-flight spending ceiling near
-the end. The command is prompt generation, not activation or behavior
-execution.
+This command is retained as historical reproduction context for the superseded
+v1 run. Do not treat its partial output as the current input. The current v2
+full inventory and manifest are already present at the path above; any new
+generation must use an explicitly versioned output directory.
 
 ## QA audit
 
@@ -100,12 +97,14 @@ schema/count/split validation did pass for every written construct.
 ## Checks completed
 
 - Review: 16/16 constructs, 48 pairs / 96 records.
-- Full: 14/16 constructs, 2,520 pairs / 5,040 records.
+- Full: 16/16 constructs, 2,880 pairs / 5,760 records in the v2 inventory.
 - Every completed full construct: 100 train, 40 validation, 40 held-out pairs.
-- `make check`: lint and compilation clean; 113 tests passed, 2 optional
-  PyTorch-dependent tests skipped.
-- No activation logging, vector construction, steering, or empirical model
-  result was produced.
+- `make check`: lint and compilation clean; re-run it in the receiving
+  checkout and report the current test count because the suite evolves with
+  model-side instrumentation.
+- No benchmark activation logging, steering, or end-to-end empirical result was
+  produced by this generation run. A separate realization real-model decode
+  pilot exists as a reference artifact and is not a steering result.
 
 ## Gates and handoff assumptions
 

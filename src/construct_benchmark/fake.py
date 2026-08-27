@@ -19,6 +19,7 @@ from activation_analysis.vector_analysis import PromptActivation
 
 from .behavior import BehaviorObservation
 from .calibration import CalibrationResult, estimate_projection_scale
+from .manipulation import summarize_manipulation_records
 from .readout import (
     DirectionEstimate,
     ReadoutResult,
@@ -266,6 +267,10 @@ def _direction_and_readout(
         "heldout": _readout_mapping(heldout),
         "heldout_uncertainty": heldout_ci.to_mapping(),
         "calibration": asdict(calibration),
+        "candidate_calibrations": {
+            str(layer): asdict(layer_calibration)
+            for layer, layer_calibration in calibrations.items()
+        },
     }
     return selected_layer, estimate, layer_selection, readout, heldout_ci
 
@@ -292,6 +297,7 @@ def run_fake_construct(
     steering_records = [record for record in records if record.split == "steering_eval"]
     calibration = readout["calibration"]
     steering_calibration = CalibrationResult(**calibration)
+    candidate_calibrations = readout.get("candidate_calibrations", {})
     conditions = build_steering_conditions(
         [record.prompt_id for record in steering_records],
         steering_calibration,
@@ -303,6 +309,8 @@ def run_fake_construct(
     )
     target_conditions = [condition for condition in conditions if condition.direction_kind == "target"]
     observations: list[BehaviorObservation] = []
+    tracking_layers = [layer for layer in sorted(layers) if layer >= selected_layer]
+    manipulation_records: list[dict[str, Any]] = []
     for condition in target_conditions:
         baseline = 5.0 + (int(_seed(spec.construct_id, condition.prompt_id)) % 7) * 0.2
         noise = ((int(_seed(condition.prompt_id, "outcome")) % 11) - 5) * 0.01
@@ -314,6 +322,69 @@ def run_fake_construct(
                 valid=True,
             )
         )
+    for condition in conditions:
+        physical_scale = float(condition.physical_scale)
+        direction_id = f"fake__{condition.direction_kind}_{condition.direction_index:02d}"
+        injection_pre = ((int(_seed(spec.construct_id, condition.prompt_id, "injection")) % 17) - 8) * 0.1
+        injection_post = injection_pre + physical_scale
+        for tracking_layer in tracking_layers:
+            if tracking_layer == selected_layer:
+                manipulation_records.append(
+                    {
+                        "record_id": f"{condition.condition_id}__tracking_layer_{tracking_layer:02d}",
+                        "condition_id": condition.condition_id,
+                        "prompt_id": condition.prompt_id,
+                        "direction_kind": condition.direction_kind,
+                        "direction_index": condition.direction_index,
+                        "dose": condition.dose,
+                        "physical_scale": physical_scale,
+                        "injection_layer": selected_layer,
+                        "tracking_layer": tracking_layer,
+                        "tracking_direction_id": direction_id,
+                        "tracking_direction_source": "injection_direction_train_only",
+                        "tracking_role": "injection_immediate",
+                        "injection_calibration_projection_scale": steering_calibration.projection_scale,
+                        "tracking_calibration_projection_scale": steering_calibration.projection_scale,
+                        "pre_projection": injection_pre,
+                        "post_projection": injection_post,
+                        "expected_shift": physical_scale,
+                        "projection": injection_post,
+                    }
+                )
+                continue
+            tracking_direction_id = f"fake__construct_state__layer_{tracking_layer:02d}"
+            downstream_calibration_scale = float(
+                candidate_calibrations[str(tracking_layer)]["projection_scale"]
+            )
+            downstream_baseline = (
+                (int(_seed(spec.construct_id, condition.prompt_id, tracking_layer, "downstream")) % 19) * 0.1
+            )
+            downstream_projection = downstream_baseline + (
+                0.6
+                * physical_scale
+                * downstream_calibration_scale
+                / steering_calibration.projection_scale
+            )
+            manipulation_records.append(
+                {
+                    "record_id": f"{condition.condition_id}__tracking_layer_{tracking_layer:02d}",
+                    "condition_id": condition.condition_id,
+                    "prompt_id": condition.prompt_id,
+                    "direction_kind": condition.direction_kind,
+                    "direction_index": condition.direction_index,
+                    "dose": condition.dose,
+                    "physical_scale": physical_scale,
+                    "injection_layer": selected_layer,
+                    "tracking_layer": tracking_layer,
+                    "tracking_direction_id": tracking_direction_id,
+                    "tracking_direction_source": "independent_train_only",
+                    "tracking_role": "downstream_construct_state",
+                    "injection_calibration_projection_scale": steering_calibration.projection_scale,
+                    "tracking_calibration_projection_scale": downstream_calibration_scale,
+                    "projection": downstream_projection,
+                    "downstream_projection": downstream_projection,
+                }
+            )
     positive_dose = max(float(dose) for dose in run_config.steering["scales"])
     negative_dose = min(float(dose) for dose in run_config.steering["scales"])
     effect, effect_ci = bootstrap_state_transfer_ci(
@@ -336,10 +407,12 @@ def run_fake_construct(
         "steering": {
             "intervention_timing": run_config.steering["intervention_timing"],
             "doses": [float(dose) for dose in run_config.steering["scales"]],
+            "tracking_layers": tracking_layers,
             "calibration": calibration,
             "condition_counts": control_counts,
             "target_direction_effect": asdict(effect),
             "uncertainty": effect_ci.to_mapping(),
+            "manipulation_checks": summarize_manipulation_records(manipulation_records),
         },
         "fake_fixture": {
             "hidden_size": FAKE_HIDDEN_SIZE,

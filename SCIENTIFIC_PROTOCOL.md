@@ -113,7 +113,10 @@ is not the interface for new multi-construct data. The benchmark-facing
 `construct_benchmark.generation` adapter now takes semantics from a construct
 specification and generation plan, emits canonical prompt records, supports
 deterministic mocks and no-API dry runs, and is used by the vector-only
-orchestrator. No API-generated inventory exists yet.
+orchestrator. The completed API-generated vector/probe inventory is tracked at
+`results/benchmark/vector_prompts_v2_luna/full_final_all16/combined.csv` with a
+final manifest. It is non-confirmatory and scope-partial: behavior,
+calibration, and steering-task prompts remain outside that artifact.
 
 Wave 1 generation plans also freeze task composition: paired probe context is
 presented before the independent downstream task; only an induced internal
@@ -145,6 +148,22 @@ and layer profiles are secondary diagnostics.
 Projection at the injection layer is not a sufficient manipulation check. The
 analysis should also test downstream-layer persistence, output accessibility,
 and a same-task positive control where appropriate.
+
+The steering runner now records scalar manipulation artifacts for every
+condition and registered tracking layer. The injection-layer record contains
+the pre-injection projection, post-injection projection, observed shift,
+expected shift from the requested dose and frozen calibration scale, and their
+difference. Later-layer records contain projections onto independently
+constructed train-only directions when available. A same-vector later-layer
+projection is retained only under an explicit diagnostic role and is not a
+downstream construct-state readout.
+
+Scoring is permitted for confirmatory analysis only when the adjacent steering
+output manifest is marked complete, its expected condition-by-layer identities
+are all present, and its provenance and raw-output hash agree with the JSONL.
+The scorer has an explicit `--allow-incomplete-diagnostic` override for
+engineering inspection; outputs produced under that override are not
+confirmatory evidence.
 
 ## 6. Steering intervention
 
@@ -263,6 +282,10 @@ implementation:
   neutral/within-condition calibration, strict Wave 1 parsing, directed
   state-transfer scoring, control-direction generation, and timing-aware
   injection are implemented and fixture-tested;
+- scalar injection pre/post tracking, registered downstream-layer projections,
+  expected-versus-observed manipulation scoring, downstream persistence ratios,
+  and manifest-backed resumable steering output are implemented and
+  fixture-tested; this is instrumentation, not a real-model result;
 - prompt-role/family separation, pre-registered category schedules, validation
   layer selection, and pair/item bootstrap interval primitives are implemented
   and fixture-tested;
@@ -270,30 +293,32 @@ implementation:
   without APIs, model weights, or a GPU; its outputs are explicitly
   non-empirical;
 - real-model execution, prompt-only behavior composition, real-run uncertainty
-  reporting, all-16 downstream parsers and behavior execution, downstream
-  manipulation checks, and correspondence analysis remain unvalidated or
-  unimplemented end to end;
+  reporting, all-16 downstream parsers and behavior execution, output-
+  accessibility/collateral checks, and correspondence analysis remain
+  unvalidated or unimplemented end to end;
 - the tracked activation iterator now lives in
   `activation_analysis.activation_store` and passes the clean Python 3.11
   `make check` suite; real-run validation remains pending;
 - a four-worker vector-only orchestrator can review or prepare the frozen
   100/40/40 paired-vector inventory per construct, then fan out construct-
   specific artifacts; this does not execute downstream behavior tasks;
-- no API-generated prompt inventory, evidence-diagnosticity data, or large
-  benchmark run has been collected; only no-API dry-run and fake-fixture
-  artifacts exist.
+- the completed API-generated all-16 vector/probe inventory and a realization
+  real-model decode pilot are available as engineering/reference artifacts;
+  neither is a completed generalized benchmark or a steering result;
+- no evidence-diagnosticity behavior/steering run or large generalized
+  benchmark run has been collected.
 
 Before the first real measurement:
 
-1. run the all-16 vector review pilot and inspect its structural/audit outputs;
-2. have a human review the prompt pairs, then run the full vector inventory with
-   `--resume` and freeze its manifest and audit outputs;
-3. verify `ActivationVectorRecord` and `iter_activation_vectors()` against
+1. inspect and audit the completed all-16 vector/probe inventory and freeze its
+   manifest and audit outputs as the current engineering artifact;
+2. verify `ActivationVectorRecord` and `iter_activation_vectors()` against
    existing activation-store manifests;
-4. keep the active activation tests green and add
+3. keep the active activation tests green and add
    iterator/filtering/region/memory-map regression tests;
-5. validate the implemented projection, calibration, parsing, and steering
-   adapters, then add manipulation checks and downstream persistence.
+4. validate the implemented projection, calibration, parsing, steering trace,
+   and downstream-persistence adapters on a representative model run, then add
+   output-accessibility, collateral, and prompt-only baseline checks.
 
 Then implement in this order:
 
@@ -301,8 +326,8 @@ Then implement in this order:
    the Wave 1 measurement gate;
 2. validate held-out readout, neutral/within-condition calibration, and
    outcome-specific effect adapters on a representative model;
-3. execute the implemented timing and parsing paths, then add
-   output-accessibility and downstream-persistence checks;
+3. execute the implemented timing, parsing, injection-trace, and downstream-
+   persistence paths, then add output-accessibility and collateral checks;
 4. precision simulation and expansion decision;
 5. second model family before general conclusions;
 6. Waves 2–4 only after the Wave 1 measurement and construct gates pass and

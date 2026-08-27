@@ -18,7 +18,8 @@ There are two separate services in this workflow:
   launched pod.
 
 The first one-construct smoke configuration is currently set to
-`mistralai/Mistral-Small-24B-Instruct-2501` with an unpinned revision. The
+`mistralai/Mistral-Small-24B-Instruct-2501` with revision
+`9527884be6e5616bdd54de542f9ae13384489724`. The
 multi-construct template configurations still contain placeholders until a
 multi-construct model run is reviewed.
 
@@ -159,7 +160,7 @@ the model-side logger:
   --tokenizer-id mistralai/Mistral-Small-24B-Instruct-2501 \
   --prompt-csv /workspace/realization_prompts_test.csv \
   --output-dir /workspace/results/benchmark/realization_test/activations \
-  --layers 12,18,24 --batch-size 1 --max-length 512 \
+  --layers 10,20,30 --batch-size 1 --max-length 512 \
   --run-mode test --max-runtime-minutes 60
 ```
 
@@ -219,9 +220,10 @@ the planned archive command without writing or uploading anything.
    retaining both `scenario` and `task` token regions.
 3. For each construct, run `scripts/analyze_construct_readout.py` with all
    registered candidate layers, for example
-   `--layers 12,18,24 --layer-selection validation_max_margin`. It writes the
-   train-only direction, pair differences, neutral calibration, validation-only
-   layer selection, held-out margins, bootstrap interval, and provenance summary.
+   `--layers 10,20,30 --layer-selection validation_max_margin`. It writes the
+   train-only direction for every candidate layer, candidate-layer artifacts,
+   neutral calibration, validation-only layer selection, held-out margins,
+   bootstrap interval, and provenance summary.
 4. Run `scripts/plan_construct_steering.py`. It freezes target, shuffled-label,
    and three orthogonal random controls plus randomized condition order. The
    reviewed Wave 1 run config supplies doses `[-1, -0.5, 0, 0.5, 1]` and
@@ -230,7 +232,13 @@ the planned archive command without writing or uploading anything.
    `--resume` only with the same plan and prompt inventory.
 6. Run `scripts/score_construct_steering.py` to parse outputs, compute the
    directed target-direction contrast standardized by zero-dose variation, and
-   report an item-level bootstrap interval.
+   report an item-level bootstrap interval. The same command writes
+   `manipulation_checks.csv` and includes expected-versus-observed injection
+   shifts plus calibration-standardized downstream persistence summaries. It
+   requires the adjacent completed output manifest and rejects truncated or
+   provenance-incompatible JSONL by default; use
+   `--allow-incomplete-diagnostic` only for explicitly non-confirmatory
+   inspection.
 
 Begin with one construct and one model, while recording the three candidate
 layers, five doses, and all registered controls. Review a small prompt batch
@@ -245,9 +253,10 @@ before scaling generation. The fake local path should pass first:
 ```
 
 Do not treat a successful fake or GPU smoke run as the Wave 1 experiment.
-Output-accessibility, downstream-persistence, collateral-behavior, real-run
-uncertainty validation, and prompt-only behavior composition still require
-completion and review.
+The scalar downstream-persistence and injection-manipulation checks are now
+implemented, but still require real-model validation. Output accessibility,
+collateral behavior, real-run uncertainty validation, and prompt-only behavior
+composition still require completion and review.
 
 ## Artifact safety
 

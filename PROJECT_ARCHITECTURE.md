@@ -3,8 +3,9 @@
 **Status:** the shared multi-construct control plane, 16-construct registry,
 all-16 preparatory construct specifications and paired-vector plans, vector-only
 prompt orchestrator, and environment-independent measurement core are
-implemented. Real-model execution, all-16 downstream behavior parsing, and
-manipulation-check validation remain.
+implemented. Scalar injection/downstream trace instrumentation and scoring are
+also implemented; real-model validation, all-16 downstream behavior parsing,
+and output-accessibility/collateral checks remain.
 
 ## 1. Architectural principle
 
@@ -56,6 +57,8 @@ archived. It is not the template for new behavioral collection.
 - `scripts/audit_vector_pairs.py`: structural pair/leakage audit entrypoint;
 - `scripts/run_fake_benchmark.py`: deterministic no-API vertical-slice smoke
   runner;
+- `agents/STEERING_MANIPULATION_CHECKS.md`: model-side trace and output
+  contract for injection and downstream manipulation checks;
 - `configs/construct_benchmark/`: the 16-entry registry, all 16 specified
   construct specs and paired generation plans, smoke config, and analysis spec;
 - `configs/activation_analysis/` and `experiments/activation_analysis/`;
@@ -84,15 +87,16 @@ src/construct_benchmark/
 ├── calibration.py     Implemented neutral/within-condition projection scales
 ├── behavior.py        Implemented strict Wave 1 parsing and primary effect metric
 ├── steering.py        Implemented condition plans and control directions
+├── manipulation.py    Implemented scalar injection and downstream checks
 ├── uncertainty.py      Implemented pair/item bootstrap interval primitives
 ├── fake.py             Implemented deterministic no-model measurement fixtures
 └── storage.py          Implemented workspace, checksum, and archive helpers
 ```
 
-The remaining measurement layer should add downstream manipulation checks,
-prompt-only behavior composition, real-run uncertainty orchestration, and
-correspondence analysis as the two-construct vertical slice requires them. The
-later profile layer can add:
+The remaining measurement layer should add prompt-only behavior composition,
+real-run uncertainty orchestration, output-accessibility/collateral checks,
+and correspondence analysis as the two-construct vertical slice requires them.
+The later profile layer can add:
 
 ```text
 profiles.py  correspondence.py
@@ -100,9 +104,12 @@ profiles.py  correspondence.py
 
 The registry, generation, prompt-validation, readout, calibration, behavior,
 steering-plan, uncertainty, and fake-fixture modules are the current Wave 1
-control path. The all-16 generation artifacts are preparatory candidate
-specifications; their model-side runner and all-16 downstream behavior parsers
-have not been validated on a representative activation run or GPU environment.
+control path. A completed all-16 vector/probe inventory is available as a
+non-confirmatory, scope-partial engineering artifact; its model-side runner
+and downstream behavior parsers have not been validated on a representative
+benchmark activation run or GPU environment. A separate realization
+real-model decode pilot is retained as a reference artifact, not as generalized
+benchmark or steering evidence.
 
 ## 3. Configuration boundary
 
@@ -157,8 +164,12 @@ independent behavior task                          independent behavior task
 The benchmark-facing generator creates reviewable canonical rows first. The
 vector orchestrator is Sonnet 4.6 only, uses four workers, and freezes 100
 train, 40 validation, and 40 held-out pairs per construct (2,880 pairs and
-5,760 records in the full 16-construct inventory). It never submits downstream
-single prompts. No API-generated inventory exists yet.
+5,760 records in the full 16-construct inventory). The completed inventory is
+tracked at
+`results/benchmark/vector_prompts_v2_luna/full_final_all16/combined.csv` and
+its final manifest. It is vector/probe-only, explicitly non-confirmatory, and
+does not include downstream single prompts, behavior prompts, or calibration
+prompts.
 Activation logging and behavioral execution consume those frozen rows rather
 than silently generating or changing prompts during a run. The legacy
 realization-only generator remains an archived-compatible activation-analysis
@@ -213,9 +224,9 @@ optional wall-clock budget and whether the selected subset completed.
 ## 5. Planned execution stages
 
 1. Validate the registry, versioned construct, generation, run, and analysis configs.
-2. Run the four-worker all-16 vector review pilot, audit paired rows, and obtain
-   human approval; then generate the full vector inventory with `--resume` and
-   freeze canonical hashes.
+2. Review and audit the existing all-16 vector/probe inventory, its final
+   manifest, and canonical hashes; regenerate only as an explicitly versioned
+   replacement.
 3. Audit leakage-safe splits for every construct namespace.
 4. Run the prompt-only behavioral baseline per construct only where its
    construct-specific parser and task execution are implemented.
@@ -227,8 +238,8 @@ optional wall-clock budget and whether the selected subset completed.
    unstandardized magnitudes.
 9. Run independent-task prefill-only steering with `[-1, -0.5, 0, 0.5, 1]`,
    shuffled, and three random controls.
-10. Check downstream persistence, output accessibility, compliance, and
-   collateral behavior.
+10. Check the recorded downstream persistence and injection arithmetic, then
+   add output accessibility, compliance, and collateral behavior checks.
 11. Parse outputs through construct-specific adapters, compute outcome-
     appropriate estimands, and bootstrap complete pairs/items.
 12. Fit the crossed model × construct × task summary; add profile prediction
@@ -307,7 +318,8 @@ The next work is not a large experiment. It is:
 4. validate the implemented Wave 1 task adapters, beginning with the
    realization/evidence engineering slice while retaining source-reliability
    and persistence cells; all-16 downstream parsers remain future work;
-5. add timing, manipulation, output-accessibility, and downstream-persistence
+5. validate timing, manipulation, and downstream-persistence traces on a
+   representative model run, then add output-accessibility and collateral
    checks;
 6. run the precision simulation before advancing to Waves 2–4 or fitting
    representation-profile predictors.

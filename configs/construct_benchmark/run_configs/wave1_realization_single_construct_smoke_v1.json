@@ -7,10 +7,10 @@
   "model": {
     "model_id": "mistralai/Mistral-Small-24B-Instruct-2501",
     "tokenizer_id": "mistralai/Mistral-Small-24B-Instruct-2501",
-    "revision": null
+    "revision": "9527884be6e5616bdd54de542f9ae13384489724"
   },
   "activation": {
-    "layers": [12, 18, 24],
+    "layers": [10, 20, 30],
     "layer_selection": "validation_max_margin",
     "activation_site": "resid_post",
     "token_mode": "nonpad",

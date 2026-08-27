@@ -15,14 +15,17 @@ is required for out-of-sample representation-profile prediction.
 
 At the time of this handoff:
 
-- the current measurement worktree contains uncommitted implementation changes;
+- the current measurement worktree may contain user-owned implementation
+  changes; re-check Git state before editing;
 - the multi-construct control plane is implemented under
   `src/construct_benchmark/`;
 - construct, run, analysis, prompt, split, and provenance validation exists;
 - train-only direction construction and construct isolation are enforced;
-- `make check` passes under the Python 3.11 `venv` with 79 tests passing and 2
-  optional PyTorch tests skipped;
-- no new benchmark prompt dataset has been generated;
+- `make check` is the required Python 3.11 baseline; report the current test
+  count rather than relying on this historical handoff;
+- the complete API-generated all-16 vector/probe inventory is available under
+  `results/benchmark/vector_prompts_v2_luna/full_final_all16/`; it excludes
+  downstream behavior, calibration, and steering-task prompts;
 - no API call or model download was made during the planning review;
 - projection margins, calibration, parsing, primary state-transfer scoring,
   control-direction generation, timing-aware injection, and local/RunPod
@@ -30,8 +33,14 @@ At the time of this handoff:
 - independent prompt-role/family validation, pre-registered category schedules,
   validation-only layer selection, bootstrap intervals, and the no-API fake
   vertical slice are now implemented and fixture-tested;
-- no representative real-model activation or steering run has validated that
-  measurement code, and manipulation/uncertainty checks remain incomplete.
+- scalar injection pre/post traces, independently labelled downstream-layer
+  projections, expected-versus-observed scoring, persistence ratios, and
+  manifest-backed resumable steering output are implemented and fixture-tested;
+- a realization real-model decode pilot exists as an engineering/reference
+  artifact, but no representative real-model activation or steering run has
+  validated the generalized measurement code. Prompt-only behavior
+  composition, output-accessibility, collateral checks, and real-run
+  uncertainty remain incomplete.
 
 Always re-check these claims:
 
@@ -62,12 +71,13 @@ completed for Wave 1:
   response-format, and probe/downstream independence metadata;
 - the no-API Wave 1 dry run expands to 96 requests and 240 expected rows with
   token estimates;
-- `make check` passes with 79 tests passing and 2 optional PyTorch tests
-  skipped.
+- `make check` remains the final local gate; the exact count must be recorded
+  from the current run.
 
-No API call, model download, or benchmark dataset generation occurred. The
-remaining external step is a reviewed one-item-per-cell pilot, followed by a
-single-construct model-side smoke run.
+The all-16 vector/probe inventory has since been generated and frozen as an
+engineering artifact. The remaining external step is a reviewed model-side
+smoke run for one construct, followed by the Wave 1 measurement gates; no
+generalized benchmark result should be inferred from the inventory alone.
 
 ## Selected 16-construct bank
 

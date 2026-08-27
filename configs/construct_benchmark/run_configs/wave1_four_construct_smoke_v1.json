@@ -13,7 +13,7 @@
     "revision": null
   },
   "activation": {
-    "layers": [12, 18, 24],
+    "layers": [10, 20, 30],
     "layer_selection": "validation_max_margin",
     "activation_site": "resid_post",
     "token_mode": "nonpad",

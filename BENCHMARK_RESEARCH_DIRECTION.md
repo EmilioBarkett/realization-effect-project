@@ -71,6 +71,94 @@ The last feature is deliberately exploratory. Intrinsic-dimensionality estimates
 are expensive and sensitive to sample size, and should not be added to the
 primary score without a measurement review.
 
+### Candidate predictors of steerability
+
+The benchmark should distinguish properties that can be measured before the
+held-out steering outcome is inspected from diagnostics that are observed only
+during or after intervention. The former can support a genuine prediction of
+steerability; the latter help explain a result but must not be presented as
+independent predictors of that same result.
+
+The preregistered small predictor set for the 16-construct analysis is:
+
+| Predictor | Operational question | Intended role |
+| --- | --- | --- |
+| Held-out decodability | Is the construct direction recoverable on unseen probe prompts? | Anchor predictor |
+| Split-half direction stability | Do directions estimated from independent training resamples have high cosine agreement? | Representation reliability |
+| Pair/context consistency | Do individual pair contrasts and held-out prompt families agree in sign and orientation? | Representation coherence |
+| Downstream gradient alignment | Is the frozen direction aligned with the gradient of the registered downstream choice contrast at the intervention site? | Representation-to-control connectivity |
+
+Gradient alignment should be computed only on downstream training or
+validation material with a frozen behavioral contrast; held-out steering
+outcomes must not be used to select its sign, layer, or definition. It tests
+whether a readable state points along a locally behavior-relevant control path,
+which is conceptually distinct from whether the state is decodable.
+
+The following measurements are explanatory or later-stage extensions rather
+than additional primary predictors in the first 16-construct analysis:
+
+- downstream survival of the injected state across registered later layers;
+- dose-response monotonicity and local linearity;
+- intrinsic dimensionality or subspace rank;
+- distance from the natural activation distribution after intervention;
+- overlap with other construct directions and collateral behavioral effects;
+- activation patching or path patching to localize the causal pathway.
+
+Downstream survival and dose response are partly consequences of the
+intervention itself, so they should not be used to claim prospective prediction
+of steerability in the same experimental cells. They can instead explain why a
+frozen direction succeeded or failed. With only 16 constructs, the primary
+analysis must remain low-dimensional; richer profiles require repeated
+model/task cells, a larger construct bank, or a separately evaluated follow-up.
+
+### Behavioral-science profile
+
+The correspondence question also has a behavioral-science side: steerability
+may depend not only on how a construct is represented internally, but on what
+kind of psychological state has been operationalized and how that state relates
+to the downstream behavior. The benchmark should therefore retain a separate
+behavioral profile (`B`) rather than treating behavioral tasks as interchangeable
+output meters.
+
+The primary behavioral quantities are:
+
+| Feature | Question | Intended role |
+| --- | --- | --- |
+| Prompt-condition sensitivity | Does the registered induction reliably change behavior before activation intervention? | Construct-validity anchor |
+| Cross-context behavioral reliability | Does the behavioral contrast retain its sign across topics, templates, and nuisance-factor cells? | Behavioral coherence |
+| State-to-task proximity | Does theory predict that the induced state should directly govern the independent task, or is transfer distal and mediated? | Preregistered moderator |
+
+`State-to-task proximity` must be coded from the construct specification before
+steering results are observed, ideally with independent blinded ratings and an
+agreement report. It must not become a retrospective explanation assigned to
+successful and unsuccessful constructs.
+
+Additional behavioral-science questions are exploratory:
+
+- whether transient states are more controllable by prefill-only intervention
+  than durable preferences, policies, or traits;
+- whether effects generalize across response formats and genuinely independent
+  task families;
+- whether task difficulty, evidence strength, payoff structure, or ambiguity
+  moderates the steering effect;
+- whether intervention changes a choice intercept, sensitivity to evidence, or
+  another registered component of the behavioral policy;
+- whether effects are specific rather than generic compliance, acquiescence,
+  verbosity, refusal, or response-style changes;
+- whether decision, epistemic, social, and agentic construct families exhibit
+  systematically different representation-to-behavior correspondence.
+
+The resulting scientific decomposition is `B`, prompt-condition behavioral
+sensitivity and construct validity; `R`, the internal representation profile;
+and `S`, independent-task causal steerability. The benchmark should estimate
+their relationships without collapsing them into one score. In the Wave 1
+pilot, behavioral moderators are descriptive. In the 16-construct analysis, a
+small preregistered comparison can ask whether `R` predicts `S` beyond `B`, and
+whether one or two theory-coded behavioral moderators add information beyond
+the representation profile. A larger behavioral feature search is not
+identified by sixteen constructs and belongs in a later breadth or repeated-task
+study.
+
 ### Steerability profile (`S`)
 
 The control profile can include:

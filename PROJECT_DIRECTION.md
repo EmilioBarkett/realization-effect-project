@@ -106,10 +106,13 @@ substantive rather than cosmetic.
 
 The vector-only generation scope is frozen at 100 train pairs, 40 validation
 pairs, and 40 held-out pairs per construct (2,880 pairs / 5,760 records across
-the 16-construct bank). Generation is orchestrated with four workers and uses
-`anthropic/claude-sonnet-4.6` only. The required sequence is a `review` pilot,
-human QA, then the complete `full` inventory. No API-generated inventory exists
-yet.
+the 16-construct bank). The completed API-generated vector/probe inventory is
+tracked at
+`results/benchmark/vector_prompts_v2_luna/full_final_all16/combined.csv` with
+its final inventory manifest. It is explicitly non-confirmatory and
+`scope_partial`: it contains only vector/probe prompts, not the independent
+behavior, calibration, or steering-task inventory. Generation is orchestrated
+with four workers and uses `anthropic/claude-sonnet-4.6` only.
 
 The maturity claims are staged: two constructs validate the engineering
 vertical slice, four constructs support a descriptive pilot, and the full
@@ -197,8 +200,10 @@ benchmark infrastructure implementation**:
 - fixture-tested train-only directions, continuous held-out projection margins,
   neutral/within-condition calibration, strict Wave 1 output parsing, directed
   state-transfer scoring, deterministic steering controls, validation-only
-  candidate-layer selection, bootstrap intervals, and timing-aware injection
-  are implemented;
+  candidate-layer selection, bootstrap intervals, timing-aware injection,
+  injection pre/post arithmetic, downstream-layer projection tracking,
+  expected-versus-observed shift scoring, and resumable trace manifests are
+  implemented;
 - behavior, steering, and calibration prompt families are kept separate and
   task-category schedules are pre-registered in the generation plans;
 - the vector-only all-registry orchestrator supports a four-worker review/full
@@ -210,34 +215,37 @@ benchmark infrastructure implementation**:
   API, model weights, or a GPU;
 - readout, steering-plan, environment-check, remote execution, and scoring CLIs
   now separate frozen scientific decisions from GPU/model execution;
-- prompt-only behavior composition, real-model validation, real-run uncertainty
-  orchestration, downstream manipulation checks, and correspondence analysis
-  are not yet implemented end to end;
+- prompt-only behavior composition, output-accessibility and collateral checks,
+  real-model validation, real-run uncertainty orchestration, and correspondence
+  analysis are not yet implemented or validated end to end; scalar
+  injection/downstream manipulation tracking and scoring are implemented as
+  model-side artifacts;
 - the active vector iterator now lives in `activation_analysis.activation_store`
   and passes the active Python 3.11 `make check` suite; end-to-end validation
   against a real activation run remains pending;
 - a shared activation plan can batch the four Wave 1 constructs without
   pooling directions and can later expand to all registry entries;
-- no API-generated benchmark dataset, model download, or large benchmark run
-  has been launched; current artifacts are no-API dry-run and fake-fixture
-  outputs only.
+- the API-generated all-16 vector/probe inventory and a real-model realization
+  decode pilot are available as engineering/reference artifacts; neither is a
+  completed generalized benchmark or a steering result;
+- no model download or large generalized benchmark run has been launched.
 
 ## Next implementation gates
 
-1. Run and review the deterministic fake vertical slice, then run the
-   four-worker `review` vector-prompt pilot for all 16 constructs. Inspect it
-   with `scripts/audit_vector_pairs.py`; only after review should the complete
-   `full` inventory be generated and connected to the canonical combined
-   activation manifest.
+1. Review and audit the existing all-16 vector/probe inventory and its final
+   manifest with `scripts/audit_vector_pairs.py`; regenerate only as an
+   explicitly versioned replacement.
 2. Add a manifest-backed activation-run smoke fixture when a representative
-   local run is available, while preserving the passing clean-install checks.
+   benchmark run is available, while preserving the passing clean-install
+   checks.
 3. Validate continuous held-out projection margins and neutral/within-condition
    dose calibration on a representative manifest-backed activation run.
 4. Complete the one-construct realization measurement slice first, then the
    realization/evidence engineering pair while preserving source-reliability
    and persistence namespaces.
-5. Add explicit intervention timing, output-accessibility, downstream-
-   persistence, and manipulation checks.
+5. Validate the implemented intervention traces and downstream-persistence
+   summaries on a representative model run; then add output-accessibility,
+   collateral-behavior, and prompt-only baseline checks.
 6. Run the precision simulation before fitting representation-profile
    predictors or treating Waves 2–4 as confirmatory model work.
 

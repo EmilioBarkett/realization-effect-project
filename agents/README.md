@@ -25,3 +25,6 @@ been completed.
   implementation history;
 - [`RUNPOD_EXECUTION.md`](RUNPOD_EXECUTION.md) — local/GPU execution boundary
   and artifact-safety rules.
+- [`STEERING_MANIPULATION_CHECKS.md`](STEERING_MANIPULATION_CHECKS.md) —
+  injection-trace, calibrated downstream-persistence, and completed-output
+  manifest contract.

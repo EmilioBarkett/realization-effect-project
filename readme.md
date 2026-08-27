@@ -8,9 +8,11 @@ models.
 
 The project is currently in **scientific protocol development and benchmark
 infrastructure implementation**. The shared multi-construct control plane is
-implemented, but no new benchmark dataset has been collected and the
-end-to-end measurement run is still under construction. The environment-
-independent numerical measurement core is implemented and fixture-tested.
+implemented. A completed API-generated vector/probe inventory and a
+realization real-model decode pilot are available as engineering/reference
+artifacts, while the generalized end-to-end measurement run is still under
+construction. The environment-independent numerical measurement core is
+implemented and fixture-tested.
 
 The original realization-effect behavioral pipeline is archived, while the
 activation-analysis prompt generator and activation primitives remain active.
@@ -58,11 +60,14 @@ are marked `specified` in the registry. Waves 2–4 are preparatory candidate
 specifications, not completed experiments or generated datasets; confirmatory
 execution remains gated on Wave 1 measurement gates and a precision simulation.
 The vector-only inventory is frozen at 100 train, 40 validation, and 40
-held-out pairs per construct: 2,880 pairs and 5,760 records total. Generation
-uses Sonnet 4.6 only and a four-worker orchestrator, with a review pilot before
-the full inventory. Source reliability is distinct from authority deference;
-persistence is distinct from replanning; and evidence diagnosticity is not
-automatically updating responsiveness.
+held-out pairs per construct: 2,880 pairs and 5,760 records total. The current
+complete vector/probe inventory is
+`results/benchmark/vector_prompts_v2_luna/full_final_all16/combined.csv` with
+its final manifest. It is explicitly non-confirmatory and does not include the
+independent behavior, calibration, or steering-task prompts. Generation uses
+Sonnet 4.6 only and a four-worker orchestrator. Source reliability is distinct
+from authority deference; persistence is distinct from replanning; and
+evidence diagnosticity is not automatically updating responsiveness.
 
 Specification gaming in coding agents is not the current project direction;
 that proposal is preserved as historical material outside the active scope.
@@ -140,6 +145,9 @@ Implemented and fixture-tested, but not yet validated on a real model:
 - strict Wave 1 parsing and directed state-transfer scoring;
 - deterministic shuffled/random controls and timing-aware residual injection;
 - validation-only candidate-layer selection and pair/item bootstrap intervals;
+- scalar injection pre/post traces, independently labelled downstream-layer
+  projections, expected-vs-observed manipulation scoring, persistence ratios,
+  and resumable steering-output manifests;
 - a deterministic no-API fake vertical slice at
   `scripts/run_fake_benchmark.py`;
 - local/RunPod readout, steering-plan, execution, and scoring entrypoints.
@@ -147,13 +155,16 @@ Implemented and fixture-tested, but not yet validated on a real model:
 Still not implemented or validated end to end:
 
 - prompt-only behavior composition and real-run uncertainty orchestration;
-- output-accessibility, downstream-persistence, and collateral manipulation checks;
+- output-accessibility and collateral manipulation checks;
 - all-16 downstream parsers and behavior execution;
-- the Wave 1 experiments and API-generated prompt data.
+- real-model validation of the steering traces and the Wave 1 experiments;
+- the complete behavior/calibration/steering-task inventory and a validated
+  generalized real-model benchmark run.
 
-No API-generated inventory exists. The no-API generator dry run and the fake
-vertical-slice runner are software artifacts only; neither is an empirical
-benchmark result.
+The all-16 API-generated vector/probe inventory is an engineering artifact, not
+an empirical benchmark result. The realization decode pilot is likewise a
+real-model engineering/reference result; it does not validate steering,
+downstream behavior, or the generalized benchmark.
 
 The active vector path now uses the tracked iterator in
 `activation_analysis.activation_store`; the obsolete SAE-only tests are
@@ -203,6 +214,9 @@ planning documents are indexed in
   architecture and implementation roadmap;
 - [`agents/VECTOR_PROMPT_GENERATION_HANDOFF.md`](agents/VECTOR_PROMPT_GENERATION_HANDOFF.md)
   — vector-only review/full generation contract and handoff;
+- [`agents/STEERING_MANIPULATION_CHECKS.md`](agents/STEERING_MANIPULATION_CHECKS.md)
+  — scalar injection-trace, downstream-persistence, and resumable-output
+  contract;
 - [`AGENTS.md`](AGENTS.md) — instructions and invariants for coding agents;
 - [`agents/`](agents/) — maintainer handoffs and GPU execution notes.
 
@@ -222,13 +236,14 @@ begin. Use the preparation and finalization commands to snapshot, checksum,
 and optionally archive a run; they do not require RunPod credentials until an
 actual archive sync is requested.
 
-The staged execution workflow is: run the all-16 vector `review` pilot, inspect
-and audit it, generate the complete `full` inventory, derive a `test` subset with
+The staged execution workflow is: inspect and audit the existing complete
+all-16 vector/probe inventory, derive a `test` subset with
 `scripts/select_benchmark_run_mode.py`, run the one-hour non-confirmatory
 RunPod smoke test, inspect its artifacts, and only then select `full` for the
 complete model run. Test outputs must not be pooled with full-run outputs.
 
-The vector review pilot can be run without an API:
+The vector review command remains available for a future versioned regeneration
+and can be run without an API:
 
 ```bash
 ./venv/bin/python scripts/generate_all_vector_prompts.py \
@@ -236,8 +251,11 @@ The vector review pilot can be run without an API:
   --waves all --mode review --workers 4 --dry-run
 ```
 
-After human review and when external connectivity is available, the full
-vector inventory is generated with resumability:
+The current full vector/probe inventory is already frozen at
+`results/benchmark/vector_prompts_v2_luna/full_final_all16/`. If a new prompt
+version is needed after review, write it to a new explicitly versioned output
+directory with resumability; do not overwrite the current artifact. The
+historical v1 command was:
 
 ```bash
 ./venv/bin/python scripts/generate_all_vector_prompts.py \
@@ -247,13 +265,13 @@ vector inventory is generated with resumability:
   --resume
 ```
 
-The QA entrypoint is:
+The QA entrypoint for a newly generated inventory is:
 
 ```bash
 ./venv/bin/python scripts/audit_vector_pairs.py \
-  --input results/benchmark/vector_prompts_v1/prompts/combined.csv \
-  --summary-output results/benchmark/vector_prompts_v1/prompts/vector_pair_audit.json \
-  --flags-output results/benchmark/vector_prompts_v1/prompts/vector_pair_flags.csv \
+  --input <versioned-output-dir>/combined.csv \
+  --summary-output <versioned-output-dir>/vector_pair_audit.json \
+  --flags-output <versioned-output-dir>/vector_pair_flags.csv \
   --fail-on-severe
 ```
 

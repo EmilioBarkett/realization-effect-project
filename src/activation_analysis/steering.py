@@ -1,15 +1,20 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any, Iterator, Mapping
 
 import numpy as np
 
 
 SUPPORTED_POSITION_MODES = {"all", "last"}
 SUPPORTED_INTERVENTION_TIMINGS = {"prefill_only", "generation_only", "every_step", "fixed_window"}
+SUPPORTED_TRACKING_SOURCES = {
+    "injection_direction_train_only",
+    "independent_train_only",
+    "same_vector_persistence_diagnostic",
+}
 
 
 @dataclass(frozen=True)
@@ -28,6 +33,11 @@ class SteeringConfig:
     intervention_timing: str = "every_step"
     fixed_window_start: int | None = None
     fixed_window_end: int | None = None
+    direction_id: str = "injected_direction"
+    direction_source: str = "injection_direction_train_only"
+    direction_role: str = "injection_immediate"
+    requested_dose: float | None = None
+    calibration_projection_scale: float | None = None
 
 
 @dataclass(frozen=True)
@@ -36,6 +46,145 @@ class SteeringVectorInfo:
     hidden_size: int
     raw_norm: float
     normalized: bool
+
+
+@dataclass(frozen=True)
+class TrackingDirection:
+    """A direction used to read a layer after the intervention.
+
+    ``independent_train_only`` is the primary downstream readout source.  The
+    same-vector source is retained only as an explicitly labelled diagnostic;
+    it must not be confused with a construct-state readout at the downstream
+    layer.
+    """
+
+    layer: int
+    direction_path: Path
+    direction_id: str
+    source: str = "independent_train_only"
+    role: str = "downstream_construct_state"
+
+
+@dataclass(frozen=True)
+class InjectionObservation:
+    """Scalar pre/post arithmetic for one hooked forward pass."""
+
+    layer: int
+    direction_id: str
+    direction_source: str
+    direction_role: str
+    forward_index: int
+    phase: str
+    token_position: int
+    injection_applied: bool
+    pre_projection: float
+    post_projection: float
+    observed_shift: float
+    requested_dose: float | None
+    physical_scale: float
+    calibrated_projection_scale: float | None
+    expected_shift: float
+    expected_observed_difference: float
+
+
+@dataclass(frozen=True)
+class ProjectionObservation:
+    """A scalar projection recorded at an injection or downstream layer."""
+
+    layer: int
+    direction_id: str
+    direction_source: str
+    direction_role: str
+    direction_path: str
+    forward_index: int
+    phase: str
+    token_position: int
+    projection: float
+    injection_applied: bool
+
+
+@dataclass
+class SteeringTrace:
+    """Small, JSON-serializable steering manipulation-check trace.
+
+    Hooks append only Python scalars to this object.  No activation tensor is
+    retained after a hook returns.
+    """
+
+    injection_layer: int
+    intervention_timing: str
+    position_mode: str
+    direction_id: str
+    direction_source: str
+    direction_role: str
+    requested_dose: float | None
+    physical_scale: float
+    calibration_projection_scale: float | None
+    injection_direction: SteeringVectorInfo | None = None
+    tracking_directions: list[dict[str, Any]] = field(default_factory=list)
+    injection_observations: list[InjectionObservation] = field(default_factory=list)
+    projection_observations: list[ProjectionObservation] = field(default_factory=list)
+
+    def to_mapping(self) -> dict[str, Any]:
+        """Return a stable mapping suitable for a JSONL raw-run record."""
+
+        direction_info = None
+        if self.injection_direction is not None:
+            direction_info = {
+                "path": self.injection_direction.path,
+                "hidden_size": self.injection_direction.hidden_size,
+                "raw_norm": self.injection_direction.raw_norm,
+                "normalized": self.injection_direction.normalized,
+            }
+        return {
+            "injection_layer": self.injection_layer,
+            "intervention_timing": self.intervention_timing,
+            "position_mode": self.position_mode,
+            "direction_id": self.direction_id,
+            "direction_source": self.direction_source,
+            "direction_role": self.direction_role,
+            "requested_dose": self.requested_dose,
+            "physical_scale": self.physical_scale,
+            "calibration_projection_scale": self.calibration_projection_scale,
+            "injection_direction": direction_info,
+            "tracking_directions": list(self.tracking_directions),
+            "injection_observations": [
+                {
+                    "layer": observation.layer,
+                    "direction_id": observation.direction_id,
+                    "direction_source": observation.direction_source,
+                    "direction_role": observation.direction_role,
+                    "forward_index": observation.forward_index,
+                    "phase": observation.phase,
+                    "token_position": observation.token_position,
+                    "injection_applied": observation.injection_applied,
+                    "pre_projection": observation.pre_projection,
+                    "post_projection": observation.post_projection,
+                    "observed_shift": observation.observed_shift,
+                    "requested_dose": observation.requested_dose,
+                    "physical_scale": observation.physical_scale,
+                    "calibrated_projection_scale": observation.calibrated_projection_scale,
+                    "expected_shift": observation.expected_shift,
+                    "expected_observed_difference": observation.expected_observed_difference,
+                }
+                for observation in self.injection_observations
+            ],
+            "projection_observations": [
+                {
+                    "layer": observation.layer,
+                    "direction_id": observation.direction_id,
+                    "direction_source": observation.direction_source,
+                    "direction_role": observation.direction_role,
+                    "direction_path": observation.direction_path,
+                    "forward_index": observation.forward_index,
+                    "phase": observation.phase,
+                    "token_position": observation.token_position,
+                    "projection": observation.projection,
+                    "injection_applied": observation.injection_applied,
+                }
+                for observation in self.projection_observations
+            ],
+        }
 
 
 def _validate_intervention_timing(config: SteeringConfig) -> None:
@@ -309,8 +458,84 @@ class ResidualSteeringGenerator:
         self._direction_cache[cache_key] = (direction, info)
         return direction, info
 
+    @staticmethod
+    def _coerce_tracking_direction(layer: int, value: Any) -> TrackingDirection:
+        if isinstance(value, TrackingDirection):
+            tracking = value
+        elif isinstance(value, (str, Path)):
+            tracking = TrackingDirection(
+                layer=layer,
+                direction_path=Path(value),
+                direction_id=f"layer_{layer:02d}_direction",
+            )
+        elif isinstance(value, Mapping):
+            path = value.get("direction_path", value.get("path"))
+            direction_id = value.get("direction_id")
+            if path is None or not direction_id:
+                raise ValueError(
+                    "Tracking-direction mappings require 'path'/'direction_path' and 'direction_id'."
+                )
+            tracking = TrackingDirection(
+                layer=int(value.get("layer", layer)),
+                direction_path=Path(path),
+                direction_id=str(direction_id),
+                source=str(value.get("source", "independent_train_only")),
+                role=str(value.get("role", "downstream_construct_state")),
+            )
+        else:
+            raise TypeError(
+                "tracking_directions values must be TrackingDirection, path-like, or a mapping."
+            )
+        if tracking.layer != layer:
+            raise ValueError(
+                f"Tracking direction layer key {layer} does not match its declared layer {tracking.layer}."
+            )
+        if tracking.layer < 1:
+            raise ValueError("Tracking direction layers are 1-based and must be >= 1.")
+        if tracking.source not in SUPPORTED_TRACKING_SOURCES:
+            supported = ", ".join(sorted(SUPPORTED_TRACKING_SOURCES))
+            raise ValueError(f"tracking direction source must be one of: {supported}.")
+        if not tracking.direction_id.strip():
+            raise ValueError("Tracking direction direction_id must not be empty.")
+        return tracking
+
+    def _expected_shift(self, config: SteeringConfig, info: SteeringVectorInfo, *, applied: bool) -> float:
+        if not applied:
+            return 0.0
+        if config.requested_dose is not None and config.calibration_projection_scale is not None:
+            return float(config.requested_dose * config.calibration_projection_scale)
+        return float(config.scale * (1.0 if info.normalized else info.raw_norm))
+
+    def _tracked_position(
+        self,
+        tensor: Any,
+        *,
+        forward_index: int,
+        prefill_token_position: int | None,
+    ) -> tuple[int, int]:
+        position_index = int(tensor.shape[1]) - 1
+        if prefill_token_position is None:
+            return position_index, position_index
+        if forward_index == 0:
+            return position_index, int(prefill_token_position)
+        return position_index, int(prefill_token_position + forward_index)
+
+    def _projection(self, tensor: Any, direction: Any, *, position_index: int) -> float:
+        direction_cast = direction.to(device=tensor.device, dtype=tensor.dtype)
+        projection = self._torch.sum(tensor[0, position_index, :] * direction_cast)
+        # Convert immediately to a host scalar so hooks never retain an
+        # activation or a device tensor after returning.
+        return float(projection.detach().float().cpu().item())
+
     @contextmanager
-    def steering_hooks(self, config: SteeringConfig) -> Iterator[SteeringVectorInfo]:
+    def steering_hooks(
+        self,
+        config: SteeringConfig,
+        *,
+        tracking_directions: Mapping[int, TrackingDirection | Path | str | Mapping[str, Any]] | None = None,
+        trace: SteeringTrace | None = None,
+        prefill_token_position: int | None = None,
+    ) -> Iterator[SteeringVectorInfo]:
         if config.layer < 1:
             raise ValueError("Layer numbers are 1-based and must be >= 1.")
         blocks = self._resolve_transformer_blocks()
@@ -318,20 +543,221 @@ class ResidualSteeringGenerator:
             raise ValueError(f"Requested layer {config.layer}, but model has only {len(blocks)} blocks.")
         _validate_intervention_timing(config)
         direction, info = self.load_direction(config)
-        handle = blocks[config.layer - 1].register_forward_hook(
-            self._make_hook(
-                direction=direction,
-                scale=config.scale,
-                position_mode=config.position_mode,
-                intervention_timing=config.intervention_timing,
+        if not np.isfinite(float(config.scale)):
+            raise ValueError("Steering scale must be finite.")
+        if config.requested_dose is not None and not np.isfinite(float(config.requested_dose)):
+            raise ValueError("requested_dose must be finite when provided.")
+        if config.calibration_projection_scale is not None and (
+            not np.isfinite(float(config.calibration_projection_scale))
+            or float(config.calibration_projection_scale) <= 0
+        ):
+            raise ValueError("calibration_projection_scale must be finite and greater than zero.")
+
+        normalized_tracking: dict[int, TrackingDirection] = {
+            config.layer: TrackingDirection(
+                layer=config.layer,
+                direction_path=config.direction_path,
+                direction_id=config.direction_id,
+                source=config.direction_source,
+                role=config.direction_role,
+            )
+        }
+        for layer, value in (tracking_directions or {}).items():
+            layer_number = int(layer)
+            # The injection layer is always the condition-specific direction
+            # (target, shuffled, or random).  Do not let the plan's target
+            # readout entry overwrite that control direction.
+            if layer_number == config.layer:
+                continue
+            tracking = self._coerce_tracking_direction(layer_number, value)
+            normalized_tracking[layer_number] = tracking
+        for layer in normalized_tracking:
+            if layer > len(blocks):
+                raise ValueError(f"Requested tracking layer {layer}, but model has only {len(blocks)} blocks.")
+
+        loaded_tracking: dict[int, tuple[TrackingDirection, Any, SteeringVectorInfo]] = {}
+        for layer, tracking in sorted(normalized_tracking.items()):
+            if layer == config.layer:
+                loaded_tracking[layer] = (tracking, direction, info)
+            else:
+                tracking_config = SteeringConfig(
+                    direction_path=tracking.direction_path,
+                    layer=layer,
+                    scale=0.0,
+                    position_mode=config.position_mode,
+                    normalize_direction=config.normalize_direction,
+                )
+                downstream_direction, downstream_info = self.load_direction(tracking_config)
+                loaded_tracking[layer] = (tracking, downstream_direction, downstream_info)
+
+        if trace is not None:
+            trace.injection_direction = info
+            trace.tracking_directions = [
+                {
+                    "layer": layer,
+                    "direction_id": tracking.direction_id,
+                    "direction_source": tracking.source,
+                    "direction_role": tracking.role,
+                    "direction_path": str(tracking.direction_path),
+                    "hidden_size": tracking_info.hidden_size,
+                    "raw_norm": tracking_info.raw_norm,
+                    "normalized": tracking_info.normalized,
+                }
+                for layer, (tracking, _tracking_direction, tracking_info) in loaded_tracking.items()
+            ]
+
+        handles = []
+        try:
+            for layer, (tracking, tracking_direction, tracking_info) in loaded_tracking.items():
+                if layer == config.layer:
+                    hook = self._make_injection_tracking_hook(
+                        config=config,
+                        direction=direction,
+                        info=info,
+                        trace=trace,
+                        prefill_token_position=prefill_token_position,
+                    )
+                else:
+                    hook = self._make_projection_tracking_hook(
+                        config=config,
+                        tracking=tracking,
+                        direction=tracking_direction,
+                        info=tracking_info,
+                        trace=trace,
+                        prefill_token_position=prefill_token_position,
+                    )
+                handles.append(blocks[layer - 1].register_forward_hook(hook))
+            yield info
+        finally:
+            for handle in reversed(handles):
+                handle.remove()
+
+    def _make_injection_tracking_hook(
+        self,
+        *,
+        config: SteeringConfig,
+        direction: Any,
+        info: SteeringVectorInfo,
+        trace: SteeringTrace | None,
+        prefill_token_position: int | None,
+    ):
+        forward_index = 0
+
+        def _hook(_module, _inputs, output):
+            nonlocal forward_index
+            tensor = self._extract_block_tensor(output)
+            position_index, token_position = self._tracked_position(
+                tensor,
+                forward_index=forward_index,
+                prefill_token_position=prefill_token_position,
+            )
+            pre_projection = self._projection(tensor, direction, position_index=position_index)
+            injection_applied = should_inject_at_forward(
+                config.intervention_timing,
+                forward_index,
                 fixed_window_start=config.fixed_window_start,
                 fixed_window_end=config.fixed_window_end,
             )
-        )
-        try:
-            yield info
-        finally:
-            handle.remove()
+            replacement = (
+                self._inject(
+                    tensor,
+                    direction=direction,
+                    scale=config.scale,
+                    position_mode=config.position_mode,
+                )
+                if injection_applied
+                else tensor
+            )
+            post_projection = self._projection(replacement, direction, position_index=position_index)
+            observed_shift = post_projection - pre_projection
+            expected_shift = self._expected_shift(config, info, applied=injection_applied)
+            if trace is not None:
+                if trace.injection_direction is None:
+                    trace.injection_direction = info
+                trace.injection_observations.append(
+                    InjectionObservation(
+                        layer=config.layer,
+                        direction_id=config.direction_id,
+                        direction_source=config.direction_source,
+                        direction_role=config.direction_role,
+                        forward_index=forward_index,
+                        phase="prefill" if forward_index == 0 else "generation",
+                        token_position=token_position,
+                        injection_applied=injection_applied,
+                        pre_projection=pre_projection,
+                        post_projection=post_projection,
+                        observed_shift=observed_shift,
+                        requested_dose=config.requested_dose,
+                        physical_scale=float(config.scale),
+                        calibrated_projection_scale=config.calibration_projection_scale,
+                        expected_shift=expected_shift,
+                        expected_observed_difference=expected_shift - observed_shift,
+                    )
+                )
+                trace.projection_observations.append(
+                    ProjectionObservation(
+                        layer=config.layer,
+                        direction_id=config.direction_id,
+                        direction_source=config.direction_source,
+                        direction_role=config.direction_role,
+                        direction_path=info.path,
+                        forward_index=forward_index,
+                        phase="prefill" if forward_index == 0 else "generation",
+                        token_position=token_position,
+                        projection=post_projection,
+                        injection_applied=injection_applied,
+                    )
+                )
+            forward_index += 1
+            return self._replace_block_tensor(output, replacement)
+
+        return _hook
+
+    def _make_projection_tracking_hook(
+        self,
+        *,
+        config: SteeringConfig,
+        tracking: TrackingDirection,
+        direction: Any,
+        info: SteeringVectorInfo,
+        trace: SteeringTrace | None,
+        prefill_token_position: int | None,
+    ):
+        forward_index = 0
+
+        def _hook(_module, _inputs, output):
+            nonlocal forward_index
+            tensor = self._extract_block_tensor(output)
+            position_index, token_position = self._tracked_position(
+                tensor,
+                forward_index=forward_index,
+                prefill_token_position=prefill_token_position,
+            )
+            projection = self._projection(tensor, direction, position_index=position_index)
+            if trace is not None:
+                trace.projection_observations.append(
+                    ProjectionObservation(
+                        layer=tracking.layer,
+                        direction_id=tracking.direction_id,
+                        direction_source=tracking.source,
+                        direction_role=tracking.role,
+                        direction_path=info.path,
+                        forward_index=forward_index,
+                        phase="prefill" if forward_index == 0 else "generation",
+                        token_position=token_position,
+                        projection=projection,
+                        injection_applied=should_inject_at_forward(
+                            config.intervention_timing,
+                            forward_index,
+                            fixed_window_start=config.fixed_window_start,
+                            fixed_window_end=config.fixed_window_end,
+                        ),
+                    )
+                )
+            forward_index += 1
+            return output
+
+        return _hook
 
     def _make_hook(
         self,
@@ -426,7 +852,11 @@ class ResidualSteeringGenerator:
         max_length: int = 1024,
         do_sample: bool = False,
         temperature: float = 0.0,
-    ) -> tuple[str, SteeringVectorInfo | None]:
+        tracking_directions: Mapping[int, TrackingDirection | Path | str | Mapping[str, Any]] | None = None,
+        return_trace: bool = False,
+    ) -> tuple[str, SteeringVectorInfo | None] | tuple[str, SteeringVectorInfo | None, SteeringTrace | None]:
+        if tracking_directions and steering_config is None:
+            raise ValueError("tracking_directions require a steering_config so the injection is identified.")
         formatted_prompt = self.format_prompt(
             prompt,
             prompt_format=prompt_format,
@@ -450,14 +880,34 @@ class ResidualSteeringGenerator:
         if do_sample:
             generation_kwargs["temperature"] = temperature
 
-        if steering_config is None or steering_config.scale == 0:
+        trace = None
+        if steering_config is not None:
+            trace = SteeringTrace(
+                injection_layer=steering_config.layer,
+                intervention_timing=steering_config.intervention_timing,
+                position_mode=steering_config.position_mode,
+                direction_id=steering_config.direction_id,
+                direction_source=steering_config.direction_source,
+                direction_role=steering_config.direction_role,
+                requested_dose=steering_config.requested_dose,
+                physical_scale=float(steering_config.scale),
+                calibration_projection_scale=steering_config.calibration_projection_scale,
+            )
+            with self.steering_hooks(
+                steering_config,
+                tracking_directions=tracking_directions,
+                trace=trace,
+                prefill_token_position=input_length - 1,
+            ) as info:
+                with self._torch.no_grad():
+                    output = self.model.generate(**generation_kwargs)
+        else:
             with self._torch.no_grad():
                 output = self.model.generate(**generation_kwargs)
             info = None
-        else:
-            with self.steering_hooks(steering_config) as info:
-                with self._torch.no_grad():
-                    output = self.model.generate(**generation_kwargs)
 
         new_tokens = output[0, input_length:]
-        return self.tokenizer.decode(new_tokens, skip_special_tokens=True).strip(), info
+        text = self.tokenizer.decode(new_tokens, skip_special_tokens=True).strip()
+        if return_trace:
+            return text, info, trace
+        return text, info

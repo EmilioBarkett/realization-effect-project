@@ -1,8 +1,10 @@
 # Results layout
 
-The current project has not yet produced a generalized benchmark dataset. Most
-tracked results in this directory are realization-anchor or activation-pipeline
-reference artifacts.
+The current project has produced a complete API-generated vector/probe
+inventory, but not a complete generalized benchmark dataset. Behavior,
+calibration, and steering-task prompts remain to be generated separately. Most
+other tracked results in this directory are realization-anchor or
+activation-pipeline reference artifacts.
 
 This folder has four kinds of outputs:
 
@@ -12,6 +14,9 @@ This folder has four kinds of outputs:
 - `final/` is for reference artifacts from larger activation extraction and SAE
   training runs. These runs may still be exploratory, but they should be
   reproducible and tied to checked-in configs.
+- `benchmark/vector_prompts_v2_luna/full_final_all16/` contains the complete
+  16-construct vector/probe inventory and its final manifest. It is
+  non-confirmatory and scope-partial by design.
 - `test/` contains disposable smoke-test artifacts used to check formatting,
   storage, and pipeline behavior.
 - `audits/` contains small audit outputs that are useful for checking prompt
@@ -33,7 +38,8 @@ can sync the complete run to an S3-compatible archive.
 
 - `final/activation_vectors/realization_vector_v1_layer18_direction_train_only/`
   is the current reference activation-vector artifact. It contains the
-  train-only layer-18 realization direction and held-out readout summaries.
+  train-only layer-18 realization direction and real-model engineering decode
+  summaries; it is not evidence of generalized benchmark steerability.
 - `final/residual_streams/` contains README stubs in git. Full local activation
   tensors are intentionally ignored because they are large and reproducible from
   the checked-in prompt/config files plus local model weights.

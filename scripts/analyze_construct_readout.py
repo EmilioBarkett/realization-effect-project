@@ -88,10 +88,12 @@ def main() -> None:
     if not activations:
         raise SystemExit("No activations matched the requested layer/token-region filters.")
 
+    args.output_dir.mkdir(parents=True, exist_ok=True)
     candidate_results = []
     estimates = {}
     calibrations = {}
     layer_activations = {}
+    candidate_direction_artifacts = {}
     for layer in layers:
         selected = [
             activation
@@ -121,6 +123,23 @@ def main() -> None:
         estimates[layer] = estimate
         calibrations[layer] = calibration
         layer_activations[layer] = selected
+        candidate_direction_path = args.output_dir / "candidate_directions" / f"layer_{layer:02d}" / "mean_direction.npy"
+        candidate_pair_differences_path = (
+            args.output_dir / "candidate_directions" / f"layer_{layer:02d}" / "pair_differences.npy"
+        )
+        candidate_direction_path.parent.mkdir(parents=True, exist_ok=True)
+        np.save(candidate_direction_path, estimate.direction)
+        np.save(candidate_pair_differences_path, estimate.pair_differences)
+        candidate_direction_artifacts[str(layer)] = {
+            "layer": layer,
+            "source_split": "direction_train",
+            "path": str(candidate_direction_path),
+            "pair_differences_path": str(candidate_pair_differences_path),
+            "direction_sha256": file_sha256(candidate_direction_path),
+            "pair_differences_sha256": file_sha256(candidate_pair_differences_path),
+            "pair_count": estimate.pair_count,
+            "calibration": asdict(calibration),
+        }
         candidate_results.append(
             {
                 "layer": layer,
@@ -154,7 +173,6 @@ def main() -> None:
         seed=args.bootstrap_seed,
     )
 
-    args.output_dir.mkdir(parents=True, exist_ok=True)
     direction_path = args.output_dir / "mean_direction.npy"
     pair_differences_path = args.output_dir / "pair_differences.npy"
     np.save(direction_path, estimate.direction)
@@ -185,6 +203,7 @@ def main() -> None:
         },
         "activation_site": args.activation_site,
         "token_regions": sorted(_csv_set(args.token_regions) or []),
+        "candidate_directions": candidate_direction_artifacts,
         "direction": {
             "source_split": "direction_train",
             "pair_count": estimate.pair_count,

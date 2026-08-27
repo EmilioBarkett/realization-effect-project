@@ -3,9 +3,11 @@
 ## One-line status
 
 This repository is in scientific protocol development and benchmark
-infrastructure implementation. The shared multi-construct control plane is
-implemented; the numerical measurement core is fixture-tested, no new
-construct data have been collected, and no real-model end-to-end run exists.
+infrastructure implementation. The shared multi-construct control plane and
+scalar steering-manipulation instrumentation are implemented; the numerical
+measurement core is fixture-tested. The complete all-16 vector/probe inventory
+and a realization real-model decode pilot are available as engineering/reference
+artifacts; no generalized real-model end-to-end benchmark run exists.
 
 ## Read in this order
 
@@ -71,9 +73,11 @@ Archived:
 - Projection-margin analysis, neutral/within-condition calibration, strict
   Wave 1 parsing, primary state-transfer scoring, deterministic steering
   controls, and timing-aware injection are implemented and fixture-tested.
-- Prompt-only behavior composition, real-run uncertainty orchestration,
-  output-accessibility, downstream-persistence, collateral checks, and
-  real-model validation remain.
+- Injection pre/post traces, independently labelled downstream projections,
+  expected-versus-observed scoring, downstream persistence ratios, and
+  manifest-backed resumability are implemented and fixture-tested. Prompt-only
+  behavior composition, real-run uncertainty, output-accessibility/collateral
+  checks, and real-model validation remain.
 - The 16-entry registry, four specified Wave 1 construct specs, four
   generation plans, generic canonical-record generation adapter, and
   generalized overlap audit are now implemented.
@@ -85,16 +89,20 @@ Archived:
   archived and `make check` passes under Python 3.11;
 - the two residual-stream tests that require the optional PyTorch extra are
   skipped in the base environment;
-- no API-generated Wave 1 prompt data or representative local activation run
-  is currently available for an end-to-end manifest-backed smoke test; the
-  available no-API and fake-fixture artifacts are explicitly non-empirical.
+- the API-generated all-16 vector/probe inventory is available, but it excludes
+  behavior, calibration, and steering-task prompts and is explicitly
+  non-confirmatory; the realization decode pilot is not an end-to-end steering
+  run;
+- a representative generalized activation/steering smoke test is still needed;
+  no-API and fake-fixture artifacts remain explicitly non-empirical.
 
 ## Next actions
 
-1. Run and review `scripts/run_fake_benchmark.py`, then review the four Wave 1
-   generation plans and dry-run summary; obtain explicit approval before any
-   external generation.
-2. Add a representative activation-run fixture and verify the new
+1. Review the existing all-16 vector/probe inventory, final manifest, and
+   structural audit; obtain explicit approval before any new external
+   generation.
+2. Use the realization decode pilot as a reference while adding a
+   representative activation-run fixture and verifying the new
    `ActivationVectorRecord` and `iter_activation_vectors()` implementation
    against its manifest and shards.
 3. Connect the approved canonical Wave 1 inventory to activation logging while
@@ -104,8 +112,9 @@ Archived:
 5. Execute the timing-aware steering runner for one construct and one model,
    using candidate-layer validation, five prefill-only doses, and all controls,
    before expanding to all Wave 1 cells.
-6. Add prompt-only behavior composition, real-run uncertainty, output accessibility,
-   downstream persistence, and manipulation checks.
+6. Validate the steering trace and persistence artifacts on one real model
+   run, then add prompt-only behavior composition, output accessibility,
+   collateral checks, and real-run uncertainty reporting.
 7. Run the precision simulation before advancing to Waves 2–4 or fitting full
    representation-profile predictors.
 

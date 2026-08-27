@@ -44,16 +44,19 @@ direction.
 The project is currently in scientific protocol development and benchmark
 infrastructure implementation. The shared multi-construct control plane,
 16-construct registry, Wave 1 construct specifications, generic generation
-adapter, generation plans, no-API dry-run path, deterministic fake vertical
-slice, deterministic prompt run-mode selection, and environment-independent
-measurement core are implemented; real-model end-to-end validation is not.
+adapter, generation plans, API-generated vector/probe inventory, deterministic
+fake vertical slice, deterministic prompt run-mode selection, and
+environment-independent measurement core are implemented. A realization
+real-model decode pilot is available as an engineering/reference artifact;
+generalized real-model end-to-end validation is not.
 
 Do not describe the following as completed:
 
-- real-run projection-margin results;
+- generalized benchmark real-run projection-margin or calibration results;
 - real-run neutral/within-condition calibration results;
 - a validated local or RunPod steering run;
-- downstream manipulation-check orchestration;
+- real-model validation of the downstream manipulation checks and prompt-only
+  baseline orchestration;
 - the evidence-diagnosticity experiment.
 
 Fixture-tested code now covers train-only directions, held-out standardized
@@ -65,8 +68,9 @@ bootstrap interval primitives, readout/steering planning CLIs, named
 prompt-generation review/full modes, pair-preserving model-side test/full
 selection, and an optional activation wall-clock guard. These are implemented
 code, not empirical results. PyTorch, Transformers, a concrete
-model revision, model weights, and a representative activation run remain
-absent from the base development environment.
+Model weights and raw activation tensors remain absent from the base
+development environment. The tracked realization decode pilot and all-16
+vector/probe inventory are not substitutes for a validated benchmark run.
 
 The original realization behavioral pipeline is archived under
 [`archive/realization_effect/`](archive/realization_effect/). The active
@@ -79,7 +83,8 @@ construct-specific paired prompts.
   activation storage, vector primitives, and steering primitives.
 - `src/construct_benchmark/`: shared construct/run/analysis schemas,
   canonical prompt records, split validation, registry validation, generic
-  generation, and multi-construct run plans.
+  generation, multi-construct run plans, and model-independent manipulation
+  scoring.
 - `scripts/`: active activation-analysis entrypoints.
 - `scripts/generate_construct_prompts.py`: benchmark-facing generic generation
   CLI with dry-run support.
@@ -114,6 +119,15 @@ shared activation pass, then fans out into construct-scoped directions,
 readouts, calibration, behavior, and steering outputs. The benchmark-facing
 generator creates canonical rows before activation logging; never pool
 directions across `construct_id` values.
+
+The steering runner records scalar pre/post injection projections at the
+injection layer and scalar projections at registered later layers. Its output
+is one row per condition × tracking layer plus an output manifest; later-layer
+rows are labelled as independently constructed train-only readouts or as
+same-vector diagnostics. The scorer keeps behavior scoring on the injection
+layer and reports expected-versus-observed shifts and downstream persistence
+separately. These are instrumentation and fixture-tested analysis paths, not
+real-model results.
 
 ## Research invariants
 

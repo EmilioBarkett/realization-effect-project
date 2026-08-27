@@ -26,6 +26,107 @@ from construct_benchmark.steering import (  # noqa: E402
 )
 
 
+def _existing_artifact_path(raw_path: str | Path, *, summary_path: Path) -> Path:
+    """Resolve an artifact path stored in a readout summary."""
+
+    path = Path(raw_path)
+    if path.is_file():
+        return path
+    relative_to_summary = summary_path.parent / path
+    if relative_to_summary.is_file():
+        return relative_to_summary
+    raise SystemExit(f"Readout summary references a missing direction artifact: {raw_path}")
+
+
+def _build_tracking_directions(
+    *,
+    summary: dict,
+    summary_path: Path,
+    run_config,
+    construct_id: str,
+    selected_layer: int,
+    injection_direction: Path,
+) -> tuple[list[int], dict[str, dict]]:
+    """Register the injection layer and later independently-read layers.
+
+    Candidate directions are produced for every layer analyzed by the readout
+    command.  If an older summary lacks a later candidate artifact, the
+    fallback is retained as a same-vector diagnostic and is labelled as such;
+    it is never presented as an independent downstream construct-state
+    readout.
+    """
+
+    registered_layers = sorted(int(layer) for layer in run_config.activation["layers"])
+    if selected_layer not in registered_layers:
+        raise SystemExit("Readout selected a layer that is not registered in the run configuration.")
+    tracking_layers = [layer for layer in registered_layers if layer >= selected_layer]
+    candidate_artifacts = summary.get("candidate_directions", {})
+    tracking_directions: dict[str, dict] = {}
+    selected_calibration = summary.get("calibration")
+    if not isinstance(selected_calibration, dict):
+        selected_calibration = None
+    for layer in tracking_layers:
+        if layer == selected_layer:
+            tracking_directions[str(layer)] = {
+                "layer": layer,
+                "direction_id": f"{construct_id}__injected_direction__layer_{layer:02d}",
+                "path": str(injection_direction),
+                "source": "injection_direction_train_only",
+                "role": "injection_immediate",
+                "source_split": "direction_train",
+                "direction_sha256": file_sha256(injection_direction),
+                "calibration": selected_calibration,
+            }
+            continue
+        candidate = candidate_artifacts.get(str(layer))
+        if isinstance(candidate, dict) and candidate.get("path"):
+            path = _existing_artifact_path(candidate["path"], summary_path=summary_path)
+            if candidate.get("source_split") != "direction_train":
+                raise SystemExit(
+                    f"Candidate direction for layer {layer} is not sourced from direction_train."
+                )
+            declared_hash = candidate.get("direction_sha256")
+            if declared_hash and file_sha256(path) != declared_hash:
+                raise SystemExit(f"Candidate direction hash does not match the readout summary: layer {layer}")
+            candidate_calibration = candidate.get("calibration")
+            if not isinstance(candidate_calibration, dict) or candidate_calibration.get("projection_scale") is None:
+                raise SystemExit(
+                    f"Candidate direction for layer {layer} is missing its frozen training calibration."
+                )
+            try:
+                calibration_scale = float(candidate_calibration["projection_scale"])
+            except (TypeError, ValueError) as exc:
+                raise SystemExit(
+                    f"Candidate direction for layer {layer} has an invalid training calibration."
+                ) from exc
+            if not np.isfinite(calibration_scale) or calibration_scale <= 0:
+                raise SystemExit(
+                    f"Candidate direction for layer {layer} has a non-positive training calibration."
+                )
+            tracking_directions[str(layer)] = {
+                "layer": layer,
+                "direction_id": f"{construct_id}__construct_state__layer_{layer:02d}",
+                "path": str(path),
+                "source": "independent_train_only",
+                "role": "downstream_construct_state",
+                "source_split": "direction_train",
+                "direction_sha256": file_sha256(path),
+                "calibration": candidate_calibration,
+            }
+        else:
+            tracking_directions[str(layer)] = {
+                "layer": layer,
+                "direction_id": f"{construct_id}__same_vector_diagnostic__layer_{layer:02d}",
+                "path": str(injection_direction),
+                "source": "same_vector_persistence_diagnostic",
+                "role": "same_vector_persistence_diagnostic",
+                "source_split": "direction_train",
+                "direction_sha256": file_sha256(injection_direction),
+                "calibration": None,
+            }
+    return tracking_layers, tracking_directions
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Build a deterministic steering condition plan.")
     parser.add_argument("--prompt-inventory", type=Path, required=True)
@@ -63,6 +164,14 @@ def main() -> None:
     pair_differences = np.load(args.pair_differences).astype(np.float32, copy=False)
     if pair_differences.ndim != 2 or pair_differences.shape[1] != target_direction.shape[0]:
         raise SystemExit("Pair differences and target direction have incompatible shapes.")
+    tracking_layers, tracking_directions = _build_tracking_directions(
+        summary=summary,
+        summary_path=args.readout_summary,
+        run_config=run_config,
+        construct_id=spec.construct_id,
+        selected_layer=selected_layer,
+        injection_direction=args.direction,
+    )
     args.direction_output_dir.mkdir(parents=True, exist_ok=True)
     shuffled_path = args.direction_output_dir / "shuffled_direction.npy"
     np.save(shuffled_path, shuffled_label_direction(pair_differences, seed=run_config.seed + 10_000))
@@ -95,6 +204,8 @@ def main() -> None:
         "model": run_config.model,
         "candidate_layers": list(run_config.activation["layers"]),
         "layer": selected_layer,
+        "tracking_layers": tracking_layers,
+        "tracking_directions": tracking_directions,
         "layer_selection": summary.get("layer_selection", {}),
         "activation_site": run_config.activation["activation_site"],
         "position_mode": steering["position_mode"],
@@ -115,6 +226,9 @@ def main() -> None:
             "readout_summary_sha256": file_sha256(args.readout_summary),
             "direction_sha256": file_sha256(args.direction),
             "pair_differences_sha256": file_sha256(args.pair_differences),
+            "tracking_direction_hashes": {
+                layer: entry["direction_sha256"] for layer, entry in tracking_directions.items()
+            },
             "control_direction_hashes": {
                 "shuffled": file_sha256(shuffled_path),
                 "random": [file_sha256(path) for path in random_paths],

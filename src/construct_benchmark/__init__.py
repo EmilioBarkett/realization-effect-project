@@ -27,6 +27,12 @@ from .generation import (
     write_generation_result,
 )
 from .manifests import build_run_plan, load_run_plan, write_run_plan
+from .manipulation import (
+    downstream_persistence_ratio,
+    raw_downstream_projection_transfer,
+    score_expected_observed_shift,
+    summarize_manipulation_records,
+)
 from .prompts import (
     PromptRecord,
     combine_prompt_files,
@@ -100,6 +106,8 @@ __all__ = [
     "bootstrap_readout_margin_ci",
     "bootstrap_state_transfer_ci",
     "build_steering_conditions",
+    "downstream_persistence_ratio",
+    "raw_downstream_projection_transfer",
     "build_generation_messages",
     "combine_prompt_files",
     "dry_run_summary",
@@ -129,6 +137,8 @@ __all__ = [
     "resolve_archive_uri",
     "resolve_storage_layout",
     "shuffled_label_direction",
+    "score_expected_observed_shift",
+    "summarize_manipulation_records",
     "validate_analysis_spec",
     "validate_prompt_records",
     "validate_run_constructs",

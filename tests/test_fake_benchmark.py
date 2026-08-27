@@ -30,7 +30,10 @@ def test_fake_benchmark_runs_one_construct_without_external_services(tmp_path: P
     construct = summary["constructs"]["realization_account_closure"]
     assert completed.returncode == 0
     assert summary["external_calls"] == {"openrouter": False, "runpod": False, "model_weights": False}
-    assert construct["selected_layer"] == 18
+    assert construct["selected_layer"] == 20
     assert construct["steering"]["doses"] == [-1.0, -0.5, 0.0, 0.5, 1.0]
     assert construct["steering"]["condition_counts"] == {"random": 72, "shuffled": 24, "target": 30}
+    assert construct["steering"]["tracking_layers"] == [20, 30]
+    assert construct["steering"]["manipulation_checks"]["injection_record_count"] == 126
+    assert construct["steering"]["manipulation_checks"]["missing_or_unscorable_records"] == 0
     assert (output_dir / "prompt_inventory.csv").exists()
