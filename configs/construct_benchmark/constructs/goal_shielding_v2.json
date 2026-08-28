@@ -1,0 +1,27 @@
+{
+  "base_spec_path": "goal_shielding_v1.json",
+  "version": "v2",
+  "title": "Focal-task priority with clean attention budgeting",
+  "description": "Whether a focal objective is represented as receiving priority amid competition, tested downstream by a fresh allocation of limited attention without stating the target state.",
+  "probe_prompt_template": "Read the following short goal-management scenario. Track which objective is salient at the shared decision point without answering a later task.\n\nScenario:\n{scenario}\n\nKeep the scenario in working memory without adding a response.",
+  "independent_behavior_task": {
+    "task_id": "fresh_attention_budget_v2",
+    "task_family": "fresh_task_competition_allocation",
+    "prompt_template": "In a new situation, a focal task and an unrelated distractor compete for limited attention. Allocate exactly 100 attention points between the focal task and the distractor. Return exactly two integers on separate lines: first the allocation to the focal task and second the allocation to the distractor; the two integers must sum to 100. Use only this item's information.",
+    "primary_outcome": "focal_task_attention",
+    "secondary_outcomes": ["distractor_attention", "compliance"]
+  },
+  "expected_direction": {
+    "behavior": {
+      "outcome": "focal_task_attention",
+      "estimand": "focal_priority_state_transfer_to_fresh_attention_budget",
+      "direction_status": "preregister_before_data_collection",
+      "warning": "The downstream item avoids direct target-state wording and is not a persistence or plan-rigidity measure."
+    }
+  },
+  "metadata": {
+    "repair_version": "repaired_v2",
+    "downstream_independence": "The downstream item is a standalone attention-budget episode with new tasks and no copied goal-management language.",
+    "release_note": "Supersedes the v1 direct priority-cue wording for future review and generation; v1 artifacts remain historical."
+  }
+}

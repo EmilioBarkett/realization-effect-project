@@ -29,7 +29,7 @@
   "independent_behavior_task": {
     "task_id": "belief_update_magnitude_v1",
     "task_family": "sequential_belief_update",
-    "prompt_template": "You have a prior probability for a hypothesis and then receive a separate observation. Report the posterior probability from 0 to 100 as one integer. The item specifies whether the observation supports or contradicts the hypothesis and how far its likelihood ratio is from 1. Compute the absolute update as abs(posterior minus prior). The task is independent of the probe wording.",
+    "prompt_template": "You have a prior probability for a hypothesis and then receive a separate observation with stated numerical frequencies under the hypothesis and its alternatives. Use those frequencies to determine the observation's likelihood ratio. Report the posterior probability from 0 to 100 as one integer. Use the stated frequencies to update the prior and compute the absolute update as abs(posterior minus prior). The task is independent of the probe wording.",
     "primary_outcome": "absolute_posterior_update",
     "secondary_outcomes": ["posterior_calibration", "confidence"],
     "response_format": "single_integer_0_to_100",
@@ -37,8 +37,8 @@
       "required": ["prior_probability", "evidence_valence", "likelihood_separation"],
       "properties": {
         "prior_probability": {"type": "integer", "enum": [20, 50, 80], "minimum": 0, "maximum": 100},
-        "evidence_valence": {"type": "string", "enum": ["supporting", "contradicting"]},
-        "likelihood_separation": {"type": "string", "enum": ["weak", "moderate", "strong"]}
+        "evidence_valence": {"type": "string", "enum": ["supporting", "contradicting", "neutral"]},
+        "likelihood_separation": {"type": "string", "enum": ["none", "weak", "moderate", "strong"]}
       }
     },
     "independence_requirements": [

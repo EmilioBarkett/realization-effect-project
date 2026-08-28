@@ -108,6 +108,13 @@
     "required_item_fields": ["constraint_change", "alternative_quality", "goal_value"],
     "balance_check": "Each of the 8 combinations must appear at least once per content pool (behavior_eval and steering_eval). Warn if any combination is missing."
   },
+  "calibration_factor_schedule": {
+    "purpose": "neutral_plan_allocation_variance",
+    "nuisance_fields": ["alternative_quality", "goal_value"],
+    "neutral_fields": {"constraint_change": "minor"},
+    "forbidden_terms": ["adapt plan", "preserve plan", "plan replanning", "replanning", "plan adaptation", "setback", "sunk cost", "abandon", "abandonment", "persistence", "competing goal", "distractor", "not feasible", "infeasible", "impossible", "cannot work", "can't work", "unavailable", "blocked", "out of service", "inaccessible", "prohibited", "unsafe", "unusable"],
+    "required_response_format": "two_integers_sum_100"
+  },
   "cells": [
     {
       "cell_id": "probe_train",
@@ -193,13 +200,14 @@
       "task_id": "changed_constraint_plan_allocation_v1",
       "parser_id": "two_integers_sum_100_v1",
       "expected_output_format": "two_integers_sum_100",
+      "factor_schedule": "calibration_factor_schedule",
       "count_per_model": 8,
       "category_balance": {
-        "constraint_change": ["minor", "minor", "minor", "minor", "major", "major", "major", "major"],
+        "constraint_change": ["minor", "minor", "minor", "minor", "minor", "minor", "minor", "minor"],
         "alternative_quality": ["weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong"],
         "goal_value": ["high", "high", "low", "low", "high", "high", "low", "low"]
       },
-      "instructions": "Generate neutral changed-constraint allocation items from the calibration pool. Keep the focal goal feasible and valuable, balance factors for response variation only, request exactly two integers on separate lines in the order revised_plan_allocation then original_plan_allocation, and do not cue the probe state."
+      "instructions": "Generate neutral changed-constraint allocation items from the calibration pool. Keep the constraint change minor and the focal goal feasible and valuable in every item; use alternative quality and goal value only to balance ordinary response variation. Request exactly two integers on separate lines in the order revised_plan_allocation then original_plan_allocation, and do not cue the probe state."
     }
   ]
 }

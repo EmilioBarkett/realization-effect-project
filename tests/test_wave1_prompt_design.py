@@ -59,24 +59,35 @@ def test_realization_downstream_schedule_and_output_mapping_are_explicit() -> No
         "risk_probability",
     ]
     assert "sure option" in task["prompt_template"]
-    assert "risk preference second" in plan["cells"][3]["instructions"]
+    assert "risky option from 1 to 1000" in task["prompt_template"]
+    assert "remainder assigned to the sure option" in task["prompt_template"]
+    assert "second is risk preference" in plan["cells"][3]["instructions"]
     fields = ["outcome_valence", "stake_level", "risk_probability"]
-    expected = set(product(("gain", "loss", "neutral"), ("low", "high"), ("even", "uneven")))
-    for split in ("behavior_eval", "steering_eval", "calibration"):
+    target_expected = set(product(("gain", "loss", "neutral"), ("low", "high"), ("even", "uneven")))
+    calibration_expected = set(product(("neutral",), ("low", "high"), ("even", "uneven")))
+    for split in ("behavior_eval", "steering_eval"):
         cell = next(cell for cell in plan["cells"] if cell["split"] == split)
-        assert _schedule_assignments(cell, fields) == expected
+        assert _schedule_assignments(cell, fields) == target_expected
+    calibration = next(cell for cell in plan["cells"] if cell["split"] == "calibration")
+    assert calibration["factor_schedule"] == "calibration_factor_schedule"
+    assert _schedule_assignments(calibration, fields) == calibration_expected
 
 
 def test_evidence_diagnosticity_uses_likelihood_ratio_and_crossed_schedule() -> None:
     spec, plan = _load("evidence_diagnosticity")
     task = spec.independent_behavior_task
     assert "likelihood ratio" in task["prompt_template"]
+    assert "supports or contradicts" not in task["prompt_template"]
     assert task["item_metadata_schema"]["properties"]["prior_probability"]["enum"] == [20, 50, 80]
     fields = ["prior_probability", "evidence_valence", "likelihood_separation"]
-    expected = set(product((20, 50, 80), ("supporting", "contradicting"), ("weak", "moderate", "strong")))
-    for split in ("behavior_eval", "steering_eval", "calibration"):
+    target_expected = set(product((20, 50, 80), ("supporting", "contradicting"), ("weak", "moderate", "strong")))
+    calibration_expected = set(product((20, 50, 80), ("neutral",), ("none",)))
+    for split in ("behavior_eval", "steering_eval"):
         cell = next(cell for cell in plan["cells"] if cell["split"] == split)
-        assert _schedule_assignments(cell, fields) == expected
+        assert _schedule_assignments(cell, fields) == target_expected
+    calibration = next(cell for cell in plan["cells"] if cell["split"] == "calibration")
+    assert calibration["factor_schedule"] == "calibration_factor_schedule"
+    assert _schedule_assignments(calibration, fields) == calibration_expected
 
 
 def test_evidence_diagnosticity_registers_strong_and_near_one_lr_bounds() -> None:
@@ -113,14 +124,20 @@ def test_source_reliability_crosses_track_record_without_polarity_confound() -> 
         "authority_status",
         "evidence_quality",
     ]
-    expected = set(
-        product((20, 80), ("reliable", "unreliable"), ("supporting", "contradicting"), ("legitimate", "non_authority"), ("strong", "weak"))
-    )
     assert "five-report accuracy record" in task["prompt_template"]
     assert "signed testimony update" in task["prompt_template"]
-    for split in ("behavior_eval", "steering_eval", "calibration"):
+    target_expected = set(
+        product((20, 80), ("reliable", "unreliable"), ("supporting", "contradicting"), ("legitimate", "non_authority"), ("strong", "weak"))
+    )
+    calibration_expected = set(
+        product((20, 80), ("midpoint",), ("supporting", "contradicting"), ("legitimate", "non_authority"), ("strong", "weak"))
+    )
+    for split in ("behavior_eval", "steering_eval"):
         cell = next(cell for cell in plan["cells"] if cell["split"] == split)
-        assert _schedule_assignments(cell, fields) == expected
+        assert _schedule_assignments(cell, fields) == target_expected
+    calibration = next(cell for cell in plan["cells"] if cell["split"] == "calibration")
+    assert calibration["factor_schedule"] == "calibration_factor_schedule"
+    assert _schedule_assignments(calibration, fields) == calibration_expected
 
 
 def test_source_reliability_history_is_independent_and_position_balanced() -> None:
@@ -211,6 +228,50 @@ def test_persistence_uses_independent_program_task_and_conditional_direction() -
     for split in ("behavior_eval", "steering_eval", "calibration"):
         cell = next(cell for cell in plan["cells"] if cell["split"] == split)
         assert _schedule_assignments(cell, fields) == expected
+
+
+def test_persistence_v2_is_a_versioned_adaptive_renewal_candidate() -> None:
+    spec = load_construct_spec(
+        BASE / "constructs" / "persistence_continuation_v2.json"
+    )
+    plan = load_generation_plan(
+        BASE / "generation_plans" / "wave1_persistence_continuation_v2.json",
+        spec,
+    )
+    task = spec.independent_behavior_task
+    assert spec.version == "v2"
+    assert task["task_id"] == "goal_renewal_allocation_v2"
+    assert task["primary_outcome"] == "existing_goal_allocation"
+    assert task["response_format"] == "single_integer_allocation_0_to_100"
+    assert plan["generation"]["max_items_per_request"] == 20
+    assert plan["models"] == [{"alias": "luna", "model": "gpt-5.6-luna"}]
+    assert spec.metadata["behavioral_variation_gate"]["minimum_zero_dose_distinct"] == 3
+
+    fields = [
+        "return_advantage_units",
+        "repairability",
+        "setback_severity",
+        "switching_cost_units",
+        "option_order",
+    ]
+    expected = set(
+        product(
+            (-10, -5, 0, 5, 10),
+            ("repairable", "difficult"),
+            ("moderate", "severe"),
+            (0, 10),
+            ("established_first", "alternative_first"),
+        )
+    )
+    for split in ("behavior_eval", "steering_eval"):
+        cell = next(cell for cell in plan["cells"] if cell["split"] == split)
+        assert cell["count_per_model"] == 80
+        assert _schedule_assignments(cell, fields) == expected
+
+    calibration = next(cell for cell in plan["cells"] if cell["split"] == "calibration")
+    assert calibration["count_per_model"] == 80
+    assert set(calibration["category_balance"]["repairability"]) == {"not_applicable"}
+    assert set(calibration["category_balance"]["setback_severity"]) == {"not_applicable"}
 
 
 def test_corrected_wave1_full_dry_run_is_complete_without_api_calls() -> None:

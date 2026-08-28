@@ -1,0 +1,13 @@
+{
+  "quality_gate_version": "1",
+  "gate_type": "wave1_repaired_v2_vector_review",
+  "scope": "wave1_repaired_v2_vector",
+  "status": "approved",
+  "approved": true,
+  "reviewer": "codex_wave1_repaired_v2_openai_luna_prompt_audit",
+  "provider": "openai",
+  "model": "gpt-5.6-luna",
+  "approval_basis": "The OpenAI/Luna review generated the required train, validation, and held-out probe pair for each repaired Wave 1 construct with matching repaired plan hashes. This non-confirmatory gate authorizes only generation of the complete repaired Wave 1 vector prompt inventory.",
+  "review_manifest_path": "../../../results/benchmark/wave1_repaired_v2_vector_review_openai_luna/vector_prompt_manifest.json",
+  "review_manifest_sha256": "078e65090ee8ce89c9daa29522029045cc5378a951fbe3a74d977c183084abe5"
+}

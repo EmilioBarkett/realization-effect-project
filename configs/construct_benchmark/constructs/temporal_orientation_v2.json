@@ -1,0 +1,27 @@
+{
+  "base_spec_path": "temporal_orientation_v1.json",
+  "version": "v2",
+  "title": "Consequence-horizon representation with delayed resource allocation",
+  "description": "Whether immediate or delayed consequences are represented as more salient, tested downstream by allocating resources between options with distinct delivery dates without naming the probe state.",
+  "probe_prompt_template": "Read the following short decision scenario. Track which consequence horizon is represented as salient without answering a later task.\n\nScenario:\n{scenario}\n\nKeep the scenario in working memory without adding a response.",
+  "independent_behavior_task": {
+    "task_id": "dated_resource_allocation_v2",
+    "task_family": "dated_resource_allocation",
+    "prompt_template": "In a new allocation task, one option delivers its stated outcome after one week and another delivers its stated outcome after six months. Allocate exactly 100 points between the two options. Return exactly two integers on separate lines: first the allocation to the six-month option and second the allocation to the one-week option; the two integers must sum to 100. Use only this item's information.",
+    "primary_outcome": "six_month_allocation",
+    "secondary_outcomes": ["one_week_allocation", "compliance"]
+  },
+  "expected_direction": {
+    "behavior": {
+      "outcome": "six_month_allocation",
+      "estimand": "consequence_horizon_state_transfer_to_dated_allocation",
+      "direction_status": "preregister_before_data_collection",
+      "warning": "This is a dated allocation outcome, not a universal temporal-discounting parameter."
+    }
+  },
+  "metadata": {
+    "repair_version": "repaired_v2",
+    "downstream_independence": "The downstream task uses new dated options and avoids direct labels such as immediate focus or long-horizon focus.",
+    "release_note": "Supersedes the v1 direct horizon-cue wording for future review and generation; v1 artifacts remain historical."
+  }
+}

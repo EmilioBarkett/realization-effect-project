@@ -129,6 +129,25 @@ def _output_manifest_path(output: Path) -> Path:
     return output.with_suffix(output.suffix + ".manifest.json")
 
 
+def _select_zero_dose_plan(plan: dict) -> dict:
+    """Derive the cheap target zero-dose subset without changing the source plan."""
+
+    conditions = [
+        dict(condition)
+        for condition in plan.get("conditions", [])
+        if condition.get("direction_kind") == "target"
+        and float(condition.get("dose", float("nan"))) == 0.0
+    ]
+    if not conditions:
+        raise ValueError("Steering plan contains no target zero-dose conditions.")
+    selected = dict(plan)
+    selected["conditions"] = conditions
+    selected["execution_scope"] = "target_zero_dose_behavior_gate"
+    selected["source_condition_count"] = len(plan.get("conditions", []))
+    selected["selected_condition_count"] = len(conditions)
+    return selected
+
+
 def _build_output_manifest(
     *,
     plan: dict,
@@ -170,6 +189,10 @@ def _build_output_manifest(
         "device": args.device,
         "device_map": args.device_map,
         "block_path": args.block_path,
+        "execution_scope": str(plan.get("execution_scope", "full_condition_matrix")),
+        "source_condition_count": int(plan.get("source_condition_count", len(plan["conditions"]))),
+        "selected_condition_count": int(plan.get("selected_condition_count", len(plan["conditions"]))),
+        "confirmatory": bool(plan.get("confirmatory", False)),
         "expected_record_count": len(plan["conditions"]) * len(tracking),
         "completed_record_count": 0,
         "complete": False,
@@ -218,6 +241,10 @@ def _validate_output_manifest(path: Path, expected: dict) -> None:
         "device",
         "device_map",
         "block_path",
+        "execution_scope",
+        "source_condition_count",
+        "selected_condition_count",
+        "confirmatory",
         "expected_record_count",
     )
     for field in fields:
@@ -355,6 +382,11 @@ def main() -> None:
     parser.add_argument("--prompt-inventory", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--resume", action="store_true")
+    parser.add_argument(
+        "--zero-dose-only",
+        action="store_true",
+        help="Run only target-direction zero-dose conditions for the pre-full-run behavior gate.",
+    )
     parser.add_argument("--device", default="auto")
     parser.add_argument("--device-map", default=None)
     parser.add_argument("--dtype", default="auto")
@@ -372,6 +404,8 @@ def main() -> None:
         raise SystemExit(f"{args.output} already exists; use --resume or choose a new output path.")
     plan = json.loads(args.steering_plan.read_text(encoding="utf-8"))
     steering_plan_sha256 = file_sha256(args.steering_plan)
+    if args.zero_dose_only:
+        plan = _select_zero_dose_plan(plan)
     prompt_inventory_sha256 = file_sha256(args.prompt_inventory)
     if prompt_inventory_sha256 != plan["provenance"]["prompt_inventory_sha256"]:
         raise SystemExit("Prompt inventory hash does not match the frozen steering plan.")

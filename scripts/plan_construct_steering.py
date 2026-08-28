@@ -19,6 +19,7 @@ from construct_benchmark.calibration import CalibrationResult  # noqa: E402
 from construct_benchmark.config import load_construct_spec, load_run_config  # noqa: E402
 from construct_benchmark.manifests import canonical_hash, file_sha256  # noqa: E402
 from construct_benchmark.prompts import load_prompt_records  # noqa: E402
+from construct_benchmark.run_modes import resolve_run_mode  # noqa: E402
 from construct_benchmark.steering import (  # noqa: E402
     build_steering_conditions,
     random_control_direction,
@@ -136,11 +137,19 @@ def main() -> None:
     parser.add_argument("--direction", type=Path, required=True)
     parser.add_argument("--pair-differences", type=Path, required=True)
     parser.add_argument("--direction-output-dir", type=Path, required=True)
+    parser.add_argument("--mode", choices=("test", "full"), default=None)
+    parser.add_argument(
+        "--storage-dtype",
+        choices=("float16", "float32"),
+        default="float16",
+        help="On-disk dtype for control direction arrays; steering arithmetic reloads float32.",
+    )
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
 
     spec = load_construct_spec(args.construct_spec)
     run_config = load_run_config(args.run_config)
+    mode_id, mode_config = resolve_run_mode(run_config, args.mode)
     if spec.construct_id not in run_config.construct_ids:
         raise SystemExit(f"Run config does not contain construct_id={spec.construct_id!r}.")
     records = [
@@ -173,8 +182,12 @@ def main() -> None:
         injection_direction=args.direction,
     )
     args.direction_output_dir.mkdir(parents=True, exist_ok=True)
+    storage_dtype = np.float16 if args.storage_dtype == "float16" else np.float32
     shuffled_path = args.direction_output_dir / "shuffled_direction.npy"
-    np.save(shuffled_path, shuffled_label_direction(pair_differences, seed=run_config.seed + 10_000))
+    np.save(
+        shuffled_path,
+        shuffled_label_direction(pair_differences, seed=run_config.seed + 10_000).astype(storage_dtype, copy=False),
+    )
     random_paths = []
     for index in range(int(steering["random_direction_count"])):
         path = args.direction_output_dir / f"random_direction_{index:02d}.npy"
@@ -184,7 +197,7 @@ def main() -> None:
                 target_direction.shape[0],
                 seed=run_config.seed + 20_000 + index,
                 orthogonal_to=target_direction,
-            ),
+            ).astype(storage_dtype, copy=False),
         )
         random_paths.append(path)
     conditions = build_steering_conditions(
@@ -200,6 +213,9 @@ def main() -> None:
         "schema_version": run_config.schema_version,
         "plan_type": "construct_steering_conditions",
         "run_id": run_config.run_id,
+        "mode": mode_id,
+        "purpose": mode_config["purpose"],
+        "confirmatory": bool(mode_config["confirmatory"]),
         "construct_id": spec.construct_id,
         "model": run_config.model,
         "candidate_layers": list(run_config.activation["layers"]),
@@ -212,6 +228,7 @@ def main() -> None:
         "intervention_timing": steering["intervention_timing"],
         "fixed_window": steering.get("fixed_window"),
         "calibration": asdict(calibration),
+        "direction_storage_dtype": args.storage_dtype,
         "direction_paths": {
             "target": str(args.direction),
             "shuffled": str(shuffled_path),

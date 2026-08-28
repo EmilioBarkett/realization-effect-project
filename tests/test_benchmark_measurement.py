@@ -190,8 +190,120 @@ def test_probability_outcome_requires_structured_prior_metadata() -> None:
         "25",
         parser_id="single_integer_probability_v1",
         item_metadata={"prior_probability": 40, "testimony_valence": "contradicting"},
+        task_id="testimony_weighting_v1",
     )
     assert primary_outcome(testimony, "testimony_weight") == pytest.approx(15.0)
+    assert primary_outcome(testimony, "signed_testimony_update") == pytest.approx(15.0)
+
+
+def test_registered_sum_task_outcomes_are_available_to_the_scorer() -> None:
+    parsed = parse_behavior_output(
+        "65\n35",
+        parser_id="two_integers_sum_100_v1",
+        task_id="program_renewal_allocation_v1",
+    )
+    assert primary_outcome(parsed, "existing_program_allocation") == pytest.approx(65.0)
+    assert primary_outcome(parsed, "new_program_allocation") == pytest.approx(35.0)
+
+
+@pytest.mark.parametrize(
+    ("task_id", "text", "primary", "secondary", "expected_primary"),
+    [
+        ("known_unknown_lottery_allocation_v1", "65\n35", "known_probability_allocation", "unknown_probability_allocation", 65.0),
+        ("information_seeking_commitment_v1", "65\n35", "seek_information_allocation", "commit_now_allocation", 65.0),
+        ("help_allocation_v1", "65\n35", "prior_helper_allocation", "other_requester_allocation", 65.0),
+        ("attention_allocation_v1", "65\n35", "focal_task_attention", "distractor_attention", 65.0),
+        ("changed_constraint_plan_allocation_v1", "65\n35", "revised_plan_allocation", "original_plan_allocation", 65.0),
+        ("intertemporal_allocation_v1", "65\n35", "larger_later_allocation", "smaller_sooner_allocation", 65.0),
+    ],
+)
+def test_wave_two_to_four_sum_task_outcomes_are_named(
+    task_id: str,
+    text: str,
+    primary: str,
+    secondary: str,
+    expected_primary: float,
+) -> None:
+    parsed = parse_behavior_output(text, parser_id="two_integers_sum_100_v1", task_id=task_id)
+    assert parsed.valid
+    assert primary_outcome(parsed, primary) == pytest.approx(expected_primary)
+    assert primary_outcome(parsed, secondary) == pytest.approx(35.0)
+
+
+@pytest.mark.parametrize(
+    ("task_id", "primary", "secondary", "choice"),
+    [
+        ("sure_risky_choice_v1", "sure_choice", "risky_choice", 2),
+        ("advice_direct_evidence_choice_v1", "follow_specialist", "use_direct_measurement", 1),
+        ("known_new_option_choice_v1", "known_option_choice", "new_option_choice", 2),
+    ],
+)
+def test_wave_two_choice_task_outcomes_are_named(
+    task_id: str,
+    primary: str,
+    secondary: str,
+    choice: int,
+) -> None:
+    parsed = parse_behavior_output(str(choice), parser_id="single_integer_choice_1_or_2_v1", task_id=task_id)
+    assert parsed.valid
+    assert primary_outcome(parsed, primary) == pytest.approx(float(choice == 1))
+    assert primary_outcome(parsed, secondary) == pytest.approx(float(choice == 2))
+
+
+@pytest.mark.parametrize(
+    ("task_id", "metadata", "outcome"),
+    [
+        (
+            "structured_bayesian_judgment_v1",
+            {"prior_probability": 20},
+            "prior_anchor_distance",
+        ),
+        ("assigned_selected_prediction_v1", {}, "target_outcome_probability"),
+        ("peer_judgment_probability_v1", {}, "claim_probability"),
+    ],
+)
+def test_wave_three_probability_task_outcomes_are_named(
+    task_id: str,
+    metadata: dict[str, object],
+    outcome: str,
+) -> None:
+    parsed = parse_behavior_output(
+        "72",
+        parser_id="single_integer_probability_v1",
+        item_metadata=metadata,
+        task_id=task_id,
+    )
+    assert parsed.valid
+    assert outcome in parsed.values
+
+
+def test_wave_two_to_four_outcome_orientation_is_registered() -> None:
+    assert orient_primary_outcome("reference_frame", 1.0, {"payoff_frame": "gain"}) == pytest.approx(-1.0)
+    assert orient_primary_outcome("reference_frame", 1.0, {"payoff_frame": "loss"}) == pytest.approx(1.0)
+    assert orient_primary_outcome("reference_frame", 1.0, {"payoff_frame": "neutral"}) is None
+    assert orient_primary_outcome("prior_weighting", 30.0, {}) == pytest.approx(-30.0)
+    assert orient_primary_outcome("ambiguity_orientation", 70.0, {}) == pytest.approx(-70.0)
+    assert orient_primary_outcome("causal_interpretation", 70.0, {"effect_direction": "raises_outcome"}) == pytest.approx(70.0)
+    assert orient_primary_outcome("causal_interpretation", 70.0, {"effect_direction": "lowers_outcome"}) == pytest.approx(30.0)
+    assert orient_primary_outcome("consensus_conformity", 70.0, {"peer_judgment_direction": "supports_claim"}) == pytest.approx(70.0)
+    assert orient_primary_outcome("consensus_conformity", 70.0, {"peer_judgment_direction": "contradicts_claim"}) == pytest.approx(30.0)
+
+
+def test_v2_goal_renewal_allocation_parser_is_strict_and_named() -> None:
+    parsed = parse_behavior_output(
+        "73",
+        parser_id="single_integer_allocation_0_to_100_v1",
+        task_id="goal_renewal_allocation_v2",
+    )
+    assert parsed.valid
+    assert primary_outcome(parsed, "existing_goal_allocation") == pytest.approx(73.0)
+    assert primary_outcome(parsed, "option_a_allocation") == pytest.approx(73.0)
+    for invalid in ("73 27", "Answer: 73", "101", "-1"):
+        assert not parse_behavior_output(
+            invalid,
+            parser_id="single_integer_allocation_0_to_100_v1",
+            task_id="goal_renewal_allocation_v2",
+        ).valid
 
 
 def test_realization_outcome_orientation_respects_registered_valence() -> None:

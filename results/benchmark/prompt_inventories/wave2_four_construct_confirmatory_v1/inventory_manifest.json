@@ -1,0 +1,533 @@
+{
+  "confirmatory": true,
+  "construct_ids": [
+    "reference_frame",
+    "prior_weighting",
+    "authority_deference",
+    "exploration_exploitation"
+  ],
+  "counts_by_construct_split": {
+    "authority_deference": {
+      "behavior_eval": 8,
+      "calibration": 8,
+      "direction_heldout": 80,
+      "direction_train": 200,
+      "direction_validation": 80,
+      "steering_eval": 8
+    },
+    "exploration_exploitation": {
+      "behavior_eval": 16,
+      "calibration": 16,
+      "direction_heldout": 80,
+      "direction_train": 200,
+      "direction_validation": 80,
+      "steering_eval": 16
+    },
+    "prior_weighting": {
+      "behavior_eval": 12,
+      "calibration": 12,
+      "direction_heldout": 80,
+      "direction_train": 200,
+      "direction_validation": 80,
+      "steering_eval": 12
+    },
+    "reference_frame": {
+      "behavior_eval": 12,
+      "calibration": 12,
+      "direction_heldout": 80,
+      "direction_train": 200,
+      "direction_validation": 80,
+      "steering_eval": 12
+    }
+  },
+  "downstream_record_count": 144,
+  "frozen": true,
+  "manifest_type": "wave_execution_prompt_inventory",
+  "output_path": "combined.csv",
+  "output_sha256": "d754e810d1c10e885c50bcd244c109b022bf43debe1ec23b919c66022c9c331d",
+  "record_count": 1584,
+  "release": {
+    "execution_gate_note": "This release freezes prompt inputs only. Model-side confirmatory execution remains subject to the campaign prerequisites.",
+    "model_execution_release": false,
+    "release_date": "2026-08-27",
+    "release_id": "wave2_four_construct_confirmatory_prompt_release_v1",
+    "release_statement": "The repository owner explicitly authorized release of the frozen, audited Wave 2-4 prompt inventories for confirmatory prompt-input use. This release does not assert model-side results and does not release model execution.",
+    "released_by": "repository owner (explicit user instruction)",
+    "scope": "confirmatory_prompt_inputs_only",
+    "source_manifest_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/prompt_inventories/wave2_four_construct_full_luna_v1/inventory_manifest.json",
+    "source_manifest_sha256": "cae0ab698d734a908f2fae7bc5f5bc68039c27de4c93bd5f84bc6ac8487f95de",
+    "source_output_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/prompt_inventories/wave2_four_construct_full_luna_v1/combined.csv",
+    "source_output_sha256": "d754e810d1c10e885c50bcd244c109b022bf43debe1ec23b919c66022c9c331d"
+  },
+  "schema_version": "0.1.0",
+  "scope": "vector_probe_plus_downstream",
+  "sources": {
+    "downstream": {
+      "combined_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/downstream_prompts_v1_waves2_4_full_luna_b20_o30k_v1/combined.csv",
+      "combined_sha256": "73824a26c931f2d2220a277d2f04065658d0633b33f58243b89d4f37092dcac6",
+      "confirmatory": false,
+      "construct_ids": [
+        "reference_frame",
+        "prior_weighting",
+        "authority_deference",
+        "exploration_exploitation",
+        "ambiguity_orientation",
+        "causal_interpretation",
+        "consensus_conformity",
+        "plan_replanning",
+        "temporal_orientation",
+        "epistemic_uncertainty",
+        "reciprocity_obligation",
+        "goal_shielding"
+      ],
+      "frozen": true,
+      "manifest_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/downstream_prompts_v1_waves2_4_full_luna_b20_o30k_v1/final_inventory_manifest.json",
+      "manifest_sha256": "d32401c551b782f4d8b8744f08d6d285e57c266a4d9c1f6e2bbe21ba24fac639",
+      "record_count": 384,
+      "status": "frozen"
+    },
+    "downstream_quality_gate": {
+      "approved": true,
+      "construct_ids": [
+        "ambiguity_orientation",
+        "authority_deference",
+        "causal_interpretation",
+        "consensus_conformity",
+        "epistemic_uncertainty",
+        "exploration_exploitation",
+        "goal_shielding",
+        "plan_replanning",
+        "prior_weighting",
+        "reciprocity_obligation",
+        "reference_frame",
+        "temporal_orientation"
+      ],
+      "path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/configs/construct_benchmark/quality_gates/waves2_4_downstream_luna_v1.json",
+      "reviewer": "codex_downstream_prompt_orchestrator",
+      "scope": "waves2_4_downstream",
+      "sha256": "245ee91686f59e38d660bd375ef1834da76b421f2035bb40c6ba7cc40a408024",
+      "status": "approved"
+    },
+    "vector": {
+      "combined_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/vector_prompts_v2_luna/full_final_all16/combined.csv",
+      "combined_sha256": "646c2b7575695723b5625b6f425d210abce84653728b78ca5ef7a1f830ec84ba",
+      "confirmatory": false,
+      "construct_ids": [
+        "authority_deference",
+        "exploration_exploitation",
+        "prior_weighting",
+        "reference_frame"
+      ],
+      "frozen": null,
+      "manifest_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/vector_prompts_v2_luna/full_final_all16/final_inventory_manifest.json",
+      "manifest_sha256": "b0c4c1617ae4458522b0a5b97be4a94d6e309fed0f8aed807c3255a53da3ad0d",
+      "record_count": 5760,
+      "status": null
+    }
+  },
+  "status": "released",
+  "validation": {
+    "combined": {
+      "construct_ids": [
+        "authority_deference",
+        "exploration_exploitation",
+        "prior_weighting",
+        "reference_frame"
+      ],
+      "counts_by_construct": {
+        "authority_deference": 384,
+        "exploration_exploitation": 408,
+        "prior_weighting": 396,
+        "reference_frame": 396
+      },
+      "counts_by_construct_split": {
+        "authority_deference": {
+          "behavior_eval": 8,
+          "calibration": 8,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 8
+        },
+        "exploration_exploitation": {
+          "behavior_eval": 16,
+          "calibration": 16,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 16
+        },
+        "prior_weighting": {
+          "behavior_eval": 12,
+          "calibration": 12,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 12
+        },
+        "reference_frame": {
+          "behavior_eval": 12,
+          "calibration": 12,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 12
+        }
+      },
+      "pair_count": 720,
+      "prompt_families_by_construct_role": {
+        "authority_deference": {
+          "behavior": [
+            "authority_behavior_eval"
+          ],
+          "calibration": [
+            "authority_calibration"
+          ],
+          "probe": [
+            "authority_probe_heldout",
+            "authority_probe_train",
+            "authority_probe_validation"
+          ],
+          "steering": [
+            "authority_steering_eval"
+          ]
+        },
+        "exploration_exploitation": {
+          "behavior": [
+            "explore_behavior_eval"
+          ],
+          "calibration": [
+            "explore_calibration"
+          ],
+          "probe": [
+            "explore_probe_heldout",
+            "explore_probe_train",
+            "explore_probe_validation"
+          ],
+          "steering": [
+            "explore_steering_eval"
+          ]
+        },
+        "prior_weighting": {
+          "behavior": [
+            "prior_behavior_eval"
+          ],
+          "calibration": [
+            "prior_calibration"
+          ],
+          "probe": [
+            "prior_probe_heldout",
+            "prior_probe_train",
+            "prior_probe_validation"
+          ],
+          "steering": [
+            "prior_steering_eval"
+          ]
+        },
+        "reference_frame": {
+          "behavior": [
+            "reference_behavior_eval"
+          ],
+          "calibration": [
+            "reference_calibration"
+          ],
+          "probe": [
+            "reference_probe_heldout",
+            "reference_probe_train",
+            "reference_probe_validation"
+          ],
+          "steering": [
+            "reference_steering_eval"
+          ]
+        }
+      },
+      "total_prompts": 1584
+    },
+    "downstream": {
+      "construct_ids": [
+        "authority_deference",
+        "exploration_exploitation",
+        "prior_weighting",
+        "reference_frame"
+      ],
+      "counts_by_construct": {
+        "authority_deference": 24,
+        "exploration_exploitation": 48,
+        "prior_weighting": 36,
+        "reference_frame": 36
+      },
+      "counts_by_construct_split": {
+        "authority_deference": {
+          "behavior_eval": 8,
+          "calibration": 8,
+          "steering_eval": 8
+        },
+        "exploration_exploitation": {
+          "behavior_eval": 16,
+          "calibration": 16,
+          "steering_eval": 16
+        },
+        "prior_weighting": {
+          "behavior_eval": 12,
+          "calibration": 12,
+          "steering_eval": 12
+        },
+        "reference_frame": {
+          "behavior_eval": 12,
+          "calibration": 12,
+          "steering_eval": 12
+        }
+      },
+      "pair_count": 0,
+      "prompt_families_by_construct_role": {
+        "authority_deference": {
+          "behavior": [
+            "authority_behavior_eval"
+          ],
+          "calibration": [
+            "authority_calibration"
+          ],
+          "probe": [],
+          "steering": [
+            "authority_steering_eval"
+          ]
+        },
+        "exploration_exploitation": {
+          "behavior": [
+            "explore_behavior_eval"
+          ],
+          "calibration": [
+            "explore_calibration"
+          ],
+          "probe": [],
+          "steering": [
+            "explore_steering_eval"
+          ]
+        },
+        "prior_weighting": {
+          "behavior": [
+            "prior_behavior_eval"
+          ],
+          "calibration": [
+            "prior_calibration"
+          ],
+          "probe": [],
+          "steering": [
+            "prior_steering_eval"
+          ]
+        },
+        "reference_frame": {
+          "behavior": [
+            "reference_behavior_eval"
+          ],
+          "calibration": [
+            "reference_calibration"
+          ],
+          "probe": [],
+          "steering": [
+            "reference_steering_eval"
+          ]
+        }
+      },
+      "total_prompts": 144
+    },
+    "release_validation": {
+      "construct_ids": [
+        "authority_deference",
+        "exploration_exploitation",
+        "prior_weighting",
+        "reference_frame"
+      ],
+      "counts_by_construct": {
+        "authority_deference": 384,
+        "exploration_exploitation": 408,
+        "prior_weighting": 396,
+        "reference_frame": 396
+      },
+      "counts_by_construct_split": {
+        "authority_deference": {
+          "behavior_eval": 8,
+          "calibration": 8,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 8
+        },
+        "exploration_exploitation": {
+          "behavior_eval": 16,
+          "calibration": 16,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 16
+        },
+        "prior_weighting": {
+          "behavior_eval": 12,
+          "calibration": 12,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 12
+        },
+        "reference_frame": {
+          "behavior_eval": 12,
+          "calibration": 12,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 12
+        }
+      },
+      "pair_count": 720,
+      "prompt_families_by_construct_role": {
+        "authority_deference": {
+          "behavior": [
+            "authority_behavior_eval"
+          ],
+          "calibration": [
+            "authority_calibration"
+          ],
+          "probe": [
+            "authority_probe_heldout",
+            "authority_probe_train",
+            "authority_probe_validation"
+          ],
+          "steering": [
+            "authority_steering_eval"
+          ]
+        },
+        "exploration_exploitation": {
+          "behavior": [
+            "explore_behavior_eval"
+          ],
+          "calibration": [
+            "explore_calibration"
+          ],
+          "probe": [
+            "explore_probe_heldout",
+            "explore_probe_train",
+            "explore_probe_validation"
+          ],
+          "steering": [
+            "explore_steering_eval"
+          ]
+        },
+        "prior_weighting": {
+          "behavior": [
+            "prior_behavior_eval"
+          ],
+          "calibration": [
+            "prior_calibration"
+          ],
+          "probe": [
+            "prior_probe_heldout",
+            "prior_probe_train",
+            "prior_probe_validation"
+          ],
+          "steering": [
+            "prior_steering_eval"
+          ]
+        },
+        "reference_frame": {
+          "behavior": [
+            "reference_behavior_eval"
+          ],
+          "calibration": [
+            "reference_calibration"
+          ],
+          "probe": [
+            "reference_probe_heldout",
+            "reference_probe_train",
+            "reference_probe_validation"
+          ],
+          "steering": [
+            "reference_steering_eval"
+          ]
+        }
+      },
+      "total_prompts": 1584
+    },
+    "vector": {
+      "construct_ids": [
+        "authority_deference",
+        "exploration_exploitation",
+        "prior_weighting",
+        "reference_frame"
+      ],
+      "counts_by_construct": {
+        "authority_deference": 360,
+        "exploration_exploitation": 360,
+        "prior_weighting": 360,
+        "reference_frame": 360
+      },
+      "counts_by_construct_split": {
+        "authority_deference": {
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80
+        },
+        "exploration_exploitation": {
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80
+        },
+        "prior_weighting": {
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80
+        },
+        "reference_frame": {
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80
+        }
+      },
+      "pair_count": 720,
+      "prompt_families_by_construct_role": {
+        "authority_deference": {
+          "behavior": [],
+          "calibration": [],
+          "probe": [
+            "authority_probe_heldout",
+            "authority_probe_train",
+            "authority_probe_validation"
+          ],
+          "steering": []
+        },
+        "exploration_exploitation": {
+          "behavior": [],
+          "calibration": [],
+          "probe": [
+            "explore_probe_heldout",
+            "explore_probe_train",
+            "explore_probe_validation"
+          ],
+          "steering": []
+        },
+        "prior_weighting": {
+          "behavior": [],
+          "calibration": [],
+          "probe": [
+            "prior_probe_heldout",
+            "prior_probe_train",
+            "prior_probe_validation"
+          ],
+          "steering": []
+        },
+        "reference_frame": {
+          "behavior": [],
+          "calibration": [],
+          "probe": [
+            "reference_probe_heldout",
+            "reference_probe_train",
+            "reference_probe_validation"
+          ],
+          "steering": []
+        }
+      },
+      "total_prompts": 1440
+    }
+  },
+  "vector_probe_record_count": 1440,
+  "wave": 2
+}

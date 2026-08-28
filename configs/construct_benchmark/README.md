@@ -12,9 +12,13 @@ S3-compatible archive policy;
 - `analysis_specs/`: frozen estimands, controls, exclusions, and uncertainty
   rules.
 
-Only the four Wave 1 specifications are currently scientific specifications;
-later registry entries are planned and must not be silently substituted or
-dropped.
+All 16 construct specifications and paired generation plans are now versioned
+in the registry. Wave 1 is the immediate real-model measurement gate. The
+existing Wave 2–4 inventories are preserved engineering artifacts and have
+not been released as confirmatory prompt inputs because the audit found
+prompt-wrapper, downstream-episode, direct-cue, and task-independence
+blockers. Model-side execution remains gated from confirmatory use until the
+prompt repairs, Wave 1, and precision prerequisites pass.
 
 Each Wave 1 generation plan freezes the probe-to-downstream composition:
 probes are paired and precede the independent behavior task, only the induced
@@ -30,6 +34,59 @@ one combined prompt inventory and performs one activation logging pass. The
 analysis then fans out by `construct_id` into independent direction, readout,
 calibration, behavior, and steering artifacts. The same format can later list
 all registry entries; directions are never pooled.
+
+The current full downstream prompt inventories are retained under
+`results/benchmark/`: the Wave 1 inventory contains 210 records and the
+Waves 2–4 engineering source inventory contains 384 records. The exact
+composed Wave 2–4 inputs are not currently released for confirmatory use; see
+`agents/WAVES2_4_PROMPT_AUDIT.md` for the blockers and repair requirements.
+
+The current Wave 1 full inventory is
+`results/benchmark/downstream_prompts_v1_wave1_full_luna_current_b50_o60k_v3/`.
+Its 210 records were generated with four Luna workers using batch size 50.
+The composed four-construct Wave 1 model input is
+`results/benchmark/prompt_inventories/wave1_four_construct_full_luna_current_b50_v1/combined.csv`.
+
+## Waves 2–4 confirmatory execution package
+
+The execution package uses one shared activation pass and construct-scoped
+fan-out for each balanced four-construct wave. The no-API composer creates the
+wave inputs from the frozen all-16 vector inventory and the audited downstream
+inventory:
+
+```bash
+./venv/bin/python scripts/compose_wave_execution_inventory.py --waves 2 3 4
+```
+
+The resulting engineering inputs are under
+`results/benchmark/prompt_inventories/wave2_four_construct_full_luna_v1/`,
+`wave3_four_construct_full_luna_v1/`, and
+`wave4_four_construct_full_luna_v1/`. These inputs remain non-confirmatory
+until the blockers in `agents/WAVES2_4_PROMPT_AUDIT.md` are repaired. The
+campaign validator checks the test path immediately and refuses full mode
+until the remaining release blockers in
+`configs/construct_benchmark/confirmatory_campaigns/waves2_4_confirmatory_v1.json`
+are satisfied:
+
+```bash
+./venv/bin/python scripts/validate_confirmatory_execution.py --mode test
+./venv/bin/python scripts/validate_confirmatory_execution.py --mode full
+```
+
+The current test path is an engineering path for RunPod; it does not make the
+historical inventories confirmatory. The full path remains correctly blocked
+because prompt repairs, Wave 1 measurement, and precision-simulation evidence
+are still pending.
+
+To reproduce the non-destructive prompt promotion for a new release version,
+use the release command with an explicit authority and scope statement:
+
+```bash
+./venv/bin/python scripts/release_wave_prompt_inventories.py \
+  --waves 2 3 4 \
+  --released-by "repository owner" \
+  --release-statement "Release frozen prompt inputs only; model execution remains gated."
+```
 
 Validate the existing two-construct engineering smoke plan with:
 
@@ -65,6 +122,13 @@ The actual four-construct Wave 1 fan-out uses
 specifications. It has the same shared activation settings and is intended for
 manifest validation before any model execution; no prompt inventory is created
 by the run-config validator itself.
+
+For the first model-side Wave 1 variation gate, use
+`run_configs/wave1_four_construct_variation_gate_v1.json`. It is a separate,
+non-confirmatory test config that preserves complete probe pairs while
+selecting eight pairs per direction split and twelve independent-task items
+per construct. This is the minimum useful test size for checking zero-dose
+behavioral variation; the older smoke config intentionally remains smaller.
 
 For an execution workspace that snapshots configs and archives finalized data,
 use `scripts/prepare_benchmark_run.py` followed by

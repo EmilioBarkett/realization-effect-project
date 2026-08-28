@@ -228,6 +228,17 @@
     "required_item_fields": ["information_value", "search_cost", "decision_stakes", "check_count", "check_type"],
     "balance_check": "Each combination must appear once per behavior and steering content pool per model."
   },
+  "calibration_factor_schedule": {
+    "purpose": "neutral_information_check_allocation_variance",
+    "nuisance_fields": ["search_cost", "decision_stakes"],
+    "neutral_fields": {
+      "information_value": "low",
+      "check_count": "one",
+      "check_type": "binary"
+    },
+    "forbidden_terms": ["resolved state", "unresolved state", "epistemic uncertainty", "objective conclusion", "additional evidence is needed", "more evidence is needed"],
+    "required_response_format": "two_integers_sum_100"
+  },
   "cells": [
     {
       "cell_id": "probe_train",
@@ -317,15 +328,16 @@
       "task_id": "information_seeking_commitment_v1",
       "parser_id": "two_integers_sum_100_v1",
       "expected_output_format": "two_integers_sum_100",
+      "factor_schedule": "calibration_factor_schedule",
       "count_per_model": 8,
       "category_balance": {
-        "information_value": ["low", "low", "low", "low", "high", "high", "high", "high"],
+        "information_value": ["low", "low", "low", "low", "low", "low", "low", "low"],
         "search_cost": ["low", "low", "high", "high", "low", "low", "high", "high"],
         "decision_stakes": ["low", "high", "low", "high", "low", "high", "low", "high"],
         "check_count": ["one", "one", "one", "one", "one", "one", "one", "one"],
         "check_type": ["binary", "binary", "binary", "binary", "binary", "binary", "binary", "binary"]
       },
-      "instructions": "Generate neutral information-check items with exactly one fixed binary check, used only to estimate within-cell output variation; do not reuse behavior or steering content."
+      "instructions": "Generate neutral information-check items with exactly one fixed binary check and low information value in every item, used only to estimate within-cell output variation. Vary only search cost and decision stakes; do not cue the registered information-state contrast or reuse behavior or steering content."
     }
   ]
 }

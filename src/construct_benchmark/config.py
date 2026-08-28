@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import copy
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -20,8 +21,37 @@ def load_json(path: str | Path) -> dict[str, Any]:
     return data
 
 
+def _deep_merge(base: Any, overlay: Any) -> Any:
+    """Merge a versioned config overlay without mutating its base mapping."""
+
+    if isinstance(base, dict) and isinstance(overlay, dict):
+        merged = copy.deepcopy(base)
+        for key, value in overlay.items():
+            merged[key] = _deep_merge(merged[key], value) if key in merged else copy.deepcopy(value)
+        return merged
+    return copy.deepcopy(overlay)
+
+
+def _load_inherited_spec_payload(path: Path, *, stack: tuple[Path, ...] = ()) -> dict[str, Any]:
+    path = path.resolve()
+    if path in stack:
+        cycle = " -> ".join(str(item) for item in (*stack, path))
+        raise ValueError(f"Construct-spec inheritance cycle: {cycle}")
+    payload = load_json(path)
+    base_ref = payload.pop("base_spec_path", None)
+    if base_ref is None:
+        return payload
+    if not isinstance(base_ref, str) or not base_ref.strip():
+        raise ValueError(f"{path}.base_spec_path must be a non-empty string.")
+    base_path = (path.parent / base_ref).resolve()
+    base = _load_inherited_spec_payload(base_path, stack=(*stack, path))
+    return _deep_merge(base, payload)
+
+
 def load_construct_spec(path: str | Path) -> ConstructSpec:
-    return ConstructSpec.from_mapping(load_json(path))
+    """Load a full spec or an explicit, versioned overlay over a base spec."""
+
+    return ConstructSpec.from_mapping(_load_inherited_spec_payload(Path(path)))
 
 
 def load_construct_specs(paths: Iterable[str | Path]) -> dict[str, ConstructSpec]:

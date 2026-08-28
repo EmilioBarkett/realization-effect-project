@@ -4,6 +4,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from .model_loading import load_model, load_tokenizer_or_processor, move_batch_to_device
+from .tokenization import (
+    enforce_token_length_limit,
+    inspect_token_lengths,
+    tokenize_padded_without_truncation,
+    validate_padded_encoding_lengths,
+)
+
 SUPPORTED_ACTIVATION_SITES = {"resid_post", "block_output"}
 
 
@@ -48,18 +56,18 @@ class ResidualStreamLogger:
         self._torch, self._transformers = self._import_dependencies()
         self.model_id = str(model_id)
         self.tokenizer_id = str(tokenizer_id or model_id)
+        self.revision = revision
         self.block_path = block_path
         self.resolved_block_path: str | None = None
         self.stop_after_last_requested_layer = stop_after_last_requested_layer
 
-        self.tokenizer = self._transformers.AutoTokenizer.from_pretrained(
+        self.tokenizer, self.tokenizer_loader = load_tokenizer_or_processor(
+            self._transformers,
             self.tokenizer_id,
             revision=revision,
             local_files_only=local_files_only,
             trust_remote_code=trust_remote_code,
         )
-        if self.tokenizer.pad_token_id is None and self.tokenizer.eos_token_id is not None:
-            self.tokenizer.pad_token = self.tokenizer.eos_token
 
         model_dtype = self._resolve_dtype(dtype)
         model_kwargs = {
@@ -73,7 +81,7 @@ class ResidualStreamLogger:
             model_kwargs["device_map"] = device_map
         if attn_implementation:
             model_kwargs["attn_implementation"] = attn_implementation
-        self.model = self._load_model(model_kwargs)
+        self.model = load_model(self._transformers, self.model_id, model_kwargs)
         self.device_map = device_map
         self.attn_implementation = attn_implementation
         if device_map:
@@ -87,6 +95,10 @@ class ResidualStreamLogger:
 
         self.num_transformer_layers = int(self._config_value("num_hidden_layers"))
         self.d_model = int(self._config_value("hidden_size"))
+        self.last_tokenization_report: dict[str, Any] | None = None
+        self.tokenization_prompt_count = 0
+        self.tokenization_max_observed_length = 0
+        self.tokenization_over_limit_count = 0
 
     def _import_dependencies(self) -> tuple[Any, Any]:
         try:
@@ -123,23 +135,6 @@ class ResidualStreamLogger:
         if requested in {"fp32", "float32"}:
             return self._torch.float32
         raise ValueError(f"Unsupported dtype value: {requested}")
-
-    def _load_model(self, model_kwargs: dict[str, Any]) -> Any:
-        errors: list[Exception] = []
-        for loader_name in (
-            "AutoModelForCausalLM",
-            "AutoModelForImageTextToText",
-            "AutoModel",
-        ):
-            loader = getattr(self._transformers, loader_name, None)
-            if loader is None:
-                continue
-            try:
-                return loader.from_pretrained(self.model_id, **model_kwargs)
-            except Exception as exc:
-                errors.append(exc)
-        details = "; ".join(f"{type(exc).__name__}: {exc}" for exc in errors[-3:])
-        raise RuntimeError(f"Unable to load model '{self.model_id}'. {details}")
 
     def _config_value(self, name: str) -> Any:
         if hasattr(self.model.config, name):
@@ -264,9 +259,9 @@ class ResidualStreamLogger:
                 f"Requested layer {max_layer}, but model has only {len(blocks)} blocks."
             )
 
-        encoded = self._tokenize(prompts, max_length=max_length)
+        encoded = self._tokenize(prompts, prompt_ids=prompt_ids, max_length=max_length)
         offset_mapping = encoded.pop("offset_mapping", None)
-        encoded = {key: value.to(self.device) for key, value in encoded.items()}
+        encoded = move_batch_to_device(encoded, self.device)
 
         captured_layers: dict[int, Any] = {}
         hook_handles = []
@@ -330,21 +325,39 @@ class ResidualStreamLogger:
             activation_site=activation_site,
         )
 
-    def _tokenize(self, prompts: list[str], *, max_length: int) -> dict[str, Any]:
-        kwargs = {
-            "padding": True,
-            "truncation": True,
-            "max_length": max_length,
-            "return_tensors": "pt",
-        }
-        try:
-            return self.tokenizer(
-                prompts,
-                return_offsets_mapping=True,
-                **kwargs,
-            )
-        except (NotImplementedError, TypeError, ValueError):
-            return self.tokenizer(prompts, **kwargs)
+    def _tokenize(
+        self,
+        prompts: list[str],
+        *,
+        prompt_ids: list[str] | None = None,
+        max_length: int,
+    ) -> dict[str, Any]:
+        report = inspect_token_lengths(
+            self.tokenizer,
+            prompts,
+            max_length=max_length,
+            prompt_ids=prompt_ids,
+            tokenizer_id=self.tokenizer_id,
+            revision=self.revision,
+        )
+        enforce_token_length_limit(report)
+        encoded = tokenize_padded_without_truncation(
+            self.tokenizer,
+            prompts,
+            return_tensors="pt",
+            return_offsets_mapping=True,
+        )
+        validate_padded_encoding_lengths(encoded, report)
+        self.last_tokenization_report = report.to_mapping()
+        self.tokenization_prompt_count = getattr(self, "tokenization_prompt_count", 0) + len(report.lengths)
+        self.tokenization_max_observed_length = max(
+            getattr(self, "tokenization_max_observed_length", 0),
+            max(report.lengths, default=0),
+        )
+        self.tokenization_over_limit_count = getattr(self, "tokenization_over_limit_count", 0) + len(
+            report.over_limit_indices
+        )
+        return encoded
 
     def _token_metadata(
         self,

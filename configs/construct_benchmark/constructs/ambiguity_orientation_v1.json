@@ -21,7 +21,7 @@
   "independent_behavior_task": {
     "task_id": "known_unknown_lottery_allocation_v1",
     "task_family": "ambiguity_sensitive_allocation",
-    "prompt_template": "Consider a separate allocation decision between one lottery with a stated probability and one lottery with an explicitly stated bounded numeric probability interval, such as 30–50%. Allocate exactly 100 points between the two options without requesting any additional information. Use new domains, stakes, and item identifiers, and do not ask the model to label its decision style.",
+    "prompt_template": "Consider a separate allocation decision between one lottery with a stated probability and one lottery with an explicitly stated bounded numeric probability interval, such as 30–50%. Allocate exactly 100 points between the two options without requesting any additional information. Return exactly two integers on separate lines: first the allocation to the known-probability option and second the allocation to the interval-probability option; the two integers must sum to 100. Use new domains, stakes, and item identifiers, and do not ask the model to label its decision style.",
     "primary_outcome": "known_probability_allocation",
     "secondary_outcomes": ["unknown_probability_allocation", "compliance"],
     "response_format": "two_integers_sum_100",

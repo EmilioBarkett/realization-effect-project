@@ -120,10 +120,12 @@ def build_preflight_report(
     run_mode: str | None = None,
     env: Mapping[str, str] | None = None,
     require_model: bool = False,
+    require_openai: bool = False,
     require_openrouter: bool = False,
     require_gpu: bool = False,
     require_archive: bool = False,
     require_runpod_api: bool = False,
+    require_legacy_runpod_api: bool = False,
     require_persistent_workspace: bool = False,
 ) -> dict[str, object]:
     """Build a credential-safe preflight report without making network calls."""
@@ -171,6 +173,18 @@ def build_preflight_report(
 
     checks.append(_workspace_check(run_config, environment, required=require_persistent_workspace))
 
+    openai_env = environment.get("OPENAI_API_KEY", "").strip()
+    checks.append(
+        _check(
+            "openai_api_key",
+            bool(openai_env),
+            "OPENAI_API_KEY is present" if openai_env else "OPENAI_API_KEY is not set",
+            required=require_openai,
+        )
+    )
+    # Retain this check for the legacy activation-analysis generator and for
+    # historical reproduction. The active construct-benchmark workflow does
+    # not require it.
     openrouter_env = environment.get("OPENROUTER_API_KEY", "").strip()
     checks.append(
         _check(
@@ -180,15 +194,25 @@ def build_preflight_report(
             required=require_openrouter,
         )
     )
-    runpod_env = environment.get("RUNPOD_API_KEY", "").strip()
+    runpod_env = environment.get("RUNPOD_2_API_KEY", "").strip()
     checks.append(
         _check(
-            "runpod_api_key",
+            "runpod_2_api_key",
             bool(runpod_env),
-            "RUNPOD_API_KEY is present" if runpod_env else "RUNPOD_API_KEY is not set (not needed for dashboard-launched pods)",
+            "RUNPOD_2_API_KEY is present" if runpod_env else "RUNPOD_2_API_KEY is not set",
             required=require_runpod_api,
         )
     )
+    if require_legacy_runpod_api:
+        legacy_env = environment.get("RUNPOD_API_KEY", "").strip()
+        checks.append(
+            _check(
+                "legacy_runpod_api_key",
+                bool(legacy_env),
+                "legacy RUNPOD_API_KEY is present" if legacy_env else "legacy RUNPOD_API_KEY is not set",
+                required=True,
+            )
+        )
 
     for package_name in ("torch", "transformers"):
         available, detail = _package_available(package_name)
@@ -243,10 +267,20 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--prompts", type=Path, default=None)
     parser.add_argument("--run-mode", choices=("test", "full"), default=None)
     parser.add_argument("--require-model", action="store_true")
-    parser.add_argument("--require-openrouter", action="store_true")
+    parser.add_argument("--require-openai", action="store_true")
+    parser.add_argument(
+        "--require-openrouter",
+        action="store_true",
+        help="Require the legacy OpenRouter key for historical activation-analysis generation.",
+    )
     parser.add_argument("--require-gpu", action="store_true")
     parser.add_argument("--require-archive", action="store_true")
     parser.add_argument("--require-runpod-api", action="store_true")
+    parser.add_argument(
+        "--require-legacy-runpod-api",
+        action="store_true",
+        help="Require the legacy RUNPOD_API_KEY only for an explicitly historical check.",
+    )
     parser.add_argument("--require-persistent-workspace", action="store_true")
     return parser
 
@@ -261,10 +295,12 @@ def main() -> None:
             prompt_inventory_path=args.prompts,
             run_mode=args.run_mode,
             require_model=args.require_model,
+            require_openai=args.require_openai,
             require_openrouter=args.require_openrouter,
             require_gpu=args.require_gpu,
             require_archive=args.require_archive,
             require_runpod_api=args.require_runpod_api,
+            require_legacy_runpod_api=args.require_legacy_runpod_api,
             require_persistent_workspace=args.require_persistent_workspace,
         )
     except (OSError, ValueError) as exc:

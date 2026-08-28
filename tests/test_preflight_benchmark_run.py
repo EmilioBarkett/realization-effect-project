@@ -49,3 +49,24 @@ def test_preflight_rejects_placeholder_model_when_required(tmp_path: Path) -> No
     assert statuses["openrouter_api_key"] == "pass"
     serialized = str(report)
     assert "test-secret" not in serialized
+
+
+def test_active_runpod_preflight_requires_only_the_new_credential_domain() -> None:
+    legacy_only = build_preflight_report(
+        run_config_path=RUN_CONFIG,
+        env={"RUNPOD_API_KEY": "legacy-secret"},
+        require_runpod_api=True,
+    )
+    legacy_statuses = _statuses(legacy_only)
+    assert legacy_only["ready"] is False
+    assert legacy_statuses["runpod_2_api_key"] == "fail"
+    assert "legacy-secret" not in str(legacy_only)
+
+    active = build_preflight_report(
+        run_config_path=RUN_CONFIG,
+        env={"RUNPOD_2_API_KEY": "active-secret"},
+        require_runpod_api=True,
+    )
+    active_statuses = _statuses(active)
+    assert active_statuses["runpod_2_api_key"] == "pass"
+    assert "active-secret" not in str(active)

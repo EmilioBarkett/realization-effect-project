@@ -21,7 +21,7 @@
   "independent_behavior_task": {
     "task_id": "realization_risk_choice_v1",
     "task_family": "decision_under_uncertainty",
-    "prompt_template": "Consider a separate choice between a sure option and a risky option. Return exactly two integers on separate lines: first an allocation from 1 to 1000; second a risk preference from 1 to 5, where 1 means strongly avoid risk and 5 means strongly seek risk. Use the stated payoff frame and probability. Do not mention or reuse the earlier scenario.",
+    "prompt_template": "Consider a separate choice between a sure option and a risky option. Return exactly two integers on separate lines: first the number of tokens allocated to the risky option from 1 to 1000, with the remainder assigned to the sure option; second a risk preference from 1 to 5, where 1 means strongly avoid risk and 5 means strongly seek risk. Use the stated payoff frame and probability. Do not mention or reuse the earlier scenario.",
     "primary_outcome": "risk_preference",
     "secondary_outcomes": ["allocation_amount"],
     "response_format": "two_integers_on_separate_lines",

@@ -201,6 +201,19 @@
     "required_item_fields": ["prior_help_magnitude", "requester_need", "effort_cost", "prior_contact", "requester_status", "requester_likability", "requester_familiarity"],
     "balance_check": "Each combination must appear once per behavior and steering content pool."
   },
+  "calibration_factor_schedule": {
+    "purpose": "neutral_help_allocation_variance",
+    "nuisance_fields": ["requester_need", "effort_cost"],
+    "neutral_fields": {
+      "prior_help_magnitude": "small",
+      "prior_contact": "matched_neutral",
+      "requester_status": "matched",
+      "requester_likability": "matched",
+      "requester_familiarity": "matched"
+    },
+    "forbidden_terms": ["reciprocity", "reciprocal exchange", "reciprocate", "obligation", "duty", "owe", "repay", "return the favor", "withheld", "failed to hand", "placed beside", "proximity"],
+    "required_response_format": "two_integers_sum_100"
+  },
   "cells": [
     {
       "cell_id": "probe_train",
@@ -294,9 +307,10 @@
       "task_id": "help_allocation_v1",
       "parser_id": "two_integers_sum_100_v1",
       "expected_output_format": "two_integers_sum_100",
+      "factor_schedule": "calibration_factor_schedule",
       "count_per_model": 8,
       "category_balance": {
-        "prior_help_magnitude": ["small", "small", "small", "small", "large", "large", "large", "large"],
+        "prior_help_magnitude": ["small", "small", "small", "small", "small", "small", "small", "small"],
         "requester_need": ["low", "low", "high", "high", "low", "low", "high", "high"],
         "effort_cost": ["low", "high", "low", "high", "low", "high", "low", "high"],
         "prior_contact": ["matched_neutral", "matched_neutral", "matched_neutral", "matched_neutral", "matched_neutral", "matched_neutral", "matched_neutral", "matched_neutral"],
@@ -304,7 +318,7 @@
         "requester_likability": ["matched", "matched", "matched", "matched", "matched", "matched", "matched", "matched"],
         "requester_familiarity": ["matched", "matched", "matched", "matched", "matched", "matched", "matched", "matched"]
       },
-      "instructions": "Generate neutral help-allocation items with matched status, likability, familiarity, and neutral prior contact, used only to estimate within-cell output variation; do not reuse behavior or steering content."
+      "instructions": "Generate neutral help-allocation items with a small prior-help event, matched status, likability, familiarity, and neutral prior contact, used only to estimate within-cell output variation. Vary only requester need and effort cost; do not cue reciprocity or reuse behavior or steering content."
     }
   ]
 }

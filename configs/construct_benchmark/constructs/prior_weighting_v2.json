@@ -1,0 +1,27 @@
+{
+  "base_spec_path": "prior_weighting_v1.json",
+  "version": "v2",
+  "title": "Prior versus case-evidence weighting with information-change forecast",
+  "description": "Whether reasoning is represented as anchored more strongly to a registered base rate or as responsive more strongly to case-specific evidence, tested downstream by a forecast of whether a follow-up check would change a decision.",
+  "probe_prompt_template": "Read the following short reasoning scenario. Track how the base rate and case-specific evidence are weighted without answering a later task.\n\nScenario:\n{scenario}\n\nKeep the scenario in working memory without adding a response.",
+  "independent_behavior_task": {
+    "task_id": "information_change_forecast_v2",
+    "task_family": "information_change_forecast",
+    "prompt_template": "In a new information-allocation task, a preliminary signal and a stated base rate are provided. Report from 0 to 100 how likely one specified follow-up check is to change the current decision. Use only this item's numbers and evidence, and do not refer to any other scenario.",
+    "primary_outcome": "information_change_probability",
+    "secondary_outcomes": ["follow_up_value", "compliance"]
+  },
+  "expected_direction": {
+    "behavior": {
+      "outcome": "information_change_probability",
+      "estimand": "prior_evidence_state_transfer_to_information_change_forecast",
+      "direction_status": "preregister_before_data_collection",
+      "warning": "This downstream forecast is a distinct information-value task, not a posterior-probability readout or a diagnosticity measure."
+    }
+  },
+  "metadata": {
+    "repair_version": "repaired_v2",
+    "downstream_independence": "The downstream item forecasts the value of one follow-up check rather than asking for the posterior of the probe hypothesis.",
+    "release_note": "Supersedes the v1 posterior-judgment transfer task for future review and generation; v1 artifacts remain historical."
+  }
+}

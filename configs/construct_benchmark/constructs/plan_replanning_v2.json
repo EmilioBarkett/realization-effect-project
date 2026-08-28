@@ -1,0 +1,27 @@
+{
+  "base_spec_path": "plan_replanning_v1.json",
+  "version": "v2",
+  "title": "Plan adaptation with constrained resource reallocation",
+  "description": "Whether a changed constraint is represented as a reason to adapt means while preserving the goal or as a reason to preserve the original means, tested downstream by a new resource-reallocation task.",
+  "probe_prompt_template": "Read the following short planning scenario. Track how the changed constraint is handled without answering a later task.\n\nScenario:\n{scenario}\n\nKeep the scenario in working memory without adding a response.",
+  "independent_behavior_task": {
+    "task_id": "constraint_resource_allocation_v2",
+    "task_family": "resource_reallocation_under_constraint",
+    "prompt_template": "In a new resource-allocation task, an original work package and a revised work package are both feasible after a changed constraint. Allocate exactly 100 effort points between the revised work package and the original work package. Return exactly two integers on separate lines: first the revised-work allocation and second the original-work allocation; the two integers must sum to 100. Use only this item's information.",
+    "primary_outcome": "revised_work_allocation",
+    "secondary_outcomes": ["original_work_allocation", "compliance"]
+  },
+  "expected_direction": {
+    "behavior": {
+      "outcome": "revised_work_allocation",
+      "estimand": "plan_state_transfer_to_constrained_resource_reallocation",
+      "direction_status": "preregister_before_data_collection",
+      "warning": "The downstream task is a standalone resource-allocation episode with both work packages feasible; it is not a persistence-after-failure measure."
+    }
+  },
+  "metadata": {
+    "repair_version": "repaired_v2",
+    "downstream_independence": "The downstream item changes the domain and asks for resource allocation rather than continuing a probe episode.",
+    "release_note": "Supersedes the v1 mixed composition for future review and generation; v1 artifacts remain historical."
+  }
+}

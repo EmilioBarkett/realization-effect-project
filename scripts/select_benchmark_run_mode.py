@@ -13,6 +13,7 @@ if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
 from construct_benchmark.config import load_construct_specs, load_run_config, validate_run_constructs  # noqa: E402
+from construct_benchmark.campaign import confirmatory_execution_report  # noqa: E402
 from construct_benchmark.manifests import file_sha256  # noqa: E402
 from construct_benchmark.prompts import load_prompt_records, write_prompt_records  # noqa: E402
 from construct_benchmark.run_modes import select_prompt_records  # noqa: E402
@@ -31,6 +32,12 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--mode", choices=("test", "full"), required=True)
     parser.add_argument("--output", type=Path, required=True, help="Selected CSV or JSONL inventory.")
     parser.add_argument("--manifest-output", type=Path, required=True)
+    parser.add_argument(
+        "--confirmatory-campaign",
+        type=Path,
+        default=None,
+        help="Campaign manifest required before selecting a gated full inventory.",
+    )
     parser.add_argument("--dry-run", action="store_true", help="Print selection without writing files.")
     return parser
 
@@ -40,6 +47,20 @@ def main() -> None:
     run_config = load_run_config(args.run_config)
     construct_specs = load_construct_specs(args.construct_spec)
     validate_run_constructs(run_config, construct_specs)
+    campaign_path = args.confirmatory_campaign
+    configured_campaign = run_config.execution.get("confirmatory_campaign_path")
+    if campaign_path is None and isinstance(configured_campaign, str) and configured_campaign.strip():
+        campaign_path = args.run_config.parent / configured_campaign
+    if args.mode == "full" and campaign_path is not None:
+        release_report = confirmatory_execution_report(campaign_path, mode="full")
+        if not release_report["ready"]:
+            blockers = ", ".join(
+                str(check["name"]) for check in release_report["blocking_checks"]
+            )
+            raise SystemExit(
+                "Confirmatory campaign release is blocked; refusing to select a full inventory. "
+                f"Blocking checks: {blockers}"
+            )
     source_records = load_prompt_records(args.prompts)
     selected_records, manifest = select_prompt_records(
         source_records,

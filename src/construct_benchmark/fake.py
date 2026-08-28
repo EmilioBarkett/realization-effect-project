@@ -80,6 +80,35 @@ def _task_metadata(spec: ConstructSpec, index: int) -> dict[str, Any]:
     return metadata
 
 
+def _paired_task_metadata(spec: ConstructSpec, index: int) -> dict[str, Any]:
+    """Create deterministic metadata for constructs with paired item fields."""
+
+    raw_schema = dict(spec.metadata or {}).get("paired_item_metadata_schema")
+    if not isinstance(raw_schema, dict):
+        return {}
+    properties = raw_schema.get("properties", {})
+    metadata: dict[str, Any] = {}
+    for offset, (field_name, field_schema) in enumerate(dict(properties).items()):
+        enum = field_schema.get("enum")
+        if isinstance(enum, list) and enum:
+            metadata[field_name] = enum[(index + offset) % len(enum)]
+            continue
+        property_type = field_schema.get("type")
+        if property_type == "boolean":
+            metadata[field_name] = (index + offset) % 2 == 0
+        elif property_type == "integer":
+            minimum = int(field_schema.get("minimum", 0))
+            maximum = int(field_schema.get("maximum", minimum + 10))
+            metadata[field_name] = minimum + ((index + offset) * 17) % (maximum - minimum + 1)
+        elif property_type == "number":
+            minimum = float(field_schema.get("minimum", 0.0))
+            maximum = float(field_schema.get("maximum", minimum + 1.0))
+            metadata[field_name] = minimum + ((index + offset) % 5) * (maximum - minimum) / 4.0
+        else:
+            metadata[field_name] = f"fake_{field_name}_{index}_{offset}"
+    return metadata
+
+
 def build_fake_prompt_inventory(spec: ConstructSpec) -> list[PromptRecord]:
     """Create independent, balanced prompt records for one construct."""
 
@@ -88,6 +117,7 @@ def build_fake_prompt_inventory(spec: ConstructSpec) -> list[PromptRecord]:
         prompt_family = f"{spec.construct_id}_probe_{split}"
         for pair_index in range(pair_count):
             pair_id = f"fake_{spec.construct_id}_{split}_pair_{pair_index:03d}"
+            paired_metadata = _paired_task_metadata(spec, pair_index)
             for condition_index, condition_id in enumerate(spec.condition_ids):
                 records.append(
                     PromptRecord(
@@ -103,7 +133,11 @@ def build_fake_prompt_inventory(spec: ConstructSpec) -> list[PromptRecord]:
                         pair_id=pair_id,
                         pair_role=condition_id,
                         prompt_family=prompt_family,
-                        metadata={"fake_fixture": True},
+                        metadata={
+                            "fake_fixture": True,
+                            "task_metadata": paired_metadata,
+                            **paired_metadata,
+                        },
                     )
                 )
 

@@ -1,0 +1,25 @@
+{
+  "base_plan_path": "wave3_ambiguity_orientation_v1.json",
+  "plan_id": "wave3_ambiguity_orientation_prompts_repaired_v2",
+  "construct_id": "ambiguity_orientation",
+  "wave": 3,
+  "construct_spec_path": "../constructs/ambiguity_orientation_v2.json",
+  "models": [{"alias": "luna", "model": "gpt-5.6-luna"}],
+  "generation": {"max_tokens": 30000, "max_output_tokens": 30000, "max_items_per_request": 20, "retries": 0, "timeout": 300},
+  "design_rules": [
+    "Use the registered probe wrapper exactly and change only the registered bounded-information handling state within each pair.",
+    "Downstream prompts are standalone information-budget allocations in new domains, not copies of the probe lottery. Include exactly one response contract and no probe continuation sentence.",
+    "Do not ask the model to label ambiguity or reproduce a probe scenario."
+  ],
+  "forbidden_terms": ["ambiguity_orientation", "accept_ambiguity", "resolve_ambiguity", "ambiguity orientation", "ambiguity tolerance", "ambiguity aversion", "epistemic uncertainty", "unknown probability", "missing evidence"],
+  "overrides": {
+    "cells": {
+      "probe_train": {"instructions": "Generate complete matched probe pairs with the exact registered wrapper. Keep the evidence and lottery facts identical within a pair except the registered bounded-information handling clause inside Scenario; append nothing after the wrapper."},
+      "probe_validation": {"instructions": "Generate new matched validation probe pairs with the exact registered wrapper. Change only the registered bounded-information handling clause; append nothing after the wrapper."},
+      "probe_heldout": {"instructions": "Generate held-out matched probe pairs with the exact registered wrapper and new domains. Change only the registered bounded-information handling clause; append nothing after the wrapper."},
+      "behavior_eval": {"task_id": "bounded_information_budget_v2", "instructions": "Generate standalone fixed-forecast versus interval-forecast budget items with assigned metadata. Include exactly one two-integer response contract and no probe or target label."},
+      "steering_eval": {"task_id": "bounded_information_budget_v2", "instructions": "Generate a distinct standalone information-budget pool with the same metadata schedule. Do not mention a probe or target label; include exactly one response contract."},
+      "calibration": {"task_id": "bounded_information_budget_v2", "instructions": "Generate neutral standalone information-budget items for calibration. Do not name ambiguity or the target state; include exactly one response contract."}
+    }
+  }
+}

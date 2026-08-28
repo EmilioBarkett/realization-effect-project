@@ -8,9 +8,9 @@
     "persistence_continuation"
   ],
   "model": {
-    "model_id": "REPLACE_WITH_LOCAL_MODEL",
-    "tokenizer_id": "REPLACE_WITH_LOCAL_MODEL",
-    "revision": null
+    "model_id": "mistralai/Mistral-Small-24B-Instruct-2501",
+    "tokenizer_id": "mistralai/Mistral-Small-24B-Instruct-2501",
+    "revision": "9527884be6e5616bdd54de542f9ae13384489724"
   },
   "activation": {
     "layers": [10, 20, 30],
@@ -19,7 +19,7 @@
     "token_mode": "nonpad",
     "token_region_strategy": "auto",
     "include_token_regions": ["scenario", "task"],
-    "storage_dtype": "float32",
+    "storage_dtype": "float16",
     "batch_size": 8,
     "max_length": 512
   },

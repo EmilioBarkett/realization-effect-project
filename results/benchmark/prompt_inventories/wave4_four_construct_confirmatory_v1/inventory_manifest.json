@@ -1,0 +1,533 @@
+{
+  "confirmatory": true,
+  "construct_ids": [
+    "temporal_orientation",
+    "epistemic_uncertainty",
+    "reciprocity_obligation",
+    "goal_shielding"
+  ],
+  "counts_by_construct_split": {
+    "epistemic_uncertainty": {
+      "behavior_eval": 8,
+      "calibration": 8,
+      "direction_heldout": 80,
+      "direction_train": 200,
+      "direction_validation": 80,
+      "steering_eval": 8
+    },
+    "goal_shielding": {
+      "behavior_eval": 8,
+      "calibration": 8,
+      "direction_heldout": 80,
+      "direction_train": 200,
+      "direction_validation": 80,
+      "steering_eval": 8
+    },
+    "reciprocity_obligation": {
+      "behavior_eval": 8,
+      "calibration": 8,
+      "direction_heldout": 80,
+      "direction_train": 200,
+      "direction_validation": 80,
+      "steering_eval": 8
+    },
+    "temporal_orientation": {
+      "behavior_eval": 8,
+      "calibration": 8,
+      "direction_heldout": 80,
+      "direction_train": 200,
+      "direction_validation": 80,
+      "steering_eval": 8
+    }
+  },
+  "downstream_record_count": 96,
+  "frozen": true,
+  "manifest_type": "wave_execution_prompt_inventory",
+  "output_path": "combined.csv",
+  "output_sha256": "7d0ef0e41ddb4b64a72d46bacf53bc9d4c3927dcf92796f2d2c1e348106edf03",
+  "record_count": 1536,
+  "release": {
+    "execution_gate_note": "This release freezes prompt inputs only. Model-side confirmatory execution remains subject to the campaign prerequisites.",
+    "model_execution_release": false,
+    "release_date": "2026-08-27",
+    "release_id": "wave4_four_construct_confirmatory_prompt_release_v1",
+    "release_statement": "The repository owner explicitly authorized release of the frozen, audited Wave 2-4 prompt inventories for confirmatory prompt-input use. This release does not assert model-side results and does not release model execution.",
+    "released_by": "repository owner (explicit user instruction)",
+    "scope": "confirmatory_prompt_inputs_only",
+    "source_manifest_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/prompt_inventories/wave4_four_construct_full_luna_v1/inventory_manifest.json",
+    "source_manifest_sha256": "c6ef01a91cf9e6b4476559c584bcc842154cc5e81539bb39eacfb331069ce877",
+    "source_output_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/prompt_inventories/wave4_four_construct_full_luna_v1/combined.csv",
+    "source_output_sha256": "7d0ef0e41ddb4b64a72d46bacf53bc9d4c3927dcf92796f2d2c1e348106edf03"
+  },
+  "schema_version": "0.1.0",
+  "scope": "vector_probe_plus_downstream",
+  "sources": {
+    "downstream": {
+      "combined_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/downstream_prompts_v1_waves2_4_full_luna_b20_o30k_v1/combined.csv",
+      "combined_sha256": "73824a26c931f2d2220a277d2f04065658d0633b33f58243b89d4f37092dcac6",
+      "confirmatory": false,
+      "construct_ids": [
+        "reference_frame",
+        "prior_weighting",
+        "authority_deference",
+        "exploration_exploitation",
+        "ambiguity_orientation",
+        "causal_interpretation",
+        "consensus_conformity",
+        "plan_replanning",
+        "temporal_orientation",
+        "epistemic_uncertainty",
+        "reciprocity_obligation",
+        "goal_shielding"
+      ],
+      "frozen": true,
+      "manifest_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/downstream_prompts_v1_waves2_4_full_luna_b20_o30k_v1/final_inventory_manifest.json",
+      "manifest_sha256": "d32401c551b782f4d8b8744f08d6d285e57c266a4d9c1f6e2bbe21ba24fac639",
+      "record_count": 384,
+      "status": "frozen"
+    },
+    "downstream_quality_gate": {
+      "approved": true,
+      "construct_ids": [
+        "ambiguity_orientation",
+        "authority_deference",
+        "causal_interpretation",
+        "consensus_conformity",
+        "epistemic_uncertainty",
+        "exploration_exploitation",
+        "goal_shielding",
+        "plan_replanning",
+        "prior_weighting",
+        "reciprocity_obligation",
+        "reference_frame",
+        "temporal_orientation"
+      ],
+      "path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/configs/construct_benchmark/quality_gates/waves2_4_downstream_luna_v1.json",
+      "reviewer": "codex_downstream_prompt_orchestrator",
+      "scope": "waves2_4_downstream",
+      "sha256": "245ee91686f59e38d660bd375ef1834da76b421f2035bb40c6ba7cc40a408024",
+      "status": "approved"
+    },
+    "vector": {
+      "combined_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/vector_prompts_v2_luna/full_final_all16/combined.csv",
+      "combined_sha256": "646c2b7575695723b5625b6f425d210abce84653728b78ca5ef7a1f830ec84ba",
+      "confirmatory": false,
+      "construct_ids": [
+        "epistemic_uncertainty",
+        "goal_shielding",
+        "reciprocity_obligation",
+        "temporal_orientation"
+      ],
+      "frozen": null,
+      "manifest_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/vector_prompts_v2_luna/full_final_all16/final_inventory_manifest.json",
+      "manifest_sha256": "b0c4c1617ae4458522b0a5b97be4a94d6e309fed0f8aed807c3255a53da3ad0d",
+      "record_count": 5760,
+      "status": null
+    }
+  },
+  "status": "released",
+  "validation": {
+    "combined": {
+      "construct_ids": [
+        "epistemic_uncertainty",
+        "goal_shielding",
+        "reciprocity_obligation",
+        "temporal_orientation"
+      ],
+      "counts_by_construct": {
+        "epistemic_uncertainty": 384,
+        "goal_shielding": 384,
+        "reciprocity_obligation": 384,
+        "temporal_orientation": 384
+      },
+      "counts_by_construct_split": {
+        "epistemic_uncertainty": {
+          "behavior_eval": 8,
+          "calibration": 8,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 8
+        },
+        "goal_shielding": {
+          "behavior_eval": 8,
+          "calibration": 8,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 8
+        },
+        "reciprocity_obligation": {
+          "behavior_eval": 8,
+          "calibration": 8,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 8
+        },
+        "temporal_orientation": {
+          "behavior_eval": 8,
+          "calibration": 8,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 8
+        }
+      },
+      "pair_count": 720,
+      "prompt_families_by_construct_role": {
+        "epistemic_uncertainty": {
+          "behavior": [
+            "uncertainty_behavior_eval"
+          ],
+          "calibration": [
+            "uncertainty_calibration"
+          ],
+          "probe": [
+            "uncertainty_probe_heldout",
+            "uncertainty_probe_train",
+            "uncertainty_probe_validation"
+          ],
+          "steering": [
+            "uncertainty_steering_eval"
+          ]
+        },
+        "goal_shielding": {
+          "behavior": [
+            "shielding_behavior_eval"
+          ],
+          "calibration": [
+            "shielding_calibration"
+          ],
+          "probe": [
+            "shielding_probe_heldout",
+            "shielding_probe_train",
+            "shielding_probe_validation"
+          ],
+          "steering": [
+            "shielding_steering_eval"
+          ]
+        },
+        "reciprocity_obligation": {
+          "behavior": [
+            "reciprocity_behavior_eval"
+          ],
+          "calibration": [
+            "reciprocity_calibration"
+          ],
+          "probe": [
+            "reciprocity_probe_heldout",
+            "reciprocity_probe_train",
+            "reciprocity_probe_validation"
+          ],
+          "steering": [
+            "reciprocity_steering_eval"
+          ]
+        },
+        "temporal_orientation": {
+          "behavior": [
+            "temporal_behavior_eval"
+          ],
+          "calibration": [
+            "temporal_calibration"
+          ],
+          "probe": [
+            "temporal_probe_heldout",
+            "temporal_probe_train",
+            "temporal_probe_validation"
+          ],
+          "steering": [
+            "temporal_steering_eval"
+          ]
+        }
+      },
+      "total_prompts": 1536
+    },
+    "downstream": {
+      "construct_ids": [
+        "epistemic_uncertainty",
+        "goal_shielding",
+        "reciprocity_obligation",
+        "temporal_orientation"
+      ],
+      "counts_by_construct": {
+        "epistemic_uncertainty": 24,
+        "goal_shielding": 24,
+        "reciprocity_obligation": 24,
+        "temporal_orientation": 24
+      },
+      "counts_by_construct_split": {
+        "epistemic_uncertainty": {
+          "behavior_eval": 8,
+          "calibration": 8,
+          "steering_eval": 8
+        },
+        "goal_shielding": {
+          "behavior_eval": 8,
+          "calibration": 8,
+          "steering_eval": 8
+        },
+        "reciprocity_obligation": {
+          "behavior_eval": 8,
+          "calibration": 8,
+          "steering_eval": 8
+        },
+        "temporal_orientation": {
+          "behavior_eval": 8,
+          "calibration": 8,
+          "steering_eval": 8
+        }
+      },
+      "pair_count": 0,
+      "prompt_families_by_construct_role": {
+        "epistemic_uncertainty": {
+          "behavior": [
+            "uncertainty_behavior_eval"
+          ],
+          "calibration": [
+            "uncertainty_calibration"
+          ],
+          "probe": [],
+          "steering": [
+            "uncertainty_steering_eval"
+          ]
+        },
+        "goal_shielding": {
+          "behavior": [
+            "shielding_behavior_eval"
+          ],
+          "calibration": [
+            "shielding_calibration"
+          ],
+          "probe": [],
+          "steering": [
+            "shielding_steering_eval"
+          ]
+        },
+        "reciprocity_obligation": {
+          "behavior": [
+            "reciprocity_behavior_eval"
+          ],
+          "calibration": [
+            "reciprocity_calibration"
+          ],
+          "probe": [],
+          "steering": [
+            "reciprocity_steering_eval"
+          ]
+        },
+        "temporal_orientation": {
+          "behavior": [
+            "temporal_behavior_eval"
+          ],
+          "calibration": [
+            "temporal_calibration"
+          ],
+          "probe": [],
+          "steering": [
+            "temporal_steering_eval"
+          ]
+        }
+      },
+      "total_prompts": 96
+    },
+    "release_validation": {
+      "construct_ids": [
+        "epistemic_uncertainty",
+        "goal_shielding",
+        "reciprocity_obligation",
+        "temporal_orientation"
+      ],
+      "counts_by_construct": {
+        "epistemic_uncertainty": 384,
+        "goal_shielding": 384,
+        "reciprocity_obligation": 384,
+        "temporal_orientation": 384
+      },
+      "counts_by_construct_split": {
+        "epistemic_uncertainty": {
+          "behavior_eval": 8,
+          "calibration": 8,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 8
+        },
+        "goal_shielding": {
+          "behavior_eval": 8,
+          "calibration": 8,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 8
+        },
+        "reciprocity_obligation": {
+          "behavior_eval": 8,
+          "calibration": 8,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 8
+        },
+        "temporal_orientation": {
+          "behavior_eval": 8,
+          "calibration": 8,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 8
+        }
+      },
+      "pair_count": 720,
+      "prompt_families_by_construct_role": {
+        "epistemic_uncertainty": {
+          "behavior": [
+            "uncertainty_behavior_eval"
+          ],
+          "calibration": [
+            "uncertainty_calibration"
+          ],
+          "probe": [
+            "uncertainty_probe_heldout",
+            "uncertainty_probe_train",
+            "uncertainty_probe_validation"
+          ],
+          "steering": [
+            "uncertainty_steering_eval"
+          ]
+        },
+        "goal_shielding": {
+          "behavior": [
+            "shielding_behavior_eval"
+          ],
+          "calibration": [
+            "shielding_calibration"
+          ],
+          "probe": [
+            "shielding_probe_heldout",
+            "shielding_probe_train",
+            "shielding_probe_validation"
+          ],
+          "steering": [
+            "shielding_steering_eval"
+          ]
+        },
+        "reciprocity_obligation": {
+          "behavior": [
+            "reciprocity_behavior_eval"
+          ],
+          "calibration": [
+            "reciprocity_calibration"
+          ],
+          "probe": [
+            "reciprocity_probe_heldout",
+            "reciprocity_probe_train",
+            "reciprocity_probe_validation"
+          ],
+          "steering": [
+            "reciprocity_steering_eval"
+          ]
+        },
+        "temporal_orientation": {
+          "behavior": [
+            "temporal_behavior_eval"
+          ],
+          "calibration": [
+            "temporal_calibration"
+          ],
+          "probe": [
+            "temporal_probe_heldout",
+            "temporal_probe_train",
+            "temporal_probe_validation"
+          ],
+          "steering": [
+            "temporal_steering_eval"
+          ]
+        }
+      },
+      "total_prompts": 1536
+    },
+    "vector": {
+      "construct_ids": [
+        "epistemic_uncertainty",
+        "goal_shielding",
+        "reciprocity_obligation",
+        "temporal_orientation"
+      ],
+      "counts_by_construct": {
+        "epistemic_uncertainty": 360,
+        "goal_shielding": 360,
+        "reciprocity_obligation": 360,
+        "temporal_orientation": 360
+      },
+      "counts_by_construct_split": {
+        "epistemic_uncertainty": {
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80
+        },
+        "goal_shielding": {
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80
+        },
+        "reciprocity_obligation": {
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80
+        },
+        "temporal_orientation": {
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80
+        }
+      },
+      "pair_count": 720,
+      "prompt_families_by_construct_role": {
+        "epistemic_uncertainty": {
+          "behavior": [],
+          "calibration": [],
+          "probe": [
+            "uncertainty_probe_heldout",
+            "uncertainty_probe_train",
+            "uncertainty_probe_validation"
+          ],
+          "steering": []
+        },
+        "goal_shielding": {
+          "behavior": [],
+          "calibration": [],
+          "probe": [
+            "shielding_probe_heldout",
+            "shielding_probe_train",
+            "shielding_probe_validation"
+          ],
+          "steering": []
+        },
+        "reciprocity_obligation": {
+          "behavior": [],
+          "calibration": [],
+          "probe": [
+            "reciprocity_probe_heldout",
+            "reciprocity_probe_train",
+            "reciprocity_probe_validation"
+          ],
+          "steering": []
+        },
+        "temporal_orientation": {
+          "behavior": [],
+          "calibration": [],
+          "probe": [
+            "temporal_probe_heldout",
+            "temporal_probe_train",
+            "temporal_probe_validation"
+          ],
+          "steering": []
+        }
+      },
+      "total_prompts": 1440
+    }
+  },
+  "vector_probe_record_count": 1440,
+  "wave": 4
+}

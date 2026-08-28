@@ -7,6 +7,21 @@ from typing import Any, Iterator, Mapping
 
 import numpy as np
 
+from .model_loading import (
+    component_attribute,
+    decode_tokens,
+    load_model,
+    load_tokenizer_or_processor,
+    move_batch_to_device,
+)
+from .tokenization import (
+    enforce_token_length_limit,
+    format_model_prompt,
+    inspect_token_lengths,
+    tokenize_padded_without_truncation,
+    validate_padded_encoding_lengths,
+)
+
 
 SUPPORTED_POSITION_MODES = {"all", "last"}
 SUPPORTED_INTERVENTION_TIMINGS = {"prefill_only", "generation_only", "every_step", "fixed_window"}
@@ -254,17 +269,17 @@ class ResidualSteeringGenerator:
         self._torch, self._transformers = self._import_dependencies()
         self.model_id = str(model_id)
         self.tokenizer_id = str(tokenizer_id or model_id)
+        self.revision = revision
         self.block_path = block_path
         self.resolved_block_path: str | None = None
 
-        self.tokenizer = self._transformers.AutoTokenizer.from_pretrained(
+        self.tokenizer, self.tokenizer_loader = load_tokenizer_or_processor(
+            self._transformers,
             self.tokenizer_id,
             revision=revision,
             local_files_only=local_files_only,
             trust_remote_code=trust_remote_code,
         )
-        if self.tokenizer.pad_token_id is None and self.tokenizer.eos_token_id is not None:
-            self.tokenizer.pad_token = self.tokenizer.eos_token
 
         model_dtype = self._resolve_dtype(dtype)
         model_kwargs: dict[str, Any] = {
@@ -279,7 +294,7 @@ class ResidualSteeringGenerator:
         if attn_implementation:
             model_kwargs["attn_implementation"] = attn_implementation
 
-        self.model = self._load_model(model_kwargs)
+        self.model = load_model(self._transformers, self.model_id, model_kwargs)
         self.device_map = device_map
         self.attn_implementation = attn_implementation
         if device_map:
@@ -294,6 +309,7 @@ class ResidualSteeringGenerator:
         self.num_transformer_layers = int(self._config_value("num_hidden_layers"))
         self.d_model = int(self._config_value("hidden_size"))
         self._direction_cache: dict[tuple[str, bool], tuple[Any, SteeringVectorInfo]] = {}
+        self.last_tokenization_report: dict[str, Any] | None = None
 
     def _import_dependencies(self) -> tuple[Any, Any]:
         try:
@@ -330,23 +346,6 @@ class ResidualSteeringGenerator:
         if requested in {"fp32", "float32"}:
             return self._torch.float32
         raise ValueError(f"Unsupported dtype value: {requested}")
-
-    def _load_model(self, model_kwargs: dict[str, Any]) -> Any:
-        errors: list[Exception] = []
-        for loader_name in (
-            "AutoModelForCausalLM",
-            "AutoModelForImageTextToText",
-            "AutoModel",
-        ):
-            loader = getattr(self._transformers, loader_name, None)
-            if loader is None:
-                continue
-            try:
-                return loader.from_pretrained(self.model_id, **model_kwargs)
-            except Exception as exc:
-                errors.append(exc)
-        details = "; ".join(f"{type(exc).__name__}: {exc}" for exc in errors[-3:])
-        raise RuntimeError(f"Unable to load model '{self.model_id}'. {details}")
 
     def _config_value(self, name: str) -> Any:
         if hasattr(self.model.config, name):
@@ -824,21 +823,12 @@ class ResidualSteeringGenerator:
         return steered
 
     def format_prompt(self, prompt: str, *, prompt_format: str, system_prompt: str) -> str:
-        if prompt_format == "completion":
-            return prompt
-        if prompt_format == "chat":
-            messages = [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": prompt},
-            ]
-            if not hasattr(self.tokenizer, "apply_chat_template"):
-                raise ValueError("Tokenizer does not support apply_chat_template; use --prompt-format completion.")
-            return self.tokenizer.apply_chat_template(
-                messages,
-                tokenize=False,
-                add_generation_prompt=True,
-            )
-        raise ValueError(f"Unsupported prompt format: {prompt_format}")
+        return format_model_prompt(
+            self.tokenizer,
+            prompt,
+            prompt_format=prompt_format,
+            system_prompt=system_prompt,
+        )
 
     def generate(
         self,
@@ -862,20 +852,31 @@ class ResidualSteeringGenerator:
             prompt_format=prompt_format,
             system_prompt=system_prompt,
         )
-        encoded = self.tokenizer(
-            formatted_prompt,
-            return_tensors="pt",
-            truncation=True,
+        token_report = inspect_token_lengths(
+            self.tokenizer,
+            [formatted_prompt],
             max_length=max_length,
+            prompt_ids=["generated_prompt"],
+            tokenizer_id=self.tokenizer_id,
+            revision=self.revision,
         )
-        encoded = {key: value.to(self.device) for key, value in encoded.items()}
+        enforce_token_length_limit(token_report)
+        encoded = tokenize_padded_without_truncation(
+            self.tokenizer,
+            [formatted_prompt],
+            return_tensors="pt",
+        )
+        validate_padded_encoding_lengths(encoded, token_report)
+        self.last_tokenization_report = token_report.to_mapping()
+        encoded = move_batch_to_device(encoded, self.device)
         input_length = int(encoded["input_ids"].shape[1])
         generation_kwargs: dict[str, Any] = {
             **encoded,
             "max_new_tokens": max_new_tokens,
             "min_new_tokens": min_new_tokens,
             "do_sample": do_sample,
-            "pad_token_id": self.tokenizer.pad_token_id or self.tokenizer.eos_token_id,
+            "pad_token_id": component_attribute(self.tokenizer, "pad_token_id")
+            or component_attribute(self.tokenizer, "eos_token_id"),
         }
         if do_sample:
             generation_kwargs["temperature"] = temperature
@@ -906,8 +907,11 @@ class ResidualSteeringGenerator:
                 output = self.model.generate(**generation_kwargs)
             info = None
 
-        new_tokens = output[0, input_length:]
-        text = self.tokenizer.decode(new_tokens, skip_special_tokens=True).strip()
+        # Some multimodal/processor-backed generation APIs return a generation
+        # output object rather than the raw sequence tensor.
+        sequences = getattr(output, "sequences", output)
+        new_tokens = sequences[0, input_length:]
+        text = decode_tokens(self.tokenizer, new_tokens, skip_special_tokens=True).strip()
         if return_trace:
             return text, info, trace
         return text, info

@@ -1,0 +1,24 @@
+{
+  "quality_gate_version": "1",
+  "gate_type": "source_reliability_downstream_review",
+  "scope": "source_reliability_downstream_recovery",
+  "status": "approved",
+  "approved": true,
+  "reviewer": "codex_downstream_prompt_orchestrator",
+  "provider": "openai",
+  "model": "gpt-5.6-luna",
+  "reasoning_effort": "xhigh",
+  "approval_basis": "The source-reliability component is pinned to the accepted Luna xhigh v3_fixed review manifest and its construct-specific plan, specification, and output hashes.",
+  "components": [
+    {
+      "label": "v3_fixed_source_reliability",
+      "review_manifest_path": "../../../results/benchmark/downstream_prompts_v1_review_luna_calibration_v3_fixed/review_manifest.json",
+      "review_manifest_sha256": "31ff73aeccbbe25cc55d9f1920f6d885b75ced00c3c124faef832a4a20c45715",
+      "allow_runtime_plan_override": true,
+      "reviewed_plan_sha256": "d59e6b37a6c40ba56979a577535032d3fd79ae181a26e1fd59172beaec2991e4",
+      "construct_ids": [
+        "source_reliability"
+      ]
+    }
+  ]
+}

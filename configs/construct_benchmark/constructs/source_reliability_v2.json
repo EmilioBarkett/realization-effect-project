@@ -1,0 +1,88 @@
+{
+  "schema_version": "0.1.0",
+  "construct_id": "source_reliability",
+  "version": "v2",
+  "family": "social",
+  "title": "Source reliability and source-evidence allocation",
+  "description": "Whether a source is represented as having a strong or weak track record, independently of role legitimacy, current measurement quality, and testimony polarity.",
+  "contrast_conditions": [
+    {
+      "condition_id": "unreliable_source",
+      "label": "Weak track record",
+      "definition": "The source is represented as having a weak historical record of agreement with later checks."
+    },
+    {
+      "condition_id": "reliable_source",
+      "label": "Strong track record",
+      "definition": "The source is represented as having a strong historical record of agreement with later checks."
+    }
+  ],
+  "probe_prompt_template": "Read the following short third-person information scenario. Track the source's historical accuracy separately from the source's role legitimacy, current evidence quality, and testimony polarity.\n\nScenario:\n{scenario}\n\nContinue processing the scenario.",
+  "independent_behavior_task": {
+    "task_id": "source_evidence_allocation_v2",
+    "task_family": "source_evidence_allocation",
+    "prompt_template": "For a separate decision, Option A is a named source's report and Option B is an independent measurement. The item gives a brief performance summary for the source, states whether the report and measurement agree or conflict, and states the measurement quality and decision stakes. Allocate 0 to 100 points to Option A; the remaining points go to Option B. Return exactly one integer from 0 to 100: the points assigned to Option A, the source report. Use only this item's information and do not label the source.",
+    "primary_outcome": "source_weight_allocation",
+    "secondary_outcomes": ["measurement_weight_allocation", "compliance"],
+    "response_format": "single_integer_allocation_0_to_100",
+    "item_metadata_schema": {
+      "required": ["source_track_record", "measurement_quality", "evidence_relation", "decision_stakes", "option_order"],
+      "properties": {
+        "source_track_record": {"type": "string", "enum": ["strong", "weak", "mixed", "unknown"]},
+        "measurement_quality": {"type": "string", "enum": ["matched", "weak", "strong"]},
+        "evidence_relation": {"type": "string", "enum": ["agreement", "conflict"]},
+        "decision_stakes": {"type": "string", "enum": ["low", "high"]},
+        "option_order": {"type": "string", "enum": ["source_first", "measurement_first"]}
+      }
+    },
+    "independence_requirements": [
+      "Use new domains, source names, entities, and events not present in probe prompts.",
+      "Use a compact performance summary rather than a five-report history; the downstream task must not repeat the probe's five-report structure.",
+      "Behavior and steering items must cross strong versus weak source records, measurement quality, stakes, and narrative option order while holding a source-versus-measurement conflict fixed.",
+      "Calibration items use an unknown source record, matched measurement quality, and agreement so the target condition is not induced.",
+      "Do not ask the model to classify reliability, authority, or social compliance."
+    ]
+  },
+  "expected_direction": {
+    "readout": {
+      "positive_condition": "reliable_source",
+      "negative_condition": "unreliable_source",
+      "estimand": "heldout_projection_margin"
+    },
+    "behavior": {
+      "outcome": "source_weight_allocation",
+      "estimand": "source_reliability_state_transfer_to_source_weighting",
+      "expected_at_fixed_task_factors": "reliable_source increases allocation to the source report relative to unreliable_source",
+      "direction_status": "preregister_before_data_collection",
+      "warning": "This measures source-evidence weighting, not authority deference or generic social compliance."
+    }
+  },
+  "parsing_rules": {
+    "parser_id": "single_integer_allocation_0_to_100_v1",
+    "valid_ranges": {"source_weight_allocation": [0, 100]},
+    "field_order": ["source_weight_allocation"],
+    "response_contract": "exactly one integer from 0 through 100 representing points assigned to Option A, the source report",
+    "invalid_response_policy": "exclude_from_outcome_denominator_and_report_compliance",
+    "extra_text_policy": "invalid"
+  },
+  "required_splits": ["direction_train", "direction_validation", "direction_heldout", "behavior_eval", "steering_eval", "calibration"],
+  "paired_splits": ["direction_train", "direction_validation", "direction_heldout"],
+  "controls": ["compact_downstream_record_not_five_report_repetition", "measurement_quality_crossing", "narrative_option_order_counterbalance", "neutral_calibration", "independent_domains_and_entities", "lexical_overlap_audit", "shuffled_pair_labels", "random_direction", "behavioral_variation_gate"],
+  "metadata": {
+    "primary_question": "Does a source-track-record direction transfer to source weighting in an independent task?",
+    "probe_state_is": "source_reliability_state",
+    "not_claimed_as": "authority_deference_or_generic_social_compliance",
+    "paired_item_metadata_schema": {
+      "required": ["minority_report_position"],
+      "properties": {
+        "minority_report_position": {"type": "integer", "enum": [1, 2, 3, 4, 5]}
+      }
+    },
+    "behavioral_variation_gate": {
+      "minimum_zero_dose_valid": 8,
+      "minimum_zero_dose_distinct": 3,
+      "minimum_zero_dose_sample_sd": 2,
+      "action": "block_full_run"
+    }
+  }
+}

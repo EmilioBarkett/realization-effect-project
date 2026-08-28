@@ -290,6 +290,7 @@ def main() -> None:
             raw.get("output_text", ""),
             parser_id=str(raw.get("parser_id") or spec.parsing_rules["parser_id"]),
             item_metadata=task_metadata,
+            task_id=str(raw.get("task_id") or spec.independent_behavior_task["task_id"]),
         )
         outcome = None
         directed_outcome = None

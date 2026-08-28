@@ -1,0 +1,100 @@
+{
+  "schema_version": "0.1.0",
+  "campaign_id": "waves2_4_confirmatory_v1",
+  "status": "repaired_v2_prompt_inputs_ready_execution_gated",
+  "confirmatory_release": false,
+  "prompt_input_release": {
+    "status": "validated_nonconfirmatory",
+    "confirmatory": false,
+    "scope": "prompt_inputs_only",
+    "quality_gate_path": "../quality_gates/waves2_4_repaired_v2_downstream_openai_luna_review_v1.json",
+    "quality_gate_sha256": "c1ac0520b359049f8fe1fead49421a9dd16e364750971fc92071c3aaa2755921",
+    "audit_record_paths": [
+      "../../../results/benchmark/prompt_inventories/wave2_repaired_v2_full_openai_luna/inventory_manifest.json",
+      "../../../results/benchmark/prompt_inventories/wave3_repaired_v2_full_openai_luna/inventory_manifest.json",
+      "../../../results/benchmark/prompt_inventories/wave4_repaired_v2_full_openai_luna/inventory_manifest.json"
+    ],
+    "audit_status": "passed",
+    "release_note": "The repaired v2 prompt inputs pass fresh vector and combined audits but remain non-confirmatory until the Wave 1 measurement and precision prerequisites are satisfied."
+  },
+  "execution_strategy": "three independent four-construct wave runs with one shared activation pass per wave and construct-scoped fan-out",
+  "registry_path": "../construct_registry_v1.json",
+  "analysis_spec_path": "../analysis_specs/rsc_benchmark_core_v1.json",
+  "required_confirmatory_prerequisites": [
+    {
+      "id": "wave1_measurement_gate",
+      "status": "pending",
+      "requirement": "Wave 1 real-model readout, calibration, baseline, and steering smoke gates must pass before Waves 2-4 are treated as confirmatory.",
+      "detail": "No Wave 1 measurement-gate artifact has been released yet."
+    },
+    {
+      "id": "repaired_prompt_inventory_audit",
+      "status": "satisfied",
+      "requirement": "The repaired Wave 2–4 prompt inventories must match their frozen manifests and pass the combined vector-plus-downstream audit.",
+      "detail": "Repaired v2 Wave 2–4 inventories are frozen, hash-matched, and pass with zero severe or warning flags.",
+      "evidence_path": "../../../results/benchmark/prompt_inventories/wave2_repaired_v2_full_openai_luna/inventory_manifest.json",
+      "evidence_sha256": "6625456663f04cf6e45f4e29a9a72f6c426ca9f6450cdb51d8c878ea782e2c21"
+    },
+    {
+      "id": "precision_simulation",
+      "status": "pending",
+      "requirement": "A precision simulation must support the planned construct-by-model analysis before confirmatory expansion.",
+      "detail": "No precision-simulation release artifact has been supplied yet."
+    },
+    {
+      "id": "downstream_inventory_release",
+      "status": "pending",
+      "requirement": "The Wave 2-4 prompt inputs must pass a versioned repair, semantic adjudication where needed, and a fresh audit before confirmatory use.",
+      "detail": "Repaired v2 inputs now pass the fresh audit, but confirmatory prompt release remains withheld until the Wave 1 measurement and precision prerequisites pass.",
+      "audit_paths": [
+        "../../../results/benchmark/prompt_inventories/wave2_repaired_v2_full_openai_luna/inventory_manifest.json",
+        "../../../results/benchmark/prompt_inventories/wave3_repaired_v2_full_openai_luna/inventory_manifest.json",
+        "../../../results/benchmark/prompt_inventories/wave4_repaired_v2_full_openai_luna/inventory_manifest.json"
+      ]
+    }
+  ],
+  "waves": [
+    {
+      "wave": 2,
+      "construct_ids": [
+        "reference_frame",
+        "prior_weighting",
+        "authority_deference",
+        "exploration_exploitation"
+      ],
+      "run_config_path": "../run_configs/wave2_four_construct_confirmatory_v1.json",
+      "prompt_inventory_path": "../../../results/benchmark/prompt_inventories/wave2_repaired_v2_full_openai_luna/combined.csv",
+      "inventory_manifest_path": "../../../results/benchmark/prompt_inventories/wave2_repaired_v2_full_openai_luna/inventory_manifest.json",
+      "inventory_sha256": "7409b20bb0cb59c16f9143856fb1900a12977312e9dbe2c2f8b68d403f91c7a1",
+      "inventory_manifest_sha256": "6625456663f04cf6e45f4e29a9a72f6c426ca9f6450cdb51d8c878ea782e2c21"
+    },
+    {
+      "wave": 3,
+      "construct_ids": [
+        "ambiguity_orientation",
+        "causal_interpretation",
+        "consensus_conformity",
+        "plan_replanning"
+      ],
+      "run_config_path": "../run_configs/wave3_four_construct_confirmatory_v1.json",
+      "prompt_inventory_path": "../../../results/benchmark/prompt_inventories/wave3_repaired_v2_full_openai_luna/combined.csv",
+      "inventory_manifest_path": "../../../results/benchmark/prompt_inventories/wave3_repaired_v2_full_openai_luna/inventory_manifest.json",
+      "inventory_sha256": "a103a7f610b7873b500581db868800355a672b51e0031205df16540a2b9a645d",
+      "inventory_manifest_sha256": "13fd891b5988fd9f3d1f0cb0f2ab34cd3212167e613cea06ef4a725e197de5b2"
+    },
+    {
+      "wave": 4,
+      "construct_ids": [
+        "temporal_orientation",
+        "epistemic_uncertainty",
+        "reciprocity_obligation",
+        "goal_shielding"
+      ],
+      "run_config_path": "../run_configs/wave4_four_construct_confirmatory_v1.json",
+      "prompt_inventory_path": "../../../results/benchmark/prompt_inventories/wave4_repaired_v2_full_openai_luna/combined.csv",
+      "inventory_manifest_path": "../../../results/benchmark/prompt_inventories/wave4_repaired_v2_full_openai_luna/inventory_manifest.json",
+      "inventory_sha256": "6352cd03407d6aafca7339dde27fd4c029d521935bb5e75468f286a5f90e1971",
+      "inventory_manifest_sha256": "cd82861a836954eb26ba9b281189eb0152e03e4da9fbfd783f7719dfa9cca19f"
+    }
+  ]
+}

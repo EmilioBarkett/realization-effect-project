@@ -1,4 +1,10 @@
-# Handoff: current representation–steerability correspondence project
+# Historical chat handoff: representation–steerability correspondence project
+
+> **Superseded for execution.** This file preserves an earlier implementation
+> snapshot. Use [`NEXT_RUN.md`](NEXT_RUN.md) for the current B300 campaign,
+> [`RUNPOD_EXECUTION.md`](RUNPOD_EXECUTION.md) for detailed commands, and the
+> root authority documents for scientific decisions. Do not infer current
+> blockers or next actions from the historical lists below.
 
 ## One-line status
 
@@ -96,7 +102,7 @@ Archived:
 - a representative generalized activation/steering smoke test is still needed;
   no-API and fake-fixture artifacts remain explicitly non-empirical.
 
-## Next actions
+## Historical next actions (do not use as the current runbook)
 
 1. Review the existing all-16 vector/probe inventory, final manifest, and
    structural audit; obtain explicit approval before any new external

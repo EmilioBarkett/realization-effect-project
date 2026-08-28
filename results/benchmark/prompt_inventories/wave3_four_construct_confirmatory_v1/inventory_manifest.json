@@ -1,0 +1,533 @@
+{
+  "confirmatory": true,
+  "construct_ids": [
+    "ambiguity_orientation",
+    "causal_interpretation",
+    "consensus_conformity",
+    "plan_replanning"
+  ],
+  "counts_by_construct_split": {
+    "ambiguity_orientation": {
+      "behavior_eval": 16,
+      "calibration": 16,
+      "direction_heldout": 80,
+      "direction_train": 200,
+      "direction_validation": 80,
+      "steering_eval": 16
+    },
+    "causal_interpretation": {
+      "behavior_eval": 8,
+      "calibration": 8,
+      "direction_heldout": 80,
+      "direction_train": 200,
+      "direction_validation": 80,
+      "steering_eval": 8
+    },
+    "consensus_conformity": {
+      "behavior_eval": 16,
+      "calibration": 16,
+      "direction_heldout": 80,
+      "direction_train": 200,
+      "direction_validation": 80,
+      "steering_eval": 16
+    },
+    "plan_replanning": {
+      "behavior_eval": 8,
+      "calibration": 8,
+      "direction_heldout": 80,
+      "direction_train": 200,
+      "direction_validation": 80,
+      "steering_eval": 8
+    }
+  },
+  "downstream_record_count": 144,
+  "frozen": true,
+  "manifest_type": "wave_execution_prompt_inventory",
+  "output_path": "combined.csv",
+  "output_sha256": "91f75a113d6f4942ff8eb52d7116895dfb95de2b53e005f390917c78d45cf9e7",
+  "record_count": 1584,
+  "release": {
+    "execution_gate_note": "This release freezes prompt inputs only. Model-side confirmatory execution remains subject to the campaign prerequisites.",
+    "model_execution_release": false,
+    "release_date": "2026-08-27",
+    "release_id": "wave3_four_construct_confirmatory_prompt_release_v1",
+    "release_statement": "The repository owner explicitly authorized release of the frozen, audited Wave 2-4 prompt inventories for confirmatory prompt-input use. This release does not assert model-side results and does not release model execution.",
+    "released_by": "repository owner (explicit user instruction)",
+    "scope": "confirmatory_prompt_inputs_only",
+    "source_manifest_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/prompt_inventories/wave3_four_construct_full_luna_v1/inventory_manifest.json",
+    "source_manifest_sha256": "ac072e528d61f2883691c09b55162a653257ea1a74abbe1009809d573ae82f57",
+    "source_output_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/prompt_inventories/wave3_four_construct_full_luna_v1/combined.csv",
+    "source_output_sha256": "91f75a113d6f4942ff8eb52d7116895dfb95de2b53e005f390917c78d45cf9e7"
+  },
+  "schema_version": "0.1.0",
+  "scope": "vector_probe_plus_downstream",
+  "sources": {
+    "downstream": {
+      "combined_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/downstream_prompts_v1_waves2_4_full_luna_b20_o30k_v1/combined.csv",
+      "combined_sha256": "73824a26c931f2d2220a277d2f04065658d0633b33f58243b89d4f37092dcac6",
+      "confirmatory": false,
+      "construct_ids": [
+        "reference_frame",
+        "prior_weighting",
+        "authority_deference",
+        "exploration_exploitation",
+        "ambiguity_orientation",
+        "causal_interpretation",
+        "consensus_conformity",
+        "plan_replanning",
+        "temporal_orientation",
+        "epistemic_uncertainty",
+        "reciprocity_obligation",
+        "goal_shielding"
+      ],
+      "frozen": true,
+      "manifest_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/downstream_prompts_v1_waves2_4_full_luna_b20_o30k_v1/final_inventory_manifest.json",
+      "manifest_sha256": "d32401c551b782f4d8b8744f08d6d285e57c266a4d9c1f6e2bbe21ba24fac639",
+      "record_count": 384,
+      "status": "frozen"
+    },
+    "downstream_quality_gate": {
+      "approved": true,
+      "construct_ids": [
+        "ambiguity_orientation",
+        "authority_deference",
+        "causal_interpretation",
+        "consensus_conformity",
+        "epistemic_uncertainty",
+        "exploration_exploitation",
+        "goal_shielding",
+        "plan_replanning",
+        "prior_weighting",
+        "reciprocity_obligation",
+        "reference_frame",
+        "temporal_orientation"
+      ],
+      "path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/configs/construct_benchmark/quality_gates/waves2_4_downstream_luna_v1.json",
+      "reviewer": "codex_downstream_prompt_orchestrator",
+      "scope": "waves2_4_downstream",
+      "sha256": "245ee91686f59e38d660bd375ef1834da76b421f2035bb40c6ba7cc40a408024",
+      "status": "approved"
+    },
+    "vector": {
+      "combined_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/vector_prompts_v2_luna/full_final_all16/combined.csv",
+      "combined_sha256": "646c2b7575695723b5625b6f425d210abce84653728b78ca5ef7a1f830ec84ba",
+      "confirmatory": false,
+      "construct_ids": [
+        "ambiguity_orientation",
+        "causal_interpretation",
+        "consensus_conformity",
+        "plan_replanning"
+      ],
+      "frozen": null,
+      "manifest_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/vector_prompts_v2_luna/full_final_all16/final_inventory_manifest.json",
+      "manifest_sha256": "b0c4c1617ae4458522b0a5b97be4a94d6e309fed0f8aed807c3255a53da3ad0d",
+      "record_count": 5760,
+      "status": null
+    }
+  },
+  "status": "released",
+  "validation": {
+    "combined": {
+      "construct_ids": [
+        "ambiguity_orientation",
+        "causal_interpretation",
+        "consensus_conformity",
+        "plan_replanning"
+      ],
+      "counts_by_construct": {
+        "ambiguity_orientation": 408,
+        "causal_interpretation": 384,
+        "consensus_conformity": 408,
+        "plan_replanning": 384
+      },
+      "counts_by_construct_split": {
+        "ambiguity_orientation": {
+          "behavior_eval": 16,
+          "calibration": 16,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 16
+        },
+        "causal_interpretation": {
+          "behavior_eval": 8,
+          "calibration": 8,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 8
+        },
+        "consensus_conformity": {
+          "behavior_eval": 16,
+          "calibration": 16,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 16
+        },
+        "plan_replanning": {
+          "behavior_eval": 8,
+          "calibration": 8,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 8
+        }
+      },
+      "pair_count": 720,
+      "prompt_families_by_construct_role": {
+        "ambiguity_orientation": {
+          "behavior": [
+            "ambiguity_behavior_eval"
+          ],
+          "calibration": [
+            "ambiguity_calibration"
+          ],
+          "probe": [
+            "ambiguity_probe_heldout",
+            "ambiguity_probe_train",
+            "ambiguity_probe_validation"
+          ],
+          "steering": [
+            "ambiguity_steering_eval"
+          ]
+        },
+        "causal_interpretation": {
+          "behavior": [
+            "causal_behavior_eval"
+          ],
+          "calibration": [
+            "causal_calibration"
+          ],
+          "probe": [
+            "causal_probe_heldout",
+            "causal_probe_train",
+            "causal_probe_validation"
+          ],
+          "steering": [
+            "causal_steering_eval"
+          ]
+        },
+        "consensus_conformity": {
+          "behavior": [
+            "consensus_behavior_eval"
+          ],
+          "calibration": [
+            "consensus_calibration"
+          ],
+          "probe": [
+            "consensus_probe_heldout",
+            "consensus_probe_train",
+            "consensus_probe_validation"
+          ],
+          "steering": [
+            "consensus_steering_eval"
+          ]
+        },
+        "plan_replanning": {
+          "behavior": [
+            "replanning_behavior_eval"
+          ],
+          "calibration": [
+            "replanning_calibration"
+          ],
+          "probe": [
+            "replanning_probe_heldout",
+            "replanning_probe_train",
+            "replanning_probe_validation"
+          ],
+          "steering": [
+            "replanning_steering_eval"
+          ]
+        }
+      },
+      "total_prompts": 1584
+    },
+    "downstream": {
+      "construct_ids": [
+        "ambiguity_orientation",
+        "causal_interpretation",
+        "consensus_conformity",
+        "plan_replanning"
+      ],
+      "counts_by_construct": {
+        "ambiguity_orientation": 48,
+        "causal_interpretation": 24,
+        "consensus_conformity": 48,
+        "plan_replanning": 24
+      },
+      "counts_by_construct_split": {
+        "ambiguity_orientation": {
+          "behavior_eval": 16,
+          "calibration": 16,
+          "steering_eval": 16
+        },
+        "causal_interpretation": {
+          "behavior_eval": 8,
+          "calibration": 8,
+          "steering_eval": 8
+        },
+        "consensus_conformity": {
+          "behavior_eval": 16,
+          "calibration": 16,
+          "steering_eval": 16
+        },
+        "plan_replanning": {
+          "behavior_eval": 8,
+          "calibration": 8,
+          "steering_eval": 8
+        }
+      },
+      "pair_count": 0,
+      "prompt_families_by_construct_role": {
+        "ambiguity_orientation": {
+          "behavior": [
+            "ambiguity_behavior_eval"
+          ],
+          "calibration": [
+            "ambiguity_calibration"
+          ],
+          "probe": [],
+          "steering": [
+            "ambiguity_steering_eval"
+          ]
+        },
+        "causal_interpretation": {
+          "behavior": [
+            "causal_behavior_eval"
+          ],
+          "calibration": [
+            "causal_calibration"
+          ],
+          "probe": [],
+          "steering": [
+            "causal_steering_eval"
+          ]
+        },
+        "consensus_conformity": {
+          "behavior": [
+            "consensus_behavior_eval"
+          ],
+          "calibration": [
+            "consensus_calibration"
+          ],
+          "probe": [],
+          "steering": [
+            "consensus_steering_eval"
+          ]
+        },
+        "plan_replanning": {
+          "behavior": [
+            "replanning_behavior_eval"
+          ],
+          "calibration": [
+            "replanning_calibration"
+          ],
+          "probe": [],
+          "steering": [
+            "replanning_steering_eval"
+          ]
+        }
+      },
+      "total_prompts": 144
+    },
+    "release_validation": {
+      "construct_ids": [
+        "ambiguity_orientation",
+        "causal_interpretation",
+        "consensus_conformity",
+        "plan_replanning"
+      ],
+      "counts_by_construct": {
+        "ambiguity_orientation": 408,
+        "causal_interpretation": 384,
+        "consensus_conformity": 408,
+        "plan_replanning": 384
+      },
+      "counts_by_construct_split": {
+        "ambiguity_orientation": {
+          "behavior_eval": 16,
+          "calibration": 16,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 16
+        },
+        "causal_interpretation": {
+          "behavior_eval": 8,
+          "calibration": 8,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 8
+        },
+        "consensus_conformity": {
+          "behavior_eval": 16,
+          "calibration": 16,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 16
+        },
+        "plan_replanning": {
+          "behavior_eval": 8,
+          "calibration": 8,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 8
+        }
+      },
+      "pair_count": 720,
+      "prompt_families_by_construct_role": {
+        "ambiguity_orientation": {
+          "behavior": [
+            "ambiguity_behavior_eval"
+          ],
+          "calibration": [
+            "ambiguity_calibration"
+          ],
+          "probe": [
+            "ambiguity_probe_heldout",
+            "ambiguity_probe_train",
+            "ambiguity_probe_validation"
+          ],
+          "steering": [
+            "ambiguity_steering_eval"
+          ]
+        },
+        "causal_interpretation": {
+          "behavior": [
+            "causal_behavior_eval"
+          ],
+          "calibration": [
+            "causal_calibration"
+          ],
+          "probe": [
+            "causal_probe_heldout",
+            "causal_probe_train",
+            "causal_probe_validation"
+          ],
+          "steering": [
+            "causal_steering_eval"
+          ]
+        },
+        "consensus_conformity": {
+          "behavior": [
+            "consensus_behavior_eval"
+          ],
+          "calibration": [
+            "consensus_calibration"
+          ],
+          "probe": [
+            "consensus_probe_heldout",
+            "consensus_probe_train",
+            "consensus_probe_validation"
+          ],
+          "steering": [
+            "consensus_steering_eval"
+          ]
+        },
+        "plan_replanning": {
+          "behavior": [
+            "replanning_behavior_eval"
+          ],
+          "calibration": [
+            "replanning_calibration"
+          ],
+          "probe": [
+            "replanning_probe_heldout",
+            "replanning_probe_train",
+            "replanning_probe_validation"
+          ],
+          "steering": [
+            "replanning_steering_eval"
+          ]
+        }
+      },
+      "total_prompts": 1584
+    },
+    "vector": {
+      "construct_ids": [
+        "ambiguity_orientation",
+        "causal_interpretation",
+        "consensus_conformity",
+        "plan_replanning"
+      ],
+      "counts_by_construct": {
+        "ambiguity_orientation": 360,
+        "causal_interpretation": 360,
+        "consensus_conformity": 360,
+        "plan_replanning": 360
+      },
+      "counts_by_construct_split": {
+        "ambiguity_orientation": {
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80
+        },
+        "causal_interpretation": {
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80
+        },
+        "consensus_conformity": {
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80
+        },
+        "plan_replanning": {
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80
+        }
+      },
+      "pair_count": 720,
+      "prompt_families_by_construct_role": {
+        "ambiguity_orientation": {
+          "behavior": [],
+          "calibration": [],
+          "probe": [
+            "ambiguity_probe_heldout",
+            "ambiguity_probe_train",
+            "ambiguity_probe_validation"
+          ],
+          "steering": []
+        },
+        "causal_interpretation": {
+          "behavior": [],
+          "calibration": [],
+          "probe": [
+            "causal_probe_heldout",
+            "causal_probe_train",
+            "causal_probe_validation"
+          ],
+          "steering": []
+        },
+        "consensus_conformity": {
+          "behavior": [],
+          "calibration": [],
+          "probe": [
+            "consensus_probe_heldout",
+            "consensus_probe_train",
+            "consensus_probe_validation"
+          ],
+          "steering": []
+        },
+        "plan_replanning": {
+          "behavior": [],
+          "calibration": [],
+          "probe": [
+            "replanning_probe_heldout",
+            "replanning_probe_train",
+            "replanning_probe_validation"
+          ],
+          "steering": []
+        }
+      },
+      "total_prompts": 1440
+    }
+  },
+  "vector_probe_record_count": 1440,
+  "wave": 3
+}

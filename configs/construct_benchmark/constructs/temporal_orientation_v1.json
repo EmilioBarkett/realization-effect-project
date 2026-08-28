@@ -21,7 +21,7 @@
   "independent_behavior_task": {
     "task_id": "intertemporal_allocation_v1",
     "task_family": "sooner_later_allocation",
-    "prompt_template": "Consider a new choice between a smaller-sooner outcome and a larger-later outcome. Allocate exactly 100 points between the two options. Use a new domain and do not reuse the actors, goals, or scenarios from the probe prompts.",
+    "prompt_template": "Consider a new choice between a smaller-sooner outcome and a larger-later outcome. Allocate exactly 100 points between the two options. Return exactly two integers on separate lines: first the allocation to the larger-later outcome and second the allocation to the smaller-sooner outcome; the two integers must sum to 100. Use a new domain and do not reuse the actors, goals, or scenarios from the probe prompts.",
     "primary_outcome": "larger_later_allocation",
     "secondary_outcomes": ["smaller_sooner_allocation", "compliance"],
     "response_format": "two_integers_sum_100",

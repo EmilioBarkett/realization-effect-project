@@ -1,0 +1,25 @@
+{
+  "base_plan_path": "wave2_prior_weighting_v1.json",
+  "plan_id": "wave2_prior_weighting_prompts_repaired_v2",
+  "construct_id": "prior_weighting",
+  "wave": 2,
+  "construct_spec_path": "../constructs/prior_weighting_v2.json",
+  "models": [{"alias": "luna", "model": "gpt-5.6-luna"}],
+  "generation": {"max_tokens": 30000, "max_output_tokens": 30000, "max_items_per_request": 20, "retries": 0, "timeout": 300},
+  "design_rules": [
+    "Use the registered probe wrapper exactly and vary only the registered prior-versus-case weighting state within each pair.",
+    "Downstream prompts are standalone information-value forecasts rather than posterior judgments about the probe hypothesis; use new domains and entities and include one response contract.",
+    "Keep the registered prior, evidence polarity, and moderate-strength metadata schedule explicit without naming the construct."
+  ],
+  "forbidden_terms": ["prior_weighting", "prior_sensitive", "case_evidence_sensitive", "prior weighting", "prior-sensitive", "case-evidence-sensitive", "diagnosticity", "diagnostic"],
+  "overrides": {
+    "cells": {
+      "probe_train": {"instructions": "Generate matched probe pairs with the exact registered wrapper. Keep all evidence facts and wording identical within a pair except the registered weighting clause inside Scenario; append nothing after the wrapper."},
+      "probe_validation": {"instructions": "Generate new matched validation probe pairs with the exact registered wrapper. Change only the registered weighting clause inside Scenario and append nothing after the wrapper."},
+      "probe_heldout": {"instructions": "Generate held-out matched probe pairs with the exact registered wrapper and new hypotheses. Change only the registered weighting clause inside Scenario; append nothing after the wrapper."},
+      "behavior_eval": {"task_id": "information_change_forecast_v2", "instructions": "Generate standalone forecasts of whether one follow-up check would change a new decision. Use assigned metadata, do not reproduce the probe hypothesis, and include exactly one response contract."},
+      "steering_eval": {"task_id": "information_change_forecast_v2", "instructions": "Generate a distinct standalone forecast pool with the same registered metadata schedule. Do not reproduce a probe hypothesis or ask for a posterior; include exactly one response contract."},
+      "calibration": {"task_id": "information_change_forecast_v2", "instructions": "Generate neutral standalone information-change forecasts for calibration. Do not name prior weighting or diagnosticity; include exactly one response contract."}
+    }
+  }
+}

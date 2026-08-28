@@ -10,6 +10,7 @@ from activation_analysis.activation_store import (
     ActivationVectorRecord,
     iter_activation_vectors,
     summarize_activation_dataset,
+    validate_activation_run,
 )
 from activation_analysis.vector_analysis import collect_prompt_mean_activations
 
@@ -211,3 +212,24 @@ def test_iter_activation_vectors_rejects_malformed_batch_index(tmp_path: Path) -
 
     with pytest.raises(ValueError, match="tensor batch size"):
         list(iter_activation_vectors(run_dir))
+
+
+def test_validate_activation_run_rejects_invalid_tokenization_contract(tmp_path: Path) -> None:
+    run_dir = _make_activation_run(tmp_path)
+    manifest_path = run_dir / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["extraction"]["max_length"] = 128
+    manifest["tokenization"] = {
+        "truncation": True,
+        "max_length": 128,
+        "checked_prompt_count": 1,
+        "max_observed_token_length": 129,
+        "over_limit_count": 1,
+    }
+    manifest_path.write_text(json.dumps(manifest) + "\n", encoding="utf-8")
+
+    errors = validate_activation_run(run_dir)
+
+    assert any("truncation must be false" in error for error in errors)
+    assert any("over_limit_count must be zero" in error for error in errors)
+    assert any("exceeds max_length" in error for error in errors)

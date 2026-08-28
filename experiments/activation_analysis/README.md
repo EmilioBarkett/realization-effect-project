@@ -66,7 +66,7 @@ completed model CSVs:
   --layers 18 \
   --token-mode nonpad \
   --include-token-regions scenario \
-  --storage-dtype float32 \
+  --storage-dtype float16 \
   --local-files-only
 ```
 
@@ -79,12 +79,12 @@ check`; end-to-end validation against a real activation run remains pending.
 
 ```bash
 ./venv/bin/python scripts/build_activation_vectors.py \
-  --activation-run results/final/residual_streams/realization_vector_v1_layer18_regions_float32 \
+  --activation-run results/final/residual_streams/realization_vector_v1_layer18_regions_float16 \
   --layers 18 \
   --output-dir results/final/activation_vectors/realization_vector_v1_layer18
 
 ./venv/bin/python scripts/evaluate_activation_vectors.py \
-  --activation-run results/final/residual_streams/realization_vector_v1_layer18_regions_float32 \
+  --activation-run results/final/residual_streams/realization_vector_v1_layer18_regions_float16 \
   --direction results/final/activation_vectors/realization_vector_v1_layer18/mean_direction.npy \
   --layers 18 \
   --output-dir results/final/activation_vectors/realization_vector_v1_layer18/evaluation

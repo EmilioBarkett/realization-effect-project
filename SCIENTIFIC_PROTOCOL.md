@@ -44,14 +44,39 @@ source reliability is not authority status; persistence is not replanning; and
 epistemic uncertainty is not ambiguity orientation.
 
 All 16 construct definitions and paired-vector generation plans now exist and
-are marked `specified` in the registry. The Wave 2–4 artifacts are
-preparatory candidate specifications, not completed experiments or generated
-datasets; confirmatory execution remains gated on the Wave 1 measurement gates
-and a precision simulation. The frozen vector-generation scope is 100 train,
-40 validation, and 40 held-out pairs per construct: 2,880 pairs and 5,760
-records across the 16-construct bank. Generation is Sonnet 4.6 only, with a
-four-worker orchestrator, a review pilot before a full inventory, and no
-cross-construct pooling of directions.
+are marked `specified` in the registry. Wave 2–4 calibration-aware downstream
+generation plans and the review/full inventory workflow are implemented. The
+existing Wave 2–4 composed inventories have been audited and remain
+non-confirmatory engineering artifacts: they contain prompt-wrapper,
+downstream-episode, direct-cue, and task-independence blockers documented in
+`agents/WAVES2_4_PROMPT_AUDIT.md`. Confirmatory model execution remains gated
+on versioned prompt repairs, fresh audit, the Wave 1 measurement gates, and a
+precision simulation. The frozen
+vector-generation scope is 100 train, 40 validation, and 40 held-out pairs per
+construct: 2,880 pairs and 5,760 records across the 16-construct bank. Vector
+generation is Sonnet 4.6 only, with a four-worker orchestrator; downstream
+prompt generation uses the separately pinned Luna review/full workflow. There
+is no cross-construct pooling of directions. The completed Wave 2–4 downstream
+engineering source prompt inventory is retained at
+`results/benchmark/downstream_prompts_v1_waves2_4_full_luna_b20_o30k_v1/`;
+it contains 384 non-confirmatory engineering records and is not a real-model
+experiment result. No Wave 2–4 prompt inventory is currently released for
+confirmatory execution.
+
+The current Wave 1 repaired model input is
+`results/benchmark/prompt_inventories/wave1_repaired_v2_full_openai_luna_normalized/combined.csv`.
+Its manifest records 1,824 frozen engineering rows: 1,440 vector/probe rows
+and 384 independent behavior, steering, and calibration rows. These are
+frozen prompt-preparation artifacts, not real-model empirical results. The
+older 1,650-row composition remains historical provenance and must not be
+mixed with repaired v2.
+
+For the eventual expansion, Waves 2–4 are organized as three separate
+four-construct runs rather than one twelve-construct execution. Each run
+shares one activation pass across its wave and fans out by construct. The
+execution package is prepared and its test selections are deterministic, but
+full confirmatory mode remains gated on the Wave 1 measurement release and the
+precision simulation; explicit prompt-input release is complete.
 
 These are operational hypotheses. A construct enters a confirmatory analysis
 only after its state definition, directional outcome, parsing rules, and
@@ -122,10 +147,39 @@ Wave 1 generation plans also freeze task composition: paired probe context is
 presented before the independent downstream task; only an induced internal
 state may carry over; probe surface text, condition labels, and entities do
 not carry over; and behavior and steering content pools remain separate. The
-activation-state orchestration needed to enforce that sequence is not yet
-implemented, so no external pilot may be treated as an end-to-end experiment.
+C1 matched-episode runner now enforces the shared downstream-task and fixed
+boundary contract for causal diagnosis. Its real-model execution remains
+unvalidated, so no external pilot may be treated as an end-to-end experiment.
 
-## 5. Direction and decodability
+## 5. Causal pathway profile
+
+The first causal method is matched-episode residual interchange. A positive
+and a negative induction context are each followed by the same downstream
+task. The runner captures the residual state at the last complete token of the
+induction prefix and replaces the receiver's state at that same semantic
+boundary on the prompt-prefill forward pass only. It then allows the model to
+complete the identical downstream task without further intervention.
+
+For each registered layer, the causal diagnosis records positive-to-negative
+and negative-to-positive swaps, plus same-condition donor controls. The
+primary causal outcome is the pre-registered parsed downstream behavior; a
+fixed teacher-forced logit contrast may be added as a secondary outcome. The
+runner's tokenizer-offset check fails closed when the boundary cannot be
+located exactly.
+
+This estimates contextual causal sufficiency of a state at a defined point.
+It does not establish necessity, a unique circuit, linear reproducibility,
+cross-domain generalization, or a behavioral policy/gain variable. Arbitrary
+cross-prompt residual transplantation is not a valid substitute because it
+confounds scenario identity, entities, syntax, difficulty, and downstream
+task text.
+
+Temporal tracing, component/path patching, and ablation are later C2–C4
+methods. The implementation and run contract are in
+`agents/CAUSAL_PATHWAY_ARCHITECTURE.md`; the C1 output must have a complete
+adjacent manifest before it can be scored as causal evidence.
+
+## 6. Direction and decodability
 
 The primary direction estimator is a train-only matched mean difference:
 
@@ -165,7 +219,7 @@ The scorer has an explicit `--allow-incomplete-diagnostic` override for
 engineering inspection; outputs produced under that override are not
 confirmatory evidence.
 
-## 6. Steering intervention
+## 7. Steering intervention
 
 Steering doses are expressed in units of a frozen training calibration scale.
 The calibration variance must come either from neutral calibration prompts or
@@ -195,7 +249,7 @@ direction, and three reproducible random directions orthogonal to the target
 where the hidden size permits it. Wrong-layer or unrelated-direction controls
 should be included where feasible.
 
-## 7. Behavioral estimands
+## 8. Behavioral estimands
 
 ### Primary: directed mean state transfer
 
@@ -220,7 +274,7 @@ Conditional, multiplicative, Jacobian-derived, or responsiveness-trained
 interventions are exploratory method development. They are not assumed to be
 available from an ordinary mean-difference direction.
 
-## 8. Controls and exclusion rules
+## 9. Controls and exclusion rules
 
 Required controls include:
 
@@ -237,7 +291,7 @@ Do not flip a direction sign, select a layer, remove a construct, or choose a
 steering scale after inspecting confirmatory outcomes. Failed decodability and
 failed steering remain results.
 
-## 9. Cross-construct analysis
+## 10. Cross-construct analysis
 
 The inferential structure is crossed rather than nested:
 
@@ -264,7 +318,7 @@ Wave 1.
 The final construct count will be selected using a precision simulation, not an
 automatic target such as eight to twelve constructs.
 
-## 10. Current maturity and implementation gates
+## 11. Current maturity and implementation gates
 
 The current status is protocol development and benchmark infrastructure
 implementation:
@@ -277,7 +331,9 @@ implementation:
 - the 16-construct registry, all 16 specified construct definitions and paired
   generation plans, generic canonical-record generation adapter, and
   generalized leakage-audit metadata are implemented as prompt-preparation
-  artifacts; Waves 2–4 remain preparatory and gated from confirmatory use;
+  artifacts; Wave 2–4 downstream plans and review/full inventory generation
+  are implemented, and the existing composed Wave 2–4 inventories are audited
+  engineering artifacts with release blockers rather than confirmatory inputs;
 - train-only direction estimation, projection-margin measurement,
   neutral/within-condition calibration, strict Wave 1 parsing, directed
   state-transfer scoring, control-direction generation, and timing-aware
@@ -286,6 +342,11 @@ implementation:
   expected-versus-observed manipulation scoring, downstream persistence ratios,
   and manifest-backed resumable steering output are implemented and
   fixture-tested; this is instrumentation, not a real-model result;
+- matched-episode C1 residual interchange, bidirectional donor swaps,
+  same-condition controls, tokenizer-verified boundary localization, and a
+  fail-closed causal-output manifest validator are implemented and
+  fixture-tested; this is causal infrastructure, not a real-model causal
+  result;
 - prompt-role/family separation, pre-registered category schedules, validation
   layer selection, and pair/item bootstrap interval primitives are implemented
   and fixture-tested;
@@ -295,7 +356,8 @@ implementation:
 - real-model execution, prompt-only behavior composition, real-run uncertainty
   reporting, all-16 downstream parsers and behavior execution, output-
   accessibility/collateral checks, and correspondence analysis remain
-  unvalidated or unimplemented end to end;
+  unvalidated end to end; the prompt-only runner/scorer and tokenizer
+  preflight are implemented but have not yet been exercised on a real model;
 - the tracked activation iterator now lives in
   `activation_analysis.activation_store` and passes the clean Python 3.11
   `make check` suite; real-run validation remains pending;
@@ -316,9 +378,12 @@ Before the first real measurement:
    existing activation-store manifests;
 3. keep the active activation tests green and add
    iterator/filtering/region/memory-map regression tests;
-4. validate the implemented projection, calibration, parsing, steering trace,
-   and downstream-persistence adapters on a representative model run, then add
-   output-accessibility, collateral, and prompt-only baseline checks.
+4. run the local fake vertical slice and validate the manifest-backed
+   prompt-only baseline, tokenizer preflight, and zero-dose variation gate;
+5. validate the implemented projection, calibration, parsing, steering trace,
+   downstream-persistence, and C1 residual-interchange adapters on a
+   representative model run, then add output-accessibility and collateral
+   checks.
 
 Then implement in this order:
 
@@ -326,14 +391,15 @@ Then implement in this order:
    the Wave 1 measurement gate;
 2. validate held-out readout, neutral/within-condition calibration, and
    outcome-specific effect adapters on a representative model;
-3. execute the implemented timing, parsing, injection-trace, and downstream-
-   persistence paths, then add output-accessibility and collateral checks;
+3. execute the implemented timing, parsing, injection-trace, downstream-
+   persistence, and C1 residual-interchange paths, then add output-
+   accessibility and collateral checks;
 4. precision simulation and expansion decision;
 5. second model family before general conclusions;
 6. Waves 2–4 only after the Wave 1 measurement and construct gates pass and
    the precision simulation supports expansion.
 
-## 11. Claims this protocol does not support by itself
+## 12. Claims this protocol does not support by itself
 
 The following claims require additional evidence and must not be implied by a
 successful probe:

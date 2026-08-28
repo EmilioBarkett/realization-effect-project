@@ -343,6 +343,34 @@ def validate_activation_run(path: str | Path) -> list[str]:
     expected_activation_site = extraction.get("activation_site", "resid_post")
     expected_storage_dtype = extraction.get("storage_dtype", "float32")
     expected_d_model = model.get("d_model")
+    tokenization = run.manifest.get("tokenization")
+    if tokenization is not None:
+        if not isinstance(tokenization, dict):
+            errors.append("manifest tokenization must be an object")
+        else:
+            if tokenization.get("truncation") is not False:
+                errors.append("manifest tokenization.truncation must be false")
+            expected_max_length = extraction.get("max_length")
+            if (
+                expected_max_length is not None
+                and tokenization.get("max_length") != expected_max_length
+            ):
+                errors.append("manifest tokenization.max_length does not match extraction.max_length")
+            checked_prompt_count = tokenization.get("checked_prompt_count")
+            if checked_prompt_count != len(run.prompts):
+                errors.append(
+                    "manifest tokenization.checked_prompt_count does not match prompts.jsonl"
+                )
+            over_limit_count = tokenization.get("over_limit_count")
+            if over_limit_count != 0:
+                errors.append("manifest tokenization.over_limit_count must be zero")
+            max_observed = tokenization.get("max_observed_token_length")
+            if (
+                expected_max_length is not None
+                and max_observed is not None
+                and max_observed > expected_max_length
+            ):
+                errors.append("manifest tokenization.max_observed_token_length exceeds max_length")
 
     if stats.get("total_prompts") != len(run.prompts):
         errors.append(

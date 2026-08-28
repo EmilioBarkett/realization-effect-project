@@ -4,6 +4,8 @@ import copy
 import hashlib
 import json
 import re
+import threading
+import time
 from dataclasses import replace
 from pathlib import Path
 
@@ -22,6 +24,7 @@ from construct_benchmark.generation import (
     generate_prompt_records,
     iter_generation_jobs,
     load_generation_plan,
+    normalize_probe_prompt_wrapper,
 )
 from construct_benchmark.prompts import PromptRecord, combine_prompt_files, load_prompt_records, validate_prompt_records, write_prompt_records
 from construct_benchmark.registry import ConstructRegistry, load_construct_registry, validate_registry_against_specs
@@ -221,15 +224,19 @@ def test_two_construct_configs_are_valid_and_share_execution() -> None:
     assert plan["run_mode"]["confirmatory"] is False
     assert plan["shared_execution"]["construct_ids"] == list(run_config.construct_ids)
     assert [stage["scope"] for stage in plan["execution_graph"][:2]] == ["shared", "shared"]
-    assert len([stage for stage in plan["execution_graph"] if stage["scope"] == "construct"]) == 10
+    assert len([stage for stage in plan["execution_graph"] if stage["scope"] == "construct"]) == 12
     baseline_stages = [
         stage for stage in plan["execution_graph"] if stage["stage_id"].startswith("evaluate_behavior_baseline:")
     ]
     steered_stages = [
         stage for stage in plan["execution_graph"] if stage["stage_id"].startswith("evaluate_behavior_steered:")
     ]
-    assert len(baseline_stages) == len(steered_stages) == 2
+    zero_dose_stages = [
+        stage for stage in plan["execution_graph"] if stage["stage_id"].startswith("evaluate_zero_dose_behavior:")
+    ]
+    assert len(baseline_stages) == len(zero_dose_stages) == len(steered_stages) == 2
     assert all(stage["prompt_only_baseline"] for stage in baseline_stages)
+    assert all(stage["intervention"] == "target_zero_dose_only" for stage in zero_dose_stages)
     assert all(stage["intervention"] == "steered" for stage in steered_stages)
     assert all(stage["behavior_split"] == "steering_eval" for stage in steered_stages)
     assert all("zero_dose" in stage["comparison"] for stage in steered_stages)
@@ -271,7 +278,7 @@ def test_wave_one_four_construct_run_config_fans_out_without_pooling() -> None:
 
     assert plan["construct_count"] == 4
     assert plan["shared_execution"]["construct_ids"] == list(run_config.construct_ids)
-    assert len([stage for stage in plan["execution_graph"] if stage["scope"] == "construct"]) == 20
+    assert len([stage for stage in plan["execution_graph"] if stage["scope"] == "construct"]) == 24
     assert all(
         stage["group_key"] == ["construct_id", "pair_id"]
         for stage in plan["execution_graph"]
@@ -338,6 +345,45 @@ def test_wave_one_generation_emits_canonical_records_and_is_deterministic(tmp_pa
         jsonl_records = load_prompt_records(jsonl_path)
         assert csv_records[0].metadata["generation_seed"] == result.records[0].metadata["generation_seed"]
         assert [record.prompt_id for record in jsonl_records] == [record.prompt_id for record in result.records]
+
+
+def test_generation_parallelizes_request_jobs_but_keeps_plan_order() -> None:
+    spec = load_construct_spec(ROOT / "configs/construct_benchmark/constructs/source_reliability_v1.json")
+    plan = load_generation_plan(
+        ROOT / "configs/construct_benchmark/generation_plans/wave1_source_reliability_v1.json",
+        spec,
+    )
+    lock = threading.Lock()
+    active = 0
+    maximum_active = 0
+
+    def concurrent_response(model_id: str, messages: list[dict[str, str]], options: dict) -> dict:
+        nonlocal active, maximum_active
+        with lock:
+            active += 1
+            maximum_active = max(maximum_active, active)
+        time.sleep(0.03)
+        response = _mock_generation_response(model_id, messages, options)
+        with lock:
+            active -= 1
+        return response
+
+    result = generate_prompt_records(
+        plan,
+        spec,
+        api_key="test",
+        request_fn=concurrent_response,
+        workers=3,
+        count_per_model_override=1,
+        splits={"behavior_eval", "steering_eval", "calibration"},
+    )
+    assert maximum_active == 3
+    assert result.request_count == 3
+    assert [record.metadata["generation_job_id"] for record in result.records] == [
+        "wave1_source_reliability_prompts_v1__source_reliability__sonnet__behavior_eval",
+        "wave1_source_reliability_prompts_v1__source_reliability__sonnet__steering_eval",
+        "wave1_source_reliability_prompts_v1__source_reliability__sonnet__calibration",
+    ]
 
 
 def test_source_reliability_materializes_balanced_paired_position_metadata() -> None:
@@ -555,6 +601,8 @@ def test_vector_scope_generates_and_validates_only_paired_splits() -> None:
 def test_cell_instructions_do_not_override_named_mode_counts() -> None:
     for plan_path in ALL_GENERATION_PLAN_PATHS:
         plan = json.loads(plan_path.read_text(encoding="utf-8"))
+        if "base_plan_path" in plan:
+            continue
         for cell in plan["cells"]:
             instructions = str(cell.get("instructions", ""))
             assert re.search(r"\bgenerate\s+\d+\b", instructions, flags=re.IGNORECASE) is None, (
@@ -674,6 +722,26 @@ def test_generated_records_cannot_bypass_canonical_role_validation() -> None:
         validate_prompt_records([altered, *result.records[1:]], {spec.construct_id: spec})
 
 
+def test_probe_wrapper_normalization_repairs_only_registered_whitespace() -> None:
+    spec = load_construct_spec(ROOT / "configs/construct_benchmark/constructs/source_reliability_v1.json")
+    prefix, suffix = spec.probe_prompt_template.split("{scenario}", maxsplit=1)
+    malformed = f"{prefix.rstrip()}Example scenario. {suffix.strip()}"
+
+    normalized, changed = normalize_probe_prompt_wrapper(
+        malformed,
+        probe_prompt_template=spec.probe_prompt_template,
+    )
+
+    assert changed is True
+    assert normalized == f"{prefix}Example scenario.{suffix}"
+    unchanged, changed_again = normalize_probe_prompt_wrapper(
+        "A different opening that is not the registered wrapper.",
+        probe_prompt_template=spec.probe_prompt_template,
+    )
+    assert unchanged == "A different opening that is not the registered wrapper."
+    assert changed_again is False
+
+
 def test_same_execution_plan_scales_to_four_constructs() -> None:
     specs, run_config, analysis_spec = _configs()
     for construct_id, family in (
@@ -695,7 +763,7 @@ def test_same_execution_plan_scales_to_four_constructs() -> None:
     assert plan["construct_count"] == 4
     assert len(plan["shared_execution"]["construct_ids"]) == 4
     assert len([stage for stage in plan["execution_graph"] if stage["scope"] == "shared"]) == 2
-    assert len([stage for stage in plan["execution_graph"] if stage["scope"] == "construct"]) == 20
+    assert len([stage for stage in plan["execution_graph"] if stage["scope"] == "construct"]) == 24
 
 
 def test_prompt_inventory_round_trips_and_combines_without_id_collisions(tmp_path: Path) -> None:

@@ -21,7 +21,7 @@
   "independent_behavior_task": {
     "task_id": "assigned_selected_prediction_v1",
     "task_family": "causal_prediction",
-    "prompt_template": "Consider a separate variable-and-outcome question. Depending on the item, the variable value was either assigned externally before the outcome was measured or selected by the cases before the outcome was measured. Report the outcome probability from 0 to 100. Use new variables, domains, and evidence summaries, and do not ask the model to label the relation.",
+    "prompt_template": "Consider a separate variable-and-outcome question. Depending on the item, the variable value was either assigned externally before the outcome was measured or selected by the cases before the outcome was measured. Report the outcome probability from 0 to 100 as one integer. Use new variables, domains, and evidence summaries, and do not ask the model to label the relation.",
     "primary_outcome": "target_outcome_probability",
     "secondary_outcomes": ["assigned_selected_contrast", "compliance"],
     "response_format": "single_integer_0_to_100",

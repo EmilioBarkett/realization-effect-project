@@ -111,6 +111,16 @@
     "required_item_fields": ["distractor_salience", "focal_urgency", "switching_cost"],
     "balance_check": "Each combination must appear once per behavior and steering content pool."
   },
+  "calibration_factor_schedule": {
+    "purpose": "neutral_attention_allocation_variance",
+    "nuisance_fields": ["switching_cost"],
+    "neutral_fields": {
+      "distractor_salience": "low",
+      "focal_urgency": "low"
+    },
+    "forbidden_terms": ["goal shielding", "attentional priority", "shield the focal goal", "attend to the competing goal", "continuing the focal task", "continue the focal task"],
+    "required_response_format": "two_integers_sum_100"
+  },
   "cells": [
     {
       "cell_id": "probe_train",
@@ -196,13 +206,14 @@
       "task_id": "attention_allocation_v1",
       "parser_id": "two_integers_sum_100_v1",
       "expected_output_format": "two_integers_sum_100",
+      "factor_schedule": "calibration_factor_schedule",
       "count_per_model": 8,
       "category_balance": {
-        "distractor_salience": ["low", "low", "low", "low", "high", "high", "high", "high"],
-        "focal_urgency": ["low", "low", "high", "high", "low", "low", "high", "high"],
+        "distractor_salience": ["low", "low", "low", "low", "low", "low", "low", "low"],
+        "focal_urgency": ["low", "low", "low", "low", "low", "low", "low", "low"],
         "switching_cost": ["low", "high", "low", "high", "low", "high", "low", "high"]
       },
-      "instructions": "Generate neutral attention-allocation items used only to estimate within-cell output variation; do not reuse behavior or steering content."
+      "instructions": "Generate neutral attention-allocation items with low distractor salience and low focal urgency in every item, used only to estimate within-cell output variation. Vary only switching cost; do not cue goal shielding or reuse behavior or steering content."
     }
   ]
 }

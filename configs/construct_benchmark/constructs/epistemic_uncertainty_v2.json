@@ -1,0 +1,27 @@
+{
+  "base_spec_path": "epistemic_uncertainty_v1.json",
+  "version": "v2",
+  "title": "Represented information state with clean information budgeting",
+  "description": "Whether a genuinely borderline information state is represented as settled or still open, tested downstream by allocating a fixed budget between one specified check and commitment.",
+  "probe_prompt_template": "Read the following short information-state scenario. Track whether the decision-maker treats the focal question as settled or still open without answering a later task.\n\nScenario:\n{scenario}\n\nKeep the scenario in working memory without adding a response.",
+  "independent_behavior_task": {
+    "task_id": "single_check_budget_v2",
+    "task_family": "single_check_budget_allocation",
+    "prompt_template": "In a new decision, exactly one specified binary check is available before choosing an option. Allocate exactly 100 points between seeking that check and committing to the current option. Return exactly two integers on separate lines: first the allocation to seeking the check and second the allocation to committing now; the two integers must sum to 100. Use only this item's information.",
+    "primary_outcome": "seek_information_allocation",
+    "secondary_outcomes": ["commit_now_allocation", "compliance"]
+  },
+  "expected_direction": {
+    "behavior": {
+      "outcome": "seek_information_allocation",
+      "estimand": "represented_information_state_transfer_to_single_check_budget",
+      "direction_status": "preregister_before_data_collection",
+      "warning": "This task contains one fixed binary check and does not use unknown probabilities, lotteries, or an ambiguity label."
+    }
+  },
+  "metadata": {
+    "repair_version": "repaired_v2",
+    "downstream_independence": "The downstream item is a standalone decision with one specified check and no copied evidence or probe entities.",
+    "release_note": "Supersedes the v1 downstream wording for future review and generation; v1 artifacts remain historical."
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "quality_gate_version": "1",
+  "gate_type": "wave1_repaired_v2_downstream_review",
+  "scope": "wave1_repaired_v2_downstream",
+  "status": "approved",
+  "approved": true,
+  "reviewer": "codex_wave1_repaired_v2_prompt_audit",
+  "provider": "openai",
+  "model": "gpt-5.6-luna",
+  "reasoning_effort": "xhigh",
+  "approval_basis": "The repaired v2 downstream review generated one behavior, steering, and calibration item per Wave 1 construct with the exact v2 plan hashes; the strict composition audit reported zero severe and zero warning flags. The review remains non-confirmatory and authorizes only generation of the complete repaired v2 prompt inventory.",
+  "review_manifest_path": "../../../results/benchmark/wave1_repaired_v2_downstream_review_luna_v4/review_manifest.json",
+  "review_manifest_sha256": "463887d8180e559f24ad4a702923cf0d15b81d54b349dcc25a6f3b89418cc6a5"
+}

@@ -21,7 +21,7 @@
   "independent_behavior_task": {
     "task_id": "changed_constraint_plan_allocation_v1",
     "task_family": "adaptive_plan_allocation",
-    "prompt_template": "Consider a separate project with one focal goal that remains feasible and valuable throughout and two possible ways to pursue it. A new constraint makes the original way less suitable or efficient, while both the original and revised ways remain feasible and usable; it does not replace the goal or introduce a competing goal. Allocate exactly 100 effort points between the original way and a revised way. Use a new domain, actors, and constraint type; do not ask the model to label its planning style.",
+    "prompt_template": "Consider a separate project with one focal goal that remains feasible and valuable throughout and two possible ways to pursue it. A new constraint makes the original way less suitable or efficient, while both the original and revised ways remain feasible and usable; it does not replace the goal or introduce a competing goal. Allocate exactly 100 effort points between the original way and a revised way. Return exactly two integers on separate lines: first the revised-way allocation and second the original-way allocation; the two integers must sum to 100. Use a new domain, actors, and constraint type; do not ask the model to label its planning style.",
     "primary_outcome": "revised_plan_allocation",
     "secondary_outcomes": ["original_plan_allocation", "compliance"],
     "response_format": "two_integers_sum_100",

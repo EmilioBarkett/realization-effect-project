@@ -1,0 +1,40 @@
+{
+  "quality_gate_version": "1",
+  "gate_type": "composite_downstream_review",
+  "scope": "waves2_4_downstream",
+  "status": "approved",
+  "approved": true,
+  "reviewer": "codex_downstream_prompt_orchestrator",
+  "provider": "openai",
+  "model": "gpt-5.6-luna",
+  "reasoning_effort": "xhigh",
+  "approval_basis": "Wave 2 and Waves 3-4 Luna xhigh review artifacts completed with no severe audit flags; component manifests, construct specifications, generation plans, and outputs are pinned by hashes. The resulting full inventory remains an engineering/non-confirmatory artifact.",
+  "components": [
+    {
+      "label": "wave2_luna_review_v5",
+      "review_manifest_path": "../../../results/benchmark/downstream_prompts_v1_wave2_review_luna_v5/review_manifest.json",
+      "review_manifest_sha256": "99867dcb84e60a4a4d42342b52be963fde970fbcb7a7f833d03642a3786c3747",
+      "construct_ids": [
+        "reference_frame",
+        "prior_weighting",
+        "authority_deference",
+        "exploration_exploitation"
+      ]
+    },
+    {
+      "label": "waves3_4_luna_review_v1",
+      "review_manifest_path": "../../../results/benchmark/downstream_prompts_v1_waves3_4_review_luna_v1/review_manifest.json",
+      "review_manifest_sha256": "09a36e940fe9802f8e4a724183d1843e918fec210354b293f3faf681bd021ac9",
+      "construct_ids": [
+        "ambiguity_orientation",
+        "causal_interpretation",
+        "consensus_conformity",
+        "plan_replanning",
+        "temporal_orientation",
+        "epistemic_uncertainty",
+        "reciprocity_obligation",
+        "goal_shielding"
+      ]
+    }
+  ]
+}

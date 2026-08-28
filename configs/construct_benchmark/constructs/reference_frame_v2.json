@@ -1,0 +1,27 @@
+{
+  "base_spec_path": "reference_frame_v1.json",
+  "version": "v2",
+  "title": "Reference-frame position with distal option selection",
+  "description": "Whether an outcome is represented as above or below a salient reference point, with a separately instantiated option-selection task that contains no explicit reference-point wording.",
+  "probe_prompt_template": "Read the following short decision scenario. Track the focal outcome's position relative to the stated benchmark without answering a later task.\n\nScenario:\n{scenario}\n\nKeep the scenario in working memory without adding a response.",
+  "independent_behavior_task": {
+    "task_id": "reference_distal_option_choice_v2",
+    "task_family": "distal_option_selection",
+    "prompt_template": "In a new allocation task, choose between a fixed option and a variable option described only in this item. Return exactly one integer: 1 for the fixed option and 2 for the variable option. Use the stated payoffs and probability, and do not refer to any other scenario.",
+    "primary_outcome": "variable_option_choice",
+    "secondary_outcomes": ["fixed_option_choice", "compliance"]
+  },
+  "expected_direction": {
+    "behavior": {
+      "outcome": "variable_option_choice",
+      "estimand": "relative_reference_state_transfer_to_distal_option_choice",
+      "direction_status": "preregister_before_data_collection",
+      "warning": "This is a distal option-selection transfer test without an explicit reference-point cue; it is not a generic risk-preference estimate."
+    }
+  },
+  "metadata": {
+    "repair_version": "repaired_v2",
+    "downstream_independence": "The downstream item uses new option-selection scenarios without the probe's benchmark or reference-point language.",
+    "release_note": "Supersedes the v1 same-surface downstream task for future review and generation; v1 artifacts remain historical."
+  }
+}

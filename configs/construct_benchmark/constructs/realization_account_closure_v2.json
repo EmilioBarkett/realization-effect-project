@@ -1,0 +1,84 @@
+{
+  "schema_version": "0.1.0",
+  "construct_id": "realization_account_closure",
+  "version": "v2",
+  "family": "decision",
+  "title": "Realization and account closure",
+  "description": "Whether an identical outcome is represented as still provisional or as finalized in its accounting status, while amount, ownership, timing, and availability remain constant.",
+  "contrast_conditions": [
+    {
+      "condition_id": "open_pending",
+      "label": "Provisional and unresolved",
+      "definition": "The scenario represents the focal outcome as not yet finalized while holding its objective amount and availability fixed."
+    },
+    {
+      "condition_id": "closed_settled",
+      "label": "Finalized and settled",
+      "definition": "The scenario represents the same focal outcome as finalized while holding its objective amount and availability fixed."
+    }
+  ],
+  "probe_prompt_template": "Read the following short third-person scenario. Preserve the situation in working memory without answering the downstream task.\n\nScenario:\n{scenario}\n\nContinue processing the scenario.",
+  "independent_behavior_task": {
+    "task_id": "realization_risk_allocation_v2",
+    "task_family": "decision_under_uncertainty_allocation",
+    "prompt_template": "For a separate choice, Option A is a risky option with a stated probability and Option B is a sure option. Allocate 0 to 100 points to Option A; the remaining points go to Option B. Use only the stated payoff frame, amounts, and probability in this item. Return exactly one integer from 0 to 100: the points assigned to Option A, the risky option.",
+    "primary_outcome": "risky_allocation",
+    "secondary_outcomes": ["sure_allocation", "compliance"],
+    "response_format": "single_integer_allocation_0_to_100",
+    "item_metadata_schema": {
+      "required": ["outcome_valence", "stake_level", "risk_probability", "option_order"],
+      "properties": {
+        "outcome_valence": {"type": "string", "enum": ["gain", "loss", "neutral"]},
+        "stake_level": {"type": "string", "enum": ["low", "high"]},
+        "risk_probability": {"type": "string", "enum": ["even", "uneven"]},
+        "option_order": {"type": "string", "enum": ["risky_first", "sure_first"]}
+      }
+    },
+    "independence_requirements": [
+      "Use new domains, entities, and payoff amounts not present in probe prompts.",
+      "Cross gain and loss items with stake level, probability, and narrative option order; reserve neutral items for calibration.",
+      "Option A must always mean the risky option even when the prose narrates the sure option first.",
+      "Do not ask the model to classify realization, closure, or any probe condition."
+    ]
+  },
+  "expected_direction": {
+    "readout": {
+      "positive_condition": "closed_settled",
+      "negative_condition": "open_pending",
+      "estimand": "heldout_projection_margin"
+    },
+    "behavior": {
+      "outcome": "risky_allocation",
+      "estimand": "condition_by_outcome_valence_effect_on_risky_allocation",
+      "expected_by_outcome_valence": {
+        "gain": "closed_settled_minus_open_pending_positive",
+        "loss": "closed_settled_minus_open_pending_positive",
+        "neutral": "near_zero_or_controlled"
+      },
+      "direction_status": "preregister_before_data_collection",
+      "warning": "This is an account-closure state direction, not a generic risk-policy parameter."
+    }
+  },
+  "parsing_rules": {
+    "parser_id": "single_integer_allocation_0_to_100_v1",
+    "valid_ranges": {"risky_allocation": [0, 100]},
+    "field_order": ["risky_allocation"],
+    "response_contract": "exactly one integer from 0 through 100 representing points assigned to Option A, the risky option",
+    "invalid_response_policy": "exclude_from_outcome_denominator_and_report_compliance",
+    "extra_text_policy": "invalid"
+  },
+  "required_splits": ["direction_train", "direction_validation", "direction_heldout", "behavior_eval", "steering_eval", "calibration"],
+  "paired_splits": ["direction_train", "direction_validation", "direction_heldout"],
+  "controls": ["gain_and_loss_balance", "narrative_option_order_counterbalance", "independent_downstream_domains", "lexical_overlap_audit", "neutral_calibration", "shuffled_pair_labels", "random_direction", "behavioral_variation_gate"],
+  "metadata": {
+    "primary_question": "Does a train-only account-closure direction transfer to risky allocation in a new task?",
+    "probe_state_is": "account_closure_state",
+    "not_claimed_as": "generic_risk_policy_parameter",
+    "behavioral_variation_gate": {
+      "minimum_zero_dose_valid": 8,
+      "minimum_zero_dose_distinct": 3,
+      "minimum_zero_dose_sample_sd": 2,
+      "action": "block_full_run"
+    }
+  }
+}

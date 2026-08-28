@@ -1,0 +1,82 @@
+{
+  "schema_version": "0.1.0",
+  "construct_id": "evidence_diagnosticity",
+  "version": "v2",
+  "family": "epistemic",
+  "title": "Evidence diagnosticity and information selection",
+  "description": "Whether an observation is represented as strongly or weakly discriminating between a focal hypothesis and alternatives, independently of its polarity, source reliability, and surface clarity.",
+  "contrast_conditions": [
+    {
+      "condition_id": "low_diagnosticity",
+      "label": "Weakly discriminating observation",
+      "definition": "The observation is represented as providing little separation between the focal hypothesis and its alternatives."
+    },
+    {
+      "condition_id": "high_diagnosticity",
+      "label": "Strongly discriminating observation",
+      "definition": "The observation is represented as sharply separating the focal hypothesis from its alternatives."
+    }
+  ],
+  "probe_prompt_template": "Read the following short epistemic scenario. Track how strongly the observation discriminates between the focal hypothesis and its alternatives separately from whether it supports or contradicts the hypothesis.\n\nScenario:\n{scenario}\n\nContinue processing the scenario.",
+  "independent_behavior_task": {
+    "task_id": "diagnostic_test_allocation_v2",
+    "task_family": "information_selection_allocation",
+    "prompt_template": "For a separate decision, Option A is a targeted test designed to distinguish between two live explanations and Option B is a routine test expected to distinguish between them less well. The item states the time cost, stakes, and whether the two tests have matched or different expected information. Allocate 0 to 100 points to Option A; the remaining points go to Option B. Return exactly one integer from 0 to 100: the points assigned to Option A, the targeted test. Use only this item's information and do not label the decision style.",
+    "primary_outcome": "high_information_test_allocation",
+    "secondary_outcomes": ["routine_test_allocation", "compliance"],
+    "response_format": "single_integer_allocation_0_to_100",
+    "item_metadata_schema": {
+      "required": ["test_information_contrast", "test_cost", "decision_stakes", "time_pressure", "option_order"],
+      "properties": {
+        "test_information_contrast": {"type": "string", "enum": ["high_vs_low", "matched"]},
+        "test_cost": {"type": "string", "enum": ["low", "high"]},
+        "decision_stakes": {"type": "string", "enum": ["low", "high"]},
+        "time_pressure": {"type": "string", "enum": ["short", "long"]},
+        "option_order": {"type": "string", "enum": ["targeted_first", "routine_first"]}
+      }
+    },
+    "independence_requirements": [
+      "Use new domains, entities, and decision contexts not present in probe prompts.",
+      "Behavior and steering items must contrast a targeted high-information test with a routine low-information test without numerical likelihood ratios or posterior calculations.",
+      "Cross test cost, decision stakes, time pressure, and narrative option order independently.",
+      "Calibration items must make the two tests information-matched and must not ask the model to classify diagnosticity."
+    ]
+  },
+  "expected_direction": {
+    "readout": {
+      "positive_condition": "high_diagnosticity",
+      "negative_condition": "low_diagnosticity",
+      "estimand": "heldout_projection_margin"
+    },
+    "behavior": {
+      "outcome": "high_information_test_allocation",
+      "estimand": "diagnosticity_state_transfer_to_information_selection",
+      "expected_at_fixed_task_factors": "high_diagnosticity increases allocation to the targeted high-information test relative to low_diagnosticity",
+      "direction_status": "preregister_before_data_collection",
+      "warning": "This measures transfer to information selection, not an unrestricted belief-updating policy."
+    }
+  },
+  "parsing_rules": {
+    "parser_id": "single_integer_allocation_0_to_100_v1",
+    "valid_ranges": {"high_information_test_allocation": [0, 100]},
+    "field_order": ["high_information_test_allocation"],
+    "response_contract": "exactly one integer from 0 through 100 representing points assigned to Option A, the targeted test",
+    "invalid_response_policy": "exclude_from_outcome_denominator_and_report_compliance",
+    "extra_text_policy": "invalid"
+  },
+  "required_splits": ["direction_train", "direction_validation", "direction_heldout", "behavior_eval", "steering_eval", "calibration"],
+  "paired_splits": ["direction_train", "direction_validation", "direction_heldout"],
+  "controls": ["supporting_and_contradicting_probe_polarity", "independent_information_selection_task", "no_posterior_arithmetic_downstream", "narrative_option_order_counterbalance", "neutral_calibration", "lexical_overlap_audit", "shuffled_pair_labels", "random_direction", "behavioral_variation_gate"],
+  "metadata": {
+    "primary_question": "Does an evidence-diagnosticity direction transfer to selection of an informative test in a new task?",
+    "probe_state_is": "perceived_evidence_diagnosticity",
+    "belief_polarity_is": "a separate probe factor, not the downstream task definition",
+    "not_claimed_as": "belief polarity or unrestricted updating responsiveness",
+    "behavioral_variation_gate": {
+      "minimum_zero_dose_valid": 8,
+      "minimum_zero_dose_distinct": 3,
+      "minimum_zero_dose_sample_sd": 2,
+      "action": "block_full_run"
+    }
+  }
+}

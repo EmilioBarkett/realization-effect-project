@@ -1,0 +1,23 @@
+{
+  "schema_version": "0.1.0",
+  "registry_id": "rsc_construct_bank_repaired_v2",
+  "version": "repaired_v2",
+  "entries": [
+    {"construct_id": "realization_account_closure", "family": "decision", "wave": 1, "status": "specified", "spec_path": "constructs/realization_account_closure_v2.json", "generation_plan_path": "generation_plans/wave1_realization_account_closure_v2.json"},
+    {"construct_id": "evidence_diagnosticity", "family": "epistemic", "wave": 1, "status": "specified", "spec_path": "constructs/evidence_diagnosticity_v2.json", "generation_plan_path": "generation_plans/wave1_evidence_diagnosticity_v2.json"},
+    {"construct_id": "source_reliability", "family": "social", "wave": 1, "status": "specified", "spec_path": "constructs/source_reliability_v2.json", "generation_plan_path": "generation_plans/wave1_source_reliability_v2.json"},
+    {"construct_id": "persistence_continuation", "family": "agentic", "wave": 1, "status": "specified", "spec_path": "constructs/persistence_continuation_v2.json", "generation_plan_path": "generation_plans/wave1_persistence_continuation_v2.json"},
+    {"construct_id": "reference_frame", "family": "decision", "wave": 2, "status": "specified", "spec_path": "constructs/reference_frame_v2.json", "generation_plan_path": "generation_plans/wave2_reference_frame_repaired_v2.json"},
+    {"construct_id": "prior_weighting", "family": "epistemic", "wave": 2, "status": "specified", "spec_path": "constructs/prior_weighting_v2.json", "generation_plan_path": "generation_plans/wave2_prior_weighting_repaired_v2.json"},
+    {"construct_id": "authority_deference", "family": "social", "wave": 2, "status": "specified", "spec_path": "constructs/authority_deference_v2.json", "generation_plan_path": "generation_plans/wave2_authority_deference_repaired_v2.json"},
+    {"construct_id": "exploration_exploitation", "family": "agentic", "wave": 2, "status": "specified", "spec_path": "constructs/exploration_exploitation_v2.json", "generation_plan_path": "generation_plans/wave2_exploration_exploitation_repaired_v2.json"},
+    {"construct_id": "ambiguity_orientation", "family": "decision", "wave": 3, "status": "specified", "spec_path": "constructs/ambiguity_orientation_v2.json", "generation_plan_path": "generation_plans/wave3_ambiguity_orientation_repaired_v2.json"},
+    {"construct_id": "causal_interpretation", "family": "epistemic", "wave": 3, "status": "specified", "spec_path": "constructs/causal_interpretation_v2.json", "generation_plan_path": "generation_plans/wave3_causal_interpretation_repaired_v2.json"},
+    {"construct_id": "consensus_conformity", "family": "social", "wave": 3, "status": "specified", "spec_path": "constructs/consensus_conformity_v2.json", "generation_plan_path": "generation_plans/wave3_consensus_conformity_repaired_v2.json"},
+    {"construct_id": "plan_replanning", "family": "agentic", "wave": 3, "status": "specified", "spec_path": "constructs/plan_replanning_v2.json", "generation_plan_path": "generation_plans/wave3_plan_replanning_repaired_v2.json"},
+    {"construct_id": "temporal_orientation", "family": "decision", "wave": 4, "status": "specified", "spec_path": "constructs/temporal_orientation_v2.json", "generation_plan_path": "generation_plans/wave4_temporal_orientation_repaired_v2.json"},
+    {"construct_id": "epistemic_uncertainty", "family": "epistemic", "wave": 4, "status": "specified", "spec_path": "constructs/epistemic_uncertainty_v2.json", "generation_plan_path": "generation_plans/wave4_epistemic_uncertainty_repaired_v2.json"},
+    {"construct_id": "reciprocity_obligation", "family": "social", "wave": 4, "status": "specified", "spec_path": "constructs/reciprocity_obligation_v2.json", "generation_plan_path": "generation_plans/wave4_reciprocity_obligation_repaired_v2.json"},
+    {"construct_id": "goal_shielding", "family": "agentic", "wave": 4, "status": "specified", "spec_path": "constructs/goal_shielding_v2.json", "generation_plan_path": "generation_plans/wave4_goal_shielding_repaired_v2.json"}
+  ]
+}

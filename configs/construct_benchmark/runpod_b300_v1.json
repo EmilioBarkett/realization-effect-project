@@ -1,0 +1,20 @@
+{
+  "schema_version": "runpod_b300_controller_v1",
+  "campaign_id": "wave1_repaired_v2_engineering_full",
+  "name": "rsc-wave1-b300-engineering",
+  "gpu_type_id": "NVIDIA B300",
+  "gpu_count": 1,
+  "pod_count": 1,
+  "cloud_type": "SECURE",
+  "compute_type": "GPU",
+  "container_disk_gb": 100,
+  "image_name": "REVIEW_REQUIRED_B300_COMPATIBLE_IMAGE",
+  "network_volume_id": "REVIEW_REQUIRED_NETWORK_VOLUME_ID",
+  "volume_mount_path": "/workspace",
+  "data_center_ids": [],
+  "ports": [],
+  "env": {
+    "HF_HOME": "/workspace/huggingface",
+    "RSC_BENCH_WORKSPACE_ROOT": "/workspace/realization-effect-project"
+  }
+}

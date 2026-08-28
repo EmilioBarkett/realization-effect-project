@@ -21,6 +21,7 @@ from construct_benchmark.generation import (  # noqa: E402
     resolve_generation_mode,
     write_generation_result,
 )
+from activation_analysis.openai_prompt_generation import call_openai_responses  # noqa: E402
 
 
 VECTOR_SPLITS = {"direction_train", "direction_validation", "direction_heldout"}
@@ -78,6 +79,12 @@ def main() -> None:
     parser.add_argument("--output-dir", type=Path, default=None, help="Per-construct output directory.")
     parser.add_argument("--models", nargs="+", default=None, help="Optional model aliases.")
     parser.add_argument(
+        "--workers",
+        type=int,
+        default=1,
+        help="Maximum number of concurrent generation requests for each construct.",
+    )
+    parser.add_argument(
         "--count-per-model-per-cell",
         type=int,
         default=None,
@@ -97,7 +104,11 @@ def main() -> None:
         default=None,
         help="Optional output-token price used only for dry-run cost estimates.",
     )
-    parser.add_argument("--api-key-env", default="OPENROUTER_API_KEY")
+    parser.add_argument(
+        "--api-key-env",
+        default="OPENAI_API_KEY",
+        help="API-key environment variable for the active OpenAI Luna transport.",
+    )
     args = parser.parse_args()
 
     if args.construct_spec is not None and len(args.construct_spec) not in {1, len(args.plan)}:
@@ -108,6 +119,8 @@ def main() -> None:
         raise SystemExit("Provide --output or --output-dir when not using --dry-run.")
     if args.limit_jobs is not None and args.limit_jobs < 1:
         raise SystemExit("--limit-jobs must be positive.")
+    if args.workers < 1:
+        raise SystemExit("--workers must be positive.")
     if args.count_per_model_per_cell is not None and args.count_per_model_per_cell < 1:
         raise SystemExit("--count-per-model-per-cell must be positive.")
     if (args.input_usd_per_million_tokens is None) != (args.output_usd_per_million_tokens is None):
@@ -228,6 +241,8 @@ def main() -> None:
             plan,
             spec,
             api_key=api_key,
+            request_fn=call_openai_responses,
+            workers=args.workers,
             model_aliases=selected_aliases,
             count_per_model_override=mode_count_override,
             limit_jobs=args.limit_jobs,

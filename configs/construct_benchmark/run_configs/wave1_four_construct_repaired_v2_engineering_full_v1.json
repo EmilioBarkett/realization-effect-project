@@ -1,0 +1,84 @@
+{
+  "schema_version": "0.1.0",
+  "run_id": "wave1_four_construct_repaired_v2_engineering_full_v1",
+  "construct_ids": [
+    "realization_account_closure",
+    "evidence_diagnosticity",
+    "source_reliability",
+    "persistence_continuation"
+  ],
+  "model": {
+    "model_id": "mistralai/Mistral-Small-24B-Instruct-2501",
+    "tokenizer_id": "mistralai/Mistral-Small-24B-Instruct-2501",
+    "revision": "9527884be6e5616bdd54de542f9ae13384489724"
+  },
+  "activation": {
+    "layers": [10, 20, 30],
+    "layer_selection": "validation_max_margin",
+    "activation_site": "resid_post",
+    "token_mode": "nonpad",
+    "token_region_strategy": "auto",
+    "include_token_regions": ["scenario", "task"],
+    "storage_dtype": "float16",
+    "batch_size": 8,
+    "max_length": 512
+  },
+  "steering": {
+    "scales": [-1.0, -0.5, 0.0, 0.5, 1.0],
+    "position_mode": "last",
+    "intervention_timing": "prefill_only",
+    "direction_source": "direction_train_only",
+    "calibration": "neutral",
+    "random_direction_count": 3
+  },
+  "output_root": "results/benchmark",
+  "seed": 17,
+  "analysis_spec_id": "rsc_benchmark_core_v1",
+  "execution": {
+    "mode": "shared_activation_then_construct_fanout",
+    "default_run_mode": "full",
+    "run_modes": {
+      "test": {
+        "purpose": "engineering_variation_gate",
+        "confirmatory": false,
+        "max_runtime_minutes": 60,
+        "prompt_selection": {
+          "strategy": "balanced_pair_preserving",
+          "max_pairs_per_paired_split": 8,
+          "max_items_per_single_split": 12
+        }
+      },
+      "full": {
+        "purpose": "full_coverage_engineering",
+        "confirmatory": false,
+        "engineering_only": true,
+        "max_runtime_minutes": null,
+        "prompt_selection": {"strategy": "all"}
+      }
+    },
+    "max_constructs_per_run": 4,
+    "parallel_construct_analysis": true,
+    "shared_model_load": true,
+    "shared_activation_pass": true,
+    "construct_namespace_required": true,
+    "parallel_executor": {
+      "adapter": "gpu",
+      "worker_count": 4,
+      "topology": {
+        "provider": "runpod",
+        "pod_count": 1,
+        "gpu_type": "NVIDIA B300",
+        "gpu_count": 1,
+        "model_replica_rollout": [1, 3, 4]
+      }
+    }
+  },
+  "storage": {
+    "workspace_root_env": "RSC_BENCH_WORKSPACE_ROOT",
+    "archive_uri_env": "RSC_BENCH_ARCHIVE_URI",
+    "sync_endpoint_env": "RSC_BENCH_S3_ENDPOINT_URL",
+    "sync_tool": "aws",
+    "sync_on_finalize": true,
+    "keep_local_copy": true
+  }
+}

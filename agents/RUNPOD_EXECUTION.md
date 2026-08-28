@@ -4,24 +4,42 @@ The scientific configuration, prompt inventory, readout formulas, calibration,
 control directions, condition order, and hashes are frozen by repository code.
 RunPod supplies only the GPU runtime, model/tokenizer files, and raw execution.
 
-## What the two credentials do
+For the immediately upcoming B300 campaign, read
+[`NEXT_RUN.md`](NEXT_RUN.md) first. It is the operative run handoff; this file
+is the reusable command and artifact reference.
 
-There are two separate services in this workflow:
+## Credential boundaries
 
-- `OPENROUTER_API_KEY` is only for the reviewed synthetic-prompt generation
-  stage. It is not used to load the open-weight model, log activations, or run
-  steering. Prompt generation can be done on the local machine, so this key
-  does not need to be copied to RunPod.
-- A RunPod account is enough to create a pod through the RunPod dashboard. A
-  `RUNPOD_API_KEY` is only required if we later automate pod provisioning from
-  a script; the current repository does not require one for a manually
-  launched pod.
+There are three credential domains in this workflow:
 
-The first one-construct smoke configuration is currently set to
-`mistralai/Mistral-Small-24B-Instruct-2501` with revision
-`9527884be6e5616bdd54de542f9ae13384489724`. The
-multi-construct template configurations still contain placeholders until a
-multi-construct model run is reviewed.
+- `OPENAI_API_KEY` is for the active reviewed/full synthetic-prompt generation
+  stage through the OpenAI Responses API using Luna. It is not used to load
+  the open-weight model, log activations, or run steering. Prompt generation
+  can be done on the local machine, so this key does not need to be copied to
+  RunPod.
+- `OPENROUTER_API_KEY` is retained only for the legacy activation-analysis
+  generator and historical reproduction. It is not part of the active
+  construct-benchmark workflow.
+- `RUNPOD_2_API_KEY` is the required local-controller credential for automated
+  provisioning of the next B300 campaign. Check only for its presence and do
+  not print it. Do not fall back to `RUNPOD_API_KEY`, which identifies the
+  earlier RunPod account and resources.
+- Neither RunPod key is required inside a provisioned pod. Pod-side execution
+  receives only the frozen repository inputs plus any separately required
+  model/archive credentials.
+
+The one-construct smoke and four-construct Wave 1 configurations are pinned
+to `mistralai/Mistral-Small-24B-Instruct-2501` with revision
+`9527884be6e5616bdd54de542f9ae13384489724`. A model-side run still requires
+the pod environment and architecture-specific hook validation.
+
+The parallel Qwen replication configuration is
+`configs/construct_benchmark/run_configs/wave1_four_construct_qwen38_27b_repaired_v2.json`.
+It pins `Qwen/Qwen3.8-27B` to revision
+`1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0`, uses candidate layers 16, 32, and
+48 for its 64-layer language stack, and is processor-first. The shared loader
+uses `AutoProcessor`/`AutoModelForMultimodalLM` fallbacks for this model; do
+not infer that the Mistral block path or layer numbers transfer unchanged.
 
 ## Environment
 
@@ -55,7 +73,7 @@ persistent workspace:
   --require-model --require-gpu --require-persistent-workspace
 ```
 
-Add `--require-openrouter` only on the machine that will make the prompt
+Add `--require-openai` only on the machine that will make the active prompt
 generation request. Add `--require-archive` only once a durable archive URI
 and its sync tooling have been configured. The preflight never contacts any
 of these services and never prints secret values.
@@ -75,13 +93,18 @@ Useful RunPod environment variables are:
 - `RSC_BENCH_S3_ENDPOINT_URL` when the S3-compatible provider requires a
   custom endpoint.
 
-`OPENROUTER_API_KEY` is used for synthetic prompt generation, not for local
+The active run configurations use `storage_dtype=float16`. This controls
+persistent NumPy activation and direction artifacts only; use `--dtype bf16`
+for normal Ampere/Hopper inference unless a reviewed preflight shows another
+choice is required.
+
+`OPENAI_API_KEY` is used for active synthetic prompt generation, not for local
 residual logging or steering. Never copy keys into tracked configuration.
 
-For the first run, keep the OpenRouter key local and generate/review the pilot
+For the first run, keep the OpenAI key local and generate/review the pilot
 inventory there. The RunPod pod only needs model-side dependencies and the
-frozen prompt inventory. If the prompt generation is deliberately moved to the
-pod, set `OPENROUTER_API_KEY` in the pod's private environment rather than in a
+frozen prompt inventory. If prompt generation is deliberately moved to the
+pod, set `OPENAI_API_KEY` in the pod's private environment rather than in a
 tracked file.
 
 ## First-run configuration sequence
@@ -127,14 +150,17 @@ manifest.
 The generation plans and model-side run configurations now make the staged
 workflow explicit:
 
-1. `review` generation is a small, partial OpenRouter inventory for human
+1. `review` generation is a small, partial OpenAI/Luna inventory for human
    prompt inspection. It is not the data used for a confirmatory run.
 2. `full` generation creates the complete frozen inventory. Its output hash
    is the source artifact for all later model-side stages.
 3. `test` model execution selects a deterministic, pair-preserving subset of
-   the full inventory. It keeps every required split, is capped at two pairs
-   per paired split and two items per single split, and carries a 60-minute
-   engineering budget. Its `confirmatory` flag is false.
+   the full inventory. The legacy smoke configs select two items per single
+   split, which is enough to exercise interfaces but not enough to estimate
+   zero-dose behavioral variation. For the Wave 1 release gate, use
+   `wave1_four_construct_variation_gate_v1.json`, which selects eight pairs
+   per paired split and twelve items per single split within the same
+   60-minute engineering budget. Its `confirmatory` flag is false.
 4. `full` model execution uses every record in the frozen inventory and has no
    runtime cap. It is the only mode that can support confirmatory claims.
 
@@ -172,6 +198,20 @@ subset, readout analysis refuses it by default; `--allow-incomplete-run` is
 reserved for explicitly labelled diagnostic inspection. Do not combine the
 test and full outputs in one analysis directory.
 
+For the prepared Waves 2–4 campaign, use one run configuration and one
+composed inventory per wave. Validate all three test paths before starting a
+pod:
+
+```bash
+./venv/bin/python scripts/validate_confirmatory_execution.py --mode test
+```
+
+The command selects 72 prompts per wave while preserving the four construct
+namespaces and every required split. Do not run the full configurations yet:
+the prompt-input release is complete, but the same validator will refuse them
+until the Wave 1 measurement gate and precision simulation are recorded in the
+campaign manifest.
+
 ## Automatic workspace and archive lifecycle
 
 From the checked-out repository on the network volume, prepare the run before
@@ -188,7 +228,8 @@ export HF_HOME=/workspace/huggingface
   --construct-spec configs/construct_benchmark/constructs/persistence_continuation_v1.json \
   --run-config configs/construct_benchmark/run_configs/wave1_four_construct_smoke_v1.json \
   --analysis-spec configs/construct_benchmark/analysis_specs/rsc_benchmark_core_v1.json \
-  --prompts results/benchmark/wave1_four_construct_smoke_v1/prompts/combined.csv
+  --prompts results/benchmark/prompt_inventories/wave1_four_construct_full_luna_current_b50_v1/combined.csv \
+  --run-mode full
 ```
 
 The command creates one shared run root, snapshots all configs, and writes
@@ -218,6 +259,60 @@ the planned archive command without writing or uploading anything.
    configs, and their hashes.
 2. Run `scripts/log_residual_streams.py` once over the combined inventory,
    retaining both `scenario` and `task` token regions.
+
+For the optional interpretability extension, replace `--layers 10,20,30` with
+`--all-layers`. This records `resid_post` at every transformer block and marks
+the run as `instrumentation.mode=residual_all_layers`. It is useful for later
+layer-localization, representation drift, and causal-tracing analyses, but it
+is explicitly a residual-only trace: it does not capture attention-head,
+MLP, QKV, or sparse-feature internals and must not replace the primary
+benchmark extraction. Estimate storage first and consider `--token-mode final`
+or a narrow token-region filter for this extension.
+
+The corresponding command shape is:
+
+```bash
+./venv/bin/python scripts/log_residual_streams.py \
+  --model-id mistralai/Mistral-Small-24B-Instruct-2501 \
+  --tokenizer-id mistralai/Mistral-Small-24B-Instruct-2501 \
+  --revision 9527884be6e5616bdd54de542f9ae13384489724 \
+  --prompt-csv /workspace/realization_prompts_test.csv \
+  --output-dir /workspace/results/benchmark/realization_test/residual_trace \
+  --all-layers --batch-size 1 --max-length 512 \
+  --token-mode final --run-mode test --max-runtime-minutes 60
+```
+
+Do not interpret this residual trace as a complete mechanistic explanation.
+After the B/R gates pass, run the first causal method as a separate C1
+matched-episode diagnosis. Its JSONL input must contain a positive induction,
+a negative induction, and one identical downstream task for every request. The
+runner locates the last complete induction token and patches only that
+boundary during prefill:
+
+```bash
+./venv/bin/python scripts/run_residual_interchange.py \
+  --model-id mistralai/Mistral-Small-24B-Instruct-2501 \
+  --tokenizer-id mistralai/Mistral-Small-24B-Instruct-2501 \
+  --revision 9527884be6e5616bdd54de542f9ae13384489724 \
+  --requests /workspace/causal_interchange_test.jsonl \
+  --output /workspace/results/benchmark/realization_test/raw/residual_interchange.jsonl \
+  --layers 10,20,30 --max-length 512 --max-new-tokens 16 \
+  --min-new-tokens 1 --dtype bf16 --device-map auto
+```
+
+The command writes an adjacent manifest and can resume only with the same
+frozen inventory and settings. Validate and summarize it with:
+
+```bash
+./venv/bin/python scripts/score_residual_interchange.py \
+  --raw-output /workspace/results/benchmark/realization_test/raw/residual_interchange.jsonl \
+  --summary-output /workspace/results/benchmark/realization_test/causal_interchange_summary.json
+```
+
+The scorer refuses incomplete output by default. C1 tests contextual causal
+sufficiency at the registered boundary; component-level tracing, temporal
+tracing, and ablation remain later analyses.
+
 3. For each construct, run `scripts/analyze_construct_readout.py` with all
    registered candidate layers, for example
    `--layers 10,20,30 --layer-selection validation_max_margin`. It writes the
@@ -257,6 +352,24 @@ The scalar downstream-persistence and injection-manipulation checks are now
 implemented, but still require real-model validation. Output accessibility,
 collateral behavior, real-run uncertainty validation, and prompt-only behavior
 composition still require completion and review.
+
+After each completed target steering test, run the fail-closed behavioral
+variation gate before preparing a full inventory. It requires the adjacent
+completed steering manifest, parses only target-direction injection-layer
+zero-dose rows, excludes registered neutral realization controls, and rejects
+constant or invalid outcomes:
+
+```bash
+./venv/bin/python scripts/audit_behavioral_variation.py \
+  --raw-generations /workspace/results/benchmark/<run_id>/raw/constructs/<construct_id>/steering_generations.jsonl \
+  --construct-spec configs/construct_benchmark/constructs/<construct_id>_v1.json \
+  --output /workspace/results/benchmark/<run_id>/constructs/<construct_id>/behavioral_variation_gate.json
+```
+
+Run it separately for realization, evidence diagnosticity, source reliability,
+and persistence. A nonzero exit blocks the full run; do not replace a zero
+standard-deviation denominator with an epsilon or change sampling after seeing
+the test result.
 
 ## Artifact safety
 

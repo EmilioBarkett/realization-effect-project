@@ -34,6 +34,14 @@ def _csv_set(value: str | None) -> set[str] | None:
     return result or None
 
 
+def _numpy_storage_dtype(value: str) -> np.dtype:
+    if value == "float16":
+        return np.dtype(np.float16)
+    if value == "float32":
+        return np.dtype(np.float32)
+    raise ValueError("storage_dtype must be one of: float16, float32.")
+
+
 def _parse_layers(layer: int | None, layers: str | None) -> list[int]:
     if (layer is None) == (layers is None):
         raise SystemExit("Provide exactly one of --layer or --layers.")
@@ -59,6 +67,12 @@ def main() -> None:
     parser.add_argument("--activation-site", default="resid_post")
     parser.add_argument("--token-regions", default="scenario,task")
     parser.add_argument("--calibration-method", choices=("neutral", "within_condition"), default="neutral")
+    parser.add_argument(
+        "--storage-dtype",
+        choices=("float16", "float32"),
+        default="float16",
+        help="On-disk dtype for direction and pair-difference arrays; readout arithmetic remains float32/64.",
+    )
     parser.add_argument("--bootstrap-resamples", type=int, default=2000)
     parser.add_argument("--bootstrap-seed", type=int, default=17)
     parser.add_argument(
@@ -128,8 +142,9 @@ def main() -> None:
             args.output_dir / "candidate_directions" / f"layer_{layer:02d}" / "pair_differences.npy"
         )
         candidate_direction_path.parent.mkdir(parents=True, exist_ok=True)
-        np.save(candidate_direction_path, estimate.direction)
-        np.save(candidate_pair_differences_path, estimate.pair_differences)
+        storage_dtype = _numpy_storage_dtype(args.storage_dtype)
+        np.save(candidate_direction_path, estimate.direction.astype(storage_dtype, copy=False))
+        np.save(candidate_pair_differences_path, estimate.pair_differences.astype(storage_dtype, copy=False))
         candidate_direction_artifacts[str(layer)] = {
             "layer": layer,
             "source_split": "direction_train",
@@ -175,8 +190,9 @@ def main() -> None:
 
     direction_path = args.output_dir / "mean_direction.npy"
     pair_differences_path = args.output_dir / "pair_differences.npy"
-    np.save(direction_path, estimate.direction)
-    np.save(pair_differences_path, estimate.pair_differences)
+    storage_dtype = _numpy_storage_dtype(args.storage_dtype)
+    np.save(direction_path, estimate.direction.astype(storage_dtype, copy=False))
+    np.save(pair_differences_path, estimate.pair_differences.astype(storage_dtype, copy=False))
     write_csv(
         args.output_dir / "heldout_pair_margins.csv",
         [asdict(margin) for margin in readout.margins],
@@ -214,6 +230,7 @@ def main() -> None:
             "pair_differences_path": str(pair_differences_path),
         },
         "calibration": asdict(calibration),
+        "storage_dtype": args.storage_dtype,
         "readout": {
             "split": readout.split,
             "pair_count": readout.pair_count,

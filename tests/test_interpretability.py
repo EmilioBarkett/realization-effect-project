@@ -13,6 +13,7 @@ from activation_analysis.log_residuals import (
     _build_run_name,
     _load_prompt_csv,
     _parse_layers,
+    _resolve_requested_layers,
     _with_token_regions,
     _write_batch,
     _write_manifest,
@@ -44,6 +45,17 @@ def test_parse_layers_sorts_deduplicates_and_rejects_invalid() -> None:
 
     with pytest.raises(argparse.ArgumentTypeError):
         _parse_layers("0,2")
+
+
+def test_resolve_requested_layers_supports_explicit_and_all_layer_modes() -> None:
+    assert _resolve_requested_layers([3, 1], all_layers=False, num_transformer_layers=4) == [3, 1]
+    assert _resolve_requested_layers(None, all_layers=True, num_transformer_layers=3) == [1, 2, 3]
+
+    with pytest.raises(ValueError, match="requested layers"):
+        _resolve_requested_layers(None, all_layers=False, num_transformer_layers=3)
+
+    with pytest.raises(ValueError, match="between 1 and 3"):
+        _resolve_requested_layers([4], all_layers=False, num_transformer_layers=3)
 
 
 def test_load_prompt_csv_preserves_prompt_ids_and_metadata(tmp_path: Path) -> None:
@@ -322,6 +334,17 @@ def test_write_manifest_records_extraction_contract(tmp_path: Path) -> None:
     assert manifest["extraction"]["include_token_regions"] is None
     assert manifest["extraction"]["storage_dtype"] == "float16"
     assert manifest["extraction"]["block_path"] == "model.layers"
+    assert manifest["instrumentation"] == {
+        "mode": "benchmark",
+        "residual_only": True,
+        "component_traces": [],
+        "all_transformer_layers": False,
+        "interpretability_scope": "residual_stream_only",
+        "note": (
+            "An all-layer residual trace supports later localization and causal tracing, "
+            "but does not capture attention-head, MLP, or feature-level circuit internals."
+        ),
+    }
     assert manifest["input"]["prompt_csv"] == (
         "experiments/activation_analysis/prompts/activation_vectors/realization_vector_v1.csv"
     )

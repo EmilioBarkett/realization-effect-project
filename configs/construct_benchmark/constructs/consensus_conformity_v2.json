@@ -1,0 +1,27 @@
+{
+  "base_spec_path": "consensus_conformity_v1.json",
+  "version": "v2",
+  "title": "Peer-information weighting with independent forecast",
+  "description": "Whether a shared ordinary-peer judgment is represented as something to follow or as information to evaluate independently, tested downstream by a fresh forecast item with a clean episode boundary.",
+  "probe_prompt_template": "Read the following short social-information scenario. Track how the shared peer judgment is handled without answering a later task.\n\nScenario:\n{scenario}\n\nKeep the scenario in working memory without adding a response.",
+  "independent_behavior_task": {
+    "task_id": "peer_evidence_forecast_v2",
+    "task_family": "peer_evidence_forecast",
+    "prompt_template": "In a new factual estimation task, several ordinary reviewers give an answer and one private measurement is available. Report from 0 to 100 the probability that the focal claim is true. Use only this item's information and do not refer to any other scenario.",
+    "primary_outcome": "focal_claim_probability",
+    "secondary_outcomes": ["peer_evidence_consistency", "compliance"]
+  },
+  "expected_direction": {
+    "behavior": {
+      "outcome": "focal_claim_probability",
+      "estimand": "peer_weighting_state_transfer_to_independent_forecast",
+      "direction_status": "preregister_before_data_collection",
+      "warning": "The downstream task is a fresh forecast episode and does not append the probe continuation instruction."
+    }
+  },
+  "metadata": {
+    "repair_version": "repaired_v2",
+    "downstream_independence": "The downstream item is regenerated as a standalone factual forecast with no probe suffix or copied stance instruction.",
+    "release_note": "Supersedes the v1 mixed probe/downstream composition for future review and generation; v1 artifacts remain historical."
+  }
+}

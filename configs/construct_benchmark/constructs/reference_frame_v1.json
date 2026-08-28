@@ -21,7 +21,7 @@
   "independent_behavior_task": {
     "task_id": "sure_risky_choice_v1",
     "task_family": "reference_dependent_risk_choice",
-    "prompt_template": "In a separate decision, choose between a sure option and a risky option with a stated probability. Return exactly 1 for the sure option or 2 for the risky option. Use the numerical payoffs and stated probability in this item; do not infer probability from an earlier scenario or describe that scenario.",
+    "prompt_template": "In a separate decision, choose between a sure option and a risky option with a stated probability. Return exactly one integer: 1 or 2; 1 means the sure option and 2 means the risky option. Use the numerical payoffs and stated probability in this item; do not infer probability from an earlier scenario or describe that scenario.",
     "primary_outcome": "risky_choice",
     "secondary_outcomes": ["sure_choice", "compliance"],
     "response_format": "single_integer_1_or_2",

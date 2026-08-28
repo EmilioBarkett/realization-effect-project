@@ -1,0 +1,27 @@
+{
+  "base_spec_path": "reciprocity_obligation_v1.json",
+  "version": "v2",
+  "title": "Reciprocal exchange representation with clean help allocation",
+  "description": "Whether a completed concrete benefit is represented as creating a return-exchange expectation, tested downstream by a fresh allocation of limited help.",
+  "probe_prompt_template": "Read the following short interpersonal scenario. Track the concrete sequence of prior contact and the current request without answering a later task.\n\nScenario:\n{scenario}\n\nKeep the scenario in working memory without adding a response.",
+  "independent_behavior_task": {
+    "task_id": "fresh_help_allocation_v2",
+    "task_family": "fresh_return_help_allocation",
+    "prompt_template": "In a new situation with two people requesting limited help, the requesters have matched status, likability, familiarity, and neutral prior contact; only one previously helped you. Allocate exactly 100 effort points between helping the prior helper and helping the other requester. Return exactly two integers on separate lines: first the allocation to the prior helper and second the allocation to the other requester; the two integers must sum to 100. Use only this item's information.",
+    "primary_outcome": "prior_helper_allocation",
+    "secondary_outcomes": ["other_requester_allocation", "compliance"]
+  },
+  "expected_direction": {
+    "behavior": {
+      "outcome": "prior_helper_allocation",
+      "estimand": "reciprocal_state_transfer_to_fresh_help_allocation",
+      "direction_status": "preregister_before_data_collection",
+      "warning": "The downstream task is a fresh help-allocation episode; it is not a generic kindness or authority-compliance measure."
+    }
+  },
+  "metadata": {
+    "repair_version": "repaired_v2",
+    "downstream_independence": "The downstream item is regenerated as a standalone episode with new actors, events, and a single response contract.",
+    "release_note": "Supersedes the v1 downstream composition for future review and generation; v1 artifacts remain historical."
+  }
+}

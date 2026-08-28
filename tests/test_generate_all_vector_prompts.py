@@ -172,8 +172,8 @@ def test_dry_run_never_calls_request_function_or_writes_outputs(tmp_path: Path) 
         "estimated_input_tokens": 16800,
             "estimated_output_tokens": 7200,
             "estimated_total_tokens": 24000,
-            "estimated_cost_usd": None,
-            "budget_estimate_usd": None,
+                "estimated_cost_usd": 0.012,
+                "budget_estimate_usd": 0.015,
     }
     assert all(item["request_count"] == 3 for item in manifest["constructs"])
     assert all(item["estimated_total_tokens"] == 6000 for item in manifest["constructs"])

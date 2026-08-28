@@ -49,7 +49,10 @@ from construct_benchmark.registry import ConstructRegistry, load_construct_regis
 VECTOR_SPLITS = frozenset({"direction_train", "direction_validation", "direction_heldout"})
 DEFAULT_REGISTRY = _ROOT / "configs/construct_benchmark/construct_registry_v1.json"
 DEFAULT_OUTPUT_DIR = _ROOT / "results/benchmark/vector_prompts_v1/prompts"
-DEFAULT_PROVIDER = "openrouter"
+# The active benchmark workflow uses the OpenAI Responses API and Luna.  The
+# legacy OpenRouter transport remains available only when an explicit
+# ``--provider openrouter`` override is supplied for historical reproduction.
+DEFAULT_PROVIDER = "openai"
 DEFAULT_LUNA_MODEL = "gpt-5.6-luna"
 # These are the published Luna prices used for preflight accounting.  They are
 # intentionally explicit here instead of silently inheriting a provider's

@@ -56,18 +56,48 @@ versioned registry is
 | 4 — horizon/goal management | `temporal_orientation` | `epistemic_uncertainty` | `reciprocity_obligation` | `goal_shielding` |
 
 All 16 construct definitions and paired-vector generation plans now exist and
-are marked `specified` in the registry. Waves 2–4 are preparatory candidate
-specifications, not completed experiments or generated datasets; confirmatory
-execution remains gated on Wave 1 measurement gates and a precision simulation.
+are marked `specified` in the registry. Wave 2–4 calibration-aware downstream
+generation plans and the review/full inventory workflow are also implemented.
+The original Wave 2–4 source inventories remain engineering artifacts after
+the audit identified prompt-wrapper, downstream-episode, direct-cue, and
+task-independence blockers. Repaired, audited prompt-input releases now exist,
+but confirmatory model execution remains gated on Wave 1 measurement and a
+precision simulation.
 The vector-only inventory is frozen at 100 train, 40 validation, and 40
 held-out pairs per construct: 2,880 pairs and 5,760 records total. The current
 complete vector/probe inventory is
 `results/benchmark/vector_prompts_v2_luna/full_final_all16/combined.csv` with
 its final manifest. It is explicitly non-confirmatory and does not include the
 independent behavior, calibration, or steering-task prompts. Generation uses
-Sonnet 4.6 only and a four-worker orchestrator. Source reliability is distinct
+Sonnet 4.6 only and a four-worker orchestrator for vector prompts. The
+completed Wave 2–4 downstream engineering source inventory is retained at
+`results/benchmark/downstream_prompts_v1_waves2_4_full_luna_b20_o30k_v1/` with
+384 non-confirmatory Luna-generated records. Repaired, audited prompt-input
+releases now exist under
+`results/benchmark/prompt_inventories/wave[2-4]_four_construct_confirmatory_v1/`.
+Those releases freeze prompt inputs only; confirmatory model execution remains
+gated on Wave 1 measurement and precision prerequisites. The repair history is
+in `agents/WAVES2_4_PROMPT_AUDIT.md`.
+Source reliability is distinct
 from authority deference; persistence is distinct from replanning; and
 evidence diagnosticity is not automatically updating responsiveness.
+
+The current Wave 1 repaired model input is also complete as an engineering
+artifact at
+`results/benchmark/prompt_inventories/wave1_repaired_v2_full_openai_luna_normalized/combined.csv`.
+Its manifest records 1,824 frozen rows: 1,440 vector/probe rows and 384
+independent behavior, steering, and calibration rows. It is ready for the
+staged RunPod smoke test, but it is not a real-model empirical result and
+remains `confirmatory=false`. The older 1,650-row composition remains
+historical engineering provenance and must not be mixed with repaired v2.
+
+The Waves 2–4 execution package is staged as one four-construct run per wave.
+The run configurations live under `configs/construct_benchmark/run_configs/`,
+with the gated campaign index at
+`configs/construct_benchmark/confirmatory_campaigns/waves2_4_confirmatory_v1.json`.
+These are execution plans, not confirmatory-ready prompt packages: the
+release validator must continue to refuse full mode until the prompt repairs,
+fresh audit, Wave 1 measurement, and precision prerequisites are satisfied.
 
 Specification gaming in coding agents is not the current project direction;
 that proposal is preserved as historical material outside the active scope.
@@ -84,6 +114,8 @@ frozen train/validation/held-out splits
 train-only linear direction
         ↓
 continuous held-out projection readout
+        ↓
+matched-episode residual causal diagnosis
         ↓
 independent downstream behavioral task
         ↓
@@ -129,6 +161,10 @@ Implemented control plane:
   `scripts/audit_vector_pairs.py`;
 - explicit `review`/`full` prompt-generation modes and deterministic
   pair-preserving `test`/`full` model-run selection;
+- a separate manifest-backed prompt-only behavior baseline and a target
+  zero-dose behavioral-variation gate;
+- a shared tokenizer preflight that records exact no-truncation lengths and
+  refuses to run when a frozen prompt would be truncated;
 - separate behavior, steering, and calibration prompt-family validation plus
   pre-registered categorical schedules for balanced task factors;
 - canonical combined prompt inventories with global IDs and construct-scoped
@@ -137,6 +173,8 @@ Implemented control plane:
 - generalized overlap auditing for construct, split, family, role, template,
   response-format, and probe/downstream independence metadata;
 - a four-construct Wave 1 smoke configuration path without pooling directions;
+- a separate C1 matched-episode residual-interchange path with a fixed,
+  tokenizer-verified induction/task boundary and fail-closed output manifest;
 
 Implemented and fixture-tested, but not yet validated on a real model:
 
@@ -148,18 +186,24 @@ Implemented and fixture-tested, but not yet validated on a real model:
 - scalar injection pre/post traces, independently labelled downstream-layer
   projections, expected-vs-observed manipulation scoring, persistence ratios,
   and resumable steering-output manifests;
+- bidirectional C1 residual interchange, same-condition donor controls, and
+  truncated-output validation for matched causal episodes;
 - a deterministic no-API fake vertical slice at
   `scripts/run_fake_benchmark.py`;
 - local/RunPod readout, steering-plan, execution, and scoring entrypoints.
 
-Still not implemented or validated end to end:
+Still not validated end to end:
 
-- prompt-only behavior composition and real-run uncertainty orchestration;
+- real-model prompt-only behavior composition and real-run uncertainty
+  orchestration;
 - output-accessibility and collateral manipulation checks;
 - all-16 downstream parsers and behavior execution;
 - real-model validation of the steering traces and the Wave 1 experiments;
-- the complete behavior/calibration/steering-task inventory and a validated
-  generalized real-model benchmark run.
+- real-model validation of C1 causal interchange, including downstream parsed
+  behavior and its registered controls;
+- a validated generalized real-model benchmark run; generated downstream
+  prompt inventories are available as engineering artifacts, but downstream
+  behavior execution and real-model validation remain outstanding.
 
 The all-16 API-generated vector/probe inventory is an engineering artifact, not
 an empirical benchmark result. The realization decode pilot is likewise a
@@ -189,9 +233,14 @@ configs/construct_benchmark/        Multi-construct specs and run configs
 src/construct_benchmark/            Shared schemas, prompt validation, run plans
 results/benchmark/<run_id>/         Portable run workspace and raw artifacts
 scripts/run_fake_benchmark.py       No-API deterministic vertical-slice smoke test
+scripts/run_residual_interchange.py C1 matched-episode causal diagnosis runner
+scripts/score_residual_interchange.py C1 manifest validator and summary
 scripts/select_benchmark_run_mode.py  Frozen test/full prompt selection
 scripts/generate_all_vector_prompts.py  Review/full vector-only prompt orchestrator
 scripts/audit_vector_pairs.py        Structural vector-pair QA audit
+scripts/run_prompt_only_behavior.py  Independent behavior baseline runner
+scripts/score_prompt_only_behavior.py Baseline parser and variation gate
+scripts/preflight_tokenizer.py       Fail-closed tokenizer length check
 ```
 
 The original realization-effect paper and its implementation remain useful as
@@ -212,11 +261,18 @@ planning documents are indexed in
   protocol;
 - [`PROJECT_ARCHITECTURE.md`](PROJECT_ARCHITECTURE.md) — current engineering
   architecture and implementation roadmap;
+- [`agents/NEXT_RUN.md`](agents/NEXT_RUN.md) — operative RunPod B300 Wave 1
+  handoff and credential boundary for the next model-side campaign;
 - [`agents/VECTOR_PROMPT_GENERATION_HANDOFF.md`](agents/VECTOR_PROMPT_GENERATION_HANDOFF.md)
   — vector-only review/full generation contract and handoff;
 - [`agents/STEERING_MANIPULATION_CHECKS.md`](agents/STEERING_MANIPULATION_CHECKS.md)
   — scalar injection-trace, downstream-persistence, and resumable-output
   contract;
+- [`agents/PRE_RUN_GATES.md`](agents/PRE_RUN_GATES.md) — prompt-count
+  interpretation, active interpretability components, and local gates before
+  GPU execution;
+- [`agents/CAUSAL_PATHWAY_ARCHITECTURE.md`](agents/CAUSAL_PATHWAY_ARCHITECTURE.md)
+  — matched-episode C1 causal method and later C2–C4 boundary;
 - [`AGENTS.md`](AGENTS.md) — instructions and invariants for coding agents;
 - [`agents/`](agents/) — maintainer handoffs and GPU execution notes.
 
@@ -295,6 +351,11 @@ finalization. The configured AWS CLI credentials and optional
 `RSC_BENCH_S3_ENDPOINT_URL` remain in the environment, never in Git or run
 manifests. The durable archive is separate from the eventual curated public
 release on Hugging Face or Zenodo.
+
+New model-side NumPy outputs are stored as FP16 to reduce persistent-volume
+usage. Readout and calibration calculations promote loaded arrays to FP32/FP64,
+so this is a storage optimization rather than a claim that the statistical
+analysis itself is performed in FP16.
 
 ## Historical reference
 

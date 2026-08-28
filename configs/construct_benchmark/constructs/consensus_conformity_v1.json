@@ -21,7 +21,7 @@
   "independent_behavior_task": {
     "task_id": "peer_judgment_probability_v1",
     "task_family": "social_information_weighting",
-    "prompt_template": "Consider a separate factual question with private evidence and answers from several ordinary peers. Report the probability that the focal claim is true from 0 to 100. The peer responses and private evidence are controlled as task factors; do not ask the model to label its social decision style.",
+    "prompt_template": "Consider a separate factual question with private evidence and answers from several ordinary peers. Report the probability that the focal claim is true from 0 to 100 as one integer. The peer responses and private evidence are controlled as task factors; do not ask the model to label its social decision style.",
     "primary_outcome": "claim_probability",
     "secondary_outcomes": ["peer_consistent_probability", "compliance"],
     "response_format": "single_integer_0_to_100",

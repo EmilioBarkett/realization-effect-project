@@ -25,6 +25,7 @@ DEFAULT_OPENAI_MODEL = "gpt-5.6-luna"
 DEFAULT_REASONING_EFFORT = "xhigh"
 DEFAULT_TIMEOUT_SECONDS = 120.0
 DEFAULT_MAX_OUTPUT_TOKENS = 8000
+OPENAI_TIMEOUT_OVERRIDE_ENV = "OPENAI_REQUEST_TIMEOUT_SECONDS"
 
 
 def _default_response_schema() -> dict[str, Any]:
@@ -269,10 +270,21 @@ def call_openai_responses(
         headers=headers,
         method="POST",
     )
+    configured_timeout = float(options.get("timeout", DEFAULT_TIMEOUT_SECONDS))
+    environment_timeout = os.environ.get(OPENAI_TIMEOUT_OVERRIDE_ENV)
+    if environment_timeout:
+        try:
+            configured_timeout = max(configured_timeout, float(environment_timeout))
+        except ValueError:
+            raise ValueError(
+                f"{OPENAI_TIMEOUT_OVERRIDE_ENV} must be a positive number when set."
+            )
+    if configured_timeout <= 0:
+        raise ValueError("OpenAI request timeout must be positive.")
     try:
         with urllib.request.urlopen(
             request,
-            timeout=float(options.get("timeout", DEFAULT_TIMEOUT_SECONDS)),
+            timeout=configured_timeout,
         ) as response:
             raw_response = json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:

@@ -37,6 +37,28 @@ def _parse_layers(value: str) -> list[int]:
     return layers
 
 
+def _resolve_requested_layers(
+    requested_layers: list[int] | None,
+    *,
+    all_layers: bool,
+    num_transformer_layers: int,
+) -> list[int]:
+    """Resolve the explicit benchmark layer list or the opt-in all-layer trace."""
+
+    if num_transformer_layers < 1:
+        raise ValueError("num_transformer_layers must be >= 1.")
+    if all_layers:
+        return list(range(1, num_transformer_layers + 1))
+    if not requested_layers:
+        raise ValueError("Provide requested layers unless all_layers is enabled.")
+    if min(requested_layers) < 1 or max(requested_layers) > num_transformer_layers:
+        raise ValueError(
+            f"Requested layers must be between 1 and {num_transformer_layers}; "
+            f"got {requested_layers}."
+        )
+    return list(requested_layers)
+
+
 def _parse_token_region_filter(value: str | None) -> set[str] | None:
     if value is None:
         return None
@@ -342,12 +364,30 @@ def _write_manifest(
             "attn_implementation": getattr(args, "attn_implementation", None),
             "resolved_device": getattr(logger, "resolved_device", logger.device),
         },
+        "instrumentation": {
+            "mode": "residual_all_layers" if getattr(args, "all_layers", False) else "benchmark",
+            "residual_only": True,
+            "component_traces": [],
+            "all_transformer_layers": bool(getattr(args, "all_layers", False)),
+            "interpretability_scope": "residual_stream_only",
+            "note": (
+                "An all-layer residual trace supports later localization and causal tracing, "
+                "but does not capture attention-head, MLP, or feature-level circuit internals."
+            ),
+        },
         "input": {
             "emotion_config": args.emotion_config,
             "prompt_csv": args.prompt_csv,
             "prompt_column": args.prompt_column,
             "id_column": args.id_column,
             "limit": args.limit,
+        },
+        "tokenization": {
+            "truncation": False,
+            "max_length": args.max_length,
+            "checked_prompt_count": getattr(logger, "tokenization_prompt_count", total_prompts),
+            "max_observed_token_length": getattr(logger, "tokenization_max_observed_length", None),
+            "over_limit_count": getattr(logger, "tokenization_over_limit_count", 0),
         },
         "stats": stats,
         "shards": shards,
@@ -377,13 +417,14 @@ def _sanitize_run_part(value: str) -> str:
 
 
 def _build_run_name(args: argparse.Namespace, records: list[PromptRecord]) -> str:
-    layers = "-".join(str(layer) for layer in args.layers)
+    all_layers = bool(getattr(args, "all_layers", False))
+    layers = "all" if all_layers else "-".join(str(layer) for layer in (args.layers or []))
     prompt_source = args.prompt_csv or args.emotion_config or "prompt-records"
     fingerprint_payload = {
         "model_id": args.model_id,
         "tokenizer_id": args.tokenizer_id,
         "revision": args.revision,
-        "layers": args.layers,
+        "layers": "all" if all_layers else args.layers,
         "token_mode": args.token_mode,
         "activation_site": args.activation_site,
         "token_region_strategy": args.token_region_strategy,
@@ -423,7 +464,16 @@ def main() -> None:
     )
     parser.add_argument("--run-name", default=None, help="Optional deterministic run directory name.")
     parser.add_argument("--overwrite", action="store_true", help="Allow writing into a non-empty output directory.")
-    parser.add_argument("--layers", type=_parse_layers, required=True, help="Comma-separated layers, 1-based")
+    layer_group = parser.add_mutually_exclusive_group(required=True)
+    layer_group.add_argument("--layers", type=_parse_layers, help="Comma-separated layers, 1-based")
+    layer_group.add_argument(
+        "--all-layers",
+        action="store_true",
+        help=(
+            "Opt in to a residual-only trace at every transformer layer. This is an "
+            "interpretability extension, not a full attention/MLP circuit trace."
+        ),
+    )
     parser.add_argument("--emotion-config", help="Structured probe config JSON; mutually exclusive with --prompt-csv.")
     parser.add_argument("--prompt-csv", help="Frozen CSV with a prompt text column and optional metadata.")
     parser.add_argument("--prompt-column", default="prompt_text")
@@ -528,6 +578,12 @@ def main() -> None:
         stop_after_last_requested_layer=not args.no_early_stop,
     )
 
+    layers = _resolve_requested_layers(
+        args.layers,
+        all_layers=args.all_layers,
+        num_transformer_layers=logger.num_transformer_layers,
+    )
+
     shards: list[dict[str, Any]] = []
     processed_records: list[PromptRecord] = []
     stopped_by_runtime = False
@@ -543,7 +599,7 @@ def main() -> None:
         batch = logger.extract_batch(
             [record.prompt_text for record in batch_records],
             [record.prompt_id for record in batch_records],
-            args.layers,
+            layers,
             max_length=args.max_length,
             token_mode=args.token_mode,
             activation_site=args.activation_site,
@@ -555,7 +611,7 @@ def main() -> None:
                 batch_index,
                 batch_records,
                 batch,
-                args.layers,
+                layers,
                 storage_dtype=args.storage_dtype,
                 include_token_regions=args.include_token_regions,
             )
@@ -574,7 +630,7 @@ def main() -> None:
         output_dir,
         args,
         logger,
-        args.layers,
+        layers,
         shards,
         total_prompts=len(processed_records),
         selected_prompts=len(records),

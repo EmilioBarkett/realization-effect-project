@@ -1,23 +1,26 @@
 """Generic construct-aware synthetic prompt generation.
 
-This module owns the benchmark-facing contract. It reuses the OpenRouter
-transport but does not reuse the realization-specific response fields or
-validation rules from the legacy activation prompt generator.
+This module owns the benchmark-facing contract. It uses the OpenAI Responses
+transport for the active Luna generation workflow and does not reuse the
+realization-specific response fields or validation rules from the legacy
+activation prompt generator.
 """
 
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 import math
 import random
 import re
 import urllib.error
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Iterable, Mapping
 
-from activation_analysis.openrouter_prompt_generation import call_openrouter_chat_completion
+from activation_analysis.openai_prompt_generation import call_openai_responses
 
 from .prompts import PromptRecord, validate_prompt_records, write_prompt_records
 from .schemas import ConstructSpec, SCHEMA_VERSION, SUPPORTED_SCHEMA_VERSIONS
@@ -27,11 +30,68 @@ from .splits import SPLIT_PROMPT_ROLE
 RequestFn = Callable[[str, list[dict[str, str]], dict[str, Any]], dict[str, Any]]
 JobCompletionFn = Callable[["ConstructGenerationJob", tuple[PromptRecord, ...], dict[str, Any]], None]
 JobStartFn = Callable[["ConstructGenerationJob"], None]
+JobAttemptFn = Callable[["ConstructGenerationJob", int, Mapping[str, Any], str | None], None]
+JobRecordsValidatorFn = Callable[["ConstructGenerationJob", tuple[PromptRecord, ...]], None]
 _ID_PATTERN = re.compile(r"^[a-z][a-z0-9_]*$")
 DEFAULT_ESTIMATED_INPUT_TOKENS_PER_REQUEST = 1400
 DEFAULT_ESTIMATED_OUTPUT_TOKENS_PER_RECORD = 300
 MAX_GENERATED_PROMPT_CHARS = 2000
 MAX_GENERATED_NOTES_CHARS = 2000
+PROBE_WRAPPER_NORMALIZATION_VERSION = "2"
+
+# Final downstream inputs must not contain control-plane instructions or the
+# probe-only continuation tail.  These checks are shared by generation and
+# release auditing so a prompt cannot pass one path and fail the other.
+DOWNSTREAM_PROBE_ONLY_SUFFIX = "continue processing the scenario."
+DOWNSTREAM_GENERATION_ONLY_PATTERNS = (
+    re.compile(r"\buse (?:new|distinct|different) (?:domains?|actors?|entities?|scenarios?|item identifiers?)\b"),
+    re.compile(r"\b(?:registered|preregistered) (?:task|response|prompt|category|schedule)\b"),
+    re.compile(r"\b(?:content pool|prompt family|construct id|generation mode|generation plan)\b"),
+    re.compile(r"\bdo not mention (?:or reuse )?an earlier (?:scenario|prompt|item)\b"),
+)
+DOWNSTREAM_GENERIC_SETUP_MARKERS = (
+    re.compile(r"\bfor a separate (?:decision|choice)\b"),
+    re.compile(r"\bfor the separate allocation problem\b"),
+)
+DOWNSTREAM_RESPONSE_MARKER = re.compile(
+    r"\b(?:return|respond|report|output|provide)\s+exactly\b"
+)
+SINGLE_INTEGER_CHOICE_PATTERN = re.compile(
+    r"\b(?:1\s*(?:or|/)\s*2|one\s+or\s+two|1\s+for\b.{0,180}\b2\s+for\b)"
+)
+
+
+def downstream_prompt_text_issues(
+    prompt_text: str,
+    *,
+    expected_output_format: str | None = None,
+) -> tuple[str, ...]:
+    """Return lexical violations of the final downstream prompt contract.
+
+    The checks are deliberately conservative.  They detect composition
+    artifacts such as a copied generation instruction, a duplicated generic
+    task setup, or a probe continuation suffix; they do not claim to prove
+    semantic independence from the probe.
+    """
+
+    del expected_output_format  # reserved for future format-specific checks
+    folded = str(prompt_text).casefold()
+    issues: list[str] = []
+    if DOWNSTREAM_PROBE_ONLY_SUFFIX in folded:
+        issues.append("downstream prompt contains the probe-only continuation suffix")
+    for pattern in DOWNSTREAM_GENERATION_ONLY_PATTERNS:
+        if pattern.search(folded):
+            issues.append(f"downstream prompt contains generation-only directive: {pattern.pattern}")
+    if any(len(pattern.findall(folded)) > 1 for pattern in DOWNSTREAM_GENERIC_SETUP_MARKERS):
+        issues.append("downstream prompt repeats the generic task setup")
+    response_count = len(DOWNSTREAM_RESPONSE_MARKER.findall(folded))
+    if response_count > 1:
+        issues.append("downstream prompt contains multiple response contracts")
+    if response_count == 1:
+        response_tail = folded[folded.rfind("exactly") :]
+        if re.search(r"\b(?:continue processing|generate|rewrite|use new|do not mention)\b", response_tail):
+            issues.append("downstream prompt contains an instruction after its response contract")
+    return tuple(dict.fromkeys(issues))
 
 
 def _default_generation_run_modes() -> dict[str, dict[str, Any]]:
@@ -383,19 +443,115 @@ class GenerationResult:
             "actual_output_tokens": output_tokens,
             "actual_total_tokens": input_tokens + output_tokens,
             "actual_cost_usd": actual_cost_usd,
+            "attempt_count": len(self.request_metadata),
+            "rejected_attempt_count": sum(
+                item.get("semantic_attempt_status") == "rejected"
+                for item in self.request_metadata
+            ),
         }
 
 
-def load_generation_plan(path: str | Path, spec: ConstructSpec) -> dict[str, Any]:
-    """Load and validate one construct-specific generation plan."""
+def _apply_generation_plan_overrides(
+    plan: Mapping[str, Any],
+    overrides: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Apply a small downstream-only overlay without changing the base plan."""
 
-    plan_path = Path(path)
+    if not isinstance(overrides, Mapping):
+        raise ValueError("generation-plan overrides must be an object.")
+    allowed = {
+        "plan_id",
+        "calibration_factor_schedule",
+        "downstream_pool_separation",
+        "cells",
+    }
+    unknown = set(overrides) - allowed
+    if unknown:
+        raise ValueError(f"Unsupported generation-plan override fields: {sorted(unknown)}")
+    effective = copy.deepcopy(dict(plan))
+    for field in (
+        "plan_id",
+        "calibration_factor_schedule",
+        "downstream_pool_separation",
+    ):
+        if field in overrides:
+            effective[field] = copy.deepcopy(overrides[field])
+    raw_cell_overrides = overrides.get("cells", {})
+    if not isinstance(raw_cell_overrides, Mapping):
+        raise ValueError("generation-plan override cells must be an object keyed by cell_id.")
+    if raw_cell_overrides:
+        cells = effective.get("cells")
+        if not isinstance(cells, list):
+            raise ValueError("generation-plan override cells require a base cells list.")
+        cells_by_id = {
+            str(cell.get("cell_id")): cell
+            for cell in cells
+            if isinstance(cell, Mapping) and cell.get("cell_id")
+        }
+        for cell_id, raw_override in raw_cell_overrides.items():
+            if str(cell_id) not in cells_by_id:
+                raise ValueError(f"generation-plan override references unknown cell_id={cell_id!r}.")
+            if not isinstance(raw_override, Mapping):
+                raise ValueError(f"generation-plan override for {cell_id!r} must be an object.")
+            cells_by_id[str(cell_id)].update(copy.deepcopy(dict(raw_override)))
+    return effective
+
+
+def _deep_merge(base: Any, overlay: Any) -> Any:
+    """Merge a versioned generation-plan overlay without mutating its base."""
+
+    if isinstance(base, dict) and isinstance(overlay, dict):
+        merged = copy.deepcopy(base)
+        for key, value in overlay.items():
+            merged[key] = _deep_merge(merged[key], value) if key in merged else copy.deepcopy(value)
+        return merged
+    return copy.deepcopy(overlay)
+
+
+def _load_inherited_plan_payload(path: Path, *, stack: tuple[Path, ...] = ()) -> dict[str, Any]:
+    path = path.resolve()
+    if path in stack:
+        cycle = " -> ".join(str(item) for item in (*stack, path))
+        raise ValueError(f"Generation-plan inheritance cycle: {cycle}")
     try:
-        plan = json.loads(plan_path.read_text(encoding="utf-8"))
+        payload = json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
-        raise ValueError(f"{plan_path} is not valid JSON.") from exc
-    if not isinstance(plan, dict):
-        raise ValueError(f"{plan_path} must contain a JSON object.")
+        raise ValueError(f"{path} is not valid JSON.") from exc
+    if not isinstance(payload, dict):
+        raise ValueError(f"{path} must contain a JSON object.")
+    base_ref = payload.pop("base_plan_path", None)
+    overlay = payload.pop("overrides", None)
+    if base_ref is None:
+        if overlay is not None:
+            raise ValueError(f"{path}.overrides requires base_plan_path.")
+        return payload
+    if not isinstance(base_ref, str) or not base_ref.strip():
+        raise ValueError(f"{path}.base_plan_path must be a non-empty string.")
+    base_path = (path.parent / base_ref).resolve()
+    base = _load_inherited_plan_payload(base_path, stack=(*stack, path))
+    effective = _deep_merge(base, payload)
+    if overlay is not None:
+        effective = _apply_generation_plan_overrides(effective, overlay)
+    return effective
+
+
+def load_generation_plan(
+    path: str | Path,
+    spec: ConstructSpec,
+    *,
+    overrides: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Load and validate one construct-specific generation plan.
+
+    A plan may be a small, versioned overlay with ``base_plan_path`` and
+    ``overrides``.  The base plan remains immutable; the returned mapping is
+    the effective plan whose hash is used for generated-record provenance.
+    """
+
+    plan_path = Path(path).resolve()
+    plan = _load_inherited_plan_payload(plan_path)
+    if overrides is not None:
+        plan = _apply_generation_plan_overrides(plan, overrides)
     schema_version = plan.get("schema_version", SCHEMA_VERSION)
     if schema_version not in SUPPORTED_SCHEMA_VERSIONS:
         raise ValueError(f"Unsupported generation-plan schema_version={schema_version!r}.")
@@ -808,6 +964,14 @@ def build_generation_messages(spec: ConstructSpec, plan: Mapping[str, Any], job:
     cell = job.cell
     task = spec.independent_behavior_task
     assigned_domains = _assigned_content_domains(plan, job)
+    scheduled_pair_requirements = [
+        {
+            "pair_index": index + 1,
+            "content_domain": assigned_domains[index],
+            "task_metadata": _expected_category_assignments(job, index),
+        }
+        for index in range(job.count)
+    ] if job.mode == "paired" else []
     system = (
         "You generate controlled, theory-relevant prompts for a multi-construct "
         "representation benchmark. Return only JSON matching the requested schema. "
@@ -817,8 +981,30 @@ def build_generation_messages(spec: ConstructSpec, plan: Mapping[str, Any], job:
         "content pools. In paired mode, make each pair a minimal contrast: preserve the "
         "same actor, entities, quantities, chronology, prose structure, and processing "
         "instruction, changing only the theory-relevant state needed to distinguish the "
-        "two registered conditions."
+        "two registered conditions. Treat the numbered schedule in the user payload as "
+        "authoritative: copy each pair's assigned metadata exactly by pair index, do not "
+        "reorder, rotate, or infer schedule values. "
+        "The forbidden_terms list is an output ban, not vocabulary to echo: "
+        "never copy any forbidden term into generated content. For probe prompts, "
+        "apply that ban to the Scenario body; terms that occur only in the registered "
+        "wrapper are allowed there. Use concrete facts and plain descriptions instead "
+        "of naming the target construct or its conditions."
     )
+    if job.prompt_role != "probe":
+        system += (
+            " For downstream single prompts, prompt_text is the final end-user model input, not a description "
+            "of the generation task. Instantiate exactly one concrete task from the registered task specification. "
+            "Do not paste or repeat the registered task template, cell instructions, design rules, content-pool "
+            "names, generation instructions, or benchmark language into prompt_text. Include exactly one concrete "
+            "task setup and exactly one response contract as the final instruction. Never include the probe-only "
+            "sentence 'Continue processing the scenario.' and never refer to an earlier, prior, or probe scenario."
+        )
+        if isinstance(plan.get("downstream_pool_separation"), Mapping):
+            system += (
+                " The downstream pool contract below is authoritative: every generated prompt must contain "
+                "at least one required anchor for its assigned content pool, must contain none of that pool's "
+                "forbidden anchors, and should use the required anchor word literally in the final prompt."
+            )
     user_payload = {
         "task": "Generate prompts for one registered behavioral construct.",
         "construct_id": spec.construct_id,
@@ -831,14 +1017,39 @@ def build_generation_messages(spec: ConstructSpec, plan: Mapping[str, Any], job:
         "content_pool": job.content_pool,
         "content_pool_domains": plan["content_pools"][job.content_pool]["domains"],
         "assigned_content_domains": assigned_domains,
+        "scheduled_pair_requirements": scheduled_pair_requirements,
         "count": job.count,
         "generation_mode": job.mode,
         "probe_template": spec.probe_prompt_template if job.prompt_role == "probe" else None,
         "independent_task": task if job.prompt_role != "probe" else None,
+        "registered_downstream_task_template": (
+            task["prompt_template"] if job.prompt_role != "probe" else None
+        ),
         "item_metadata_schema": task["item_metadata_schema"] if job.prompt_role != "probe" else None,
         "paired_item_metadata_schema": _paired_metadata_schema(spec) if job.mode == "paired" else None,
         "cell_instructions": cell.get("instructions", ""),
         "category_balance": dict(cell.get("category_balance", {})),
+        "downstream_pool_separation": (
+            plan.get("downstream_pool_separation") if job.prompt_role != "probe" else None
+        ),
+        "required_downstream_prompt_anchors": (
+            list(
+                plan.get("downstream_pool_separation", {})
+                .get("required_prompt_anchors", {})
+                .get(job.content_pool, [])
+            )
+            if job.prompt_role != "probe"
+            else []
+        ),
+        "forbidden_downstream_prompt_anchors": (
+            list(
+                plan.get("downstream_pool_separation", {})
+                .get("forbidden_prompt_anchors", {})
+                .get(job.content_pool, [])
+            )
+            if job.prompt_role != "probe"
+            else []
+        ),
         "required_category_assignments": [
             _expected_category_assignments(job, index) for index in range(job.count)
         ],
@@ -857,7 +1068,11 @@ def build_generation_messages(spec: ConstructSpec, plan: Mapping[str, Any], job:
             f"{MAX_GENERATED_PROMPT_CHARS} characters and notes at or below {MAX_GENERATED_NOTES_CHARS} characters. For single "
             "mode return exactly count prompts with the assigned content_domain at the corresponding index and "
             "task_metadata that exactly follows item_metadata_schema. "
-            "Every prompt_text must be a complete model input, not a summary."
+            "Every prompt_text must be a complete model input, not a summary. For every downstream single prompt, "
+            "keep prompt_text at or below 1900 characters so the response instruction has safe truncation headroom. "
+            "The registered_downstream_task_template is normative as a specification: instantiate its task setup "
+            "and include one complete response-format instruction in the final prompt. Do not paste the template "
+            "or any generation-only instruction verbatim, and do not append text after the response contract."
         ),
     }
     return [
@@ -907,7 +1122,102 @@ def _validate_object_keys(
         raise ValueError(f"{context} is missing required field(s): {sorted(missing)}.")
 
 
-def _validate_text(prompt_text: Any, *, plan: Mapping[str, Any], job: ConstructGenerationJob) -> str:
+def normalize_probe_prompt_wrapper(
+    prompt_text: str,
+    *,
+    probe_prompt_template: str,
+) -> tuple[str, bool]:
+    """Apply a bounded repair to a registered probe wrapper.
+
+    Prompt generation models occasionally put the scenario on the same line as
+    ``Scenario:`` or put the registered continuation tail on the same line as
+    the final sentence, or duplicate the wrapper marker immediately before the
+    scenario. They can also reproduce a superseded wrapper while preserving the
+    current scenario body. The wrapper is part of the benchmark contract, so
+    these deviations are canonicalized deterministically rather than silently
+    accepted. This helper is intentionally narrow: it requires the registered
+    suffix, only removes an adjacent duplicate marker, and never edits the
+    scenario body.
+    """
+
+    if "{scenario}" not in probe_prompt_template:
+        return prompt_text.strip(), False
+    prefix, suffix = probe_prompt_template.split("{scenario}", maxsplit=1)
+    candidate = prompt_text.strip()
+    normalized = candidate
+
+    prefix_anchor = prefix.rstrip()
+    if not normalized.startswith(prefix) and normalized.startswith(prefix_anchor):
+        remainder = normalized[len(prefix_anchor) :].lstrip()
+        normalized = prefix + remainder
+
+    suffix_anchor = suffix.strip()
+    if not normalized.endswith(suffix) and suffix_anchor and normalized.endswith(suffix_anchor):
+        body = normalized[: -len(suffix_anchor)].rstrip()
+        normalized = body + suffix
+
+    scenario_marker = "Scenario:"
+    first_marker = normalized.find(scenario_marker)
+    second_marker = normalized.find(scenario_marker, first_marker + len(scenario_marker))
+    if (
+        first_marker >= 0
+        and second_marker >= 0
+        and normalized[first_marker + len(scenario_marker) : second_marker].strip() == ""
+    ):
+        normalized = normalized[:second_marker] + normalized[second_marker + len(scenario_marker) :].lstrip()
+
+    if not normalized.startswith(prefix) or not normalized.endswith(suffix):
+        if (
+            normalized.count(scenario_marker) == 1
+            and suffix_anchor
+            and normalized.endswith(suffix_anchor)
+        ):
+            marker_index = normalized.index(scenario_marker) + len(scenario_marker)
+            body_end = len(normalized) - len(suffix_anchor)
+            scenario_body = normalized[marker_index:body_end].strip()
+            if scenario_body:
+                normalized = prefix + scenario_body + suffix
+
+    return normalized, normalized != candidate
+
+
+def _require_registered_probe_wrapper(
+    prompt_text: str,
+    *,
+    probe_prompt_template: str,
+    job: ConstructGenerationJob,
+) -> None:
+    """Reject probe text that remains outside the registered wrapper contract."""
+
+    if "{scenario}" not in probe_prompt_template:
+        return
+    # Generic fixture generators may intentionally emit a bare placeholder
+    # prompt.  The production inventory audit remains the authority for rows
+    # that do not contain a scenario wrapper at all; when a response does claim
+    # to use the scenario form, enforce the registered wrapper here.
+    if "Scenario:" not in prompt_text:
+        return
+    prefix, suffix = probe_prompt_template.split("{scenario}", maxsplit=1)
+    issues: list[str] = []
+    if not prompt_text.startswith(prefix):
+        issues.append("missing registered wrapper prefix")
+    if not prompt_text.endswith(suffix):
+        issues.append("missing registered wrapper suffix")
+    if prompt_text.count("Scenario:") != 1:
+        issues.append("scenario marker count is not exactly one")
+    if issues:
+        raise ValueError(
+            f"{job.job_id} prompt does not satisfy the registered probe wrapper: {'; '.join(issues)}."
+        )
+
+
+def _validate_text(
+    prompt_text: Any,
+    *,
+    plan: Mapping[str, Any],
+    job: ConstructGenerationJob,
+    probe_prompt_template: str | None = None,
+) -> str:
     if not isinstance(prompt_text, str) or not prompt_text.strip():
         raise ValueError(f"{job.job_id} returned an empty or non-string prompt_text.")
     text = prompt_text.strip()
@@ -920,11 +1230,190 @@ def _validate_text(prompt_text: Any, *, plan: Mapping[str, Any], job: ConstructG
         for term in list(plan.get("forbidden_terms", [])) + list(job.cell.get("forbidden_terms", []))
         if str(term).strip()
     ]
-    lowered = text.lower()
+    text_forbidden_check = text
+    if job.prompt_role == "probe" and isinstance(probe_prompt_template, str):
+        normalized, _ = normalize_probe_prompt_wrapper(
+            text,
+            probe_prompt_template=probe_prompt_template,
+        )
+        prefix, suffix = probe_prompt_template.split("{scenario}", maxsplit=1)
+        if normalized.startswith(prefix) and normalized.endswith(suffix):
+            suffix_length = len(suffix)
+            text_forbidden_check = normalized[len(prefix) : len(normalized) - suffix_length]
+    lowered = text_forbidden_check.lower()
     forbidden_hits = [term for term in forbidden_terms if re.search(rf"\b{re.escape(term)}\b", lowered)]
     if forbidden_hits:
         raise ValueError(f"{job.job_id} prompt contains forbidden term(s): {sorted(set(forbidden_hits))}.")
+    if job.prompt_role != "probe":
+        composition_issues = downstream_prompt_text_issues(
+            text,
+            expected_output_format=str(job.cell.get("expected_output_format", "")),
+        )
+        if composition_issues:
+            raise ValueError(
+                f"{job.job_id} downstream prompt composition failed: {'; '.join(composition_issues)}."
+            )
     return text
+
+
+def _registered_response_instruction(task: Mapping[str, Any], expected_format: str) -> str:
+    """Extract the registered answer-format sentence for downstream completion.
+
+    Prompt generation models occasionally return a well-formed scenario but omit
+    the answer request.  The task template is the source of truth for completing
+    that mechanical suffix; this keeps the repair bounded to output formatting
+    and avoids inventing task-specific mappings in the runtime.
+    """
+
+    template = str(task.get("prompt_template", ""))
+    candidates = re.findall(r"(?i)(?:return|report|allocate|provide|enter)[^.?!]*[.?!]", template)
+    for candidate in candidates:
+        folded = candidate.casefold()
+        if expected_format == "single_integer_1_or_2":
+            if "1" in folded and "2" in folded and ("return" in folded or "report" in folded):
+                return candidate.strip()
+        elif expected_format == "single_integer_0_to_100":
+            if "0 to 100" in folded and "integer" in folded and ("return" in folded or "report" in folded):
+                return candidate.strip()
+        elif expected_format == "single_integer_allocation_0_to_100":
+            if (
+                "0 to 100" in folded
+                and "integer" in folded
+                and "option a" in folded
+                and ("return" in folded or "report" in folded)
+            ):
+                return candidate.strip()
+        elif expected_format == "two_integers_sum_100":
+            if "two integers" in folded and "separate line" in folded and "100" in folded:
+                return candidate.strip()
+        elif expected_format == "two_integers_on_separate_lines":
+            if "two integers" in folded and "separate line" in folded:
+                return candidate.strip()
+    fallbacks = {
+        "single_integer_1_or_2": "Return exactly one integer: 1 or 2.",
+        "single_integer_0_to_100": "Report the requested probability from 0 to 100 as one integer.",
+        "single_integer_allocation_0_to_100": "Return exactly one integer from 0 to 100: the points assigned to option A.",
+        "two_integers_sum_100": "Return exactly two integers on separate lines; the two integers must sum to 100.",
+        "two_integers_on_separate_lines": "Return exactly two integers on separate lines.",
+    }
+    try:
+        return fallbacks[expected_format]
+    except KeyError as exc:
+        raise ValueError(f"Unsupported downstream response format={expected_format!r}.") from exc
+
+
+def _response_instruction_is_present(prompt_text: str, expected_format: str) -> bool:
+    """Check whether a generated downstream prompt already has its parser request."""
+
+    folded = prompt_text.casefold()
+    if not re.search(r"\b(?:return|report|allocate|provide|enter)\b", folded):
+        return False
+    if expected_format == "single_integer_1_or_2":
+        return bool(
+            re.search(r"\binteger\b", folded)
+            and SINGLE_INTEGER_CHOICE_PATTERN.search(folded)
+        )
+    if expected_format == "single_integer_0_to_100":
+        return bool(
+            re.search(r"\binteger\b", folded)
+            and re.search(r"\b0\s*(?:to|-|through)\s*100\b|\bbetween\s+0\s+and\s+100\b", folded)
+        )
+    if expected_format == "single_integer_allocation_0_to_100":
+        return bool(
+            re.search(r"\binteger\b", folded)
+            and re.search(r"\b0\s*(?:to|-|through)\s*100\b|\bbetween\s+0\s+and\s+100\b", folded)
+            and re.search(r"\boption\s+a\b", folded)
+        )
+    if expected_format == "two_integers_sum_100":
+        return bool(
+            re.search(r"\btwo\s+integers?\b", folded)
+            and re.search(r"\bseparate\s+lines?\b", folded)
+            and re.search(r"\b100\b", folded)
+        )
+    if expected_format == "two_integers_on_separate_lines":
+        return bool(
+            re.search(r"\btwo\s+integers?\b", folded)
+            and re.search(r"\bseparate\s+lines?\b", folded)
+        )
+    raise ValueError(f"Unsupported downstream response format={expected_format!r}.")
+
+
+def _registered_neutral_calibration_instruction(plan: Mapping[str, Any]) -> str | None:
+    """Return a mechanical neutral-payoff suffix when a plan registers one.
+
+    Calibration contracts sometimes contain a fixed nuisance-only payoff that
+    must be present in every item.  The model may produce the substantive item
+    while omitting one of those fixed clauses, so the runtime may append this
+    bounded, plan-derived sentence.  It is intentionally limited to the
+    registered payoff fields and does not invent construct-specific content.
+    """
+
+    contract = plan.get("calibration_factor_schedule")
+    if not isinstance(contract, Mapping):
+        return None
+    payoff = contract.get("neutral_payoff")
+    if not isinstance(payoff, Mapping):
+        return None
+    sure_units = payoff.get("sure_outcome_units")
+    risky_high_units = payoff.get("risky_high_outcome_units")
+    risky_low_units = payoff.get("risky_low_outcome_units")
+    probability = str(payoff.get("probability", "")).strip().casefold()
+    if not all(
+        isinstance(value, int) and not isinstance(value, bool)
+        for value in (sure_units, risky_high_units, risky_low_units)
+    ):
+        return None
+    probability_phrase = {
+        "even": "probability one-half",
+        "one-half": "probability one-half",
+        "1/2": "probability one-half",
+        "50%": "probability 50%",
+    }.get(probability)
+    if probability_phrase is None:
+        return None
+    return (
+        "For this neutral calibration item, the sure option produces exactly "
+        f"{sure_units} neutral outcome units with certainty. The risky option produces exactly "
+        f"{risky_high_units} neutral outcome units with {probability_phrase} and "
+        f"{risky_low_units} neutral outcome units otherwise. These abstract outcome units have no external meaning."
+    )
+
+
+def _calibration_instruction_is_present(prompt_text: str, instruction: str) -> bool:
+    """Check whether a generated item already contains the registered suffix."""
+
+    return instruction.casefold() in prompt_text.casefold()
+
+
+def _complete_downstream_prompt_text(
+    prompt_text: str,
+    *,
+    task: Mapping[str, Any],
+    expected_format: str,
+    prompt_role: str,
+    plan: Mapping[str, Any] | None = None,
+) -> tuple[str, bool]:
+    """Append only missing mechanical instructions to a downstream item."""
+
+    completed = prompt_text.rstrip()
+    if prompt_role == "calibration" and plan is not None:
+        calibration_instruction = _registered_neutral_calibration_instruction(plan)
+        if (
+            calibration_instruction is not None
+            and not _calibration_instruction_is_present(completed, calibration_instruction)
+        ):
+            # Put the canonical payoff first so validators that inspect the
+            # first sure/risky-option section cannot be shadowed by an
+            # incomplete model-generated paraphrase later in the item.
+            completed = f"{calibration_instruction}\n\n{completed}"
+    response_instruction_completed = False
+    if prompt_role != "probe" and not _response_instruction_is_present(completed, expected_format):
+        instruction = _registered_response_instruction(task, expected_format)
+        completed = f"{completed}\n\n{instruction}"
+        response_instruction_completed = True
+    if len(completed) > MAX_GENERATED_PROMPT_CHARS:
+        raise ValueError("Completed downstream prompt exceeds the registered prompt length limit.")
+    return completed, response_instruction_completed
 
 
 def _validate_metadata_schema(
@@ -1064,7 +1553,12 @@ def _parse_response(
                 seen_conditions.add(condition_id)
                 prompt_row: dict[str, Any] = {
                     "condition_id": condition_id,
-                    "prompt_text": _validate_text(prompt.get("prompt_text"), plan=plan, job=job),
+                    "prompt_text": _validate_text(
+                        prompt.get("prompt_text"),
+                        plan=plan,
+                        job=job,
+                        probe_prompt_template=spec.probe_prompt_template,
+                    ),
                 }
                 if paired_metadata_schema is not None:
                     prompt_row["task_metadata"] = _validate_paired_task_metadata(
@@ -1129,7 +1623,12 @@ def _parse_response(
                 "variant_id": variant_id,
                 "content_domain": content_domain,
                 "task_metadata": _validate_task_metadata(prompt["task_metadata"], spec=spec, job=job),
-                "prompt_text": _validate_text(prompt.get("prompt_text"), plan=plan, job=job),
+                "prompt_text": _validate_text(
+                    prompt.get("prompt_text"),
+                    plan=plan,
+                    job=job,
+                    probe_prompt_template=spec.probe_prompt_template,
+                ),
                 "notes": prompt["notes"],
             }
         )
@@ -1147,7 +1646,7 @@ def _record_metadata(
     generation_metadata: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     transport = dict(generation_metadata or {})
-    provider = str(transport.get("provider", "openrouter")).strip().lower() or "openrouter"
+    provider = str(transport.get("provider", "openai")).strip().lower() or "openai"
     metadata = {
         "source": f"{provider}_generated",
         "generation_provider": provider,
@@ -1221,6 +1720,19 @@ def _records_from_response(
                     content_domain=pair["content_domain"],
                     generation_metadata=generation_metadata,
                 )
+                prompt_text, wrapper_normalized = normalize_probe_prompt_wrapper(
+                    prompt["prompt_text"],
+                    probe_prompt_template=spec.probe_prompt_template,
+                ) if job.prompt_role == "probe" else (prompt["prompt_text"], False)
+                if job.prompt_role == "probe":
+                    _require_registered_probe_wrapper(
+                        prompt_text,
+                        probe_prompt_template=spec.probe_prompt_template,
+                        job=job,
+                    )
+                if wrapper_normalized:
+                    metadata["probe_wrapper_normalization_version"] = PROBE_WRAPPER_NORMALIZATION_VERSION
+                    metadata["probe_wrapper_normalization_applied"] = True
                 if paired_metadata_schema is not None:
                     metadata["task_metadata"] = task_metadata
                     metadata.update(task_metadata)
@@ -1230,7 +1742,7 @@ def _records_from_response(
                         construct_id=spec.construct_id,
                         split=job.split,
                         prompt_role=job.prompt_role,
-                        prompt_text=prompt["prompt_text"],
+                        prompt_text=prompt_text,
                         condition_id=condition_id,
                         pair_id=pair_id,
                         pair_role=condition_id,
@@ -1246,6 +1758,22 @@ def _records_from_response(
     condition_id = str(job.cell.get("condition_id", "neutral"))
     for prompt in parsed:
         prompt_index = len(records)
+        calibration_instruction = (
+            _registered_neutral_calibration_instruction(plan)
+            if job.prompt_role == "calibration"
+            else None
+        )
+        calibration_instruction_completed = (
+            calibration_instruction is not None
+            and not _calibration_instruction_is_present(prompt["prompt_text"], calibration_instruction)
+        )
+        prompt_text, response_instruction_completed = _complete_downstream_prompt_text(
+            prompt["prompt_text"],
+            task=task,
+            expected_format=expected_format,
+            prompt_role=job.prompt_role,
+            plan=plan,
+        )
         expected_categories = _expected_category_assignments(job, prompt_index)
         for field, expected_value in expected_categories.items():
             actual_value = prompt["task_metadata"].get(field)
@@ -1263,15 +1791,40 @@ def _records_from_response(
             content_domain=prompt["content_domain"],
             generation_metadata=generation_metadata,
         )
+        if job.prompt_role == "probe":
+            prompt_text, wrapper_normalized = normalize_probe_prompt_wrapper(
+                prompt_text,
+                probe_prompt_template=spec.probe_prompt_template,
+            )
+            _require_registered_probe_wrapper(
+                prompt_text,
+                probe_prompt_template=spec.probe_prompt_template,
+                job=job,
+            )
+        else:
+            wrapper_normalized = False
+        if wrapper_normalized:
+            metadata["probe_wrapper_normalization_version"] = PROBE_WRAPPER_NORMALIZATION_VERSION
+            metadata["probe_wrapper_normalization_applied"] = True
         metadata["task_metadata"] = dict(prompt["task_metadata"])
         metadata.update(prompt["task_metadata"])
+        metadata["response_instruction_completion"] = (
+            "appended_registered_task_instruction"
+            if response_instruction_completed
+            else "model_supplied"
+        )
+        metadata["calibration_instruction_completion"] = (
+            "appended_registered_neutral_payoff"
+            if calibration_instruction_completed
+            else "model_supplied_or_not_required"
+        )
         records.append(
             PromptRecord(
                 prompt_id=f"{job.job_id}__{prompt['variant_id']}",
                 construct_id=spec.construct_id,
                 split=job.split,
                 prompt_role=job.prompt_role,
-                prompt_text=prompt["prompt_text"],
+                prompt_text=prompt_text,
                 condition_id=condition_id,
                 prompt_family=job.prompt_family,
                 task_id=task_id,
@@ -1356,6 +1909,33 @@ def _request_with_retries(
     raise last_error
 
 
+def _append_semantic_retry_reason(
+    messages: list[dict[str, str]],
+    *,
+    attempt: int,
+    rejection_reason: str,
+) -> list[dict[str, str]]:
+    """Add an exact, bounded corrective instruction to a semantic retry."""
+
+    if not messages:
+        raise ValueError("Cannot construct a semantic retry without generation messages.")
+    retry_messages = [dict(message) for message in messages]
+    last = retry_messages[-1]
+    content = last.get("content")
+    if not isinstance(content, str):
+        raise ValueError("Cannot construct a semantic retry without a textual user message.")
+    last["content"] = (
+        content
+        + "\n\nCORRECTIVE RETRY "
+        + str(attempt)
+        + ": The previous response was rejected by the downstream contract. "
+        + "Fix only the rejection below and return the complete requested JSON. "
+        + "Exact rejection reason: "
+        + rejection_reason
+    )
+    return retry_messages
+
+
 def iter_generation_request_jobs(
     plan: Mapping[str, Any],
     *,
@@ -1408,7 +1988,8 @@ def generate_prompt_records(
     spec: ConstructSpec,
     *,
     api_key: str,
-    request_fn: RequestFn = call_openrouter_chat_completion,
+    request_fn: RequestFn = call_openai_responses,
+    workers: int = 1,
     model_aliases: set[str] | None = None,
     count_per_model_override: int | None = None,
     limit_jobs: int | None = None,
@@ -1418,8 +1999,17 @@ def generate_prompt_records(
     completed_job_metadata: Mapping[str, Mapping[str, Any]] | None = None,
     on_job_complete: JobCompletionFn | None = None,
     before_job_request: JobStartFn | None = None,
+    semantic_retry_limit: int = 0,
+    semantic_attempt_history: Mapping[str, Iterable[Mapping[str, Any]]] | None = None,
+    on_job_attempt: JobAttemptFn | None = None,
+    job_records_validator: JobRecordsValidatorFn | None = None,
 ) -> GenerationResult:
     """Generate and validate a complete or explicitly limited inventory."""
+
+    if isinstance(semantic_retry_limit, bool) or semantic_retry_limit < 0:
+        raise ValueError("semantic_retry_limit must be a non-negative integer.")
+    if isinstance(workers, bool) or workers < 1:
+        raise ValueError("workers must be a positive integer.")
 
     jobs = tuple(
         iter_generation_jobs(
@@ -1441,61 +2031,162 @@ def generate_prompt_records(
     max_per_request = int(generation.get("max_items_per_request", 0) or 0)
     records: list[PromptRecord] = []
     request_metadata: list[dict[str, Any]] = []
-    request_count = 0
     cached_records = dict(completed_job_records or {})
     cached_metadata = dict(completed_job_metadata or {})
-    for parent_job in jobs:
-        for job in _chunk_jobs(parent_job, max_per_request):
-            request_count += 1
-            _validate_paired_job_schedule(job)
-            if job.job_id in cached_records:
-                recovered = tuple(cached_records[job.job_id])
-                validate_prompt_records(
-                    recovered,
-                    {spec.construct_id: spec},
-                    require_all_splits=False,
-                )
-                records.extend(recovered)
-                metadata = cached_metadata.get(job.job_id)
-                if metadata is not None:
-                    request_metadata.append(dict(metadata))
-                continue
-            if before_job_request is not None:
-                before_job_request(job)
-            options = {
-                **generation,
-                **dict(transport_options or {}),
-                "api_key": api_key,
-                "seed": job.seed,
-                "temperature": job.temperature,
-                "generation_job_id": job.job_id,
-                "response_schema": response_schema_for_job(job, spec),
-            }
-            messages = build_generation_messages(spec, plan, job)
-            response = _request_with_retries(request_fn, job, messages, options)
-            incomplete_reason = _incomplete_response_reason(response)
-            if incomplete_reason is not None:
-                raise ValueError(
-                    f"{job.job_id} response incomplete before prompt parsing "
-                    f"(reason={incomplete_reason}). Increase max_output_tokens or regenerate the job."
-                )
-            raw_metadata = response.get("_generation_metadata")
-            if isinstance(raw_metadata, Mapping):
-                normalized_metadata = dict(raw_metadata)
-                request_metadata.append(normalized_metadata)
-            else:
-                normalized_metadata = {}
-            job_records = tuple(_records_from_response(response, spec=spec, plan=plan, job=job))
-            # Validate each request before exposing it to a recovery callback.
-            # A malformed response therefore cannot become a durable checkpoint.
+    prior_attempts = {
+        str(job_id): [dict(item) for item in history]
+        for job_id, history in dict(semantic_attempt_history or {}).items()
+    }
+    request_jobs = tuple(
+        job
+        for parent_job in jobs
+        for job in _chunk_jobs(parent_job, max_per_request)
+    )
+    cached_results: dict[str, tuple[tuple[PromptRecord, ...], tuple[dict[str, Any], ...]]] = {}
+    pending_jobs: list[ConstructGenerationJob] = []
+    for job in request_jobs:
+        _validate_paired_job_schedule(job)
+        if job.job_id in cached_records:
+            recovered = tuple(cached_records[job.job_id])
             validate_prompt_records(
-                job_records,
+                recovered,
                 {spec.construct_id: spec},
                 require_all_splits=False,
             )
-            records.extend(job_records)
+            metadata = cached_metadata.get(job.job_id)
+            cached_results[job.job_id] = (
+                recovered,
+                (dict(metadata),) if metadata is not None else (),
+            )
+        else:
+            pending_jobs.append(job)
+
+    def generate_request(
+        job: ConstructGenerationJob,
+    ) -> tuple[ConstructGenerationJob, tuple[PromptRecord, ...], tuple[dict[str, Any], ...]]:
+        """Generate one request-level job.
+
+        The transport and callbacks are deliberately scoped to one stable job.
+        Results are gathered in request-plan order below, while API calls can
+        complete out of order in parallel.
+        """
+
+        if before_job_request is not None:
+            before_job_request(job)
+        options = {
+            **generation,
+            **dict(transport_options or {}),
+            "api_key": api_key,
+            "seed": job.seed,
+            "temperature": job.temperature,
+            "generation_job_id": job.job_id,
+            "response_schema": response_schema_for_job(job, spec),
+        }
+        messages = build_generation_messages(spec, plan, job)
+        history = [dict(item) for item in prior_attempts.get(job.job_id, [])]
+        if history and history[-1].get("status") == "rejected":
+            if len(history) > semantic_retry_limit:
+                reason = str(history[-1].get("rejection_reason") or "unknown semantic rejection")
+                raise ValueError(
+                    f"{job.job_id} exhausted semantic retry limit={semantic_retry_limit}; "
+                    f"last rejection: {reason}"
+                )
+            rejection_reason = str(history[-1].get("rejection_reason") or "unknown semantic rejection")
+        else:
+            rejection_reason = None
+        accepted = False
+        attempt_metadata: list[dict[str, Any]] = []
+        for semantic_attempt_index in range(len(history), semantic_retry_limit + 1):
+            attempt_number = semantic_attempt_index + 1
+            attempt_messages = messages
+            if rejection_reason is not None:
+                attempt_messages = _append_semantic_retry_reason(
+                    messages,
+                    attempt=attempt_number,
+                    rejection_reason=rejection_reason,
+                )
+            response = _request_with_retries(request_fn, job, attempt_messages, options)
+            raw_metadata = response.get("_generation_metadata")
+            normalized_metadata = dict(raw_metadata) if isinstance(raw_metadata, Mapping) else {}
+            normalized_metadata["semantic_attempt"] = attempt_number
+            attempt_metadata.append(normalized_metadata)
+            try:
+                incomplete_reason = _incomplete_response_reason(response)
+                if incomplete_reason is not None:
+                    raise ValueError(
+                        f"{job.job_id} response incomplete before prompt parsing "
+                        f"(reason={incomplete_reason}). Increase max_output_tokens or regenerate the job."
+                    )
+                job_records = tuple(_records_from_response(response, spec=spec, plan=plan, job=job))
+                # Validate each request before exposing it to a recovery callback.
+                # A malformed response therefore cannot become a durable checkpoint.
+                validate_prompt_records(
+                    job_records,
+                    {spec.construct_id: spec},
+                    require_all_splits=False,
+                )
+                if job_records_validator is not None:
+                    job_records_validator(job, job_records)
+            except (ValueError, json.JSONDecodeError) as exc:
+                rejection_reason = f"{type(exc).__name__}: {exc}"
+                normalized_metadata["semantic_attempt_status"] = "rejected"
+                normalized_metadata["semantic_rejection_reason"] = rejection_reason
+                history.append({
+                    "attempt": attempt_number,
+                    "status": "rejected",
+                    "rejection_reason": rejection_reason,
+                    "response_metadata": dict(normalized_metadata),
+                })
+                if on_job_attempt is not None:
+                    on_job_attempt(job, attempt_number, normalized_metadata, rejection_reason)
+                if semantic_attempt_index >= semantic_retry_limit:
+                    raise ValueError(
+                        f"{job.job_id} failed after {attempt_number} semantic attempt(s); "
+                        f"last rejection: {rejection_reason}"
+                    ) from exc
+                continue
+            normalized_metadata["semantic_attempt_status"] = "accepted"
+            history.append({
+                "attempt": attempt_number,
+                "status": "accepted",
+                "rejection_reason": None,
+                "response_metadata": dict(normalized_metadata),
+            })
+            if on_job_attempt is not None:
+                on_job_attempt(job, attempt_number, normalized_metadata, None)
             if on_job_complete is not None:
                 on_job_complete(job, job_records, normalized_metadata)
+            accepted = True
+            return job, job_records, tuple(attempt_metadata)
+        if not accepted:
+            raise ValueError(f"{job.job_id} did not produce an accepted response.")
+        raise AssertionError(f"Unreachable generation state for {job.job_id}.")
+
+    generated_results: dict[str, tuple[tuple[PromptRecord, ...], tuple[dict[str, Any], ...]]] = {}
+    if pending_jobs:
+        if workers == 1 or len(pending_jobs) == 1:
+            generated = [generate_request(job) for job in pending_jobs]
+        else:
+            with ThreadPoolExecutor(max_workers=min(workers, len(pending_jobs))) as executor:
+                futures = [executor.submit(generate_request, job) for job in pending_jobs]
+                # Resolve in submission order for deterministic failure reporting;
+                # the requests themselves still execute concurrently.
+                generated = [future.result() for future in futures]
+        generated_results = {
+            job.job_id: (job_records, metadata)
+            for job, job_records, metadata in generated
+        }
+
+    # Keep the canonical inventory and usage metadata deterministic even when
+    # requests finish in a different order on the wire.
+    for job in request_jobs:
+        job_result = cached_results.get(job.job_id) or generated_results.get(job.job_id)
+        if job_result is None:
+            raise ValueError(f"No result was produced for request job {job.job_id}.")
+        job_records, metadata = job_result
+        records.extend(job_records)
+        request_metadata.extend(metadata)
+    request_count = len(request_jobs)
     validate_prompt_records(
         records,
         {spec.construct_id: spec},

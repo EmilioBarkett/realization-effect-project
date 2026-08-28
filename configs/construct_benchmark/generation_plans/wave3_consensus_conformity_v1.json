@@ -123,6 +123,13 @@
     "required_item_fields": ["peer_judgment_direction", "private_evidence_relation", "private_evidence_strength", "peer_count"],
     "balance_check": "Each of the 16 combinations must appear at least once per content pool (behavior_eval and steering_eval). Warn if any combination is missing."
   },
+  "calibration_factor_schedule": {
+    "purpose": "neutral_peer_judgment_probability_variance",
+    "nuisance_fields": ["peer_judgment_direction", "private_evidence_strength", "peer_count"],
+    "neutral_fields": {"private_evidence_relation": "agrees_with_peers"},
+    "forbidden_terms": ["follow consensus", "independent judgment", "consensus conformity", "consensus", "conformity", "group agreement", "conflicts with peers", "disagrees with peers"],
+    "required_response_format": "single_integer_0_to_100"
+  },
   "cells": [
     {
       "cell_id": "probe_train",
@@ -210,14 +217,15 @@
       "task_id": "peer_judgment_probability_v1",
       "parser_id": "single_integer_probability_v1",
       "expected_output_format": "single_integer_0_to_100",
+      "factor_schedule": "calibration_factor_schedule",
       "count_per_model": 16,
       "category_balance": {
         "peer_judgment_direction": ["supports_claim", "supports_claim", "supports_claim", "supports_claim", "supports_claim", "supports_claim", "supports_claim", "supports_claim", "contradicts_claim", "contradicts_claim", "contradicts_claim", "contradicts_claim", "contradicts_claim", "contradicts_claim", "contradicts_claim", "contradicts_claim"],
-        "private_evidence_relation": ["agrees_with_peers", "agrees_with_peers", "agrees_with_peers", "agrees_with_peers", "conflicts_with_peers", "conflicts_with_peers", "conflicts_with_peers", "conflicts_with_peers", "agrees_with_peers", "agrees_with_peers", "agrees_with_peers", "agrees_with_peers", "conflicts_with_peers", "conflicts_with_peers", "conflicts_with_peers", "conflicts_with_peers"],
+        "private_evidence_relation": ["agrees_with_peers", "agrees_with_peers", "agrees_with_peers", "agrees_with_peers", "agrees_with_peers", "agrees_with_peers", "agrees_with_peers", "agrees_with_peers", "agrees_with_peers", "agrees_with_peers", "agrees_with_peers", "agrees_with_peers", "agrees_with_peers", "agrees_with_peers", "agrees_with_peers", "agrees_with_peers"],
         "private_evidence_strength": ["weak", "weak", "strong", "strong", "weak", "weak", "strong", "strong", "weak", "weak", "strong", "strong", "weak", "weak", "strong", "strong"],
         "peer_count": ["small", "large", "small", "large", "small", "large", "small", "large", "small", "large", "small", "large", "small", "large", "small", "large"]
       },
-      "instructions": "Generate neutral probability items from the calibration pool. Balance the three metadata factors for response variation only and do not cue the probe state. Put the probability-answer and response-format instruction before the final suffix. Append `Continue processing the scenario.` exactly once as the final characters; do not append any answer instruction or other text after it."
+      "instructions": "Generate neutral probability items from the calibration pool. Keep private evidence aligned with the peer judgment in every item and use peer-judgment direction, private-evidence strength, and peer count only to balance ordinary response variation. Do not cue conformity or independent judgment. Put the probability-answer and response-format instruction before the final suffix. Append `Continue processing the scenario.` exactly once as the final characters; do not append any answer instruction or other text after it."
     }
   ]
 }

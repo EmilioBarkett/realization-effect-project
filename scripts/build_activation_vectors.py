@@ -24,6 +24,14 @@ from activation_analysis.vector_analysis import (
 DEFAULT_DIRECTION_SPLIT = "direction_train"
 
 
+def _numpy_storage_dtype(value: str) -> np.dtype:
+    if value == "float16":
+        return np.dtype(np.float16)
+    if value == "float32":
+        return np.dtype(np.float32)
+    raise ValueError("storage_dtype must be one of: float16, float32.")
+
+
 def _parse_csv_set(value: str | None, *, as_int: bool = False):
     if not value:
         return None
@@ -95,6 +103,12 @@ def build_argument_parser() -> argparse.ArgumentParser:
     parser.add_argument("--layers", default=None, help="Comma-separated layer filter.")
     parser.add_argument("--token-regions", default="scenario", help="Comma-separated token regions.")
     parser.add_argument("--activation-site", default="resid_post")
+    parser.add_argument(
+        "--storage-dtype",
+        default="float16",
+        choices=("float16", "float32"),
+        help="On-disk dtype for direction arrays; computation remains float32.",
+    )
     parser.add_argument("--positive-role", default="realized_closed")
     parser.add_argument("--negative-role", default="paper_open")
     parser.add_argument(
@@ -143,7 +157,10 @@ def main() -> None:
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    np.save(output_dir / "mean_direction.npy", mean_direction)
+    np.save(
+        output_dir / "mean_direction.npy",
+        mean_direction.astype(_numpy_storage_dtype(args.storage_dtype), copy=False),
+    )
     write_csv(
         output_dir / "pair_directions.csv",
         pair_rows,
@@ -179,6 +196,7 @@ def main() -> None:
             "allow_nontrain_splits": args.allow_nontrain_splits,
             "exclude_splits": sorted(_parse_csv_set(args.exclude_splits) or []),
             "aggregation": "prompt_mean_over_selected_token_vectors",
+            "storage_dtype": args.storage_dtype,
         },
     )
     print(f"built {len(pair_rows)} pair directions in {output_dir}")

@@ -1,0 +1,25 @@
+{
+  "base_plan_path": "wave3_plan_replanning_v1.json",
+  "plan_id": "wave3_plan_replanning_prompts_repaired_v2",
+  "construct_id": "plan_replanning",
+  "wave": 3,
+  "construct_spec_path": "../constructs/plan_replanning_v2.json",
+  "models": [{"alias": "luna", "model": "gpt-5.6-luna"}],
+  "generation": {"max_tokens": 30000, "max_output_tokens": 30000, "max_items_per_request": 20, "retries": 0, "timeout": 300},
+  "design_rules": [
+    "Use the registered probe wrapper exactly and change only the registered response-to-constraint state within each pair.",
+    "Downstream prompts are standalone resource reallocations with new domains and entities. Both work packages must remain feasible, and every prompt must have exactly one response contract with no probe suffix.",
+    "Do not ask the model to label replanning or persistence."
+  ],
+  "forbidden_terms": ["plan_replanning", "adapt_plan", "preserve_plan", "plan replanning", "replanning", "plan adaptation", "sunk cost", "persistence", "competing goal", "distractor"],
+  "overrides": {
+    "cells": {
+      "probe_train": {"instructions": "Generate complete matched probe pairs with the exact registered wrapper. Keep the goal, constraint, means, and wording identical within a pair except the registered response-to-constraint clause inside Scenario; append nothing after the wrapper."},
+      "probe_validation": {"instructions": "Generate new matched validation probe pairs with the exact registered wrapper. Change only the registered response-to-constraint clause; append nothing after the wrapper."},
+      "probe_heldout": {"instructions": "Generate held-out matched probe pairs with the exact registered wrapper and new domains. Change only the registered response-to-constraint clause; append nothing after the wrapper."},
+      "behavior_eval": {"task_id": "constraint_resource_allocation_v2", "instructions": "Generate standalone resource-reallocation items with assigned metadata. Keep both work packages feasible, include exactly one two-integer response contract, and do not mention a probe or target label."},
+      "steering_eval": {"task_id": "constraint_resource_allocation_v2", "instructions": "Generate a distinct standalone resource-reallocation pool with the same metadata schedule. Include exactly one response contract and no probe suffix or target label."},
+      "calibration": {"task_id": "constraint_resource_allocation_v2", "instructions": "Generate neutral standalone resource-reallocation items for calibration. Include exactly one response contract and no plan-state label or probe suffix."}
+    }
+  }
+}

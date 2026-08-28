@@ -1,0 +1,14 @@
+{
+  "quality_gate_version": "1",
+  "gate_type": "waves2_4_repaired_v2_vector_review",
+  "scope": "waves2_4_repaired_v2_vector",
+  "status": "approved",
+  "approved": true,
+  "reviewer": "codex_waves2_4_repaired_v2_openai_luna_prompt_audit",
+  "provider": "openai",
+  "model": "gpt-5.6-luna",
+  "reasoning_effort": "medium",
+  "approval_basis": "The OpenAI/Luna review generated the required train, validation, and held-out probe pair for each repaired Wave 2–4 construct. Pair structure, split counts, cross-split normalized uniqueness, and registered wrapper checks passed for all 12 constructs. This non-confirmatory gate authorizes only generation of the complete repaired Wave 2–4 vector prompt inventory.",
+  "review_manifest_path": "../../../results/benchmark/waves2_4_repaired_v2_vector_review_openai_luna_retry2/vector_prompt_manifest.json",
+  "review_manifest_sha256": "3c9398180a940615978b7850cb0d13fe2e3f660e745894c0b85c56a8f162a7d8"
+}

@@ -17,7 +17,7 @@
     "token_mode": "nonpad",
     "token_region_strategy": "auto",
     "include_token_regions": ["scenario", "task"],
-    "storage_dtype": "float32",
+    "storage_dtype": "float16",
     "batch_size": 8,
     "max_length": 512
   },

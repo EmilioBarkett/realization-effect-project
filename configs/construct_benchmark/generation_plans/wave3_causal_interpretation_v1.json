@@ -65,6 +65,13 @@
     "required_item_fields": ["task_mode", "effect_direction", "association_strength"],
     "balance_check": "Each of the 8 combinations must appear at least once per content pool (behavior_eval and steering_eval). Warn if any combination is missing."
   },
+  "calibration_factor_schedule": {
+    "purpose": "neutral_prediction_probability_variance",
+    "nuisance_fields": ["task_mode", "effect_direction"],
+    "neutral_fields": {"association_strength": "weak"},
+    "forbidden_terms": ["causal interpretation", "correlational representation", "causal", "correlational", "cause", "causes", "caused", "intervention", "association", "associated", "effect"],
+    "required_response_format": "single_integer_0_to_100"
+  },
   "cells": [
     {
       "cell_id": "probe_train",
@@ -150,13 +157,14 @@
       "task_id": "assigned_selected_prediction_v1",
       "parser_id": "single_integer_probability_v1",
       "expected_output_format": "single_integer_0_to_100",
+      "factor_schedule": "calibration_factor_schedule",
       "count_per_model": 8,
       "category_balance": {
         "task_mode": ["external_assignment", "external_assignment", "external_assignment", "external_assignment", "case_selection", "case_selection", "case_selection", "case_selection"],
         "effect_direction": ["raises_outcome", "raises_outcome", "lowers_outcome", "lowers_outcome", "raises_outcome", "raises_outcome", "lowers_outcome", "lowers_outcome"],
-        "association_strength": ["weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong"]
+        "association_strength": ["weak", "weak", "weak", "weak", "weak", "weak", "weak", "weak"]
       },
-      "instructions": "Generate neutral probability-prediction items using the calibration pool. Use the schedule to balance ordinary response variation only; do not cue the probe relation."
+      "instructions": "Generate neutral probability-prediction items using the calibration pool. Keep the registered relationship strength weak in every item and use task mode and direction only to balance ordinary response variation. Do not cue the probe relation or use the registered interpretation labels."
     }
   ]
 }

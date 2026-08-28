@@ -1,11 +1,13 @@
 # Current project architecture
 
 **Status:** the shared multi-construct control plane, 16-construct registry,
-all-16 preparatory construct specifications and paired-vector plans, vector-only
-prompt orchestrator, and environment-independent measurement core are
-implemented. Scalar injection/downstream trace instrumentation and scoring are
-also implemented; real-model validation, all-16 downstream behavior parsing,
-and output-accessibility/collateral checks remain.
+all-16 construct specifications and paired-vector plans, calibration-aware
+downstream prompt-generation workflow, and environment-independent measurement
+core are implemented. Scalar injection/downstream trace instrumentation,
+prompt-only baseline execution, fail-closed tokenizer preflight, scoring, and
+the C1 matched-episode residual-interchange runner are also implemented;
+real-model validation, all-16 downstream behavior parsing, and
+output-accessibility/collateral checks remain.
 
 ## 1. Architectural principle
 
@@ -34,7 +36,13 @@ archived. It is not the template for new behavioral collection.
 - `src/activation_analysis/activation_store.py`: activation-run loading and
   validation;
 - `src/activation_analysis/residual_streams.py`: model hooks and residual
-  extraction;
+  extraction with no-truncation token preflight; the logger also exposes an
+  opt-in all-layer, residual-only trace for later mechanistic analyses;
+- `src/activation_analysis/causal_patching.py`: matched-episode residual
+  interchange at a tokenizer-verified induction/task boundary, with
+  bidirectional and same-condition controls;
+- `src/activation_analysis/tokenization.py`: shared prompt formatting,
+  no-truncation length inspection, and fail-closed padded encoding;
 - `src/activation_analysis/vector_analysis.py`: vector analysis using the
   tracked activation-store iterator; clean-install verification passes under
   Python 3.11, while real-run validation remains pending;
@@ -42,7 +50,7 @@ archived. It is not the template for new behavioral collection.
 - `src/construct_benchmark/`: versioned construct/run/analysis schemas,
   canonical prompt records, split validation, registry validation, generic
   generation, shared-activation run plans, and portable storage/archive
-  helpers;
+  helpers, prompt-only behavior baselines, and variation gates;
 - `scripts/validate_construct_run.py`: validates a combined inventory and
   emits a construct-namespaced execution manifest;
 - `scripts/validate_construct_registry.py`: validates the frozen 16-entry
@@ -57,6 +65,14 @@ archived. It is not the template for new behavioral collection.
 - `scripts/audit_vector_pairs.py`: structural pair/leakage audit entrypoint;
 - `scripts/run_fake_benchmark.py`: deterministic no-API vertical-slice smoke
   runner;
+- `scripts/run_prompt_only_behavior.py` and
+  `scripts/score_prompt_only_behavior.py`: independent-task baseline execution,
+  manifest validation, strict parsing, and prompt-only variation gating;
+- `scripts/preflight_tokenizer.py`: model-tokenizer length preflight that
+  refuses silent truncation;
+- `scripts/run_residual_interchange.py` and
+  `scripts/score_residual_interchange.py`: manifest-backed C1 causal
+  interchange execution, fail-closed validation, and summary;
 - `agents/STEERING_MANIPULATION_CHECKS.md`: model-side trace and output
   contract for injection and downstream manipulation checks;
 - `configs/construct_benchmark/`: the 16-entry registry, all 16 specified
@@ -86,6 +102,8 @@ src/construct_benchmark/
 ├── readout.py         Implemented train-only directions and held-out projections
 ├── calibration.py     Implemented neutral/within-condition projection scales
 ├── behavior.py        Implemented strict Wave 1 parsing and primary effect metric
+├── behavior_baseline.py Implemented manifest-backed prompt-only baseline
+├── behavioral_variation.py Implemented prompt-only and zero-dose gates
 ├── steering.py        Implemented condition plans and control directions
 ├── manipulation.py    Implemented scalar injection and downstream checks
 ├── uncertainty.py      Implemented pair/item bootstrap interval primitives
@@ -93,9 +111,13 @@ src/construct_benchmark/
 └── storage.py          Implemented workspace, checksum, and archive helpers
 ```
 
-The remaining measurement layer should add prompt-only behavior composition,
-real-run uncertainty orchestration, output-accessibility/collateral checks,
-and correspondence analysis as the two-construct vertical slice requires them.
+The remaining measurement layer should add real-run uncertainty orchestration,
+output-accessibility/collateral checks, and correspondence analysis as the
+two-construct vertical slice requires them. Prompt-only composition is now
+implemented as a separate baseline stage; it still needs real-model
+validation. C1 residual interchange is the first causal-pathway method; C2
+temporal tracing, C3 component/path patching, and C4 ablation remain later
+extensions and must not be inferred from the C1 output.
 The later profile layer can add:
 
 ```text
@@ -103,13 +125,13 @@ profiles.py  correspondence.py
 ```
 
 The registry, generation, prompt-validation, readout, calibration, behavior,
-steering-plan, uncertainty, and fake-fixture modules are the current Wave 1
-control path. A completed all-16 vector/probe inventory is available as a
-non-confirmatory, scope-partial engineering artifact; its model-side runner
-and downstream behavior parsers have not been validated on a representative
-benchmark activation run or GPU environment. A separate realization
-real-model decode pilot is retained as a reference artifact, not as generalized
-benchmark or steering evidence.
+prompt-only baseline, steering-plan, uncertainty, manipulation, and
+fake-fixture modules are the current control path. Completed vector/probe and
+downstream prompt inventories are engineering artifacts, not empirical
+benchmark results; their model-side runner and downstream behavior parsers
+have not been validated on a representative benchmark activation run or GPU
+environment. A separate realization real-model decode pilot is retained as a
+reference artifact, not as generalized benchmark or steering evidence.
 
 ## 3. Configuration boundary
 
@@ -169,7 +191,34 @@ tracked at
 `results/benchmark/vector_prompts_v2_luna/full_final_all16/combined.csv` and
 its final manifest. It is vector/probe-only, explicitly non-confirmatory, and
 does not include downstream single prompts, behavior prompts, or calibration
-prompts.
+prompts. The completed Wave 2–4 downstream engineering inventory is retained at
+`results/benchmark/downstream_prompts_v1_waves2_4_full_luna_b20_o30k_v1/`;
+it is a 384-record, non-confirmatory Luna engineering artifact. The audit
+found prompt-wrapper, downstream-episode, direct-cue, and task-independence
+blockers in those inputs; the findings are recorded in
+`agents/WAVES2_4_PROMPT_AUDIT.md`. Repaired, audited prompt-input releases are
+present under
+`results/benchmark/prompt_inventories/wave[2-4]_four_construct_confirmatory_v1/`,
+but they do not release model execution or empirical results. Neither the
+source inventory nor the audit is a real-model benchmark result.
+
+The current Wave 1 downstream inventory is retained at
+`results/benchmark/downstream_prompts_v1_wave1_full_luna_current_b50_o60k_v3/`.
+The current repaired Wave 1 model input is
+`results/benchmark/prompt_inventories/wave1_repaired_v2_full_openai_luna_normalized/combined.csv`.
+Its manifest records 1,824 frozen engineering rows: 1,440 vector/probe rows
+and 384 independent behavior, steering, and calibration rows. It remains
+non-confirmatory until model-side validation is complete. The older 1,650-row
+composition remains historical engineering provenance and must not be mixed
+with the repaired v2 inventory.
+
+The Waves 2–4 campaign follows the same boundary in three wave-scoped
+packages: one four-construct shared activation run for each wave, with
+construct-specific directions, calibration, behavior, and steering fan-out.
+The no-API composer, prompt-release command, and execution validator are
+implemented. They allow the 72-record engineering smoke selections and
+recognize the released prompt inputs, but refuse full mode while the Wave 1
+measurement and precision prerequisites remain pending.
 Activation logging and behavioral execution consume those frozen rows rather
 than silently generating or changing prompts during a run. The legacy
 realization-only generator remains an archived-compatible activation-analysis
@@ -179,6 +228,28 @@ The profile and correspondence modules are a later benchmark layer. The first
 vertical slice should implement the primary held-out projection and directed
 state-transfer estimands before adding stability, dimensionality, normalized
 intervention-cost, or out-of-sample profile prediction.
+
+### Causal pathway layer
+
+The causal layer is intentionally separated from additive steering:
+
+```text
+matched positive/negative episodes
+        ├── common downstream task
+        ├── source residual capture at boundary
+        └── bidirectional receiver patch at registered layer
+                    ↓
+       baseline versus patched downstream output
+```
+
+The first implementation is `C1` matched residual interchange. It patches the
+last complete induction token during prefill only, then lets the identical
+downstream task run without further intervention. The unit of analysis is a
+donor/receiver/layer observation, with same-condition controls and an adjacent
+manifest. This tests contextual causal sufficiency; it does not establish
+necessity, a unique circuit, or a general policy parameter. The full method
+specification and later-method boundary are in
+`agents/CAUSAL_PATHWAY_ARCHITECTURE.md`.
 
 ## 4.1 Staged run-mode architecture
 
@@ -221,6 +292,14 @@ cannot support confirmatory claims. The implementation entrypoint is
 `scripts/select_benchmark_run_mode.py`; activation logging records the
 optional wall-clock budget and whether the selected subset completed.
 
+The independent prompt-only baseline is a separate stage from zero-dose
+steering. `behavior_eval` prompts are executed and scored by
+`scripts/run_prompt_only_behavior.py` and
+`scripts/score_prompt_only_behavior.py`; `steering_eval` prompts are used for
+the target-direction zero-dose variation gate. The outputs have distinct
+manifests and must not be pooled. Both paths use the shared no-truncation
+tokenizer contract from `activation_analysis.tokenization`.
+
 ## 5. Planned execution stages
 
 1. Validate the registry, versioned construct, generation, run, and analysis configs.
@@ -228,8 +307,9 @@ optional wall-clock budget and whether the selected subset completed.
    manifest, and canonical hashes; regenerate only as an explicitly versioned
    replacement.
 3. Audit leakage-safe splits for every construct namespace.
-4. Run the prompt-only behavioral baseline per construct only where its
-   construct-specific parser and task execution are implemented.
+4. Run the manifest-backed prompt-only behavioral baseline per construct where
+   its construct-specific parser and task execution are implemented; audit
+   compliance and outcome variation before interpreting steering effects.
 5. Log activations once at all registered candidate layers, sites, and positions.
 6. Construct one direction per construct from training prompts only and select
    the layer using validation prompts only.
@@ -240,9 +320,12 @@ optional wall-clock budget and whether the selected subset completed.
    shuffled, and three random controls.
 10. Check the recorded downstream persistence and injection arithmetic, then
    add output accessibility, compliance, and collateral behavior checks.
-11. Parse outputs through construct-specific adapters, compute outcome-
+11. Run C1 matched-episode residual interchange on the registered causal
+    diagnosis subset, validate its complete manifest, and compare the
+    bidirectional swaps with same-condition controls.
+12. Parse outputs through construct-specific adapters, compute outcome-
     appropriate estimands, and bootstrap complete pairs/items.
-12. Fit the crossed model × construct × task summary; add profile prediction
+13. Fit the crossed model × construct × task summary; add profile prediction
     only after the matrix is large enough for out-of-sample evaluation and the
     precision simulation supports expansion beyond Wave 1.
 
@@ -301,13 +384,19 @@ are read from the process environment and never persisted in manifests.
 The local/RunPod workspace is a staging copy. The S3-compatible archive is the
 durable private master. GitHub contains code and small reviewable metadata;
 Hugging Face and Zenodo remain separate, later curation/release targets. This
-automation does not claim that the incomplete end-to-end model runner is
-finished; it wraps the existing model-side stages with reproducible storage
-and handoff semantics.
+automation does not claim that the real-model end-to-end runner is validated;
+it wraps the existing model-side stages with reproducible storage and handoff
+semantics.
+
+All new model-side NumPy artifacts use FP16 on disk by default: activation
+shards, train-derived direction arrays, pair-difference arrays, and shuffled or
+random control directions. When loaded, readout and calibration routines
+promote them to FP32/FP64 for numerical work. JSONL/CSV metadata and scalar
+manipulation checks remain text representations rather than typed FP16 files.
 
 ## 8. Implementation gates
 
-The next work is not a large experiment. It is:
+Before the next large model-side experiment, the required release sequence is:
 
 1. run and review the no-API all-16 vector-prompt pilot, then audit paired
    rows with `scripts/audit_vector_pairs.py`;
@@ -315,14 +404,16 @@ The next work is not a large experiment. It is:
    manifest-backed activation fixture when one is available;
 3. validate held-out projection margins and neutral/within-condition calibration
    on a representative activation run;
-4. validate the implemented Wave 1 task adapters, beginning with the
+4. run the local fake vertical slice and validate the prompt-only baseline
+   manifest, parser, and variation gate before using a GPU;
+5. validate the implemented Wave 1 task adapters, beginning with the
    realization/evidence engineering slice while retaining source-reliability
    and persistence cells; all-16 downstream parsers remain future work;
-5. validate timing, manipulation, and downstream-persistence traces on a
+6. validate timing, manipulation, and downstream-persistence traces on a
    representative model run, then add output-accessibility and collateral
    checks;
-6. run the precision simulation before advancing to Waves 2–4 or fitting
+7. run the precision simulation before advancing to Waves 2–4 or fitting
    representation-profile predictors.
 
-The shared control plane is implemented, but the benchmark is not yet an
-end-to-end experiment runner.
+The shared control plane and local model-side entrypoints are implemented, but
+the benchmark is not yet a real-model end-to-end validated experiment runner.

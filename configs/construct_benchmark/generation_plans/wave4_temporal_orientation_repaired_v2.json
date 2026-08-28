@@ -1,0 +1,25 @@
+{
+  "base_plan_path": "wave4_temporal_orientation_v1.json",
+  "plan_id": "wave4_temporal_orientation_prompts_repaired_v2",
+  "construct_id": "temporal_orientation",
+  "wave": 4,
+  "construct_spec_path": "../constructs/temporal_orientation_v2.json",
+  "models": [{"alias": "luna", "model": "gpt-5.6-luna"}],
+  "generation": {"max_tokens": 30000, "max_output_tokens": 30000, "max_items_per_request": 20, "retries": 0, "timeout": 300},
+  "design_rules": [
+    "Use the registered probe wrapper exactly and change only the registered consequence-horizon state within each pair.",
+    "Downstream prompts are standalone dated-allocation tasks. Use concrete dates or delays without naming immediate focus or long-horizon focus, and include exactly one response contract.",
+    "Do not ask the model to label temporal orientation or append any probe continuation sentence."
+  ],
+  "forbidden_terms": ["temporal_orientation", "immediate_focus", "long_horizon_focus", "temporal orientation", "immediate focus", "long horizon focus", "near-term consequence", "longer-term consequence"],
+  "overrides": {
+    "cells": {
+      "probe_train": {"instructions": "Generate complete matched probe pairs with the exact registered wrapper. Keep consequences, actors, and wording identical within a pair except the registered horizon-salience clause inside Scenario; append nothing after the wrapper."},
+      "probe_validation": {"instructions": "Generate new matched validation probe pairs with the exact registered wrapper. Change only the registered horizon-salience clause; append nothing after the wrapper."},
+      "probe_heldout": {"instructions": "Generate held-out matched probe pairs with the exact registered wrapper and new domains. Change only the registered horizon-salience clause; append nothing after the wrapper."},
+      "behavior_eval": {"task_id": "dated_resource_allocation_v2", "instructions": "Generate standalone dated-allocation items with assigned metadata. Do not use direct target-state labels; include exactly one two-integer response contract."},
+      "steering_eval": {"task_id": "dated_resource_allocation_v2", "instructions": "Generate a distinct standalone dated-allocation pool with the same metadata schedule. Avoid direct target-state labels and include exactly one response contract."},
+      "calibration": {"task_id": "dated_resource_allocation_v2", "instructions": "Generate neutral standalone dated-allocation items for calibration. Avoid horizon labels and include exactly one response contract."}
+    }
+  }
+}

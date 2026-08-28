@@ -1,0 +1,31 @@
+{
+  "base_plan_path": "wave2_reference_frame_v1.json",
+  "plan_id": "wave2_reference_frame_prompts_repaired_v2",
+  "construct_id": "reference_frame",
+  "wave": 2,
+  "construct_spec_path": "../constructs/reference_frame_v2.json",
+  "models": [{"alias": "luna", "model": "gpt-5.6-luna"}],
+  "generation": {
+    "max_tokens": 30000,
+    "max_output_tokens": 30000,
+    "max_items_per_request": 20,
+    "retries": 0,
+    "timeout": 300
+  },
+  "design_rules": [
+    "Use the registered probe wrapper exactly and keep the two members of every probe pair identical except for the registered state contrast.",
+    "Downstream prompts are final standalone inputs: use new domains and entities, include one task setup and one response contract, and never include a probe continuation sentence or generation instruction.",
+    "Do not state the reference-point construct in downstream behavior or steering prompts; the downstream option task must contain only its own payoffs and probability."
+  ],
+  "forbidden_terms": ["reference_frame", "above_reference", "below_reference", "reference frame", "above reference", "below reference", "account closure", "pending", "settled"],
+  "overrides": {
+    "cells": {
+      "probe_train": {"instructions": "Generate matched probe pairs with the exact registered wrapper. Keep all facts and wording identical within a pair except the registered reference-position contrast inside Scenario. End with the registered wrapper and append nothing."},
+      "probe_validation": {"instructions": "Generate new matched validation probe pairs with the exact registered wrapper. Change only the registered reference-position contrast inside Scenario and append nothing after the wrapper."},
+      "probe_heldout": {"instructions": "Generate held-out matched probe pairs with the exact registered wrapper. Use new domains and change only the registered reference-position contrast inside Scenario; append nothing after the wrapper."},
+      "behavior_eval": {"task_id": "reference_distal_option_choice_v2", "instructions": "Generate standalone option-selection items with the assigned metadata. Do not mention a probe, reference point, or benchmark state; include exactly one response contract."},
+      "steering_eval": {"task_id": "reference_distal_option_choice_v2", "instructions": "Generate a new standalone option-selection pool distinct from behavior_eval. Do not mention a probe, reference point, or benchmark state; include exactly one response contract."},
+      "calibration": {"task_id": "reference_distal_option_choice_v2", "instructions": "Generate neutral standalone option-selection items for calibration. Do not mention reference position or any target state; include exactly one response contract."}
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "base_plan_path": "wave4_epistemic_uncertainty_v1.json",
+  "plan_id": "wave4_epistemic_uncertainty_prompts_repaired_v2",
+  "construct_id": "epistemic_uncertainty",
+  "wave": 4,
+  "construct_spec_path": "../constructs/epistemic_uncertainty_v2.json",
+  "models": [{"alias": "luna", "model": "gpt-5.6-luna"}],
+  "generation": {"max_tokens": 30000, "max_output_tokens": 30000, "max_items_per_request": 20, "retries": 0, "timeout": 300},
+  "design_rules": [
+    "Use the registered probe wrapper exactly and change only the registered information-status state within each pair.",
+    "Downstream prompts are standalone decisions with one specified binary check. Use new domains and entities, no copied evidence, no unknown probability, and exactly one response contract.",
+    "Do not ask the model to label the information state or append a probe continuation sentence."
+  ],
+  "forbidden_terms": ["epistemic_uncertainty", "resolved_state", "unresolved_state", "resolved state", "unresolved state", "objective conclusion", "more evidence is needed"],
+  "overrides": {
+    "cells": {
+      "probe_train": {"instructions": "Generate complete matched probe pairs with the exact registered wrapper. Keep evidence and wording identical within a pair except the registered information-status clause inside Scenario; append nothing after the wrapper."},
+      "probe_validation": {"instructions": "Generate new matched validation probe pairs with the exact registered wrapper. Change only the registered information-status clause; append nothing after the wrapper."},
+      "probe_heldout": {"instructions": "Generate held-out matched probe pairs with the exact registered wrapper and new domains. Change only the registered information-status clause; append nothing after the wrapper."},
+      "behavior_eval": {"task_id": "single_check_budget_v2", "instructions": "Generate standalone single-check budget items with assigned metadata. Use exactly one binary check and one two-integer response contract; do not include an ambiguity label."},
+      "steering_eval": {"task_id": "single_check_budget_v2", "instructions": "Generate a distinct standalone single-check budget pool with the same metadata schedule. Use exactly one binary check and one response contract."},
+      "calibration": {"task_id": "single_check_budget_v2", "instructions": "Generate neutral standalone single-check budget items for calibration. Use exactly one binary check and one response contract."}
+    }
+  }
+}

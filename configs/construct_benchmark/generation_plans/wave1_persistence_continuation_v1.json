@@ -54,9 +54,9 @@
     "persistence_probe_train": {"role": "probe", "domains": ["garden_projects", "language_learning"]},
     "persistence_probe_validation": {"role": "probe", "domains": ["community_events", "craft_projects"]},
     "persistence_probe_heldout": {"role": "probe", "domains": ["field_research", "small_business_projects"]},
-    "persistence_behavior": {"role": "behavior", "domains": ["new_resource_allocation_items"]},
-    "persistence_steering": {"role": "steering", "domains": ["new_resource_allocation_items_heldout"]},
-    "persistence_calibration": {"role": "calibration", "domains": ["neutral_resource_allocation_items"]}
+    "persistence_behavior": {"role": "behavior", "domains": ["public_water_allocation_items", "regional_transit_allocation_items"]},
+    "persistence_steering": {"role": "steering", "domains": ["wildlife_habitat_allocation_items", "coastal_monitoring_allocation_items"]},
+    "persistence_calibration": {"role": "calibration", "domains": ["warehouse_inventory_allocation_items", "museum_archive_allocation_items"]}
   },
   "behavior_factor_schedule": {
     "note": "All three independent-program factors must vary independently. Generate one item per combination; do not allow factors to co-vary. Record existing_program_value, alternative_value, and implementation_feasibility as structured metadata fields on every generated item.",
@@ -77,6 +77,26 @@
     ],
     "required_item_fields": ["existing_program_value", "alternative_value", "implementation_feasibility"],
     "balance_check": "Each of the 8 combinations must appear at least once per content pool (behavior_eval and steering_eval). Warn if any combination is missing."
+  },
+  "calibration_factor_schedule": {
+    "purpose": "neutral_resource_allocation_variance",
+    "nuisance_fields": ["existing_program_value", "alternative_value", "implementation_feasibility"],
+    "neutral_fields": {},
+    "forbidden_terms": ["continue", "continuing", "continuation", "abandon", "abandonment", "setback", "sunk cost", "sunk-cost", "investment", "current plan", "current-plan", "persistence"],
+    "required_response_format": "two_integers_sum_100"
+  },
+  "downstream_pool_separation": {
+    "required_prompt_anchors": {
+      "persistence_behavior": ["water", "reservoir", "irrigation", "transit", "bus", "rail"],
+      "persistence_steering": ["wildlife", "habitat", "wetland", "conservation", "coastal", "marine"],
+      "persistence_calibration": ["warehouse", "inventory", "stockroom", "museum", "archive", "collection"]
+    },
+    "forbidden_prompt_anchors": {
+      "persistence_behavior": ["wildlife", "habitat", "wetland", "conservation", "coastal", "marine", "warehouse", "inventory", "stockroom", "museum", "archive", "collection", "library", "literacy", "book", "digital", "lending"],
+      "persistence_steering": ["water", "reservoir", "irrigation", "transit", "bus", "rail", "warehouse", "inventory", "stockroom", "museum", "archive", "collection", "library", "literacy", "book", "digital", "lending"],
+      "persistence_calibration": ["water", "reservoir", "irrigation", "transit", "bus", "rail", "wildlife", "habitat", "wetland", "conservation", "coastal", "marine", "library", "literacy", "book", "digital", "lending"]
+    },
+    "note": "The three downstream pools must use distinct concrete domains and semantic anchors; shared generic allocation syntax is allowed, but shared scenario topics are not."
   },
   "cells": [
     {
@@ -130,7 +150,7 @@
         "alternative_value": ["high", "high", "low", "low", "high", "high", "low", "low"],
         "implementation_feasibility": ["viable", "constrained", "viable", "constrained", "viable", "constrained", "viable", "constrained"]
       },
-      "instructions": "Generate one independent program-renewal allocation item per combination in behavior_factor_schedule.required_combinations (8 items). Use new programs, actors, domains, and resource types not present in probe prompts. Do not include a setback, sunk investment, or current-plan wording. Record existing_program_value, alternative_value, and implementation_feasibility exactly, and return existing-program allocation first and new-program allocation second."
+      "instructions": "Generate one independent program-renewal allocation item per combination in behavior_factor_schedule.required_combinations (8 items). Use only public-water or regional-transit management domains from the assigned content-domain list, with concrete water, reservoir, irrigation, transit, bus, or rail anchors. Do not use wildlife, coastal, warehouse, museum, archive, library, literacy, book, digital, or lending scenarios. Use new programs, actors, domains, and resource types not present in probe prompts. Do not include a setback, sunk investment, or current-plan wording. Record existing_program_value, alternative_value, and implementation_feasibility exactly, and return existing-program allocation first and new-program allocation second."
     },
     {
       "cell_id": "steering_eval",
@@ -150,7 +170,7 @@
         "alternative_value": ["high", "high", "low", "low", "high", "high", "low", "low"],
         "implementation_feasibility": ["viable", "constrained", "viable", "constrained", "viable", "constrained", "viable", "constrained"]
       },
-      "instructions": "Generate one independent program-renewal intervention item per combination, distinct from behavior_eval, with the same crossed schedule and exact metadata fields. Do not include a setback or current-plan wording."
+      "instructions": "Generate one independent program-renewal intervention item per combination, distinct from behavior_eval, with the same crossed schedule and exact metadata fields. Use only wildlife-habitat or coastal-monitoring domains from the assigned content-domain list, with concrete wildlife, habitat, wetland, conservation, coastal, or marine anchors. Do not use water, transit, warehouse, museum, archive, library, literacy, book, digital, or lending scenarios. Do not include a setback or current-plan wording."
     },
     {
       "cell_id": "calibration",
@@ -163,13 +183,14 @@
       "task_id": "program_renewal_allocation_v1",
       "parser_id": "two_integers_sum_100_v1",
       "expected_output_format": "two_integers_sum_100",
+      "factor_schedule": "calibration_factor_schedule",
       "count_per_model": 8,
       "category_balance": {
         "existing_program_value": ["high", "high", "high", "high", "low", "low", "low", "low"],
         "alternative_value": ["high", "high", "low", "low", "high", "high", "low", "low"],
         "implementation_feasibility": ["viable", "constrained", "viable", "constrained", "viable", "constrained", "viable", "constrained"]
       },
-      "instructions": "Generate neutral program-renewal calibration items with the same crossed metadata schedule, distinct from behavior and steering pools, for within-cell output-variation calibration."
+      "instructions": "Generate neutral resource-allocation calibration items distinct from behavior and steering pools. Use only warehouse-inventory or museum-archive domains from the assigned content-domain list, with concrete warehouse, inventory, stockroom, museum, archive, or collection anchors. Do not use water, transit, wildlife, habitat, coastal, marine, library, literacy, book, digital, or lending scenarios. Vary only the registered program-value and feasibility nuisance factors; do not include continue, continuing, continuation, abandon, abandonment, setback, sunk-cost, investment, current-plan, or persistence cues. Every prompt must include the complete response request: return exactly two integers on separate lines, first the existing-program allocation and second the new-program allocation, with the two integers summing to 100."
     }
   ]
 }

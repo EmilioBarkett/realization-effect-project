@@ -1,0 +1,25 @@
+{
+  "base_plan_path": "wave4_goal_shielding_v1.json",
+  "plan_id": "wave4_goal_shielding_prompts_repaired_v2",
+  "construct_id": "goal_shielding",
+  "wave": 4,
+  "construct_spec_path": "../constructs/goal_shielding_v2.json",
+  "models": [{"alias": "luna", "model": "gpt-5.6-luna"}],
+  "generation": {"max_tokens": 30000, "max_output_tokens": 30000, "max_items_per_request": 20, "retries": 0, "timeout": 300},
+  "design_rules": [
+    "Use the registered probe wrapper exactly and change only the registered shared-decision salience state within each pair.",
+    "Downstream prompts are standalone attention-budget episodes with new tasks and distractors. Do not state the target state, and include exactly one response contract with no probe suffix.",
+    "Do not ask the model to label goal shielding, persistence, or plan flexibility."
+  ],
+  "forbidden_terms": ["goal_shielding", "shield_focal_goal", "attend_competing_goal", "goal shielding", "attentional priority", "prioritize the focal", "shield the focal goal"],
+  "overrides": {
+    "cells": {
+      "probe_train": {"instructions": "Generate complete matched probe pairs with the exact registered wrapper. Keep objectives, actors, and wording identical within a pair except the registered shared-decision salience clause inside Scenario; append nothing after the wrapper."},
+      "probe_validation": {"instructions": "Generate new matched validation probe pairs with the exact registered wrapper. Change only the registered shared-decision salience clause; append nothing after the wrapper."},
+      "probe_heldout": {"instructions": "Generate held-out matched probe pairs with the exact registered wrapper and new domains. Change only the registered shared-decision salience clause; append nothing after the wrapper."},
+      "behavior_eval": {"task_id": "fresh_attention_budget_v2", "instructions": "Generate standalone attention-budget items with assigned metadata. Use new tasks and distractors, avoid target-state labels, and include exactly one two-integer response contract."},
+      "steering_eval": {"task_id": "fresh_attention_budget_v2", "instructions": "Generate a distinct standalone attention-budget pool with the same metadata schedule. Avoid target-state labels and include exactly one response contract."},
+      "calibration": {"task_id": "fresh_attention_budget_v2", "instructions": "Generate neutral standalone attention-budget items for calibration. Avoid priority labels and include exactly one response contract."}
+    }
+  }
+}

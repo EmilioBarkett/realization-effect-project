@@ -97,11 +97,14 @@ Execution is balanced one construct per family per wave:
 | 4 — horizon/goal management | `temporal_orientation` | `epistemic_uncertainty` | `reciprocity_obligation` | `goal_shielding` |
 
 All 16 construct specifications and paired-vector generation plans now exist
-and are marked `specified` in the registry. Waves 2–4 are preparatory candidate
-specifications, not completed experiments or generated datasets. Their use for
-confirmatory model execution remains gated on the Wave 1 measurement gates and
-the precision simulation. The distinction between source reliability and
-authority deference, and between diagnosticity and updating responsiveness, is
+and are marked `specified` in the registry. Wave 2–4 calibration-aware
+downstream generation plans and review/full inventory workflow are also
+implemented. The existing Wave 2–4 composed inventories have been audited
+and are retained as engineering artifacts. The audit found probe-wrapper,
+downstream-episode, direct-cue, and task-independence blockers in the frozen
+inputs, so no Wave 2–4 inventory is currently released for confirmatory model
+execution. The distinction between source reliability and authority
+deference, and between diagnosticity and updating responsiveness, is
 substantive rather than cosmetic.
 
 The vector-only generation scope is frozen at 100 train pairs, 40 validation
@@ -112,7 +115,30 @@ tracked at
 its final inventory manifest. It is explicitly non-confirmatory and
 `scope_partial`: it contains only vector/probe prompts, not the independent
 behavior, calibration, or steering-task inventory. Generation is orchestrated
-with four workers and uses `anthropic/claude-sonnet-4.6` only.
+with four workers and uses `anthropic/claude-sonnet-4.6` only for the vector
+inventory. The independent Wave 2–4 downstream engineering source inventory is retained at
+`results/benchmark/downstream_prompts_v1_waves2_4_full_luna_b20_o30k_v1/` with
+384 records; it is a non-confirmatory Luna engineering artifact, not a
+real-model result. The audit and repair record is
+`agents/WAVES2_4_PROMPT_AUDIT.md`; repaired confirmatory inputs must receive a
+new versioned release after fresh generation and audit.
+
+The next expansion is packaged as three separate four-construct execution
+plans, one for each of Waves 2–4, with shared activation logging and
+construct-scoped analysis within each wave. Repaired, audited prompt-input
+releases are now present under
+`results/benchmark/prompt_inventories/wave[2-4]_four_construct_confirmatory_v1/`.
+This releases prompt inputs only; the Wave 1 measurement gate and precision
+simulation are still required before confirmatory model execution or empirical
+claims.
+
+The current Wave 1 repaired model input is
+`results/benchmark/prompt_inventories/wave1_repaired_v2_full_openai_luna_normalized/combined.csv`.
+Its manifest records 1,824 frozen engineering rows: 1,440 vector/probe rows
+and 384 independent behavior, steering, and calibration rows. It remains
+non-confirmatory; no real-model downstream result is implied. The older
+1,650-row composition remains historical engineering provenance and must not
+be mixed with repaired v2.
 
 The maturity claims are staged: two constructs validate the engineering
 vertical slice, four constructs support a descriptive pilot, and the full
@@ -139,6 +165,25 @@ Every construct follows the same sequence:
 Probe prompts and downstream tasks must not be the same task in different
 wording. Otherwise the experiment cannot distinguish construct transfer from
 prompt or label matching.
+
+Before interpreting additive steering as a control result, the causal pathway
+extension uses a matched episode: positive and negative induction contexts are
+each followed by the same downstream task, and one condition's residual state
+is interchanged into the other at a tokenizer-verified induction/task boundary
+during prefill only. This C1 residual-interchange test asks whether the state
+is contextually causally sufficient for a matched continuation. It does not
+establish necessity, a unique circuit, or a behavioral policy variable.
+
+The causal-method sequence is:
+
+```text
+B behavioral validity → R representation profile → C1 residual interchange
+→ C2 temporal tracing → C3 component/path tracing → C4 ablation → S steering
+```
+
+C2–C4 are follow-up methods. C1 is implemented as a separate
+`MatchedEpisodeResidualPatcher` and must not be replaced by arbitrary
+cross-prompt activation transplantation.
 
 ## Primary and secondary outcomes
 
@@ -189,8 +234,10 @@ benchmark infrastructure implementation**:
 - construct, run, analysis, prompt, split, and provenance schemas are now
   implemented;
 - the versioned 16-construct registry exists, with all 16 construct
-  specifications and paired-vector generation plans marked `specified`; Waves
-  2–4 remain preparatory candidate artifacts gated from confirmatory execution;
+  specifications and paired-vector generation plans marked `specified`; Wave
+  2–4 downstream generation plans and review/full inventory workflow are
+  implemented, while all generated downstream inventories remain
+  non-confirmatory engineering artifacts gated from confirmatory execution;
 - the benchmark-facing generation adapter emits canonical `PromptRecord`
   rows, supports deterministic mocks and no-API dry runs, and refuses to treat
   partial inventories as complete; named `review`/`full` generation modes and
@@ -215,11 +262,12 @@ benchmark infrastructure implementation**:
   API, model weights, or a GPU;
 - readout, steering-plan, environment-check, remote execution, and scoring CLIs
   now separate frozen scientific decisions from GPU/model execution;
-- prompt-only behavior composition, output-accessibility and collateral checks,
-  real-model validation, real-run uncertainty orchestration, and correspondence
-  analysis are not yet implemented or validated end to end; scalar
-  injection/downstream manipulation tracking and scoring are implemented as
-  model-side artifacts;
+- real-model prompt-only behavior composition, output-accessibility and
+  collateral checks, real-model validation, real-run uncertainty orchestration,
+  and correspondence analysis are not yet validated end to end; the
+  manifest-backed prompt-only runner/scorer, fail-closed tokenizer preflight,
+  and scalar injection/downstream manipulation tracking and scoring are
+  implemented as model-side artifacts;
 - the active vector iterator now lives in `activation_analysis.activation_store`
   and passes the active Python 3.11 `make check` suite; end-to-end validation
   against a real activation run remains pending;
@@ -228,6 +276,11 @@ benchmark infrastructure implementation**:
 - the API-generated all-16 vector/probe inventory and a real-model realization
   decode pilot are available as engineering/reference artifacts; neither is a
   completed generalized benchmark or a steering result;
+- matched-episode C1 residual interchange, bidirectional donor swaps,
+  same-condition controls, tokenizer-verified boundary localization, and a
+  fail-closed causal-output manifest validator are implemented and
+  fixture-tested; this is causal infrastructure, not a real-model causal
+  result;
 - no model download or large generalized benchmark run has been launched.
 
 ## Next implementation gates
@@ -240,13 +293,16 @@ benchmark infrastructure implementation**:
    checks.
 3. Validate continuous held-out projection margins and neutral/within-condition
    dose calibration on a representative manifest-backed activation run.
-4. Complete the one-construct realization measurement slice first, then the
+4. Run the local fake vertical slice and validate the prompt-only baseline,
+   tokenization preflight, and zero-dose gate before starting a GPU.
+5. Complete the one-construct realization measurement slice first, then the
    realization/evidence engineering pair while preserving source-reliability
    and persistence namespaces.
-5. Validate the implemented intervention traces and downstream-persistence
-   summaries on a representative model run; then add output-accessibility,
-   collateral-behavior, and prompt-only baseline checks.
-6. Run the precision simulation before fitting representation-profile
+6. Validate the implemented intervention traces and downstream-persistence
+   summaries on a representative model run; run the C1 matched-episode
+   residual-interchange diagnosis on a small registered subset; then add
+   output-accessibility, collateral-behavior, and prompt-only baseline checks.
+7. Run the precision simulation before fitting representation-profile
    predictors or treating Waves 2–4 as confirmatory model work.
 
 Until these gates are passed, documentation should describe the benchmark as

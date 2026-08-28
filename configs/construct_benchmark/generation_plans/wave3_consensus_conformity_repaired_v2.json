@@ -1,0 +1,25 @@
+{
+  "base_plan_path": "wave3_consensus_conformity_v1.json",
+  "plan_id": "wave3_consensus_conformity_prompts_repaired_v2",
+  "construct_id": "consensus_conformity",
+  "wave": 3,
+  "construct_spec_path": "../constructs/consensus_conformity_v2.json",
+  "models": [{"alias": "luna", "model": "gpt-5.6-luna"}],
+  "generation": {"max_tokens": 30000, "max_output_tokens": 30000, "max_items_per_request": 20, "retries": 0, "timeout": 300},
+  "design_rules": [
+    "Use the registered probe wrapper exactly and change only the registered peer-information handling state within each pair.",
+    "All downstream prompts are standalone forecast episodes. They must not contain a probe suffix, copied stance instruction, generation instruction, or any text after the one response contract.",
+    "Use ordinary non-authoritative peers and preserve the registered metadata schedule without naming the construct."
+  ],
+  "forbidden_terms": ["consensus_conformity", "follow_consensus", "independent_judgment", "consensus conformity", "consensus", "conformity", "group agreement"],
+  "overrides": {
+    "cells": {
+      "probe_train": {"instructions": "Generate complete matched probe pairs with the exact registered wrapper. Keep peers, evidence, entities, and wording identical within a pair except the registered peer-information handling clause inside Scenario; append nothing after the wrapper."},
+      "probe_validation": {"instructions": "Generate new matched validation probe pairs with the exact registered wrapper. Change only the registered peer-information handling clause; append nothing after the wrapper."},
+      "probe_heldout": {"instructions": "Generate held-out matched probe pairs with the exact registered wrapper and new domains. Change only the registered peer-information handling clause; append nothing after the wrapper."},
+      "behavior_eval": {"task_id": "peer_evidence_forecast_v2", "instructions": "Generate standalone factual forecast items with assigned metadata. Include exactly one probability response contract and no probe suffix, stance instruction, or target label."},
+      "steering_eval": {"task_id": "peer_evidence_forecast_v2", "instructions": "Generate a distinct standalone forecast pool with the same metadata schedule. Include exactly one probability response contract and no probe suffix or target label."},
+      "calibration": {"task_id": "peer_evidence_forecast_v2", "instructions": "Generate neutral standalone forecast items for calibration. Include exactly one probability response contract and no peer-weighting label or probe suffix."}
+    }
+  }
+}

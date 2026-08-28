@@ -1,0 +1,87 @@
+{
+  "schema_version": "0.1.0",
+  "plan_id": "wave1_realization_account_closure_prompts_v2",
+  "construct_id": "realization_account_closure",
+  "construct_spec_path": "../constructs/realization_account_closure_v2.json",
+  "wave": 1,
+  "task_composition": {
+    "prompt_order": "probe_then_downstream",
+    "probe_context": "paired_probe_only",
+    "downstream_context": "independent_behavior_task_only",
+    "condition_carryover": "state_only",
+    "surface_text_carryover": "none",
+    "behavior_steering_pool_separation": true
+  },
+  "default_count_per_cell_per_model": 2,
+  "run_modes": {
+    "review": {"purpose": "prompt_review", "count_per_model_per_cell": 1, "partial": true},
+    "full": {"purpose": "frozen_full_inventory", "count_per_model_per_cell": null, "partial": false}
+  },
+  "models": [{"alias": "luna", "model": "gpt-5.6-luna"}],
+  "generation": {
+    "temperature": 0.7,
+    "max_tokens": 30000,
+    "max_output_tokens": 30000,
+    "seed": 201,
+    "timeout": 300,
+    "retries": 0,
+    "max_items_per_request": 20,
+    "estimated_input_tokens_per_request": 1700,
+    "estimated_output_tokens_per_record": 330
+  },
+  "design_rules": [
+    "Manipulate only the accounting status of an identical outcome: provisional versus finalized.",
+    "Within every pair duplicate event, entities, numbers, ownership, timing, availability, sentence count, sentence order, and response framing; edit exactly one short status clause.",
+    "Do not add indirect payment, receipt, confirmation, access, liquidity, or amount cues outside the status clause.",
+    "Use complete probe wrappers ending verbatim with `Continue processing the scenario.` and reserve that suffix for probe prompts only.",
+    "Use distinct probe and downstream domains and entity pools, and counterbalance downstream narrative option order.",
+    "Do not use construct IDs, condition IDs, or labels such as realization, closure, provisional, or settled as meta commentary.",
+    "Do not infer or alter the preregistered readout sign from generated prose."
+  ],
+  "forbidden_terms": ["realization_account_closure", "open_pending", "closed_settled", "account closure"],
+  "content_pools": {
+    "realization_probe_train": {"role": "probe", "domains": ["insurance_claims_v2", "equipment_leases_v2"]},
+    "realization_probe_validation": {"role": "probe", "domains": ["academic_submissions_v2", "vendor_contracts_v2"]},
+    "realization_probe_heldout": {"role": "probe", "domains": ["medical_reimbursements_v2", "construction_milestones_v2"]},
+    "realization_behavior": {"role": "behavior", "domains": ["marine_cargo_risk_items", "weather_reserve_risk_items"]},
+    "realization_steering": {"role": "steering", "domains": ["astronomy_observation_risk_items", "community_microgrant_risk_items"]},
+    "realization_calibration": {"role": "calibration", "domains": ["abstract_index_risk_items", "inventory_unit_risk_items"]}
+  },
+  "behavior_factor_schedule": {
+    "factors": {
+      "outcome_valence": ["gain", "loss"],
+      "stake_level": ["low", "high"],
+      "risk_probability": ["even", "uneven"],
+      "option_order": ["risky_first", "sure_first"]
+    },
+    "required_item_fields": ["outcome_valence", "stake_level", "risk_probability", "option_order"],
+    "balance_check": "All 16 combinations appear once per behavior and steering pool."
+  },
+  "calibration_factor_schedule": {
+    "purpose": "neutral_risky_allocation_variance",
+    "nuisance_fields": ["stake_level", "risk_probability", "option_order"],
+    "neutral_fields": {"outcome_valence": "neutral"},
+    "forbidden_terms": ["provisional", "unresolved", "finalized", "settled", "accounting status", "account closure", "gain", "loss", "reward", "payment"],
+    "required_response_format": "single_integer_allocation_0_to_100"
+  },
+  "downstream_pool_separation": {
+    "required_prompt_anchors": {
+      "realization_behavior": ["cargo", "reserve"],
+      "realization_steering": ["telescope", "observatory", "microgrant"],
+      "realization_calibration": ["abstract", "index", "outcome units"]
+    },
+    "forbidden_prompt_anchors": {
+      "realization_behavior": ["telescope", "observatory", "microgrant", "abstract", "index", "outcome units"],
+      "realization_steering": ["cargo", "reserve", "abstract", "index", "outcome units"],
+      "realization_calibration": ["cargo", "reserve", "telescope", "observatory", "microgrant"]
+    }
+  },
+  "cells": [
+    {"cell_id": "probe_train", "split": "direction_train", "prompt_role": "probe", "mode": "paired", "prompt_family": "realization_probe_train_v2", "content_pool": "realization_probe_train", "condition_ids": ["open_pending", "closed_settled"], "count_per_model": 100, "instructions": "Generate matched scenarios with one shared skeleton and exactly one accounting-status clause changed between the two conditions. Use only the registered domain, duplicate every other fact and surface feature, and append the complete probe wrapper with the verbatim terminal suffix."},
+    {"cell_id": "probe_validation", "split": "direction_validation", "prompt_role": "probe", "mode": "paired", "prompt_family": "realization_probe_validation_v2", "content_pool": "realization_probe_validation", "condition_ids": ["open_pending", "closed_settled"], "count_per_model": 40, "instructions": "Use new domains and entities. Preserve the exact one-clause status edit and all shared facts; do not add indirect settlement cues. Use the complete probe wrapper and terminal suffix."},
+    {"cell_id": "probe_heldout", "split": "direction_heldout", "prompt_role": "probe", "mode": "paired", "prompt_family": "realization_probe_heldout_v2", "content_pool": "realization_probe_heldout", "condition_ids": ["open_pending", "closed_settled"], "count_per_model": 40, "instructions": "Use held-out domains and templates. Preserve the exact one-clause status edit, avoid train/validation phrasing, and use the complete probe wrapper and terminal suffix."},
+    {"cell_id": "behavior_eval", "split": "behavior_eval", "prompt_role": "behavior", "mode": "single", "prompt_family": "realization_behavior_eval_v2", "content_pool": "realization_behavior", "condition_id": "neutral", "task_id": "realization_risk_allocation_v2", "parser_id": "single_integer_allocation_0_to_100_v1", "expected_output_format": "single_integer_allocation_0_to_100", "factor_schedule": "behavior_factor_schedule", "count_per_model": 16, "category_balance": {"outcome_valence": ["gain", "gain", "gain", "gain", "gain", "gain", "gain", "gain", "loss", "loss", "loss", "loss", "loss", "loss", "loss", "loss"], "stake_level": ["low", "low", "high", "high", "low", "low", "high", "high", "low", "low", "high", "high", "low", "low", "high", "high"], "risk_probability": ["even", "uneven", "even", "uneven", "even", "uneven", "even", "uneven", "even", "uneven", "even", "uneven", "even", "uneven", "even", "uneven"], "option_order": ["risky_first", "sure_first", "risky_first", "sure_first", "risky_first", "sure_first", "risky_first", "sure_first", "risky_first", "sure_first", "risky_first", "sure_first", "risky_first", "sure_first", "risky_first", "sure_first"]}, "instructions": "Generate one independent risk-allocation item per assigned combination. Option A must be the risky option even when the sure option is narrated first; include the complete registered response instruction and no probe suffix."},
+    {"cell_id": "steering_eval", "split": "steering_eval", "prompt_role": "steering", "mode": "single", "prompt_family": "realization_steering_eval_v2", "content_pool": "realization_steering", "condition_id": "neutral", "task_id": "realization_risk_allocation_v2", "parser_id": "single_integer_allocation_0_to_100_v1", "expected_output_format": "single_integer_allocation_0_to_100", "factor_schedule": "behavior_factor_schedule", "count_per_model": 16, "category_balance": {"outcome_valence": ["gain", "gain", "gain", "gain", "gain", "gain", "gain", "gain", "loss", "loss", "loss", "loss", "loss", "loss", "loss", "loss"], "stake_level": ["low", "low", "high", "high", "low", "low", "high", "high", "low", "low", "high", "high", "low", "low", "high", "high"], "risk_probability": ["even", "uneven", "even", "uneven", "even", "uneven", "even", "uneven", "even", "uneven", "even", "uneven", "even", "uneven", "even", "uneven"], "option_order": ["risky_first", "sure_first", "risky_first", "sure_first", "risky_first", "sure_first", "risky_first", "sure_first", "risky_first", "sure_first", "risky_first", "sure_first", "risky_first", "sure_first", "risky_first", "sure_first"]}, "instructions": "Generate a new domain-disjoint set with the same registered schedule and explicit Option A-to-risky mapping. Do not mention or continue a probe scenario."},
+    {"cell_id": "calibration", "split": "calibration", "prompt_role": "calibration", "mode": "single", "prompt_family": "realization_calibration_v2", "content_pool": "realization_calibration", "condition_id": "neutral", "task_id": "realization_risk_allocation_v2", "parser_id": "single_integer_allocation_0_to_100_v1", "expected_output_format": "single_integer_allocation_0_to_100", "factor_schedule": "calibration_factor_schedule", "count_per_model": 16, "category_balance": {"outcome_valence": ["neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral"], "stake_level": ["low", "low", "high", "high", "low", "low", "high", "high", "low", "low", "high", "high", "low", "low", "high", "high"], "risk_probability": ["even", "uneven", "even", "uneven", "even", "uneven", "even", "uneven", "even", "uneven", "even", "uneven", "even", "uneven", "even", "uneven"], "option_order": ["risky_first", "sure_first", "risky_first", "sure_first", "risky_first", "sure_first", "risky_first", "sure_first", "risky_first", "sure_first", "risky_first", "sure_first", "risky_first", "sure_first", "risky_first", "sure_first"]}, "instructions": "Generate neutral abstract or inventory-unit risk choices. Do not mention any accounting or outcome-valence target cue; include the complete Option A allocation instruction."}
+  ]
+}

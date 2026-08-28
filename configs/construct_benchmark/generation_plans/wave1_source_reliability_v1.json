@@ -176,6 +176,14 @@
     "required_item_fields": ["prior_probability", "source_track_record", "testimony_valence", "authority_status", "evidence_quality"],
     "balance_check": "Each of the 32 combinations must appear at least once per content pool (behavior_eval and steering_eval). Warn if any combination is missing."
   },
+  "calibration_factor_schedule": {
+    "purpose": "neutral_source_record_probability_variance",
+    "nuisance_fields": ["prior_probability", "testimony_valence", "authority_status", "evidence_quality"],
+    "neutral_fields": {"source_track_record": "midpoint"},
+    "forbidden_terms": ["reliable", "unreliable", "reliability", "four accurate", "one accurate", "four-of-five", "one-of-five"],
+    "required_response_format": "single_integer_0_to_100",
+    "source_record": {"confirmed_reports": 3, "total_reports": 5, "exact": true}
+  },
   "cells": [
     {
       "cell_id": "probe_train",
@@ -254,7 +262,7 @@
         "authority_status": ["legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority"],
         "evidence_quality": ["strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak"]
       },
-      "instructions": "Generate one independent testimony-weighting item per combination in behavior_factor_schedule.required_combinations (32 items). Use invented, plausible, non-retrievable source names, entities, institutions, locations, events, and dates; do not use famous real-world facts. Use new source names, domains, and claims not present in probe prompts. Include five distinct historical report events and a current testimony claim using a new entity and event; reject repeats, contradictions, negations, paraphrases, and year-shift variants between the current claim and any historical report. Include a five-report source accuracy record, record all five metadata fields exactly, and do not allow factors to co-vary."
+      "instructions": "Generate one independent testimony-weighting item per combination in behavior_factor_schedule.required_combinations (32 items). Keep every downstream prompt concise and below 1800 characters, with a complete final sentence and response request; use one short sentence per historical report rather than verbose narrative. Use invented, plausible, non-retrievable source names, entities, institutions, locations, events, and dates; do not use famous real-world facts. Use new source names, domains, and claims not present in probe prompts. Include five distinct historical report events and a current testimony claim using a new entity and event; reject repeats, contradictions, negations, paraphrases, and year-shift variants between the current claim and any historical report. Include a five-report source accuracy record, record all five metadata fields exactly, and do not allow factors to co-vary."
     },
     {
       "cell_id": "steering_eval",
@@ -276,7 +284,7 @@
         "authority_status": ["legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority"],
         "evidence_quality": ["strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak"]
       },
-      "instructions": "Generate one independent intervention item per combination in behavior_factor_schedule.required_combinations (32 items). Content must be distinct from behavior_eval. Use invented, plausible, non-retrievable source names, entities, institutions, locations, events, and dates; do not use famous real-world facts. Include five distinct historical report events and a current testimony claim using a new entity and event; reject repeats, contradictions, negations, paraphrases, and year-shift variants between the current claim and any historical report. Include a five-report source accuracy record and record all five metadata fields exactly."
+      "instructions": "Generate one independent intervention item per combination in behavior_factor_schedule.required_combinations (32 items). Keep every downstream prompt concise and below 1800 characters, with a complete final sentence and response request; use one short sentence per historical report rather than verbose narrative. Content must be distinct from behavior_eval. Use invented, plausible, non-retrievable source names, entities, institutions, locations, events, and dates; do not use famous real-world facts. Include five distinct historical report events and a current testimony claim using a new entity and event; reject repeats, contradictions, negations, paraphrases, and year-shift variants between the current claim and any historical report. Include a five-report source accuracy record and record all five metadata fields exactly."
     },
     {
       "cell_id": "calibration",
@@ -289,15 +297,16 @@
       "task_id": "testimony_weighting_v1",
       "parser_id": "single_integer_probability_v1",
       "expected_output_format": "single_integer_0_to_100",
+      "factor_schedule": "calibration_factor_schedule",
       "count_per_model": 32,
       "category_balance": {
         "prior_probability": [20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80],
-        "source_track_record": ["reliable", "reliable", "reliable", "reliable", "reliable", "reliable", "reliable", "reliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable", "reliable", "reliable", "reliable", "reliable", "reliable", "reliable", "reliable", "reliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable", "unreliable"],
+        "source_track_record": ["midpoint", "midpoint", "midpoint", "midpoint", "midpoint", "midpoint", "midpoint", "midpoint", "midpoint", "midpoint", "midpoint", "midpoint", "midpoint", "midpoint", "midpoint", "midpoint", "midpoint", "midpoint", "midpoint", "midpoint", "midpoint", "midpoint", "midpoint", "midpoint", "midpoint", "midpoint", "midpoint", "midpoint", "midpoint", "midpoint", "midpoint", "midpoint"],
         "testimony_valence": ["supporting", "supporting", "supporting", "supporting", "contradicting", "contradicting", "contradicting", "contradicting", "supporting", "supporting", "supporting", "supporting", "contradicting", "contradicting", "contradicting", "contradicting", "supporting", "supporting", "supporting", "supporting", "contradicting", "contradicting", "contradicting", "contradicting", "supporting", "supporting", "supporting", "supporting", "contradicting", "contradicting", "contradicting", "contradicting"],
         "authority_status": ["legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority", "legitimate", "legitimate", "non_authority", "non_authority"],
         "evidence_quality": ["strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak", "strong", "weak"]
       },
-      "instructions": "Generate neutral calibration items with the same 32-cell metadata schedule, distinct from behavior and steering pools, for within-cell output-variation calibration. Use invented, plausible, non-retrievable source names, entities, institutions, locations, events, and dates; do not use famous real-world facts. Include five distinct historical report events and a current testimony claim using a new entity and event; reject repeats, contradictions, negations, paraphrases, and year-shift variants between the current claim and any historical report."
+      "instructions": "Generate neutral calibration items distinct from behavior and steering pools. Keep every downstream prompt concise and below 1800 characters, with a complete final sentence and response request; use one short sentence per historical report rather than verbose narrative. Hold the source record at a neutral midpoint: exactly three of five historical reports are confirmed and two are not confirmed/mixed in every item; never label the source reliable or unreliable. Cross only the registered prior, testimony-valence, authority-status, and evidence-quality nuisance factors. Use invented, plausible, non-retrievable source names, entities, institutions, locations, events, and dates; do not use famous real-world facts. Include five distinct historical report events and a current testimony claim using a new entity and event; reject repeats, contradictions, negations, paraphrases, and year-shift variants between the current claim and any historical report. Every prompt must include the complete response request: report the probability that the focal claim is true from 0 to 100 as one integer."
     }
   ]
 }

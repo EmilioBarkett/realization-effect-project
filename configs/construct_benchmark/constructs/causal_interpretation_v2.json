@@ -1,0 +1,27 @@
+{
+  "base_spec_path": "causal_interpretation_v1.json",
+  "version": "v2",
+  "title": "Causal versus correlational interpretation with mechanism forecasting",
+  "description": "Whether an observed relationship is represented as causal or merely correlational, tested downstream by forecasting an outcome under a new mechanism-and-context description.",
+  "probe_prompt_template": "Read the following short evidence scenario. Track whether the relationship is treated as causal or correlational without answering a later task.\n\nScenario:\n{scenario}\n\nKeep the scenario in working memory without adding a response.",
+  "independent_behavior_task": {
+    "task_id": "mechanism_forecast_v2",
+    "task_family": "mechanism_sensitive_forecast",
+    "prompt_template": "In a new forecasting task, a feature and an outcome are described in a fresh domain. Report from 0 to 100 the probability that the outcome will occur under the stated mechanism and context. Use only this item's information and do not refer to any other scenario.",
+    "primary_outcome": "mechanism_outcome_probability",
+    "secondary_outcomes": ["forecast_calibration", "compliance"]
+  },
+  "expected_direction": {
+    "behavior": {
+      "outcome": "mechanism_outcome_probability",
+      "estimand": "causal_state_transfer_to_mechanism_forecast",
+      "direction_status": "preregister_before_data_collection",
+      "warning": "This downstream forecast is distinct from the probe's relation-classification question; it is not a causal-effect estimate."
+    }
+  },
+  "metadata": {
+    "repair_version": "repaired_v2",
+    "downstream_independence": "The downstream task asks for a forecast in a new mechanism-and-context description rather than classifying the probe relation.",
+    "release_note": "Supersedes the v1 assigned-versus-selected probability wording for future review and generation; v1 artifacts remain historical."
+  }
+}

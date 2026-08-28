@@ -1,0 +1,27 @@
+{
+  "base_spec_path": "ambiguity_orientation_v1.json",
+  "version": "v2",
+  "title": "Bounded uncertainty orientation with information budgeting",
+  "description": "Whether a bounded but imprecise information state is represented as acceptable for action or as a reason to seek precision, tested downstream by allocating a fixed information budget.",
+  "probe_prompt_template": "Read the following short decision scenario. Track how the bounded information state is handled without answering a later task.\n\nScenario:\n{scenario}\n\nKeep the scenario in working memory without adding a response.",
+  "independent_behavior_task": {
+    "task_id": "bounded_information_budget_v2",
+    "task_family": "uncertainty_budget_allocation",
+    "prompt_template": "In a new planning task, allocate exactly 100 points between a plan with a fixed forecast and a plan with a bounded forecast interval. Return exactly two integers on separate lines: first the allocation to the fixed-forecast plan and second the allocation to the interval-forecast plan; the two integers must sum to 100. Use only this item's information.",
+    "primary_outcome": "interval_plan_allocation",
+    "secondary_outcomes": ["fixed_plan_allocation", "compliance"]
+  },
+  "expected_direction": {
+    "behavior": {
+      "outcome": "interval_plan_allocation",
+      "estimand": "ambiguity_state_transfer_to_information_budget_allocation",
+      "direction_status": "preregister_before_data_collection",
+      "warning": "This is a distal allocation task with a registered bounded forecast; it is not a generic uncertainty or risk estimate."
+    }
+  },
+  "metadata": {
+    "repair_version": "repaired_v2",
+    "downstream_independence": "The downstream item changes the domain and asks for budget allocation rather than the probe's stated lottery comparison.",
+    "release_note": "Supersedes the v1 lottery-allocation wording for future review and generation; v1 artifacts remain historical."
+  }
+}

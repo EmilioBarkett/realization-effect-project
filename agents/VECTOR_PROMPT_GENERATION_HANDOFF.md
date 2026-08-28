@@ -1,5 +1,9 @@
 # Vector prompt-generation handoff
 
+> **Historical generation handoff.** The operative model-side campaign is now
+> documented in [`NEXT_RUN.md`](NEXT_RUN.md). This file is retained only for
+> prompt-generation provenance and must not be treated as the current runbook.
+
 **Status:** the Sonnet 4.6 review pilot and the complete all-16 vector/probe
 inventory are available. The current canonical inventory is the v2 artifact
 under `results/benchmark/vector_prompts_v2_luna/full_final_all16/`; this
@@ -9,8 +13,8 @@ handoff supersedes the earlier v1 credit-exhaustion snapshot.
 
 The versioned registry contains all 16 construct entries, and all 16 have
 paired-vector construct specifications and generation plans marked
-`specified`. Waves 2–4 are preparatory candidate artifacts. They are not
-completed experiments and remain gated from confirmatory model execution by
+`specified`. Waves 2–4 now have frozen composed prompt-input releases. They
+are not completed experiments; confirmatory model execution remains gated by
 the Wave 1 measurement gates and the precision simulation.
 
 The vector-only scope is frozen at 100 `direction_train` pairs, 40

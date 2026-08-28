@@ -1,5 +1,10 @@
 # Codex next steps: construct bank and synthetic prompt generation
 
+> **Historical implementation handoff.** The prompt-generation work described
+> here has been superseded by frozen prompt inventories. The operative model-
+> side handoff is [`NEXT_RUN.md`](NEXT_RUN.md). Retain this file for provenance;
+> do not use it as the next-run checklist.
+
 ## Purpose and authority
 
 This document gives the next Codex session a concrete implementation sequence
@@ -220,8 +225,9 @@ same requirements rather than assuming they are final.
 
 Prefer a benchmark-facing module such as
 `src/construct_benchmark/generation.py` and a CLI such as
-`scripts/generate_construct_prompts.py`. The adapter may reuse the OpenRouter
-transport, retry, and structured-output utilities, but construct semantics must
+`scripts/generate_construct_prompts.py`. The active adapter uses the OpenAI
+Responses transport with `OPENAI_API_KEY`; legacy transport utilities may be
+retained only for explicit historical reproduction. Construct semantics must
 come from the selected specification and generation plan.
 
 Requirements:
@@ -346,9 +352,9 @@ inventories through the canonical prompt utilities.
 No credential is required for schema work, dry runs, tests, prompt validation,
 or local fixture generation.
 
-External OpenRouter generation requires `OPENROUTER_API_KEY`. Check only
-whether it is present; never print or persist its value. The key was present in
-the planning session, but a later session must re-check its own environment.
+Active external generation requires `OPENAI_API_KEY`. Check only whether it is
+present; never print or persist its value. The legacy activation-analysis path
+may still use `OPENROUTER_API_KEY` when explicitly selected.
 
 Do not add `.env` files, raw generations, model outputs, or credentials to Git.
 Raw outputs under `results/benchmark/<run_id>/raw/` are ignored. Keep smoke

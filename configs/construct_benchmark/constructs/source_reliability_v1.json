@@ -21,7 +21,7 @@
   "independent_behavior_task": {
     "task_id": "testimony_weighting_v1",
     "task_family": "source_weighting",
-    "prompt_template": "Read a separate factual question with a prior probability, a named source's five-report accuracy record, and one testimony item. Report the probability that the focal claim is true from 0 to 100 as one integer. For analysis, signed testimony update is posterior minus prior for supporting testimony and prior minus posterior for contradicting testimony. Use only this item's information.",
+    "prompt_template": "Read a separate factual question with a prior probability, a source's five-report accuracy record, and one testimony item. Report the probability that the focal claim is true from 0 to 100 as one integer. For analysis, signed testimony update is posterior minus prior for supporting testimony and prior minus posterior for contradicting testimony. Use only this item.",
     "primary_outcome": "signed_testimony_update",
     "secondary_outcomes": ["posterior_calibration", "confidence"],
     "response_format": "single_integer_0_to_100",
@@ -29,7 +29,7 @@
       "required": ["prior_probability", "source_track_record", "testimony_valence", "authority_status", "evidence_quality"],
       "properties": {
         "prior_probability": {"type": "integer", "enum": [20, 80]},
-        "source_track_record": {"type": "string", "enum": ["reliable", "unreliable"]},
+        "source_track_record": {"type": "string", "enum": ["reliable", "unreliable", "midpoint"]},
         "testimony_valence": {"type": "string", "enum": ["supporting", "contradicting"]},
         "authority_status": {"type": "string", "enum": ["legitimate", "non_authority"]},
         "evidence_quality": {"type": "string", "enum": ["strong", "weak"]}

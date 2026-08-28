@@ -1,0 +1,25 @@
+{
+  "quality_gate_version": "1",
+  "gate_type": "composite_downstream_review",
+  "scope": "wave1_downstream_current_plans",
+  "status": "approved",
+  "approved": true,
+  "reviewer": "codex_downstream_prompt_orchestrator",
+  "provider": "openai",
+  "model": "gpt-5.6-luna",
+  "reasoning_effort": "xhigh",
+  "approval_basis": "The current Wave 1 plans were reviewed with a Luna xhigh pilot. All four construct-specific behavior, steering, and calibration cells completed; the review manifest and audit report contain zero severe or warning flags. The resulting full inventory remains a non-confirmatory engineering artifact.",
+  "components": [
+    {
+      "label": "wave1_current_luna_review_v1",
+      "review_manifest_path": "../../../results/benchmark/downstream_prompts_v1_wave1_review_luna_current_v1/review_manifest.json",
+      "review_manifest_sha256": "b336bc595f53bf6ef8e0366ad45b5c63e086533cc8e18cc5aea465e172f42544",
+      "construct_ids": [
+        "realization_account_closure",
+        "evidence_diagnosticity",
+        "source_reliability",
+        "persistence_continuation"
+      ]
+    }
+  ]
+}

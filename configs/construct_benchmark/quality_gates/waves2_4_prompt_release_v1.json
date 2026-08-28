@@ -1,0 +1,46 @@
+{
+  "quality_gate_version": "1",
+  "gate_type": "confirmatory_prompt_release",
+  "scope": "waves2_4_prompt_inputs",
+  "status": "invalidated_by_audit",
+  "approved": false,
+  "confirmatory_prompt_inputs": false,
+  "model_execution_release": false,
+  "release_date": "2026-08-27",
+  "release_authority": "repository owner (explicit user instruction)",
+  "approval_basis": "This historical release gate is invalidated by the 2026-08-27 Wave 2-4 prompt audit, which found probe-wrapper, downstream-episode, direct-cue, and task-independence blockers. It must not authorize confirmatory use.",
+  "audit_record_path": "../../agents/WAVES2_4_PROMPT_AUDIT.md",
+  "audit_status": "blocked",
+  "source_quality_gate": {
+    "path": "waves2_4_downstream_luna_v1.json",
+    "status": "approved",
+    "approved": true
+  },
+  "waves": [
+    {
+      "wave": 2,
+      "inventory_manifest_path": "../../../results/benchmark/prompt_inventories/wave2_four_construct_confirmatory_v1/inventory_manifest.json",
+      "inventory_manifest_sha256": "c25643260b599595ca52bc2143a0f7d36ef2fbb4267a26a880f24ebbe54f6338",
+      "prompt_sha256": "d754e810d1c10e885c50bcd244c109b022bf43debe1ec23b919c66022c9c331d",
+      "record_count": 1584,
+      "construct_count": 4
+    },
+    {
+      "wave": 3,
+      "inventory_manifest_path": "../../../results/benchmark/prompt_inventories/wave3_four_construct_confirmatory_v1/inventory_manifest.json",
+      "inventory_manifest_sha256": "48ffb7efec1f919e47a7cee1b19eb677e22a3bc81aeac0a765e7f50c0c0108f9",
+      "prompt_sha256": "91f75a113d6f4942ff8eb52d7116895dfb95de2b53e005f390917c78d45cf9e7",
+      "record_count": 1584,
+      "construct_count": 4
+    },
+    {
+      "wave": 4,
+      "inventory_manifest_path": "../../../results/benchmark/prompt_inventories/wave4_four_construct_confirmatory_v1/inventory_manifest.json",
+      "inventory_manifest_sha256": "0e1398aa3b255f164b3a2a2c5f0b70ba53aa7ef153578fc3fcb234341bb3c9e6",
+      "prompt_sha256": "7d0ef0e41ddb4b64a72d46bacf53bc9d4c3927dcf92796f2d2c1e348106edf03",
+      "record_count": 1536,
+      "construct_count": 4
+    }
+  ],
+  "execution_gate_note": "The Wave 1 measurement gate and precision simulation remain separate prerequisites before confirmatory model execution is authorized."
+}

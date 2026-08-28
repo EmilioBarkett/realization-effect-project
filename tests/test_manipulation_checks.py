@@ -23,6 +23,7 @@ from scripts.plan_construct_steering import _build_tracking_directions
 from scripts.run_construct_steering import (
     _build_output_manifest,
     _output_manifest_path,
+    _select_zero_dose_plan,
     _trace_rows,
     _validate_output_manifest,
 )
@@ -62,6 +63,26 @@ def test_downstream_persistence_uses_observed_injection_shift() -> None:
         downstream_calibration_scale=2.0,
         injection_calibration_scale=1.0,
     ) is None
+
+
+def test_zero_dose_plan_selects_only_target_gate_conditions() -> None:
+    plan = {
+        "construct_id": "example_construct",
+        "conditions": [
+            {"condition_id": "target_negative", "direction_kind": "target", "dose": -1.0},
+            {"condition_id": "target_zero", "direction_kind": "target", "dose": 0.0},
+            {"condition_id": "target_positive", "direction_kind": "target", "dose": 1.0},
+            {"condition_id": "shuffled_zero", "direction_kind": "shuffled", "dose": 0.0},
+        ],
+    }
+
+    selected = _select_zero_dose_plan(plan)
+
+    assert [condition["condition_id"] for condition in selected["conditions"]] == ["target_zero"]
+    assert selected["execution_scope"] == "target_zero_dose_behavior_gate"
+    assert selected["source_condition_count"] == 4
+    assert selected["selected_condition_count"] == 1
+    assert len(plan["conditions"]) == 4
 
 
 def _immediate(

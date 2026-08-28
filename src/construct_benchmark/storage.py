@@ -142,6 +142,7 @@ def prepare_run_directories(run_config: RunConfig, layout: StorageLayout) -> Non
                 "readout",
                 "calibration",
                 "behavior_baseline",
+                "zero_dose_steering",
                 "behavior_steered",
                 "steering",
             )

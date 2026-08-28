@@ -21,7 +21,7 @@
   "independent_behavior_task": {
     "task_id": "advice_direct_evidence_choice_v1",
     "task_family": "authority_evidence_conflict_choice",
-    "prompt_template": "In a separate decision, a credentialed specialist recommends one action and a direct measurement may agree or conflict. Return exactly 1 to follow the specialist's recommendation or 2 to use the direct measurement. Use only this item's information.",
+    "prompt_template": "In a separate decision, a credentialed specialist recommends one action and a direct measurement may agree or conflict. Return exactly one integer: 1 or 2; 1 means follow the specialist's recommendation and 2 means use the direct measurement. Use only this item's information.",
     "primary_outcome": "advice_choice",
     "secondary_outcomes": ["direct_evidence_choice", "compliance"],
     "response_format": "single_integer_1_or_2",

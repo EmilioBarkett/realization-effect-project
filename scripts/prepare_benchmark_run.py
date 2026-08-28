@@ -25,6 +25,7 @@ from construct_benchmark.config import (  # noqa: E402
     load_construct_specs,
     load_run_config,
 )
+from construct_benchmark.campaign import confirmatory_execution_report  # noqa: E402
 from construct_benchmark.manifests import build_run_plan, file_sha256, write_run_plan  # noqa: E402
 from construct_benchmark.prompts import load_prompt_records  # noqa: E402
 from construct_benchmark.storage import (  # noqa: E402
@@ -80,6 +81,12 @@ def _parser() -> argparse.ArgumentParser:
         help="Workspace root; defaults to the configured environment variable or the current directory.",
     )
     parser.add_argument("--resume", action="store_true", help="Reuse an existing compatible run directory.")
+    parser.add_argument(
+        "--confirmatory-campaign",
+        type=Path,
+        default=None,
+        help="Campaign manifest required before preparing a gated full run.",
+    )
     parser.add_argument("--dry-run", action="store_true", help="Validate and print paths without writing files.")
     return parser
 
@@ -118,6 +125,20 @@ def main() -> None:
         output_root=layout.output_root,
         run_mode=args.run_mode,
     )
+    campaign_path = args.confirmatory_campaign
+    configured_campaign = run_config.execution.get("confirmatory_campaign_path")
+    if campaign_path is None and isinstance(configured_campaign, str) and configured_campaign.strip():
+        campaign_path = args.run_config.parent / configured_campaign
+    if plan["run_mode"]["confirmatory"] and campaign_path is not None:
+        release_report = confirmatory_execution_report(campaign_path, mode="full")
+        if not release_report["ready"]:
+            blockers = ", ".join(
+                str(check["name"]) for check in release_report["blocking_checks"]
+            )
+            raise SystemExit(
+                "Confirmatory campaign release is blocked; refusing to prepare a full run. "
+                f"Blocking checks: {blockers}"
+            )
     archive_uri = resolve_archive_uri(run_config)
 
     if not args.dry_run:

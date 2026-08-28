@@ -11,6 +11,36 @@ import numpy as np
 
 _INTEGER = re.compile(r"[+-]?\d+")
 
+# Generic parsers retain their legacy field names, while registered task
+# aliases make the scorer's primary-outcome lookup explicit and lossless.
+_SUM_TASK_OUTCOMES = {
+    "program_renewal_allocation_v1": ("existing_program_allocation", "new_program_allocation"),
+    "known_unknown_lottery_allocation_v1": ("known_probability_allocation", "unknown_probability_allocation"),
+    "information_seeking_commitment_v1": ("seek_information_allocation", "commit_now_allocation"),
+    "help_allocation_v1": ("prior_helper_allocation", "other_requester_allocation"),
+    "attention_allocation_v1": ("focal_task_attention", "distractor_attention"),
+    "changed_constraint_plan_allocation_v1": ("revised_plan_allocation", "original_plan_allocation"),
+    "intertemporal_allocation_v1": ("larger_later_allocation", "smaller_sooner_allocation"),
+}
+_PROBABILITY_TASK_OUTCOMES = {
+    "testimony_weighting_v1": "signed_testimony_update",
+}
+_PROBABILITY_DIRECT_TASK_OUTCOMES = {
+    "assigned_selected_prediction_v1": "target_outcome_probability",
+    "peer_judgment_probability_v1": "claim_probability",
+}
+_CHOICE_TASK_OUTCOMES = {
+    "sure_risky_choice_v1": ("sure_choice", "risky_choice"),
+    "advice_direct_evidence_choice_v1": ("follow_specialist", "use_direct_measurement"),
+    "known_new_option_choice_v1": ("known_option_choice", "new_option_choice"),
+}
+_ALLOCATION_TASK_OUTCOMES = {
+    "goal_renewal_allocation_v2": "existing_goal_allocation",
+    "realization_risk_allocation_v2": "risky_allocation",
+    "diagnostic_test_allocation_v2": "high_information_test_allocation",
+    "source_evidence_allocation_v2": "source_weight_allocation",
+}
+
 
 @dataclass(frozen=True)
 class ParsedBehavior:
@@ -58,12 +88,14 @@ def parse_behavior_output(
     *,
     parser_id: str,
     item_metadata: Mapping[str, Any] | None = None,
+    task_id: str | None = None,
 ) -> ParsedBehavior:
     """Parse one output without guessing missing task variables from prose."""
 
     if not isinstance(text, str):
         return _invalid(parser_id, "response is not text")
     metadata = dict(item_metadata or {})
+    registered_task_id = task_id or metadata.get("task_id")
     integers = _exact_integer_tokens(text)
     if integers is None:
         return _invalid(parser_id, "response contains extra text or non-integer content")
@@ -76,6 +108,17 @@ def parse_behavior_output(
             return _invalid(parser_id, "risk-choice response is outside the registered range")
         return ParsedBehavior(parser_id, True, {"allocation_amount": float(allocation), "risk_preference": float(risk)})
 
+    if parser_id == "single_integer_choice_1_or_2_v1":
+        if len(integers) != 1 or integers[0] not in {1, 2}:
+            return _invalid(parser_id, "expected one integer choice in {1, 2}")
+        choice = integers[0]
+        values = {"choice": float(choice)}
+        if registered_task_id in _CHOICE_TASK_OUTCOMES:
+            first, second = _CHOICE_TASK_OUTCOMES[registered_task_id]
+            values[first] = float(choice == 1)
+            values[second] = float(choice == 2)
+        return ParsedBehavior(parser_id, True, values)
+
     if parser_id == "two_integers_sum_100_v1":
         if len(integers) != 2:
             return _invalid(parser_id, "expected exactly two integers")
@@ -85,7 +128,18 @@ def parse_behavior_output(
         return ParsedBehavior(
             parser_id,
             True,
-            {"continue_allocation": float(continuing), "alternative_allocation": float(alternative)},
+            {
+                "continue_allocation": float(continuing),
+                "alternative_allocation": float(alternative),
+                **(
+                    {
+                        _SUM_TASK_OUTCOMES[registered_task_id][0]: float(continuing),
+                        _SUM_TASK_OUTCOMES[registered_task_id][1]: float(alternative),
+                    }
+                    if registered_task_id in _SUM_TASK_OUTCOMES
+                    else {}
+                ),
+            },
         )
 
     if parser_id == "single_integer_probability_v1":
@@ -93,6 +147,8 @@ def parse_behavior_output(
             return _invalid(parser_id, "expected one integer probability in [0, 100]")
         probability = float(integers[0])
         values = {"probability": probability, "posterior_probability": probability}
+        if registered_task_id in _PROBABILITY_DIRECT_TASK_OUTCOMES:
+            values[_PROBABILITY_DIRECT_TASK_OUTCOMES[registered_task_id]] = probability
         if "prior_probability" in metadata:
             prior = float(metadata["prior_probability"])
             if not 0 <= prior <= 100:
@@ -100,11 +156,32 @@ def parse_behavior_output(
             values["absolute_posterior_update"] = abs(probability - prior)
             testimony_valence = metadata.get("testimony_valence")
             if testimony_valence == "supporting":
-                values["testimony_weight"] = probability - prior
+                signed_update = probability - prior
+                values["testimony_weight"] = signed_update
             elif testimony_valence == "contradicting":
-                values["testimony_weight"] = prior - probability
+                signed_update = prior - probability
+                values["testimony_weight"] = signed_update
             elif testimony_valence is not None:
                 return _invalid(parser_id, "testimony_valence metadata is not registered")
+            else:
+                signed_update = None
+            if registered_task_id in _PROBABILITY_TASK_OUTCOMES and signed_update is not None:
+                values[_PROBABILITY_TASK_OUTCOMES[registered_task_id]] = signed_update
+            if registered_task_id == "structured_bayesian_judgment_v1":
+                values["prior_anchor_distance"] = abs(probability - prior)
+                values["absolute_update"] = abs(probability - prior)
+        return ParsedBehavior(parser_id, True, values)
+
+    if parser_id == "single_integer_allocation_0_to_100_v1":
+        if len(integers) != 1 or not 0 <= integers[0] <= 100:
+            return _invalid(parser_id, "expected one integer allocation in [0, 100]")
+        allocation = float(integers[0])
+        values = {
+            "allocation": allocation,
+            "option_a_allocation": allocation,
+        }
+        if registered_task_id in _ALLOCATION_TASK_OUTCOMES:
+            values[_ALLOCATION_TASK_OUTCOMES[registered_task_id]] = allocation
         return ParsedBehavior(parser_id, True, values)
 
     raise ValueError(f"Unsupported parser_id={parser_id!r}.")
@@ -127,9 +204,12 @@ def orient_primary_outcome(
 ) -> float | None:
     """Orient an outcome so positive values follow the registered state direction.
 
-    Realization gain and loss items have opposite predictions; neutral items
-    are controls and therefore return ``None`` for the primary directed effect.
-    Other Wave 1 primary outcomes are already state-consistently oriented.
+    The direction is a property of the construct *and* of the registered
+    downstream cell.  For example, a reference-frame state predicts opposite
+    risky-choice shifts in gain and loss frames, while a consensus state is
+    oriented toward whichever peer answer was supplied.  Neutral calibration
+    items return ``None`` when no directional state-transfer interpretation is
+    registered.
     """
 
     if construct_id == "realization_account_closure":
@@ -141,13 +221,49 @@ def orient_primary_outcome(
         if valence == "neutral":
             return None
         raise ValueError("realization outcome requires registered outcome_valence metadata.")
+    if construct_id == "reference_frame":
+        frame = item_metadata.get("payoff_frame") or item_metadata.get("surface_valence")
+        if frame == "gain":
+            return -float(outcome)
+        if frame == "loss":
+            return float(outcome)
+        if frame == "neutral":
+            return None
+        raise ValueError("reference_frame outcome requires registered payoff_frame metadata.")
+    if construct_id == "prior_weighting":
+        return -float(outcome)
+    if construct_id in {"authority_deference", "exploration_exploitation"}:
+        return float(outcome)
+    if construct_id == "ambiguity_orientation":
+        # The registered primary outcome is the allocation to the known
+        # probability option; accepting the interval therefore moves it down.
+        return -float(outcome)
+    if construct_id == "causal_interpretation":
+        effect_direction = item_metadata.get("effect_direction")
+        if effect_direction == "raises_outcome":
+            return float(outcome)
+        if effect_direction == "lowers_outcome":
+            return 100.0 - float(outcome)
+        raise ValueError("causal_interpretation outcome requires effect_direction metadata.")
+    if construct_id == "consensus_conformity":
+        peer_direction = item_metadata.get("peer_judgment_direction")
+        if peer_direction == "supports_claim":
+            return float(outcome)
+        if peer_direction == "contradicts_claim":
+            return 100.0 - float(outcome)
+        raise ValueError("consensus_conformity outcome requires peer_judgment_direction metadata.")
     if construct_id in {
         "evidence_diagnosticity",
         "source_reliability",
         "persistence_continuation",
+        "plan_replanning",
+        "temporal_orientation",
+        "epistemic_uncertainty",
+        "reciprocity_obligation",
+        "goal_shielding",
     }:
         return float(outcome)
-    raise ValueError(f"No Wave 1 outcome orientation adapter for construct_id={construct_id!r}.")
+    raise ValueError(f"No outcome orientation adapter for construct_id={construct_id!r}.")
 
 
 def directed_mean_state_transfer(

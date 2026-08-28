@@ -88,6 +88,13 @@
     "required_item_fields": ["known_lottery_quality", "unknown_lottery_quality", "payoff_scale", "ambiguity_range_width"],
     "balance_check": "Each of the 16 combinations must appear at least once per content pool (behavior_eval and steering_eval). Warn if any combination is missing."
   },
+  "calibration_factor_schedule": {
+    "purpose": "neutral_ambiguity_allocation_variance",
+    "nuisance_fields": ["known_lottery_quality", "unknown_lottery_quality", "payoff_scale"],
+    "neutral_fields": {"ambiguity_range_width": "narrow"},
+    "forbidden_terms": ["accept ambiguity", "resolve ambiguity", "ambiguity orientation", "ambiguity tolerance", "ambiguity aversion", "epistemic uncertainty", "unknown probability", "missing evidence"],
+    "required_response_format": "two_integers_sum_100"
+  },
   "cells": [
     {
       "cell_id": "probe_train",
@@ -175,14 +182,15 @@
       "task_id": "known_unknown_lottery_allocation_v1",
       "parser_id": "two_integers_sum_100_v1",
       "expected_output_format": "two_integers_sum_100",
+      "factor_schedule": "calibration_factor_schedule",
       "count_per_model": 16,
       "category_balance": {
         "known_lottery_quality": ["favorable", "favorable", "favorable", "favorable", "unfavorable", "unfavorable", "unfavorable", "unfavorable", "favorable", "favorable", "favorable", "favorable", "unfavorable", "unfavorable", "unfavorable", "unfavorable"],
         "unknown_lottery_quality": ["favorable", "favorable", "unfavorable", "unfavorable", "favorable", "favorable", "unfavorable", "unfavorable", "favorable", "favorable", "unfavorable", "unfavorable", "favorable", "favorable", "unfavorable", "unfavorable"],
         "payoff_scale": ["small", "small", "small", "small", "small", "small", "small", "small", "large", "large", "large", "large", "large", "large", "large", "large"],
-        "ambiguity_range_width": ["narrow", "wide", "narrow", "wide", "narrow", "wide", "narrow", "wide", "narrow", "wide", "narrow", "wide", "narrow", "wide", "narrow", "wide"]
+        "ambiguity_range_width": ["narrow", "narrow", "narrow", "narrow", "narrow", "narrow", "narrow", "narrow", "narrow", "narrow", "narrow", "narrow", "narrow", "narrow", "narrow", "narrow"]
       },
-      "instructions": "Generate neutral allocation items using a third content pool. Use the crossed metadata schedule only to balance ordinary response variation; do not cue the probe state or ask for a style label."
+      "instructions": "Generate neutral allocation items using a third content pool. Keep the ambiguity range narrow in every item and use the scheduled known-lottery quality, unknown-lottery quality, and payoff-scale values only to balance ordinary response variation. Do not cue the probe state or ask for a style label."
     }
   ]
 }

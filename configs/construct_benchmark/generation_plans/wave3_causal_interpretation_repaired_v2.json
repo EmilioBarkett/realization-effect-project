@@ -1,0 +1,25 @@
+{
+  "base_plan_path": "wave3_causal_interpretation_v1.json",
+  "plan_id": "wave3_causal_interpretation_prompts_repaired_v2",
+  "construct_id": "causal_interpretation",
+  "wave": 3,
+  "construct_spec_path": "../constructs/causal_interpretation_v2.json",
+  "models": [{"alias": "luna", "model": "gpt-5.6-luna"}],
+  "generation": {"max_tokens": 30000, "max_output_tokens": 30000, "max_items_per_request": 20, "retries": 0, "timeout": 300},
+  "design_rules": [
+    "Use the registered probe wrapper exactly and change only the registered relation-interpretation state within each pair.",
+    "Downstream prompts are standalone mechanism forecasts in new domains. Do not copy the probe relation-classification question, and include exactly one response contract.",
+    "Do not ask the model to label the relation or append any probe continuation sentence."
+  ],
+  "forbidden_terms": ["causal_interpretation", "causal_representation", "correlational_representation", "causal interpretation", "correlational representation", "causal", "correlational", "intervention"],
+  "overrides": {
+    "cells": {
+      "probe_train": {"instructions": "Generate complete matched probe pairs with the exact registered wrapper. Keep relationship facts, evidence, and wording identical within a pair except the registered relation-interpretation clause inside Scenario; append nothing after the wrapper."},
+      "probe_validation": {"instructions": "Generate new matched validation probe pairs with the exact registered wrapper. Change only the registered relation-interpretation clause; append nothing after the wrapper."},
+      "probe_heldout": {"instructions": "Generate held-out matched probe pairs with the exact registered wrapper and new domains. Change only the registered relation-interpretation clause; append nothing after the wrapper."},
+      "behavior_eval": {"task_id": "mechanism_forecast_v2", "instructions": "Generate standalone mechanism-forecast items with assigned metadata. Ask for one probability and include exactly one response contract; do not ask for a relation label."},
+      "steering_eval": {"task_id": "mechanism_forecast_v2", "instructions": "Generate a distinct standalone mechanism-forecast pool with the same metadata schedule. Do not reproduce a probe relation-classification question; include exactly one response contract."},
+      "calibration": {"task_id": "mechanism_forecast_v2", "instructions": "Generate neutral standalone forecast items for calibration. Do not name causal interpretation or any target state; include exactly one response contract."}
+    }
+  }
+}

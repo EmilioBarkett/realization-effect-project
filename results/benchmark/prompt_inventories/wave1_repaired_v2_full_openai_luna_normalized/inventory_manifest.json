@@ -1,0 +1,582 @@
+{
+  "confirmatory": false,
+  "construct_ids": [
+    "realization_account_closure",
+    "evidence_diagnosticity",
+    "source_reliability",
+    "persistence_continuation"
+  ],
+  "constructs": [
+    {
+      "construct_id": "realization_account_closure",
+      "downstream_record_count": 48,
+      "downstream_split_counts": {
+        "behavior_eval": 16,
+        "calibration": 16,
+        "steering_eval": 16
+      },
+      "record_count": 408,
+      "vector_record_count": 360,
+      "vector_split_counts": {
+        "direction_heldout": 80,
+        "direction_train": 200,
+        "direction_validation": 80
+      }
+    },
+    {
+      "construct_id": "evidence_diagnosticity",
+      "downstream_record_count": 48,
+      "downstream_split_counts": {
+        "behavior_eval": 16,
+        "calibration": 16,
+        "steering_eval": 16
+      },
+      "record_count": 408,
+      "vector_record_count": 360,
+      "vector_split_counts": {
+        "direction_heldout": 80,
+        "direction_train": 200,
+        "direction_validation": 80
+      }
+    },
+    {
+      "construct_id": "source_reliability",
+      "downstream_record_count": 48,
+      "downstream_split_counts": {
+        "behavior_eval": 16,
+        "calibration": 16,
+        "steering_eval": 16
+      },
+      "record_count": 408,
+      "vector_record_count": 360,
+      "vector_split_counts": {
+        "direction_heldout": 80,
+        "direction_train": 200,
+        "direction_validation": 80
+      }
+    },
+    {
+      "construct_id": "persistence_continuation",
+      "downstream_record_count": 240,
+      "downstream_split_counts": {
+        "behavior_eval": 80,
+        "calibration": 80,
+        "steering_eval": 80
+      },
+      "record_count": 600,
+      "vector_record_count": 360,
+      "vector_split_counts": {
+        "direction_heldout": 80,
+        "direction_train": 200,
+        "direction_validation": 80
+      }
+    }
+  ],
+  "frozen": true,
+  "manifest_type": "wave_execution_prompt_inventory",
+  "output_path": "combined.csv",
+  "output_sha256": "3cf45b088964a2c2c8a679921c5d45ebbb2d5ef7c6fcbff536bfb67e4fd983d0",
+  "prompt_audit": {
+    "audit_version": "2",
+    "downstream": {
+      "flag_count": 18,
+      "passed": true,
+      "record_count": 384,
+      "severe_flag_count": 0,
+      "warning_flag_count": 18
+    },
+    "inventory_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/prompt_inventories/wave1_repaired_v2_full_openai_luna_normalized/combined.csv",
+    "passed": true,
+    "per_construct": {
+      "evidence_diagnosticity": {
+        "expected_counts": {
+          "behavior_eval": 16,
+          "calibration": 16,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 16
+        },
+        "observed_counts": {
+          "behavior_eval": 16,
+          "calibration": 16,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 16
+        },
+        "task_family": "information_selection_allocation",
+        "task_id": "diagnostic_test_allocation_v2"
+      },
+      "persistence_continuation": {
+        "expected_counts": {
+          "behavior_eval": 80,
+          "calibration": 80,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 80
+        },
+        "observed_counts": {
+          "behavior_eval": 80,
+          "calibration": 80,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 80
+        },
+        "task_family": "adaptive_goal_renewal_allocation",
+        "task_id": "goal_renewal_allocation_v2"
+      },
+      "realization_account_closure": {
+        "expected_counts": {
+          "behavior_eval": 16,
+          "calibration": 16,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 16
+        },
+        "observed_counts": {
+          "behavior_eval": 16,
+          "calibration": 16,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 16
+        },
+        "task_family": "decision_under_uncertainty_allocation",
+        "task_id": "realization_risk_allocation_v2"
+      },
+      "source_reliability": {
+        "expected_counts": {
+          "behavior_eval": 16,
+          "calibration": 16,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 16
+        },
+        "observed_counts": {
+          "behavior_eval": 16,
+          "calibration": 16,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 16
+        },
+        "task_family": "source_evidence_allocation",
+        "task_id": "source_evidence_allocation_v2"
+      }
+    },
+    "record_count": 1824,
+    "registry_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/configs/construct_benchmark/construct_registry_wave1_repaired_v2.json",
+    "severe_flag_count": 0,
+    "severe_flags": [],
+    "vector": {
+      "cross_split_normalized_duplicate_count": 0,
+      "malformed_pair_count": 0,
+      "malformed_pair_examples": [],
+      "normalized_duplicate_count": 0,
+      "pair_group_count": 720,
+      "record_count": 1440,
+      "split_counts": {
+        "direction_heldout": 320,
+        "direction_train": 800,
+        "direction_validation": 320
+      }
+    },
+    "warning_count": 18,
+    "warnings": [
+      {
+        "candidate_construct_id": "persistence_continuation",
+        "candidate_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_01",
+        "candidate_role": "calibration",
+        "char_similarity": 0.9125,
+        "flag_type": "downstream_near_overlap",
+        "ngram_jaccard": 0.56,
+        "reference_construct_id": "persistence_continuation",
+        "reference_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_09",
+        "reference_role": "calibration",
+        "same_construct": true,
+        "same_pool": true,
+        "severity": "warning",
+        "token_jaccard": 0.736842
+      },
+      {
+        "candidate_construct_id": "persistence_continuation",
+        "candidate_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_01",
+        "candidate_role": "calibration",
+        "char_similarity": 0.930818,
+        "flag_type": "downstream_near_overlap",
+        "ngram_jaccard": 0.583333,
+        "reference_construct_id": "persistence_continuation",
+        "reference_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_13",
+        "reference_role": "calibration",
+        "same_construct": true,
+        "same_pool": true,
+        "severity": "warning",
+        "token_jaccard": 0.777778
+      },
+      {
+        "candidate_construct_id": "persistence_continuation",
+        "candidate_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_01",
+        "candidate_role": "calibration",
+        "char_similarity": 0.941538,
+        "flag_type": "downstream_near_overlap",
+        "ngram_jaccard": 0.6,
+        "reference_construct_id": "persistence_continuation",
+        "reference_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_17",
+        "reference_role": "calibration",
+        "same_construct": true,
+        "same_pool": true,
+        "severity": "warning",
+        "token_jaccard": 0.789474
+      },
+      {
+        "candidate_construct_id": "persistence_continuation",
+        "candidate_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_02",
+        "candidate_role": "calibration",
+        "char_similarity": 0.921136,
+        "flag_type": "downstream_near_overlap",
+        "ngram_jaccard": 0.576923,
+        "reference_construct_id": "persistence_continuation",
+        "reference_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_14",
+        "reference_role": "calibration",
+        "same_construct": true,
+        "same_pool": true,
+        "severity": "warning",
+        "token_jaccard": 0.75
+      },
+      {
+        "candidate_construct_id": "persistence_continuation",
+        "candidate_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_03",
+        "candidate_role": "calibration",
+        "char_similarity": 0.916667,
+        "flag_type": "downstream_near_overlap",
+        "ngram_jaccard": 0.576923,
+        "reference_construct_id": "persistence_continuation",
+        "reference_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_07",
+        "reference_role": "calibration",
+        "same_construct": true,
+        "same_pool": true,
+        "severity": "warning",
+        "token_jaccard": 0.75
+      },
+      {
+        "candidate_construct_id": "persistence_continuation",
+        "candidate_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_03",
+        "candidate_role": "calibration",
+        "char_similarity": 0.934641,
+        "flag_type": "downstream_near_overlap",
+        "ngram_jaccard": 0.6,
+        "reference_construct_id": "persistence_continuation",
+        "reference_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_11",
+        "reference_role": "calibration",
+        "same_construct": true,
+        "same_pool": true,
+        "severity": "warning",
+        "token_jaccard": 0.789474
+      },
+      {
+        "candidate_construct_id": "persistence_continuation",
+        "candidate_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_03",
+        "candidate_role": "calibration",
+        "char_similarity": 0.929936,
+        "flag_type": "downstream_near_overlap",
+        "ngram_jaccard": 0.576923,
+        "reference_construct_id": "persistence_continuation",
+        "reference_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_15",
+        "reference_role": "calibration",
+        "same_construct": true,
+        "same_pool": true,
+        "severity": "warning",
+        "token_jaccard": 0.75
+      },
+      {
+        "candidate_construct_id": "persistence_continuation",
+        "candidate_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_03",
+        "candidate_role": "calibration",
+        "char_similarity": 0.949367,
+        "flag_type": "downstream_near_overlap",
+        "ngram_jaccard": 0.615385,
+        "reference_construct_id": "persistence_continuation",
+        "reference_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_19",
+        "reference_role": "calibration",
+        "same_construct": true,
+        "same_pool": true,
+        "severity": "warning",
+        "token_jaccard": 0.8
+      },
+      {
+        "candidate_construct_id": "persistence_continuation",
+        "candidate_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_06",
+        "candidate_role": "calibration",
+        "char_similarity": 0.92459,
+        "flag_type": "downstream_near_overlap",
+        "ngram_jaccard": 0.56,
+        "reference_construct_id": "persistence_continuation",
+        "reference_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_10",
+        "reference_role": "calibration",
+        "same_construct": true,
+        "same_pool": true,
+        "severity": "warning",
+        "token_jaccard": 0.736842
+      },
+      {
+        "candidate_construct_id": "persistence_continuation",
+        "candidate_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_06",
+        "candidate_role": "calibration",
+        "char_similarity": 0.921569,
+        "flag_type": "downstream_near_overlap",
+        "ngram_jaccard": 0.56,
+        "reference_construct_id": "persistence_continuation",
+        "reference_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_14",
+        "reference_role": "calibration",
+        "same_construct": true,
+        "same_pool": true,
+        "severity": "warning",
+        "token_jaccard": 0.736842
+      },
+      {
+        "candidate_construct_id": "persistence_continuation",
+        "candidate_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_07",
+        "candidate_role": "calibration",
+        "char_similarity": 0.93038,
+        "flag_type": "downstream_near_overlap",
+        "ngram_jaccard": 0.576923,
+        "reference_construct_id": "persistence_continuation",
+        "reference_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_11",
+        "reference_role": "calibration",
+        "same_construct": true,
+        "same_pool": true,
+        "severity": "warning",
+        "token_jaccard": 0.75
+      },
+      {
+        "candidate_construct_id": "persistence_continuation",
+        "candidate_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_07",
+        "candidate_role": "calibration",
+        "char_similarity": 0.932099,
+        "flag_type": "downstream_near_overlap",
+        "ngram_jaccard": 0.555556,
+        "reference_construct_id": "persistence_continuation",
+        "reference_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_15",
+        "reference_role": "calibration",
+        "same_construct": true,
+        "same_pool": true,
+        "severity": "warning",
+        "token_jaccard": 0.714286
+      },
+      {
+        "candidate_construct_id": "persistence_continuation",
+        "candidate_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_08",
+        "candidate_role": "calibration",
+        "char_similarity": 0.928793,
+        "flag_type": "downstream_near_overlap",
+        "ngram_jaccard": 0.555556,
+        "reference_construct_id": "persistence_continuation",
+        "reference_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_12",
+        "reference_role": "calibration",
+        "same_construct": true,
+        "same_pool": true,
+        "severity": "warning",
+        "token_jaccard": 0.8
+      },
+      {
+        "candidate_construct_id": "persistence_continuation",
+        "candidate_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_08",
+        "candidate_role": "calibration",
+        "char_similarity": 0.926829,
+        "flag_type": "downstream_near_overlap",
+        "ngram_jaccard": 0.555556,
+        "reference_construct_id": "persistence_continuation",
+        "reference_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_16",
+        "reference_role": "calibration",
+        "same_construct": true,
+        "same_pool": true,
+        "severity": "warning",
+        "token_jaccard": 0.8
+      },
+      {
+        "candidate_construct_id": "persistence_continuation",
+        "candidate_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_09",
+        "candidate_role": "calibration",
+        "char_similarity": 0.890909,
+        "flag_type": "downstream_near_overlap",
+        "ngram_jaccard": 0.56,
+        "reference_construct_id": "persistence_continuation",
+        "reference_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_13",
+        "reference_role": "calibration",
+        "same_construct": true,
+        "same_pool": true,
+        "severity": "warning",
+        "token_jaccard": 0.736842
+      },
+      {
+        "candidate_construct_id": "persistence_continuation",
+        "candidate_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_10",
+        "candidate_role": "calibration",
+        "char_similarity": 0.920128,
+        "flag_type": "downstream_near_overlap",
+        "ngram_jaccard": 0.6,
+        "reference_construct_id": "persistence_continuation",
+        "reference_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_14",
+        "reference_role": "calibration",
+        "same_construct": true,
+        "same_pool": true,
+        "severity": "warning",
+        "token_jaccard": 0.789474
+      },
+      {
+        "candidate_construct_id": "persistence_continuation",
+        "candidate_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_11",
+        "candidate_role": "calibration",
+        "char_similarity": 0.91195,
+        "flag_type": "downstream_near_overlap",
+        "ngram_jaccard": 0.576923,
+        "reference_construct_id": "persistence_continuation",
+        "reference_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_15",
+        "reference_role": "calibration",
+        "same_construct": true,
+        "same_pool": true,
+        "severity": "warning",
+        "token_jaccard": 0.75
+      },
+      {
+        "candidate_construct_id": "persistence_continuation",
+        "candidate_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_12",
+        "candidate_role": "calibration",
+        "char_similarity": 0.934985,
+        "flag_type": "downstream_near_overlap",
+        "ngram_jaccard": 0.555556,
+        "reference_construct_id": "persistence_continuation",
+        "reference_prompt_id": "wave1_persistence_continuation_prompts_v2__persistence_continuation__luna__calibration__part_001__calibration_16",
+        "reference_role": "calibration",
+        "same_construct": true,
+        "same_pool": true,
+        "severity": "warning",
+        "token_jaccard": 0.8
+      }
+    ],
+    "wave": 1
+  },
+  "record_count": 1824,
+  "schema_version": "0.1.0",
+  "scope": "repaired_wave1_vector_probe_plus_downstream",
+  "sources": {
+    "downstream_combined": {
+      "path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/wave1_repaired_v2_downstream_full_luna/combined.csv",
+      "sha256": "d6382816bfbed98b0971f1d16c7662da49e1fca97ff1102fe82bab0052e3d8c6"
+    },
+    "downstream_manifest": {
+      "path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/wave1_repaired_v2_downstream_full_luna/final_inventory_manifest.json",
+      "sha256": "95c44f47c22aedccafec33f81fc16c667d3c54ba364c8fd63e9b583e86a594b7"
+    },
+    "downstream_manifest_declared_sha256": "d6382816bfbed98b0971f1d16c7662da49e1fca97ff1102fe82bab0052e3d8c6",
+    "registry_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/configs/construct_benchmark/construct_registry_wave1_repaired_v2.json",
+    "registry_sha256": "2e31a432ac4bb0e52a3f0c040524cb86a0503133230a50907b511d3acc97dcb5",
+    "vector": {
+      "evidence_diagnosticity": {
+        "path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/wave1_repaired_v2_vector_full_openai_luna_stable/evidence_diagnosticity.csv",
+        "plan_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/configs/construct_benchmark/generation_plans/wave1_evidence_diagnosticity_v2.json",
+        "plan_sha256": "78abe7355d6b3f58af68a748eebfb0d82413aa81d8c1e21059ffb6a83115907c",
+        "probe_wrapper_normalization_version": "1",
+        "probe_wrapper_normalized_record_count": 40,
+        "record_count": 360,
+        "sha256": "10f0c124c1a9b9e2418add81b5a8ab5a61c3baba5c7ebcd4932d2dfbcb89c3d2",
+        "source_model": "gpt-5.6-luna",
+        "source_model_alias": "luna",
+        "source_plan_sha256": "78abe7355d6b3f58af68a748eebfb0d82413aa81d8c1e21059ffb6a83115907c",
+        "source_provider": "openai",
+        "split_counts": {
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80
+        }
+      },
+      "persistence_continuation": {
+        "path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/wave1_repaired_v2_vector_full_openai_luna_stable/persistence_continuation.csv",
+        "plan_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/configs/construct_benchmark/generation_plans/wave1_persistence_continuation_v2.json",
+        "plan_sha256": "456e3e20206cf3c864f6e416b1b2f5dc6a41e86a168b2a4e503cd9c2260575c9",
+        "probe_wrapper_normalization_version": "1",
+        "probe_wrapper_normalized_record_count": 40,
+        "record_count": 360,
+        "sha256": "10f8cab9eb604c29a340d7c0239fb476588b116c60b7b7681d5218248e2bdd5e",
+        "source_model": "gpt-5.6-luna",
+        "source_model_alias": "luna",
+        "source_plan_sha256": "a4f23ba04cc80f4dae8c879834816407634a859c30a99ff383caf526a397d493",
+        "source_provider": "openai",
+        "split_counts": {
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80
+        }
+      },
+      "realization_account_closure": {
+        "path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/wave1_repaired_v2_vector_full_openai_luna_stable/realization_account_closure.csv",
+        "plan_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/configs/construct_benchmark/generation_plans/wave1_realization_account_closure_v2.json",
+        "plan_sha256": "4311a6386a78c4a1b92486c5012889c866002e71bebdde16086a4e1b8fca7c10",
+        "probe_wrapper_normalization_version": "1",
+        "probe_wrapper_normalized_record_count": 0,
+        "record_count": 360,
+        "sha256": "c6398cbeeb33f7ea5eceae3d3d639e66e084f89785a7d087e4b8bb997ec38973",
+        "source_model": "gpt-5.6-luna",
+        "source_model_alias": "luna",
+        "source_plan_sha256": "4311a6386a78c4a1b92486c5012889c866002e71bebdde16086a4e1b8fca7c10",
+        "source_provider": "openai",
+        "split_counts": {
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80
+        }
+      },
+      "source_reliability": {
+        "path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/wave1_repaired_v2_vector_full_openai_luna_stable/source_reliability.csv",
+        "plan_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/configs/construct_benchmark/generation_plans/wave1_source_reliability_v2.json",
+        "plan_sha256": "19d59ab95814a3343b52489e3a7ce5818c436901e4c9390fb025de55ae4c4a87",
+        "probe_wrapper_normalization_version": "1",
+        "probe_wrapper_normalized_record_count": 120,
+        "record_count": 360,
+        "sha256": "7dd9476f88672b531f99383107c21f54ebee02ef0312ccf42af295693dd9063c",
+        "source_model": "gpt-5.6-luna",
+        "source_model_alias": "luna",
+        "source_plan_sha256": "19d59ab95814a3343b52489e3a7ce5818c436901e4c9390fb025de55ae4c4a87",
+        "source_provider": "openai",
+        "split_counts": {
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80
+        }
+      }
+    }
+  },
+  "status": "frozen",
+  "validation": {
+    "construct_ids": [
+      "realization_account_closure",
+      "evidence_diagnosticity",
+      "source_reliability",
+      "persistence_continuation"
+    ],
+    "downstream_split_counts": {
+      "behavior_eval": 128,
+      "calibration": 128,
+      "steering_eval": 128
+    },
+    "downstream_validation": "passed",
+    "global_normalized_prompt_text_unique": true,
+    "probe_wrapper_normalization": {
+      "record_count": 200,
+      "scope": "whitespace-only registered prefix/suffix repair",
+      "version": "1"
+    },
+    "prompt_record_validation": "passed",
+    "vector_split_counts": {
+      "direction_heldout": 320,
+      "direction_train": 800,
+      "direction_validation": 320
+    }
+  },
+  "wave": 1
+}

@@ -1,0 +1,27 @@
+{
+  "base_spec_path": "authority_deference_v1.json",
+  "version": "v2",
+  "title": "Legitimate-authority deference with procedure selection",
+  "description": "Whether a legitimate specialist's recommendation is represented as something to follow or as something to independently check, tested in a new operational procedure-selection task.",
+  "probe_prompt_template": "Read the following short social-information scenario. Track how a role-appropriate specialist's recommendation should be handled without answering a later task.\n\nScenario:\n{scenario}\n\nKeep the scenario in working memory without adding a response.",
+  "independent_behavior_task": {
+    "task_id": "role_guided_procedure_choice_v2",
+    "task_family": "role_guided_procedure_choice",
+    "prompt_template": "In a new operations task, choose which procedure to use. Procedure 1 is supported by a current recommendation from a role-appropriate specialist; procedure 2 is supported by a direct instrument reading. Return exactly one integer: 1 or 2. Use only this item's information and do not refer to any other scenario.",
+    "primary_outcome": "recommended_procedure_choice",
+    "secondary_outcomes": ["instrument_procedure_choice", "compliance"]
+  },
+  "expected_direction": {
+    "behavior": {
+      "outcome": "recommended_procedure_choice",
+      "estimand": "authority_state_transfer_to_distal_procedure_selection",
+      "direction_status": "preregister_before_data_collection",
+      "warning": "This is a new procedure-selection task with controlled role and measurement information; it is not a source-reliability or obedience estimate."
+    }
+  },
+  "metadata": {
+    "repair_version": "repaired_v2",
+    "downstream_independence": "The downstream task changes the domain and decision surface while retaining the registered role-versus-direct-information contrast.",
+    "release_note": "Supersedes the v1 specialist-versus-direct-measurement wording for future review and generation; v1 artifacts remain historical."
+  }
+}

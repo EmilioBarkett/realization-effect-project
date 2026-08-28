@@ -132,14 +132,35 @@ def _validate_execution_run_modes(value: Any, *, default_mode: Any = "test") -> 
                     "'balanced_pair_preserving'."
                 )
         if mode_id == "full":
-            if not confirmatory:
-                raise ValueError("execution.run_modes.full.confirmatory must be true.")
+            engineering_only = mode.get("engineering_only", False)
+            if not isinstance(engineering_only, bool):
+                raise ValueError(
+                    "execution.run_modes.full.engineering_only must be a boolean."
+                )
+            if not confirmatory and not (
+                engineering_only and purpose == "full_coverage_engineering"
+            ):
+                raise ValueError(
+                    "execution.run_modes.full.confirmatory must be true unless the mode is "
+                    "explicitly marked engineering_only with purpose='full_coverage_engineering'."
+                )
             if max_runtime is not None:
                 raise ValueError("execution.run_modes.full.max_runtime_minutes must be null.")
             if strategy != "all":
                 raise ValueError("execution.run_modes.full.prompt_selection.strategy must be 'all'.")
+        else:
+            engineering_only = mode.get("engineering_only", False)
+            if not isinstance(engineering_only, bool):
+                raise ValueError(
+                    f"execution.run_modes.{mode_id}.engineering_only must be a boolean."
+                )
+            if engineering_only:
+                raise ValueError(
+                    f"execution.run_modes.{mode_id}.engineering_only is only valid for the full mode."
+                )
         mode["purpose"] = purpose
         mode["confirmatory"] = confirmatory
+        mode["engineering_only"] = engineering_only
         mode["max_runtime_minutes"] = max_runtime
         mode["prompt_selection"] = selection
         validated_modes[mode_id] = mode
@@ -439,7 +460,12 @@ class RunConfig:
         activation["layer_selection"] = layer_selection
         _nonempty_string(activation.get("activation_site"), field_name="activation.activation_site")
         _nonempty_string(activation.get("token_mode"), field_name="activation.token_mode")
-        _nonempty_string(activation.get("storage_dtype"), field_name="activation.storage_dtype")
+        storage_dtype = _nonempty_string(
+            activation.get("storage_dtype"), field_name="activation.storage_dtype"
+        )
+        if storage_dtype not in {"float16", "float32"}:
+            raise ValueError("activation.storage_dtype must be 'float16' or 'float32'.")
+        activation["storage_dtype"] = storage_dtype
         batch_size = activation.get("batch_size")
         if not isinstance(batch_size, int) or batch_size < 1:
             raise ValueError("activation.batch_size must be a positive integer.")

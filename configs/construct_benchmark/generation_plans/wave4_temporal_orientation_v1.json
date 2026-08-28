@@ -69,6 +69,16 @@
     "required_item_fields": ["delay_gap", "relative_later_bonus", "immediate_option_quality"],
     "balance_check": "Each combination must appear once per behavior and steering content pool per model."
   },
+  "calibration_factor_schedule": {
+    "purpose": "neutral_intertemporal_allocation_variance",
+    "nuisance_fields": ["immediate_option_quality"],
+    "neutral_fields": {
+      "delay_gap": "small",
+      "relative_later_bonus": "modest"
+    },
+    "forbidden_terms": ["temporal orientation", "immediate focus", "long horizon focus"],
+    "required_response_format": "two_integers_sum_100"
+  },
   "cells": [
     {
       "cell_id": "probe_train",
@@ -154,13 +164,14 @@
       "task_id": "intertemporal_allocation_v1",
       "parser_id": "two_integers_sum_100_v1",
       "expected_output_format": "two_integers_sum_100",
+      "factor_schedule": "calibration_factor_schedule",
       "count_per_model": 8,
       "category_balance": {
-        "delay_gap": ["small", "small", "small", "small", "large", "large", "large", "large"],
-        "relative_later_bonus": ["modest", "modest", "large", "large", "modest", "modest", "large", "large"],
+        "delay_gap": ["small", "small", "small", "small", "small", "small", "small", "small"],
+        "relative_later_bonus": ["modest", "modest", "modest", "modest", "modest", "modest", "modest", "modest"],
         "immediate_option_quality": ["low", "high", "low", "high", "low", "high", "low", "high"]
       },
-      "instructions": "Generate neutral allocation items used only to estimate within-cell output variation; do not reuse behavior or steering content."
+      "instructions": "Generate neutral allocation items used only to estimate within-cell output variation. Keep the delay gap small and the later-option bonus modest in every item; vary only immediate-option quality, do not cue temporal orientation, and do not reuse behavior or steering content."
     }
   ]
 }

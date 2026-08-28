@@ -1,0 +1,25 @@
+{
+  "base_plan_path": "wave4_reciprocity_obligation_v1.json",
+  "plan_id": "wave4_reciprocity_obligation_prompts_repaired_v2",
+  "construct_id": "reciprocity_obligation",
+  "wave": 4,
+  "construct_spec_path": "../constructs/reciprocity_obligation_v2.json",
+  "models": [{"alias": "luna", "model": "gpt-5.6-luna"}],
+  "generation": {"max_tokens": 30000, "max_output_tokens": 30000, "max_items_per_request": 20, "retries": 0, "timeout": 300},
+  "design_rules": [
+    "Use the registered probe wrapper exactly and change only the registered completed-benefit state within each pair.",
+    "Downstream prompts are standalone help-allocation episodes with new actors and events. Match status, likability, familiarity, and neutral contact; include exactly one response contract and no probe suffix.",
+    "Do not ask the model to label reciprocity or append any instruction after the response contract."
+  ],
+  "forbidden_terms": ["reciprocity", "reciprocal exchange", "reciprocate", "obligation", "duty", "owe", "repay", "return the favor", "withheld", "failed to hand", "placed beside", "proximity"],
+  "overrides": {
+    "cells": {
+      "probe_train": {"instructions": "Generate complete matched probe pairs with the exact registered wrapper. Keep contact, request, actors, and wording identical within a pair except the registered completed-benefit clause inside Scenario; append nothing after the wrapper."},
+      "probe_validation": {"instructions": "Generate new matched validation probe pairs with the exact registered wrapper. Change only the registered completed-benefit clause; append nothing after the wrapper."},
+      "probe_heldout": {"instructions": "Generate held-out matched probe pairs with the exact registered wrapper and new domains. Change only the registered completed-benefit clause; append nothing after the wrapper."},
+      "behavior_eval": {"task_id": "fresh_help_allocation_v2", "instructions": "Generate standalone help-allocation items with assigned metadata. Use new actors and events, and include exactly one two-integer response contract without naming reciprocity."},
+      "steering_eval": {"task_id": "fresh_help_allocation_v2", "instructions": "Generate a distinct standalone help-allocation pool with the same metadata schedule. Use new actors and events and exactly one response contract."},
+      "calibration": {"task_id": "fresh_help_allocation_v2", "instructions": "Generate neutral standalone help-allocation items for calibration. Keep the neutral contact design and include exactly one response contract."}
+    }
+  }
+}

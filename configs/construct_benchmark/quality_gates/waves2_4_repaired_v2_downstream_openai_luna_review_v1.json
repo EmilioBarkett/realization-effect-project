@@ -1,0 +1,35 @@
+{
+  "quality_gate_version": "1",
+  "gate_type": "waves2_4_repaired_v2_downstream_review",
+  "scope": "waves2_4_repaired_v2_downstream",
+  "status": "approved",
+  "approved": true,
+  "reviewer": "codex_waves2_4_repaired_v2_openai_luna_prompt_audit",
+  "provider": "openai",
+  "model": "gpt-5.6-luna",
+  "reasoning_effort": "xhigh",
+  "approval_basis": "The OpenAI/Luna review generated one behavior, steering, and calibration item per repaired Wave 2–4 construct. The downstream composition audit reported zero severe and zero warning flags, and each construct matched its registered task, parser, category schedule, and repaired plan hash. This non-confirmatory gate authorizes generation of the complete repaired Wave 2–4 downstream prompt inventory.",
+  "review_manifest_path": "../../../results/benchmark/waves2_4_repaired_v2_downstream_review_openai_luna/review_manifest.json",
+  "review_manifest_sha256": "c665612ab1931c18cd148bbd2442667790cdff0db1f06dae8f739669bb84371e",
+  "components": [
+    {
+      "label": "waves2_4_repaired_v2_openai_luna_review",
+      "review_manifest_path": "../../../results/benchmark/waves2_4_repaired_v2_downstream_review_openai_luna/review_manifest.json",
+      "review_manifest_sha256": "c665612ab1931c18cd148bbd2442667790cdff0db1f06dae8f739669bb84371e",
+      "construct_ids": [
+        "reference_frame",
+        "prior_weighting",
+        "authority_deference",
+        "exploration_exploitation",
+        "ambiguity_orientation",
+        "causal_interpretation",
+        "consensus_conformity",
+        "plan_replanning",
+        "temporal_orientation",
+        "epistemic_uncertainty",
+        "reciprocity_obligation",
+        "goal_shielding"
+      ]
+    }
+  ]
+}

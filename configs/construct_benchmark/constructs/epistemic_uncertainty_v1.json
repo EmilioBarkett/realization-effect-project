@@ -21,7 +21,7 @@
   "independent_behavior_task": {
     "task_id": "information_seeking_commitment_v1",
     "task_family": "seek_information_or_commit",
-    "prompt_template": "Consider a new decision in which exactly one specified binary information check is available before choosing an option. Allocate exactly 100 points between seeking that single check and committing to the current option. The item must not use an unknown probability, lottery, or ambiguous number of checks. Use a new domain and do not reuse probe entities or evidence.",
+    "prompt_template": "Consider a new decision in which exactly one specified binary information check is available before choosing an option. Allocate exactly 100 points between seeking that single check and committing to the current option. Return exactly two integers on separate lines: first the allocation to seeking the check and second the allocation to committing now; the two integers must sum to 100. The item must not use an unknown probability, lottery, or ambiguous number of checks. Use a new domain and do not reuse probe entities or evidence.",
     "primary_outcome": "seek_information_allocation",
     "secondary_outcomes": ["commit_now_allocation", "compliance"],
     "response_format": "two_integers_sum_100",

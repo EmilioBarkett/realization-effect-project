@@ -1,0 +1,32 @@
+{
+  "quality_gate_version": "1",
+  "gate_type": "composite_downstream_review",
+  "scope": "wave1_downstream",
+  "status": "approved",
+  "approved": true,
+  "reviewer": "codex_downstream_prompt_orchestrator",
+  "provider": "openai",
+  "model": "gpt-5.6-luna",
+  "reasoning_effort": "xhigh",
+  "approval_basis": "Construct-specific Luna xhigh review artifacts are selected by explicit plan and output hashes; no vector prompts or non-Luna artifacts are admitted.",
+  "components": [
+    {
+      "label": "v3_fixed_evidence_source",
+      "review_manifest_path": "../../../results/benchmark/downstream_prompts_v1_review_luna_calibration_v3_fixed/review_manifest.json",
+      "review_manifest_sha256": "31ff73aeccbbe25cc55d9f1920f6d885b75ced00c3c124faef832a4a20c45715",
+      "construct_ids": [
+        "evidence_diagnosticity",
+        "source_reliability"
+      ]
+    },
+    {
+      "label": "v4_fixed_realization_persistence",
+      "review_manifest_path": "../../../results/benchmark/downstream_prompts_v1_review_luna_calibration_v4_realization_persistence/review_manifest.json",
+      "review_manifest_sha256": "e8e1234c3251cf7b4bd932c38b5d61dbdecb6ea0a968cd8ecc5a6d8f95a3a904",
+      "construct_ids": [
+        "realization_account_closure",
+        "persistence_continuation"
+      ]
+    }
+  ]
+}
