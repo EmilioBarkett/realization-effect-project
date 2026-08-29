@@ -1,0 +1,239 @@
+{
+  "base_plan_path": "wave1_evidence_diagnosticity_v2.json",
+  "construct_id": "evidence_diagnosticity",
+  "construct_spec_path": "../constructs/evidence_diagnosticity_v3.json",
+  "overrides": {
+    "append_cells": [
+      {
+        "category_balance": {
+          "correct_option": [
+            1,
+            2,
+            1,
+            2,
+            1,
+            2,
+            1,
+            2,
+            1,
+            2,
+            1,
+            2,
+            1,
+            2,
+            1,
+            2,
+            1,
+            2,
+            1,
+            2,
+            1,
+            2,
+            1,
+            2,
+            1,
+            2,
+            1,
+            2,
+            1,
+            2,
+            1,
+            2
+          ],
+          "difficulty": [
+            "low",
+            "high",
+            "low",
+            "high",
+            "low",
+            "high",
+            "low",
+            "high",
+            "low",
+            "high",
+            "low",
+            "high",
+            "low",
+            "high",
+            "low",
+            "high",
+            "low",
+            "high",
+            "low",
+            "high",
+            "low",
+            "high",
+            "low",
+            "high",
+            "low",
+            "high",
+            "low",
+            "high",
+            "low",
+            "high",
+            "low",
+            "high"
+          ],
+          "domain_family": [
+            "domain_a",
+            "domain_b",
+            "domain_c",
+            "domain_d",
+            "domain_a",
+            "domain_b",
+            "domain_c",
+            "domain_d",
+            "domain_a",
+            "domain_b",
+            "domain_c",
+            "domain_d",
+            "domain_a",
+            "domain_b",
+            "domain_c",
+            "domain_d",
+            "domain_a",
+            "domain_b",
+            "domain_c",
+            "domain_d",
+            "domain_a",
+            "domain_b",
+            "domain_c",
+            "domain_d",
+            "domain_a",
+            "domain_b",
+            "domain_c",
+            "domain_d",
+            "domain_a",
+            "domain_b",
+            "domain_c",
+            "domain_d"
+          ],
+          "option_order": [
+            "option_1_first",
+            "option_2_first",
+            "option_1_first",
+            "option_2_first",
+            "option_1_first",
+            "option_2_first",
+            "option_1_first",
+            "option_2_first",
+            "option_1_first",
+            "option_2_first",
+            "option_1_first",
+            "option_2_first",
+            "option_1_first",
+            "option_2_first",
+            "option_1_first",
+            "option_2_first",
+            "option_1_first",
+            "option_2_first",
+            "option_1_first",
+            "option_2_first",
+            "option_1_first",
+            "option_2_first",
+            "option_1_first",
+            "option_2_first",
+            "option_1_first",
+            "option_2_first",
+            "option_1_first",
+            "option_2_first",
+            "option_1_first",
+            "option_2_first",
+            "option_1_first",
+            "option_2_first"
+          ]
+        },
+        "cell_id": "collateral_eval",
+        "condition_id": "neutral",
+        "content_pool": "evidence_diagnosticity_collateral",
+        "count_per_model": 32,
+        "expected_output_format": "single_integer_1_or_2",
+        "instructions": "Generate one independent factual two-option question. The topic must be unrelated to the construct and its primary downstream task. Use the assigned domain, make the registered correct_option true, vary difficulty and option order as scheduled, and include exactly one response contract at the end. Do not mention a probe, construct, behavior, or benchmark.",
+        "metadata": {
+          "collateral_domains": [
+            "bird biology",
+            "plant biology",
+            "animal anatomy",
+            "ecology"
+          ]
+        },
+        "mode": "single",
+        "parser_id": "single_integer_choice_1_or_2_v1",
+        "prompt_family": "evidence_diagnosticity_collateral_eval_v1",
+        "prompt_role": "collateral",
+        "split": "collateral_eval",
+        "task_id": "collateral_factual_choice_evidence_diagnosticity_v1"
+      }
+    ],
+    "content_pools": {
+      "evidence_diagnosticity_collateral": {
+        "domains": [
+          "bird biology",
+          "plant biology",
+          "animal anatomy",
+          "ecology"
+        ],
+        "role": "collateral"
+      }
+    },
+    "downstream_pool_separation": {
+      "forbidden_prompt_anchors": {
+        "evidence_behavior": [
+          "forest",
+          "harbor",
+          "sensor",
+          "archive",
+          "museum",
+          "catalog"
+        ],
+        "evidence_calibration": [
+          "bridge",
+          "weather",
+          "forest",
+          "harbor",
+          "sensor"
+        ],
+        "evidence_diagnosticity_collateral": [
+          "test",
+          "hypothesis",
+          "evidence",
+          "diagnostic",
+          "posterior",
+          "probability"
+        ],
+        "evidence_steering": [
+          "bridge",
+          "weather",
+          "archive",
+          "museum",
+          "catalog"
+        ]
+      },
+      "required_prompt_anchors": {
+        "evidence_behavior": [
+          "bridge",
+          "weather"
+        ],
+        "evidence_calibration": [
+          "archive",
+          "museum",
+          "catalog"
+        ],
+        "evidence_diagnosticity_collateral": [
+          "species",
+          "organism",
+          "plant",
+          "animal"
+        ],
+        "evidence_steering": [
+          "forest",
+          "harbor",
+          "sensor"
+        ]
+      }
+    },
+    "plan_id": "evidence_diagnosticity_collateral_v1"
+  },
+  "plan_id": "evidence_diagnosticity_collateral_v1",
+  "schema_version": "0.1.0"
+}

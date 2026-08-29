@@ -45,6 +45,32 @@ results/final/activation_vectors/behavior_runs/**
 results/benchmark/*/raw/
 results/benchmark/*/*/*/raw/
 
+# Retained local benchmark working runs and RunPod diagnostic/controller state.
+# These are preserved for provenance and resume/debugging, but are not released
+# prompt inputs or source-controlled empirical results.
+results/runpod/
+results/benchmark/prompt_audits/
+results/benchmark/downstream_prompts_v1_*/
+results/benchmark/wave1_mistral_engineering_gate_v1/
+results/benchmark/wave1_release_v3_*/
+results/benchmark/wave1_repaired_*/
+results/benchmark/waves2_4_repaired_*/
+
+# Superseded and intermediate composed prompt inventories. The frozen released
+# inventories already tracked by Git remain unaffected by these ignore rules.
+results/benchmark/prompt_inventories/wave1_evidence_diagnosticity_v4_preflight_generation/
+results/benchmark/prompt_inventories/wave1_four_construct_full_luna_current_b50_v1/
+results/benchmark/prompt_inventories/wave1_preflight_v4/
+results/benchmark/prompt_inventories/wave1_release_v3_full_luna/
+results/benchmark/prompt_inventories/wave1_release_v3_full_luna_repaired/
+results/benchmark/prompt_inventories/wave1_repaired_*/
+results/benchmark/prompt_inventories/wave2_four_construct_full_luna_v1/
+results/benchmark/prompt_inventories/wave2_repaired_v2_full_openai_luna/
+results/benchmark/prompt_inventories/wave3_four_construct_full_luna_v1/
+results/benchmark/prompt_inventories/wave3_repaired_v2_full_openai_luna/
+results/benchmark/prompt_inventories/wave4_four_construct_full_luna_v1/
+results/benchmark/prompt_inventories/wave4_repaired_v2_full_openai_luna/
+
 # Prompt-generation working runs are local artifacts. Keep only the frozen,
 # reviewed all-construct inventory required by downstream activation runs.
 results/benchmark/vector_prompts_v1/

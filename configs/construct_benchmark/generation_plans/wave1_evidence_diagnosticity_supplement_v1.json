@@ -1,0 +1,59 @@
+{
+  "base_plan_path": "wave1_evidence_diagnosticity_v2.json",
+  "construct_id": "evidence_diagnosticity",
+  "construct_spec_path": "../constructs/evidence_diagnosticity_v2.json",
+  "overrides": {
+    "cells": {
+      "behavior_eval": {
+        "content_pool": "evidence_diagnosticity_supplement_behavior",
+        "count_per_model": 16,
+        "instructions": "Generate a fresh independent downstream item using a domain not present in the original Wave 1 inventory. Preserve the registered category schedule and task response contract; do not mention the probe, construct, or prompt-generation process.",
+        "prompt_family": "evidence_diagnosticity_supplement_behavior_eval_v1"
+      },
+      "calibration": {
+        "content_pool": "evidence_diagnosticity_supplement_calibration",
+        "count_per_model": 16,
+        "instructions": "Generate a fresh independent downstream item using a domain not present in the original Wave 1 inventory. Preserve the registered category schedule and task response contract; do not mention the probe, construct, or prompt-generation process.",
+        "prompt_family": "evidence_diagnosticity_supplement_calibration_v1"
+      },
+      "steering_eval": {
+        "content_pool": "evidence_diagnosticity_supplement_steering",
+        "count_per_model": 16,
+        "instructions": "Generate a fresh independent downstream item using a domain not present in the original Wave 1 inventory. Preserve the registered category schedule and task response contract; do not mention the probe, construct, or prompt-generation process.",
+        "prompt_family": "evidence_diagnosticity_supplement_steering_eval_v1"
+      }
+    },
+    "content_pools": {
+      "evidence_diagnosticity_supplement_behavior": {
+        "domains": [
+          "evidence_diagnosticity_supplement_behavior_1",
+          "evidence_diagnosticity_supplement_behavior_2",
+          "evidence_diagnosticity_supplement_behavior_3",
+          "evidence_diagnosticity_supplement_behavior_4"
+        ],
+        "role": "behavior"
+      },
+      "evidence_diagnosticity_supplement_calibration": {
+        "domains": [
+          "evidence_diagnosticity_supplement_calibration_1",
+          "evidence_diagnosticity_supplement_calibration_2",
+          "evidence_diagnosticity_supplement_calibration_3",
+          "evidence_diagnosticity_supplement_calibration_4"
+        ],
+        "role": "calibration"
+      },
+      "evidence_diagnosticity_supplement_steering": {
+        "domains": [
+          "evidence_diagnosticity_supplement_steering_1",
+          "evidence_diagnosticity_supplement_steering_2",
+          "evidence_diagnosticity_supplement_steering_3",
+          "evidence_diagnosticity_supplement_steering_4"
+        ],
+        "role": "steering"
+      }
+    },
+    "plan_id": "evidence_diagnosticity_supplement_v1"
+  },
+  "plan_id": "evidence_diagnosticity_supplement_v1",
+  "schema_version": "0.1.0"
+}

@@ -1,0 +1,59 @@
+{
+  "base_plan_path": "wave1_realization_account_closure_v2.json",
+  "construct_id": "realization_account_closure",
+  "construct_spec_path": "../constructs/realization_account_closure_v2.json",
+  "overrides": {
+    "cells": {
+      "behavior_eval": {
+        "content_pool": "realization_account_closure_supplement_behavior",
+        "count_per_model": 16,
+        "instructions": "Generate a fresh independent downstream item using a domain not present in the original Wave 1 inventory. Preserve the registered category schedule and task response contract; do not mention the probe, construct, or prompt-generation process.",
+        "prompt_family": "realization_account_closure_supplement_behavior_eval_v1"
+      },
+      "calibration": {
+        "content_pool": "realization_account_closure_supplement_calibration",
+        "count_per_model": 16,
+        "instructions": "Generate a fresh independent downstream item using a domain not present in the original Wave 1 inventory. Preserve the registered category schedule and task response contract; do not mention the probe, construct, or prompt-generation process.",
+        "prompt_family": "realization_account_closure_supplement_calibration_v1"
+      },
+      "steering_eval": {
+        "content_pool": "realization_account_closure_supplement_steering",
+        "count_per_model": 16,
+        "instructions": "Generate a fresh independent downstream item using a domain not present in the original Wave 1 inventory. Preserve the registered category schedule and task response contract; do not mention the probe, construct, or prompt-generation process.",
+        "prompt_family": "realization_account_closure_supplement_steering_eval_v1"
+      }
+    },
+    "content_pools": {
+      "realization_account_closure_supplement_behavior": {
+        "domains": [
+          "realization_account_closure_supplement_behavior_1",
+          "realization_account_closure_supplement_behavior_2",
+          "realization_account_closure_supplement_behavior_3",
+          "realization_account_closure_supplement_behavior_4"
+        ],
+        "role": "behavior"
+      },
+      "realization_account_closure_supplement_calibration": {
+        "domains": [
+          "realization_account_closure_supplement_calibration_1",
+          "realization_account_closure_supplement_calibration_2",
+          "realization_account_closure_supplement_calibration_3",
+          "realization_account_closure_supplement_calibration_4"
+        ],
+        "role": "calibration"
+      },
+      "realization_account_closure_supplement_steering": {
+        "domains": [
+          "realization_account_closure_supplement_steering_1",
+          "realization_account_closure_supplement_steering_2",
+          "realization_account_closure_supplement_steering_3",
+          "realization_account_closure_supplement_steering_4"
+        ],
+        "role": "steering"
+      }
+    },
+    "plan_id": "realization_account_closure_supplement_v1"
+  },
+  "plan_id": "realization_account_closure_supplement_v1",
+  "schema_version": "0.1.0"
+}

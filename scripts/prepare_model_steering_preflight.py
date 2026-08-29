@@ -22,6 +22,7 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from construct_benchmark.manifests import canonical_hash, file_sha256  # noqa: E402
+from construct_benchmark.prompts import load_prompt_records  # noqa: E402
 
 
 def _read_object(path: Path) -> dict[str, Any]:
@@ -75,6 +76,20 @@ def derive_preflight_plan(
 
     construct_id = str(plan.get("construct_id"))
     prompt_ids = set(_selected_prompt_ids(selection, construct_id))
+    inventory_records = load_prompt_records(prompt_inventory)
+    inventory_prompt_ids = sorted(
+        {
+            record.prompt_id
+            for record in inventory_records
+            if record.construct_id == construct_id and record.split == "steering_eval"
+        }
+    )
+    if not prompt_ids.issubset(set(inventory_prompt_ids)):
+        missing_inventory_ids = sorted(prompt_ids - set(inventory_prompt_ids))
+        raise ValueError(
+            f"Preflight selection contains steering IDs absent from the prompt inventory: "
+            f"{missing_inventory_ids[:5]}"
+        )
     requirements = selection.get("steering_requirements")
     if not isinstance(requirements, Mapping):
         raise ValueError("Selection manifest is missing steering requirements.")
@@ -90,6 +105,26 @@ def derive_preflight_plan(
     source_conditions = list(plan.get("conditions", []))
     if not source_conditions or any(not isinstance(value, Mapping) for value in source_conditions):
         raise ValueError("Steering plan must contain a non-empty conditions list.")
+    source_prompt_ids = sorted({str(value.get("prompt_id")) for value in source_conditions})
+    source_prompt_id_set = set(source_prompt_ids)
+    prompt_rebind: dict[str, str] = {}
+    if not prompt_ids.issubset(source_prompt_id_set):
+        if len(source_prompt_ids) != len(inventory_prompt_ids) or source_prompt_id_set.intersection(
+            inventory_prompt_ids
+        ):
+            raise ValueError(
+                "Steering plan prompt IDs do not cover the frozen inventory and cannot be "
+                "rebound deterministically."
+            )
+        # A direction plan can be reused for a new, independent downstream
+        # inventory when the construct/split cardinality is unchanged.  Bind
+        # IDs by their canonical lexical schedule, never by model outputs.
+        prompt_rebind = {
+            inventory_id: source_id
+            for source_id, inventory_id in zip(
+                source_prompt_ids, inventory_prompt_ids, strict=True
+            )
+        }
     candidates: dict[tuple[str, str, float], list[dict[str, Any]]] = {}
     for raw in source_conditions:
         condition = dict(raw)
@@ -101,16 +136,66 @@ def derive_preflight_plan(
         candidates.setdefault(key, []).append(condition)
 
     selected_conditions: list[dict[str, Any]] = []
+    synthesized_zero_dose_kinds: set[str] = set()
     missing: list[str] = []
     for prompt_id in sorted(prompt_ids):
+        source_prompt_id = prompt_rebind.get(prompt_id, prompt_id)
         for kind, dose in sorted(required_pairs):
-            choices = candidates.get((prompt_id, kind, dose), [])
+            choices = candidates.get((source_prompt_id, kind, dose), [])
+            if not choices and dose == 0.0 and kind in {"shuffled", "random"}:
+                # The frozen full plans register nonzero control doses but omit
+                # the zero-dose rows required by the v2 model-side gate.  A
+                # zero-dose control is still outcome-independent: reuse the
+                # lowest-index registered control vector for this prompt and
+                # set its physical intervention to exactly zero.  Preserve the
+                # source identity so this repair cannot be mistaken for an
+                # original confirmatory condition.
+                nonzero_choices = [
+                    candidate
+                    for (candidate_prompt, candidate_kind, candidate_dose), values in candidates.items()
+                    if candidate_prompt == source_prompt_id
+                    and candidate_kind == kind
+                    and candidate_dose != 0.0
+                    for candidate in values
+                ]
+                if nonzero_choices:
+                    source = min(
+                        nonzero_choices,
+                        key=lambda value: (
+                            int(value.get("direction_index", 0)),
+                            abs(float(value.get("dose", 0.0))),
+                            str(value.get("condition_id", "")),
+                        ),
+                    )
+                    synthesized = dict(source)
+                    synthesized["source_condition_id"] = source.get("condition_id")
+                    synthesized["source_prompt_id"] = source_prompt_id
+                    synthesized["prompt_id"] = prompt_id
+                    synthesized["condition_id"] = (
+                        f"{prompt_id}__preflight_{kind}_zero_dose"
+                    )
+                    synthesized["dose"] = 0.0
+                    synthesized["physical_scale"] = 0.0
+                    synthesized["preflight_synthesized_zero_dose"] = True
+                    selected_conditions.append(synthesized)
+                    synthesized_zero_dose_kinds.add(kind)
+                    continue
             if not choices:
                 missing.append(f"{prompt_id}:{kind}:{dose:g}")
                 continue
             # Full plans may register multiple random controls.  The lowest
             # direction index is a frozen, outcome-independent choice.
             chosen = min(choices, key=lambda value: int(value.get("direction_index", 0)))
+            if source_prompt_id != prompt_id:
+                rebound = dict(chosen)
+                rebound["source_condition_id"] = chosen.get("condition_id")
+                rebound["source_prompt_id"] = source_prompt_id
+                rebound["prompt_id"] = prompt_id
+                rebound["condition_id"] = (
+                    f"{prompt_id}__preflight_{kind}_{int(rebound.get('direction_index', 0)):02d}"
+                    f"__dose_{dose:g}"
+                )
+                chosen = rebound
             selected_conditions.append(chosen)
     if missing:
         raise ValueError(f"Steering plan is missing required preflight groups: {missing[:5]}")
@@ -119,13 +204,29 @@ def derive_preflight_plan(
     derived["conditions"] = selected_conditions
     derived["source_condition_count"] = len(source_conditions)
     derived["selected_condition_count"] = len(selected_conditions)
+    derived["preflight_rebound_prompt_count"] = len(prompt_rebind)
+    if prompt_rebind:
+        derived["preflight_prompt_rebind_rule"] = (
+            "The source direction plan used a prior inventory with the same construct/split "
+            "cardinality. Source prompt IDs were rebound to the frozen inventory by sorted "
+            "prompt-ID order without inspecting outputs."
+        )
+    derived["preflight_synthesized_zero_dose_kinds"] = sorted(synthesized_zero_dose_kinds)
+    if synthesized_zero_dose_kinds:
+        derived["preflight_zero_dose_control_rule"] = (
+            "For missing zero-dose shuffled/random controls only, retain the lowest-index "
+            "registered nonzero control vector and set dose and physical_scale to zero; "
+            "these rows are diagnostic preflight repairs and are not source-plan conditions."
+        )
     derived["execution_scope"] = "model_behavior_accessibility_preflight_v2"
     derived["confirmatory"] = False
     derived["preflight_selection_sha256"] = selection.get("selection_sha256")
     derived["preflight_prompt_inventory_sha256"] = actual_inventory_hash
     derived["preflight_selection_rule"] = (
         "For each selected steering prompt and required kind/dose pair, retain the registered "
-        "lowest direction_index condition without inspecting model outputs."
+        "lowest direction_index condition without inspecting model outputs; synthesize only "
+        "missing zero-dose shuffled/random controls from registered nonzero controls; when a "
+        "same-cardinality source plan uses prior prompt IDs, rebind by sorted ID order."
     )
     provenance = dict(derived.get("provenance", {}))
     provenance["source_prompt_inventory_sha256"] = provenance.get("prompt_inventory_sha256")

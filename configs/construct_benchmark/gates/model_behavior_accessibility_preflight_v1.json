@@ -1,0 +1,88 @@
+{
+  "schema_version": "0.1.0",
+  "gate_id": "model_behavior_accessibility_preflight_v1",
+  "purpose": "Release gate before any further large model execution",
+  "confirmatory": false,
+  "selection_informed_by_outcomes": false,
+  "models": [
+    {
+      "model_id": "mistralai/Mistral-Small-24B-Instruct-2501",
+      "revision_required": true
+    },
+    {
+      "model_id": "Qwen/Qwen3.8-27B",
+      "revision_required": true
+    }
+  ],
+  "construct_ids": [
+    "realization_account_closure",
+    "evidence_diagnosticity",
+    "source_reliability",
+    "persistence_continuation"
+  ],
+  "item_bounds": {
+    "minimum": 8,
+    "target": 16,
+    "maximum": 16
+  },
+  "stages": {
+    "behavior_eval": {
+      "description": "Independent downstream behavior with no intervention",
+      "must_be_manifest_complete": true,
+      "minimum_valid_rate": 1.0,
+      "maximum_invalid_items": 0,
+      "minimum_distinct_outcomes": 3,
+      "minimum_sample_sd": 2.0
+    },
+    "collateral_eval": {
+      "description": "Unrelated factual task scored separately from the construct task",
+      "must_be_manifest_complete": true,
+      "minimum_valid_rate": 0.95,
+      "minimum_correctness_rate": 0.75
+    },
+    "steering_eval": {
+      "description": "Accessibility under target and registered control interventions",
+      "must_be_manifest_complete": true,
+      "minimum_valid_rate": 0.95,
+      "required_direction_kinds": [
+        "target",
+        "shuffled",
+        "random"
+      ],
+      "required_doses_by_direction_kind": {
+        "target": [
+          -1.0,
+          0.0,
+          1.0
+        ],
+        "shuffled": [
+          0.0
+        ],
+        "random": [
+          0.0
+        ]
+      },
+      "intervention_timing": "prefill_only",
+      "requires_nonzero_target_injection": true
+    }
+  },
+  "thresholds": {
+    "behavior_minimum_valid_rate": 1.0,
+    "behavior_maximum_invalid_items": 0,
+    "behavior_minimum_distinct_outcomes": 3,
+    "behavior_minimum_sample_sd": 2.0,
+    "collateral_minimum_valid_rate": 0.95,
+    "collateral_minimum_correctness_rate": 0.75,
+    "steering_minimum_valid_rate": 0.95
+  },
+  "policy": {
+    "pass_scope": "one_model_and_construct_pair",
+    "pass_does_not_establish": [
+      "linear_decodability",
+      "causal_interchange",
+      "steerability",
+      "confirmatory_status"
+    ],
+    "failure_action": "hold_any_further_large_execution_and_record_exact_failure"
+  }
+}

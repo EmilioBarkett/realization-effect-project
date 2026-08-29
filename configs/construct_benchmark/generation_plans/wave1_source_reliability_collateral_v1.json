@@ -1,0 +1,237 @@
+{
+  "base_plan_path": "wave1_source_reliability_v2.json",
+  "construct_id": "source_reliability",
+  "construct_spec_path": "../constructs/source_reliability_v3.json",
+  "overrides": {
+    "append_cells": [
+      {
+        "category_balance": {
+          "correct_option": [
+            1,
+            2,
+            1,
+            2,
+            1,
+            2,
+            1,
+            2,
+            1,
+            2,
+            1,
+            2,
+            1,
+            2,
+            1,
+            2,
+            1,
+            2,
+            1,
+            2,
+            1,
+            2,
+            1,
+            2,
+            1,
+            2,
+            1,
+            2,
+            1,
+            2,
+            1,
+            2
+          ],
+          "difficulty": [
+            "low",
+            "high",
+            "low",
+            "high",
+            "low",
+            "high",
+            "low",
+            "high",
+            "low",
+            "high",
+            "low",
+            "high",
+            "low",
+            "high",
+            "low",
+            "high",
+            "low",
+            "high",
+            "low",
+            "high",
+            "low",
+            "high",
+            "low",
+            "high",
+            "low",
+            "high",
+            "low",
+            "high",
+            "low",
+            "high",
+            "low",
+            "high"
+          ],
+          "domain_family": [
+            "domain_a",
+            "domain_b",
+            "domain_c",
+            "domain_d",
+            "domain_a",
+            "domain_b",
+            "domain_c",
+            "domain_d",
+            "domain_a",
+            "domain_b",
+            "domain_c",
+            "domain_d",
+            "domain_a",
+            "domain_b",
+            "domain_c",
+            "domain_d",
+            "domain_a",
+            "domain_b",
+            "domain_c",
+            "domain_d",
+            "domain_a",
+            "domain_b",
+            "domain_c",
+            "domain_d",
+            "domain_a",
+            "domain_b",
+            "domain_c",
+            "domain_d",
+            "domain_a",
+            "domain_b",
+            "domain_c",
+            "domain_d"
+          ],
+          "option_order": [
+            "option_1_first",
+            "option_2_first",
+            "option_1_first",
+            "option_2_first",
+            "option_1_first",
+            "option_2_first",
+            "option_1_first",
+            "option_2_first",
+            "option_1_first",
+            "option_2_first",
+            "option_1_first",
+            "option_2_first",
+            "option_1_first",
+            "option_2_first",
+            "option_1_first",
+            "option_2_first",
+            "option_1_first",
+            "option_2_first",
+            "option_1_first",
+            "option_2_first",
+            "option_1_first",
+            "option_2_first",
+            "option_1_first",
+            "option_2_first",
+            "option_1_first",
+            "option_2_first",
+            "option_1_first",
+            "option_2_first",
+            "option_1_first",
+            "option_2_first",
+            "option_1_first",
+            "option_2_first"
+          ]
+        },
+        "cell_id": "collateral_eval",
+        "condition_id": "neutral",
+        "content_pool": "source_reliability_collateral",
+        "count_per_model": 32,
+        "expected_output_format": "single_integer_1_or_2",
+        "instructions": "Generate one independent factual two-option question. The topic must be unrelated to the construct and its primary downstream task. Use the assigned domain, make the registered correct_option true, vary difficulty and option order as scheduled, and include exactly one response contract at the end. Do not mention a probe, construct, behavior, or benchmark.",
+        "metadata": {
+          "collateral_domains": [
+            "astronomy",
+            "planetary science",
+            "weather science",
+            "geography"
+          ]
+        },
+        "mode": "single",
+        "parser_id": "single_integer_choice_1_or_2_v1",
+        "prompt_family": "source_reliability_collateral_eval_v1",
+        "prompt_role": "collateral",
+        "split": "collateral_eval",
+        "task_id": "collateral_factual_choice_source_reliability_v1"
+      }
+    ],
+    "content_pools": {
+      "source_reliability_collateral": {
+        "domains": [
+          "astronomy",
+          "planetary science",
+          "weather science",
+          "geography"
+        ],
+        "role": "collateral"
+      }
+    },
+    "downstream_pool_separation": {
+      "forbidden_prompt_anchors": {
+        "source_behavior": [
+          "orchard",
+          "river",
+          "abstract",
+          "warehouse"
+        ],
+        "source_calibration": [
+          "harbor",
+          "cargo",
+          "orchard",
+          "river",
+          "sensor",
+          "warehouse"
+        ],
+        "source_reliability_collateral": [
+          "source",
+          "report",
+          "measurement",
+          "reliable",
+          "authority",
+          "testimony"
+        ],
+        "source_steering": [
+          "harbor",
+          "cargo",
+          "abstract",
+          "warehouse"
+        ]
+      },
+      "required_prompt_anchors": {
+        "source_behavior": [
+          "harbor",
+          "cargo"
+        ],
+        "source_calibration": [
+          "abstract",
+          "record",
+          "measurement"
+        ],
+        "source_reliability_collateral": [
+          "planet",
+          "star",
+          "weather",
+          "map"
+        ],
+        "source_steering": [
+          "orchard",
+          "river",
+          "sensor"
+        ]
+      }
+    },
+    "plan_id": "source_reliability_collateral_v1"
+  },
+  "plan_id": "source_reliability_collateral_v1",
+  "schema_version": "0.1.0"
+}

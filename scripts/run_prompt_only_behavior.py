@@ -225,7 +225,6 @@ def execute_prompt_only_behavior(
         dtype=dtype,
         device_map=device_map,
         block_path=block_path,
-        constrained_numeric_generation=constrained_numeric_generation,
     )
     selected_by_id = {record.prompt_id: record for record in selected}
     started = time.monotonic()

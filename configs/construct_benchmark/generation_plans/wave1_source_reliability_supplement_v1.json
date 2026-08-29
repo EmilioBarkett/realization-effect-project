@@ -1,0 +1,59 @@
+{
+  "base_plan_path": "wave1_source_reliability_v2.json",
+  "construct_id": "source_reliability",
+  "construct_spec_path": "../constructs/source_reliability_v2.json",
+  "overrides": {
+    "cells": {
+      "behavior_eval": {
+        "content_pool": "source_reliability_supplement_behavior",
+        "count_per_model": 16,
+        "instructions": "Generate a fresh independent downstream item using a domain not present in the original Wave 1 inventory. Preserve the registered category schedule and task response contract; do not mention the probe, construct, or prompt-generation process.",
+        "prompt_family": "source_reliability_supplement_behavior_eval_v1"
+      },
+      "calibration": {
+        "content_pool": "source_reliability_supplement_calibration",
+        "count_per_model": 16,
+        "instructions": "Generate a fresh independent downstream item using a domain not present in the original Wave 1 inventory. Preserve the registered category schedule and task response contract; do not mention the probe, construct, or prompt-generation process.",
+        "prompt_family": "source_reliability_supplement_calibration_v1"
+      },
+      "steering_eval": {
+        "content_pool": "source_reliability_supplement_steering",
+        "count_per_model": 16,
+        "instructions": "Generate a fresh independent downstream item using a domain not present in the original Wave 1 inventory. Preserve the registered category schedule and task response contract; do not mention the probe, construct, or prompt-generation process.",
+        "prompt_family": "source_reliability_supplement_steering_eval_v1"
+      }
+    },
+    "content_pools": {
+      "source_reliability_supplement_behavior": {
+        "domains": [
+          "source_reliability_supplement_behavior_1",
+          "source_reliability_supplement_behavior_2",
+          "source_reliability_supplement_behavior_3",
+          "source_reliability_supplement_behavior_4"
+        ],
+        "role": "behavior"
+      },
+      "source_reliability_supplement_calibration": {
+        "domains": [
+          "source_reliability_supplement_calibration_1",
+          "source_reliability_supplement_calibration_2",
+          "source_reliability_supplement_calibration_3",
+          "source_reliability_supplement_calibration_4"
+        ],
+        "role": "calibration"
+      },
+      "source_reliability_supplement_steering": {
+        "domains": [
+          "source_reliability_supplement_steering_1",
+          "source_reliability_supplement_steering_2",
+          "source_reliability_supplement_steering_3",
+          "source_reliability_supplement_steering_4"
+        ],
+        "role": "steering"
+      }
+    },
+    "plan_id": "source_reliability_supplement_v1"
+  },
+  "plan_id": "source_reliability_supplement_v1",
+  "schema_version": "0.1.0"
+}
