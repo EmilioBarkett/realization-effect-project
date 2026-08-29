@@ -1,0 +1,580 @@
+{
+  "collateral_behavior_task": {
+    "fact_bank": [
+      {
+        "correct_option": 1,
+        "fact_domain": "astronomy",
+        "fact_id": "temporal_01",
+        "statement_1": "Mercury is a planet.",
+        "statement_2": "Mercury is a star."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "astronomy",
+        "fact_id": "temporal_02",
+        "statement_1": "Venus has no atmosphere.",
+        "statement_2": "Venus has a thick atmosphere."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "astronomy",
+        "fact_id": "temporal_03",
+        "statement_1": "Earth is the third planet from the Sun.",
+        "statement_2": "Earth is the fourth planet from the Sun."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "astronomy",
+        "fact_id": "temporal_04",
+        "statement_1": "Mars is commonly called the Blue Planet.",
+        "statement_2": "Mars is commonly called the Red Planet."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "astronomy",
+        "fact_id": "temporal_05",
+        "statement_1": "Jupiter is the largest planet in the Solar System.",
+        "statement_2": "Jupiter is the smallest planet in the Solar System."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "astronomy",
+        "fact_id": "temporal_06",
+        "statement_1": "Saturn has no rings.",
+        "statement_2": "Saturn has prominent rings."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "astronomy",
+        "fact_id": "temporal_07",
+        "statement_1": "Uranus is an ice giant.",
+        "statement_2": "Uranus is a terrestrial planet."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "astronomy",
+        "fact_id": "temporal_08",
+        "statement_1": "Neptune is a terrestrial planet.",
+        "statement_2": "Neptune is an ice giant."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "astronomy",
+        "fact_id": "temporal_09",
+        "statement_1": "The Sun is a star.",
+        "statement_2": "The Sun is a planet."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "astronomy",
+        "fact_id": "temporal_10",
+        "statement_1": "The Moon orbits Mars.",
+        "statement_2": "The Moon orbits Earth."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "astronomy",
+        "fact_id": "temporal_11",
+        "statement_1": "The Milky Way is a galaxy.",
+        "statement_2": "The Milky Way is a planet."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "astronomy",
+        "fact_id": "temporal_12",
+        "statement_1": "Pluto is classified as a star.",
+        "statement_2": "Pluto is classified as a dwarf planet."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "astronomy",
+        "fact_id": "temporal_13",
+        "statement_1": "Earth rotates about its axis.",
+        "statement_2": "Earth does not rotate about its axis."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "astronomy",
+        "fact_id": "temporal_14",
+        "statement_1": "Earth completes one orbit around the Sun in about one day.",
+        "statement_2": "Earth completes one orbit around the Sun in about one year."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "astronomy",
+        "fact_id": "temporal_15",
+        "statement_1": "Earth's axial tilt contributes to the seasons.",
+        "statement_2": "Earth's axial tilt never contributes to the seasons."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "astronomy",
+        "fact_id": "temporal_16",
+        "statement_1": "A lunar eclipse places the Moon between the Sun and Earth.",
+        "statement_2": "A lunar eclipse places Earth between the Sun and the Moon."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "astronomy",
+        "fact_id": "temporal_17",
+        "statement_1": "A solar eclipse places the Moon between the Sun and Earth.",
+        "statement_2": "A solar eclipse places Earth between the Sun and the Moon."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "astronomy",
+        "fact_id": "temporal_18",
+        "statement_1": "The asteroid belt lies mainly between Earth and Mars.",
+        "statement_2": "The asteroid belt lies mainly between Mars and Jupiter."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "astronomy",
+        "fact_id": "temporal_19",
+        "statement_1": "Polaris is commonly called the North Star.",
+        "statement_2": "Sirius is commonly called the North Star."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "astronomy",
+        "fact_id": "temporal_20",
+        "statement_1": "Orion is a planet.",
+        "statement_2": "Orion is a constellation."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "physics",
+        "fact_id": "temporal_21",
+        "statement_1": "Light travels faster than sound in air.",
+        "statement_2": "Sound travels faster than light in air."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "physics",
+        "fact_id": "temporal_22",
+        "statement_1": "Earth's atmosphere is mostly helium.",
+        "statement_2": "Earth's atmosphere is mostly nitrogen."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "measurement",
+        "fact_id": "temporal_23",
+        "statement_1": "Water freezes at 0 degrees Celsius at standard pressure.",
+        "statement_2": "Water freezes at 100 degrees Celsius at standard pressure."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "astronomy",
+        "fact_id": "temporal_24",
+        "statement_1": "The Sun is Earth's natural satellite.",
+        "statement_2": "The Moon is Earth's natural satellite."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "astronomy",
+        "fact_id": "temporal_25",
+        "statement_1": "Mercury is the planet closest to the Sun.",
+        "statement_2": "Mars is the planet closest to the Sun."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "astronomy",
+        "fact_id": "temporal_26",
+        "statement_1": "Neptune has the hottest planetary surface in the Solar System.",
+        "statement_2": "Venus has the hottest planetary surface in the Solar System."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "astronomy",
+        "fact_id": "temporal_27",
+        "statement_1": "Halley's Comet returns periodically.",
+        "statement_2": "Halley's Comet never returns after an appearance."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "astronomy",
+        "fact_id": "temporal_28",
+        "statement_1": "Auroras are caused by tectonic plates interacting with a planet's magnetosphere.",
+        "statement_2": "Auroras are linked to charged particles interacting with a planet's magnetosphere."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "astronomy",
+        "fact_id": "temporal_29",
+        "statement_1": "Sunlight takes about eight minutes to reach Earth.",
+        "statement_2": "Sunlight takes about eight hours to reach Earth."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "astronomy",
+        "fact_id": "temporal_30",
+        "statement_1": "Mars has no natural moons.",
+        "statement_2": "Mars has two small natural moons, Phobos and Deimos."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "astronomy",
+        "fact_id": "temporal_31",
+        "statement_1": "Jupiter is a gas giant.",
+        "statement_2": "Jupiter is a terrestrial planet."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "astronomy",
+        "fact_id": "temporal_32",
+        "statement_1": "Earth's magnetic field is produced by ocean tides.",
+        "statement_2": "Earth's magnetic field helps deflect solar wind."
+      }
+    ],
+    "fact_bank_version": "unique_32_wave4_temporal_v3",
+    "item_metadata_schema": {
+      "properties": {
+        "correct_option": {
+          "enum": [
+            1,
+            2
+          ],
+          "type": "integer"
+        },
+        "fact_domain": {
+          "enum": [
+            "astronomy",
+            "measurement",
+            "physics"
+          ],
+          "type": "string"
+        },
+        "fact_id": {
+          "enum": [
+            "temporal_01",
+            "temporal_02",
+            "temporal_03",
+            "temporal_04",
+            "temporal_05",
+            "temporal_06",
+            "temporal_07",
+            "temporal_08",
+            "temporal_09",
+            "temporal_10",
+            "temporal_11",
+            "temporal_12",
+            "temporal_13",
+            "temporal_14",
+            "temporal_15",
+            "temporal_16",
+            "temporal_17",
+            "temporal_18",
+            "temporal_19",
+            "temporal_20",
+            "temporal_21",
+            "temporal_22",
+            "temporal_23",
+            "temporal_24",
+            "temporal_25",
+            "temporal_26",
+            "temporal_27",
+            "temporal_28",
+            "temporal_29",
+            "temporal_30",
+            "temporal_31",
+            "temporal_32"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "fact_id",
+        "fact_domain",
+        "correct_option"
+      ]
+    },
+    "primary_outcome": "correct_option",
+    "prompt_template": "In a separate factual item, use the two registered statements for the assigned fact_id. Exactly one statement is correct; do not identify it in the prompt. Return exactly one integer: 1 or 2 for the correct statement.",
+    "response_format": "single_integer_1_or_2",
+    "secondary_outcomes": [
+      "incorrect_option",
+      "compliance"
+    ],
+    "task_family": "unrelated_factual_choice",
+    "task_id": "collateral_fact_choice_v3"
+  },
+  "construct_id": "temporal_orientation",
+  "contrast_conditions": [
+    {
+      "condition_id": "immediate_focus",
+      "definition": "The scenario makes near-term consequences and upcoming demands the focal consideration for the decision maker.",
+      "label": "Immediate-consequence focus"
+    },
+    {
+      "condition_id": "long_horizon_focus",
+      "definition": "The scenario makes consequences that unfold over a longer horizon and future requirements the focal consideration for the decision maker.",
+      "label": "Long-horizon consequence focus"
+    }
+  ],
+  "controls": [
+    "delay_gap_and_later_bonus_crossing",
+    "immediate_option_quality_balance",
+    "new_domain_behavior_task",
+    "lexical_overlap_audit",
+    "neutral_behavior_prompt",
+    "shuffled_pair_labels",
+    "random_direction",
+    "compliance_and_collateral_response_controls",
+    "unrelated_collateral_behavior"
+  ],
+  "description": "Whether immediate or delayed consequences are represented as more salient, tested downstream by allocating resources between options with distinct delivery dates without naming the probe state.",
+  "expected_direction": {
+    "behavior": {
+      "direction_status": "preregister_before_data_collection",
+      "estimand": "consequence_horizon_state_transfer_to_dated_allocation",
+      "expected_by_delay_gap": {
+        "large": "long_horizon_focus increases larger-later allocation",
+        "small": "long_horizon_focus increases larger-later allocation"
+      },
+      "outcome": "six_month_allocation",
+      "warning": "This is a dated allocation outcome, not a universal temporal-discounting parameter."
+    },
+    "readout": {
+      "estimand": "heldout_projection_margin",
+      "negative_condition": "immediate_focus",
+      "positive_condition": "long_horizon_focus"
+    }
+  },
+  "family": "decision",
+  "independent_behavior_task": {
+    "independence_requirements": [
+      "Use new domains, actors, and outcomes not present in probe prompts.",
+      "Cross delay gap, relative later bonus, and immediate-option quality independently.",
+      "Do not ask the model to classify its temporal orientation or to repeat a probe label."
+    ],
+    "item_metadata_schema": {
+      "properties": {
+        "delay_gap": {
+          "enum": [
+            "small",
+            "large",
+            "neutral"
+          ],
+          "type": "string"
+        },
+        "immediate_option_quality": {
+          "enum": [
+            "low",
+            "high"
+          ],
+          "type": "string"
+        },
+        "primary_position": {
+          "enum": [
+            1,
+            2
+          ],
+          "type": "integer"
+        },
+        "relative_later_bonus": {
+          "enum": [
+            "modest",
+            "large",
+            "neutral"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "delay_gap",
+        "relative_later_bonus",
+        "immediate_option_quality",
+        "primary_position"
+      ]
+    },
+    "primary_outcome": "six_month_allocation",
+    "prompt_template": "In a new allocation task, one option delivers its stated outcome after one week and another delivers its stated outcome after six months. The item states which numbered option has each timing. Allocate exactly 100 points in numbered-option order. Return exactly two integers on separate lines; the two integers must sum to 100.",
+    "response_format": "two_integers_sum_100",
+    "secondary_outcomes": [
+      "one_week_allocation",
+      "compliance"
+    ],
+    "task_family": "dated_resource_allocation",
+    "task_id": "dated_resource_allocation_v3"
+  },
+  "metadata": {
+    "analysis_caveat": "Do not interpret larger-later allocation as a discount-rate estimate; report it as a directed transfer outcome under the registered task factors.",
+    "behavioral_design": {
+      "behavior_factor_fields": [
+        "delay_gap",
+        "relative_later_bonus",
+        "immediate_option_quality",
+        "primary_position"
+      ],
+      "behavior_factor_levels": {
+        "delay_gap": [
+          "small",
+          "large"
+        ],
+        "relative_later_bonus": [
+          "modest",
+          "large"
+        ]
+      },
+      "behavior_fixed_fields": {},
+      "calibration_factor_fields": [
+        "immediate_option_quality",
+        "primary_position"
+      ],
+      "calibration_fixed_fields": {
+        "delay_gap": "neutral",
+        "relative_later_bonus": "neutral"
+      },
+      "calibration_forbidden_terms": [
+        "one week",
+        "six months",
+        "later",
+        "sooner",
+        "immediate",
+        "delayed",
+        "long horizon",
+        "near term",
+        "temporal"
+      ],
+      "calibration_neutral_fields": {
+        "delay_gap": "neutral",
+        "relative_later_bonus": "neutral"
+      },
+      "calibration_required_patterns": [
+        "\\btwo\\s+matched\\s+options?\\b",
+        "\\bthe\\s+timing\\s+is\\s+not\\s+part\\s+of\\s+this\\s+choice\\b|\\bequal\\s+timing\\b"
+      ],
+      "collateral_cross_construct_disjoint": true,
+      "collateral_fact_bank_ids": [
+        "temporal_01",
+        "temporal_02",
+        "temporal_03",
+        "temporal_04",
+        "temporal_05",
+        "temporal_06",
+        "temporal_07",
+        "temporal_08",
+        "temporal_09",
+        "temporal_10",
+        "temporal_11",
+        "temporal_12",
+        "temporal_13",
+        "temporal_14",
+        "temporal_15",
+        "temporal_16",
+        "temporal_17",
+        "temporal_18",
+        "temporal_19",
+        "temporal_20",
+        "temporal_21",
+        "temporal_22",
+        "temporal_23",
+        "temporal_24",
+        "temporal_25",
+        "temporal_26",
+        "temporal_27",
+        "temporal_28",
+        "temporal_29",
+        "temporal_30",
+        "temporal_31",
+        "temporal_32"
+      ],
+      "collateral_fact_bank_version": "unique_32_wave4_temporal_v3",
+      "collateral_parser_id": "single_integer_choice_1_or_2_v1",
+      "collateral_repair_version": "repaired_v3_collateral_v3_disjoint",
+      "collateral_required_metadata": [
+        "fact_id",
+        "fact_domain",
+        "correct_option"
+      ],
+      "collateral_response_format": "single_integer_1_or_2",
+      "collateral_task_id": "collateral_fact_choice_v3",
+      "collateral_unique_fact_ids_required": true,
+      "design_kind": "temporal_balanced_allocation",
+      "forbidden_downstream_terms": [
+        "temporal_orientation",
+        "immediate_focus",
+        "long_horizon_focus"
+      ],
+      "full_factorial_required": true,
+      "pair_contract": null,
+      "parser_id": "two_integers_sum_100_v1",
+      "position_field": "primary_position",
+      "primary_outcome": "six_month_allocation",
+      "repair_family": "waves2_4_repaired_v3",
+      "required_schedule_fields": [
+        "delay_gap",
+        "relative_later_bonus",
+        "immediate_option_quality",
+        "primary_position"
+      ],
+      "required_task_metadata": [
+        "delay_gap",
+        "relative_later_bonus",
+        "immediate_option_quality",
+        "primary_position"
+      ],
+      "response_format": "two_integers_sum_100",
+      "secondary_outcomes": [
+        "one_week_allocation",
+        "compliance"
+      ],
+      "task_id": "dated_resource_allocation_v3"
+    },
+    "collateral_task_independent_of_construct": true,
+    "do_not_tune_from_wave1_outcomes": true,
+    "downstream_independence": "The downstream task uses new dated options and avoids direct labels such as immediate focus or long-horizon focus.",
+    "not_claimed_as": "a universal temporal discounting parameter",
+    "option_order_policy": "Every choice/allocation downstream cell registers a balanced target_option or primary_position schedule; parser scoring uses that frozen field.",
+    "parent_spec_path": "configs/construct_benchmark/constructs/temporal_orientation_repaired_v3_collateral_v2.json",
+    "parent_spec_sha256": "c68b9f5f2a88c5080e97cd1a81d331ee571a9cb8c5ec4330b57cdb26aa214b37",
+    "primary_question": "Does a consequence-horizon direction transfer to an independent sooner-versus-later allocation?",
+    "probe_state_is": "represented_temporal_consequence_focus",
+    "release_note": "Supersedes the v1 direct horizon-cue wording for future review and generation; v1 artifacts remain historical.",
+    "repair_scope": [
+      "Waves 2-4 collateral task only",
+      "construct-disjoint 32-fact objective bank",
+      "deterministic registered collateral gold answers",
+      "balanced correct-option positions"
+    ],
+    "repair_version": "repaired_v3_collateral_v3_disjoint"
+  },
+  "paired_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout"
+  ],
+  "parsing_rules": {
+    "extra_text_policy": "invalid",
+    "invalid_response_policy": "exclude_from_outcome_denominator_and_report_compliance",
+    "outcome_aliases": {
+      "one_week_allocation": "one_week_allocation",
+      "six_month_allocation": "six_month_allocation"
+    },
+    "parser_id": "two_integers_sum_100_v1",
+    "sum_constraint": 100,
+    "valid_ranges": {
+      "one_week_allocation": [
+        0,
+        100
+      ],
+      "six_month_allocation": [
+        0,
+        100
+      ]
+    }
+  },
+  "probe_prompt_template": "Read the following short decision scenario. Track which consequence horizon is represented as salient without answering a later task.\n\nScenario:\n{scenario}\n\nKeep the scenario in working memory without adding a response.",
+  "required_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout",
+    "behavior_eval",
+    "steering_eval",
+    "calibration",
+    "collateral_eval"
+  ],
+  "schema_version": "0.1.0",
+  "title": "Consequence-horizon representation with delayed resource allocation",
+  "version": "repaired_v3_collateral_v3_disjoint"
+}

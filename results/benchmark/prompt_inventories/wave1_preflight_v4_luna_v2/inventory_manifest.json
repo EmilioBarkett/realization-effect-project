@@ -1,0 +1,52 @@
+{
+  "audit_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/prompt_inventories/wave1_preflight_v4_luna_v2/inventory_audit.json",
+  "audit_sha256": "af1e6578b7101a575005d2e78f038077eea29a46a4f8e964939f80beb2f9939c",
+  "combined_csv_sha256": "09855e9f9354766f253c9ba3631d944b1512514687ef7a948452857102dd61d9",
+  "confirmatory": false,
+  "confirmatory_eligibility": "pending_model_side_wave1_preflight",
+  "construct_ids": [
+    "realization_account_closure",
+    "evidence_diagnosticity",
+    "source_reliability",
+    "persistence_continuation"
+  ],
+  "excluded_parent_repaired_downstream": {
+    "prompt_id_digest": "19c977c595d35670cb10a0c1e1673a013a8a002341b0a641ffe7d629936fa9ad",
+    "record_count": 432
+  },
+  "frozen": true,
+  "generated_downstream": {
+    "manifest_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/wave1_behavioral_repair_generated_preflight_luna_v1/final_inventory_manifest.json",
+    "path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/wave1_behavioral_repair_generated_preflight_luna_v1/combined.csv",
+    "sha256": "a39449511cb30ec467176c68b7902a49848d8b54b28de43778c3835b648a690b"
+  },
+  "inventory_version": "wave1_behavioral_repair_preflight_luna",
+  "manifest_type": "wave1_behavioral_repair_frozen_prompt_inventory",
+  "output_path": "combined.csv",
+  "output_sha256": "09855e9f9354766f253c9ba3631d944b1512514687ef7a948452857102dd61d9",
+  "parent_inventory": {
+    "path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/prompt_inventories/wave1_release_v3_full_luna_repaired_v2/combined.csv",
+    "sha256": "b422cf4fe9b3c69ffdfe6c7eefa6a36fa0c087321ff96f4ba0abb7d33cd41c70"
+  },
+  "parent_manifest": {
+    "path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/prompt_inventories/wave1_release_v3_full_luna_repaired_v2/inventory_manifest.json",
+    "sha256": "6d8aac8fbb19ff78bd0fdd982b12f20d8471606fa3f38bef48a2c8a0ec55b6ba"
+  },
+  "provenance": {
+    "generation_model": "gpt-5.6-luna",
+    "generation_provider": "openai",
+    "old_repaired_prompt_families_mixed": false,
+    "reasoning_effort": "xhigh",
+    "selection_informed_by_outcomes": false,
+    "source_reliability_preserved": true
+  },
+  "record_count": 1808,
+  "release_id": "wave1_behavioral_repair_preflight_luna",
+  "retained_immutable_baseline": {
+    "record_count": 1664,
+    "record_digest": "e840a7d9425cdc91a7a824eee5f4b84dd6f6d0d25c61b775cf6890dc39781cab"
+  },
+  "schema_version": "0.1.0",
+  "status": "frozen",
+  "wave": 1
+}

@@ -1,0 +1,1194 @@
+{
+  "behavior_factor_schedule": {
+    "balance_check": "Each of the 16 combinations must appear at least once per content pool (behavior_eval and steering_eval). Warn if any combination is missing.",
+    "factors": {
+      "peer_count": [
+        "small",
+        "large"
+      ],
+      "peer_judgment_direction": [
+        "supports_claim",
+        "contradicts_claim"
+      ],
+      "private_evidence_relation": [
+        "agrees_with_peers",
+        "conflicts_with_peers"
+      ],
+      "private_evidence_strength": [
+        "weak",
+        "strong"
+      ]
+    },
+    "note": "All four behavior-task factors must vary independently. Generate one item per combination; do not allow factors to co-vary. Record peer_judgment_direction, private_evidence_relation, private_evidence_strength, and peer_count as structured metadata fields on every generated item.",
+    "required_combinations": [
+      {
+        "peer_count": "small",
+        "peer_judgment_direction": "supports_claim",
+        "private_evidence_relation": "agrees_with_peers",
+        "private_evidence_strength": "weak"
+      },
+      {
+        "peer_count": "large",
+        "peer_judgment_direction": "supports_claim",
+        "private_evidence_relation": "agrees_with_peers",
+        "private_evidence_strength": "weak"
+      },
+      {
+        "peer_count": "small",
+        "peer_judgment_direction": "supports_claim",
+        "private_evidence_relation": "agrees_with_peers",
+        "private_evidence_strength": "strong"
+      },
+      {
+        "peer_count": "large",
+        "peer_judgment_direction": "supports_claim",
+        "private_evidence_relation": "agrees_with_peers",
+        "private_evidence_strength": "strong"
+      },
+      {
+        "peer_count": "small",
+        "peer_judgment_direction": "supports_claim",
+        "private_evidence_relation": "conflicts_with_peers",
+        "private_evidence_strength": "weak"
+      },
+      {
+        "peer_count": "large",
+        "peer_judgment_direction": "supports_claim",
+        "private_evidence_relation": "conflicts_with_peers",
+        "private_evidence_strength": "weak"
+      },
+      {
+        "peer_count": "small",
+        "peer_judgment_direction": "supports_claim",
+        "private_evidence_relation": "conflicts_with_peers",
+        "private_evidence_strength": "strong"
+      },
+      {
+        "peer_count": "large",
+        "peer_judgment_direction": "supports_claim",
+        "private_evidence_relation": "conflicts_with_peers",
+        "private_evidence_strength": "strong"
+      },
+      {
+        "peer_count": "small",
+        "peer_judgment_direction": "contradicts_claim",
+        "private_evidence_relation": "agrees_with_peers",
+        "private_evidence_strength": "weak"
+      },
+      {
+        "peer_count": "large",
+        "peer_judgment_direction": "contradicts_claim",
+        "private_evidence_relation": "agrees_with_peers",
+        "private_evidence_strength": "weak"
+      },
+      {
+        "peer_count": "small",
+        "peer_judgment_direction": "contradicts_claim",
+        "private_evidence_relation": "agrees_with_peers",
+        "private_evidence_strength": "strong"
+      },
+      {
+        "peer_count": "large",
+        "peer_judgment_direction": "contradicts_claim",
+        "private_evidence_relation": "agrees_with_peers",
+        "private_evidence_strength": "strong"
+      },
+      {
+        "peer_count": "small",
+        "peer_judgment_direction": "contradicts_claim",
+        "private_evidence_relation": "conflicts_with_peers",
+        "private_evidence_strength": "weak"
+      },
+      {
+        "peer_count": "large",
+        "peer_judgment_direction": "contradicts_claim",
+        "private_evidence_relation": "conflicts_with_peers",
+        "private_evidence_strength": "weak"
+      },
+      {
+        "peer_count": "small",
+        "peer_judgment_direction": "contradicts_claim",
+        "private_evidence_relation": "conflicts_with_peers",
+        "private_evidence_strength": "strong"
+      },
+      {
+        "peer_count": "large",
+        "peer_judgment_direction": "contradicts_claim",
+        "private_evidence_relation": "conflicts_with_peers",
+        "private_evidence_strength": "strong"
+      }
+    ],
+    "required_item_fields": [
+      "peer_judgment_direction",
+      "private_evidence_relation",
+      "private_evidence_strength",
+      "peer_count"
+    ]
+  },
+  "behavioral_schedule_contract": {
+    "balanced_fields": [
+      "peer_judgment_direction",
+      "private_evidence_relation",
+      "private_evidence_strength",
+      "peer_count"
+    ],
+    "calibration_balanced_fields": [
+      "private_evidence_strength",
+      "peer_count"
+    ],
+    "calibration_combination_count": 4,
+    "calibration_factor_order": [
+      "private_evidence_strength",
+      "peer_count"
+    ],
+    "calibration_factors": {
+      "peer_count": [
+        "small",
+        "large"
+      ],
+      "private_evidence_strength": [
+        "weak",
+        "strong"
+      ]
+    },
+    "calibration_fixed_fields": {
+      "peer_judgment_direction": "neutral",
+      "private_evidence_relation": "neutral"
+    },
+    "calibration_full_factorial": true,
+    "calibration_neutral_fields": {
+      "peer_judgment_direction": "neutral",
+      "private_evidence_relation": "neutral"
+    },
+    "calibration_repetitions": 8,
+    "collateral": {
+      "balanced_fields": [
+        "fact_id",
+        "correct_option",
+        "fact_domain"
+      ],
+      "combination_count": 32,
+      "derived_fields": {
+        "correct_option": "collateral_fact_bank",
+        "fact_domain": "collateral_fact_bank"
+      },
+      "factor_order": [
+        "fact_id"
+      ],
+      "factors": {
+        "fact_id": [
+          "neutral_card_c_01",
+          "neutral_card_c_02",
+          "neutral_card_c_03",
+          "neutral_card_c_04",
+          "neutral_card_c_05",
+          "neutral_card_c_06",
+          "neutral_card_c_07",
+          "neutral_card_c_08",
+          "neutral_card_c_09",
+          "neutral_card_c_10",
+          "neutral_card_c_11",
+          "neutral_card_c_12",
+          "neutral_card_c_13",
+          "neutral_card_c_14",
+          "neutral_card_c_15",
+          "neutral_card_c_16",
+          "neutral_card_c_17",
+          "neutral_card_c_18",
+          "neutral_card_c_19",
+          "neutral_card_c_20",
+          "neutral_card_c_21",
+          "neutral_card_c_22",
+          "neutral_card_c_23",
+          "neutral_card_c_24",
+          "neutral_card_c_25",
+          "neutral_card_c_26",
+          "neutral_card_c_27",
+          "neutral_card_c_28",
+          "neutral_card_c_29",
+          "neutral_card_c_30",
+          "neutral_card_c_31",
+          "neutral_card_c_32"
+        ]
+      },
+      "fixed_fields": {},
+      "full_factorial": true,
+      "repetitions": 1
+    },
+    "combination_count": 16,
+    "factor_order": [
+      "peer_judgment_direction",
+      "private_evidence_relation",
+      "private_evidence_strength",
+      "peer_count"
+    ],
+    "factors": {
+      "peer_count": [
+        "small",
+        "large"
+      ],
+      "peer_judgment_direction": [
+        "supports_claim",
+        "contradicts_claim"
+      ],
+      "private_evidence_relation": [
+        "agrees_with_peers",
+        "conflicts_with_peers"
+      ],
+      "private_evidence_strength": [
+        "weak",
+        "strong"
+      ]
+    },
+    "fixed_fields": {},
+    "full_factorial": true,
+    "repetitions": 2,
+    "required_fields": [
+      "peer_judgment_direction",
+      "private_evidence_relation",
+      "private_evidence_strength",
+      "peer_count"
+    ]
+  },
+  "calibration_factor_schedule": {
+    "forbidden_terms": [
+      "peer",
+      "reviewers",
+      "consensus",
+      "conformity",
+      "group",
+      "private measurement",
+      "supports the claim",
+      "contradicts the claim"
+    ],
+    "neutral_fields": {
+      "peer_judgment_direction": "neutral",
+      "private_evidence_relation": "neutral"
+    },
+    "nuisance_fields": [
+      "private_evidence_strength",
+      "peer_count"
+    ],
+    "purpose": "semantic_neutral_nuisance_only_consensus_conformity_v3",
+    "required_response_format": "single_integer_0_to_100",
+    "schedule_id": "calibration_factor_schedule",
+    "semantic_independence": {
+      "metadata_is_insufficient": true,
+      "mode": "no_construct_relevant_contrast",
+      "required_absent_terms": [
+        "peer",
+        "reviewers",
+        "consensus",
+        "conformity",
+        "group",
+        "private measurement",
+        "supports the claim",
+        "contradicts the claim"
+      ],
+      "required_patterns": [
+        "\\bsingle\\s+independent\\s+forecast\\b|\\bstandalone\\s+forecast\\b",
+        "\\bno\\s+collective\\s+judgment\\b|\\bno\\s+other\\s+assessors?\\b"
+      ]
+    }
+  },
+  "cells": [
+    {
+      "category_balance": {},
+      "cell_id": "probe_train",
+      "condition_ids": [
+        "follow_consensus",
+        "independent_judgment"
+      ],
+      "content_pool": "consensus_probe_train",
+      "count_per_model": 100,
+      "instructions": "Generate complete matched probe pairs with the exact registered wrapper. Keep peers, evidence, entities, and wording identical within a pair except the registered peer-information handling clause inside Scenario; append nothing after the wrapper.",
+      "mode": "paired",
+      "paired_metadata_schedule": null,
+      "prompt_family": "consensus_probe_train",
+      "prompt_role": "probe",
+      "split": "direction_train"
+    },
+    {
+      "category_balance": {},
+      "cell_id": "probe_validation",
+      "condition_ids": [
+        "follow_consensus",
+        "independent_judgment"
+      ],
+      "content_pool": "consensus_probe_validation",
+      "count_per_model": 40,
+      "instructions": "Generate new matched validation probe pairs with the exact registered wrapper. Change only the registered peer-information handling clause; append nothing after the wrapper.",
+      "mode": "paired",
+      "paired_metadata_schedule": null,
+      "prompt_family": "consensus_probe_validation",
+      "prompt_role": "probe",
+      "split": "direction_validation"
+    },
+    {
+      "category_balance": {},
+      "cell_id": "probe_heldout",
+      "condition_ids": [
+        "follow_consensus",
+        "independent_judgment"
+      ],
+      "content_pool": "consensus_probe_heldout",
+      "count_per_model": 40,
+      "instructions": "Generate held-out matched probe pairs with the exact registered wrapper and new domains. Change only the registered peer-information handling clause; append nothing after the wrapper.",
+      "mode": "paired",
+      "paired_metadata_schedule": null,
+      "prompt_family": "consensus_probe_heldout",
+      "prompt_role": "probe",
+      "split": "direction_heldout"
+    },
+    {
+      "category_balance": {
+        "peer_count": [
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large"
+        ],
+        "peer_judgment_direction": [
+          "supports_claim",
+          "supports_claim",
+          "supports_claim",
+          "supports_claim",
+          "supports_claim",
+          "supports_claim",
+          "supports_claim",
+          "supports_claim",
+          "contradicts_claim",
+          "contradicts_claim",
+          "contradicts_claim",
+          "contradicts_claim",
+          "contradicts_claim",
+          "contradicts_claim",
+          "contradicts_claim",
+          "contradicts_claim",
+          "supports_claim",
+          "supports_claim",
+          "supports_claim",
+          "supports_claim",
+          "supports_claim",
+          "supports_claim",
+          "supports_claim",
+          "supports_claim",
+          "contradicts_claim",
+          "contradicts_claim",
+          "contradicts_claim",
+          "contradicts_claim",
+          "contradicts_claim",
+          "contradicts_claim",
+          "contradicts_claim",
+          "contradicts_claim"
+        ],
+        "private_evidence_relation": [
+          "agrees_with_peers",
+          "agrees_with_peers",
+          "agrees_with_peers",
+          "agrees_with_peers",
+          "conflicts_with_peers",
+          "conflicts_with_peers",
+          "conflicts_with_peers",
+          "conflicts_with_peers",
+          "agrees_with_peers",
+          "agrees_with_peers",
+          "agrees_with_peers",
+          "agrees_with_peers",
+          "conflicts_with_peers",
+          "conflicts_with_peers",
+          "conflicts_with_peers",
+          "conflicts_with_peers",
+          "agrees_with_peers",
+          "agrees_with_peers",
+          "agrees_with_peers",
+          "agrees_with_peers",
+          "conflicts_with_peers",
+          "conflicts_with_peers",
+          "conflicts_with_peers",
+          "conflicts_with_peers",
+          "agrees_with_peers",
+          "agrees_with_peers",
+          "agrees_with_peers",
+          "agrees_with_peers",
+          "conflicts_with_peers",
+          "conflicts_with_peers",
+          "conflicts_with_peers",
+          "conflicts_with_peers"
+        ],
+        "private_evidence_strength": [
+          "weak",
+          "weak",
+          "strong",
+          "strong",
+          "weak",
+          "weak",
+          "strong",
+          "strong",
+          "weak",
+          "weak",
+          "strong",
+          "strong",
+          "weak",
+          "weak",
+          "strong",
+          "strong",
+          "weak",
+          "weak",
+          "strong",
+          "strong",
+          "weak",
+          "weak",
+          "strong",
+          "strong",
+          "weak",
+          "weak",
+          "strong",
+          "strong",
+          "weak",
+          "weak",
+          "strong",
+          "strong"
+        ]
+      },
+      "cell_id": "behavior_eval",
+      "condition_id": "neutral",
+      "content_pool": "consensus_conformity_behavior_v3_pool",
+      "count_per_model": 32,
+      "expected_output_format": "single_integer_0_to_100",
+      "factor_schedule": "behavior_factor_schedule",
+      "instructions": "Generate a standalone behavior item with the assigned metadata. Use the exact pool anchor 'ledger meadow' in the setting and the assigned content domain. For the registered focal element, place it at the scheduled response position when applicable. Do not mention a probe, construct, target label, or generation schedule. Do not include a response contract; the runtime appends exactly one registered response contract.",
+      "mode": "single",
+      "parser_id": "single_integer_probability_v1",
+      "prompt_family": "consensus_conformity_behavior_v3",
+      "prompt_role": "behavior",
+      "split": "behavior_eval",
+      "task_id": "peer_evidence_forecast_v3"
+    },
+    {
+      "category_balance": {
+        "peer_count": [
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large"
+        ],
+        "peer_judgment_direction": [
+          "supports_claim",
+          "supports_claim",
+          "supports_claim",
+          "supports_claim",
+          "supports_claim",
+          "supports_claim",
+          "supports_claim",
+          "supports_claim",
+          "contradicts_claim",
+          "contradicts_claim",
+          "contradicts_claim",
+          "contradicts_claim",
+          "contradicts_claim",
+          "contradicts_claim",
+          "contradicts_claim",
+          "contradicts_claim",
+          "supports_claim",
+          "supports_claim",
+          "supports_claim",
+          "supports_claim",
+          "supports_claim",
+          "supports_claim",
+          "supports_claim",
+          "supports_claim",
+          "contradicts_claim",
+          "contradicts_claim",
+          "contradicts_claim",
+          "contradicts_claim",
+          "contradicts_claim",
+          "contradicts_claim",
+          "contradicts_claim",
+          "contradicts_claim"
+        ],
+        "private_evidence_relation": [
+          "agrees_with_peers",
+          "agrees_with_peers",
+          "agrees_with_peers",
+          "agrees_with_peers",
+          "conflicts_with_peers",
+          "conflicts_with_peers",
+          "conflicts_with_peers",
+          "conflicts_with_peers",
+          "agrees_with_peers",
+          "agrees_with_peers",
+          "agrees_with_peers",
+          "agrees_with_peers",
+          "conflicts_with_peers",
+          "conflicts_with_peers",
+          "conflicts_with_peers",
+          "conflicts_with_peers",
+          "agrees_with_peers",
+          "agrees_with_peers",
+          "agrees_with_peers",
+          "agrees_with_peers",
+          "conflicts_with_peers",
+          "conflicts_with_peers",
+          "conflicts_with_peers",
+          "conflicts_with_peers",
+          "agrees_with_peers",
+          "agrees_with_peers",
+          "agrees_with_peers",
+          "agrees_with_peers",
+          "conflicts_with_peers",
+          "conflicts_with_peers",
+          "conflicts_with_peers",
+          "conflicts_with_peers"
+        ],
+        "private_evidence_strength": [
+          "weak",
+          "weak",
+          "strong",
+          "strong",
+          "weak",
+          "weak",
+          "strong",
+          "strong",
+          "weak",
+          "weak",
+          "strong",
+          "strong",
+          "weak",
+          "weak",
+          "strong",
+          "strong",
+          "weak",
+          "weak",
+          "strong",
+          "strong",
+          "weak",
+          "weak",
+          "strong",
+          "strong",
+          "weak",
+          "weak",
+          "strong",
+          "strong",
+          "weak",
+          "weak",
+          "strong",
+          "strong"
+        ]
+      },
+      "cell_id": "steering_eval",
+      "condition_id": "neutral",
+      "content_pool": "consensus_conformity_steering_v3_pool",
+      "count_per_model": 32,
+      "expected_output_format": "single_integer_0_to_100",
+      "factor_schedule": "behavior_factor_schedule",
+      "instructions": "Generate a standalone steering item with the assigned metadata. Use the exact pool anchor 'workshop meadow' in the setting and the assigned content domain. For the registered focal element, place it at the scheduled response position when applicable. Do not mention a probe, construct, target label, or generation schedule. Do not include a response contract; the runtime appends exactly one registered response contract.",
+      "mode": "single",
+      "parser_id": "single_integer_probability_v1",
+      "prompt_family": "consensus_conformity_steering_v3",
+      "prompt_role": "steering",
+      "split": "steering_eval",
+      "task_id": "peer_evidence_forecast_v3"
+    },
+    {
+      "category_balance": {
+        "peer_count": [
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large",
+          "small",
+          "large"
+        ],
+        "peer_judgment_direction": [
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral"
+        ],
+        "private_evidence_relation": [
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral"
+        ],
+        "private_evidence_strength": [
+          "weak",
+          "weak",
+          "strong",
+          "strong",
+          "weak",
+          "weak",
+          "strong",
+          "strong",
+          "weak",
+          "weak",
+          "strong",
+          "strong",
+          "weak",
+          "weak",
+          "strong",
+          "strong",
+          "weak",
+          "weak",
+          "strong",
+          "strong",
+          "weak",
+          "weak",
+          "strong",
+          "strong",
+          "weak",
+          "weak",
+          "strong",
+          "strong",
+          "weak",
+          "weak",
+          "strong",
+          "strong"
+        ]
+      },
+      "cell_id": "calibration",
+      "condition_id": "neutral",
+      "content_pool": "consensus_conformity_calibration_v3_pool",
+      "count_per_model": 32,
+      "expected_output_format": "single_integer_0_to_100",
+      "factor_schedule": "calibration_factor_schedule",
+      "instructions": "Generate a standalone calibration item with the assigned metadata. Use the exact pool anchor 'archive meadow' in the setting and the assigned content domain. For the registered focal element, place it at the scheduled response position when applicable. This is a semantic nuisance-only calibration: do not instantiate the construct-relevant contrast, use the registered neutral metadata values, and explicitly satisfy the neutral language contract. Use these exact neutral-language phrases in the item: 'single independent forecast'; 'no collective judgment'. Do not mention a probe, construct, target label, or generation schedule. Do not use these construct-specific terms, even as option labels: 'peer'; 'reviewers'; 'consensus'; 'conformity'; 'group'; 'private measurement'; 'supports the claim'; 'contradicts the claim'. Do not include a response contract; the runtime appends exactly one registered response contract.",
+      "mode": "single",
+      "parser_id": "single_integer_probability_v1",
+      "prompt_family": "consensus_conformity_calibration_v3",
+      "prompt_role": "calibration",
+      "split": "calibration",
+      "task_id": "peer_evidence_forecast_v3"
+    },
+    {
+      "category_balance": {
+        "correct_option": [
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2
+        ],
+        "fact_domain": [
+          "history",
+          "history",
+          "history",
+          "history",
+          "history",
+          "history",
+          "history",
+          "history",
+          "history",
+          "history",
+          "history",
+          "history",
+          "history",
+          "history",
+          "history",
+          "history",
+          "history",
+          "history",
+          "history",
+          "history",
+          "history",
+          "history",
+          "history",
+          "history",
+          "history",
+          "history",
+          "history",
+          "history",
+          "history",
+          "history",
+          "history",
+          "history"
+        ],
+        "fact_id": [
+          "neutral_card_c_01",
+          "neutral_card_c_02",
+          "neutral_card_c_03",
+          "neutral_card_c_04",
+          "neutral_card_c_05",
+          "neutral_card_c_06",
+          "neutral_card_c_07",
+          "neutral_card_c_08",
+          "neutral_card_c_09",
+          "neutral_card_c_10",
+          "neutral_card_c_11",
+          "neutral_card_c_12",
+          "neutral_card_c_13",
+          "neutral_card_c_14",
+          "neutral_card_c_15",
+          "neutral_card_c_16",
+          "neutral_card_c_17",
+          "neutral_card_c_18",
+          "neutral_card_c_19",
+          "neutral_card_c_20",
+          "neutral_card_c_21",
+          "neutral_card_c_22",
+          "neutral_card_c_23",
+          "neutral_card_c_24",
+          "neutral_card_c_25",
+          "neutral_card_c_26",
+          "neutral_card_c_27",
+          "neutral_card_c_28",
+          "neutral_card_c_29",
+          "neutral_card_c_30",
+          "neutral_card_c_31",
+          "neutral_card_c_32"
+        ]
+      },
+      "cell_id": "collateral_eval",
+      "condition_id": "neutral",
+      "content_pool": "consensus_conformity_collateral_v3_disjoint_pool",
+      "count_per_model": 32,
+      "expected_output_format": "single_integer_1_or_2",
+      "factor_schedule": "collateral_factor_schedule",
+      "instructions": "Generate an unrelated factual-choice item using the exact pool anchor and the assigned content domain. Use the exact two statements from the registered construct-disjoint fact bank for the assigned fact_id; do not paraphrase. This is a hard machine-checked contract: include the assigned fact ID exactly once as the neutral label 'Fact ID: <fact_id>' before the statements. The 32 scheduled fact IDs are all distinct and every scheduled fact_id must be used exactly once in this full collateral cell. Exactly one statement must be correct, and its numbered position must equal the registered correct_option. Do not mention a probe, construct, downstream task, or generation schedule. Do not include a response contract; the runtime appends exactly one registered response contract.",
+      "mode": "single",
+      "parser_id": "single_integer_choice_1_or_2_v1",
+      "prompt_family": "consensus_conformity_collateral_v3_disjoint_label_v1",
+      "prompt_role": "collateral",
+      "split": "collateral_eval",
+      "task_id": "collateral_fact_choice_v3"
+    }
+  ],
+  "collateral_repair": {
+    "cross_construct_disjoint_fact_bank": true,
+    "fact_bank_size": 32,
+    "fact_bank_version": "unique_32_opaque_label_c_v1",
+    "label_contract_version": "fact_id_label_v1",
+    "machine_enforced_fact_id_label": true,
+    "parent_plan_id": "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint",
+    "parent_plan_path": "configs/construct_benchmark/generation_plans/wave3_consensus_conformity_prompts_repaired_v3_collateral_v3_disjoint.json",
+    "parent_plan_sha256": "7d92396638f39309c12ff619742ce7bd9e392fe9da7161205a53a1f69fa12ef3",
+    "preserve_noncollateral_parent_contracts": true,
+    "schedule_revision": "construct_disjoint_collateral_banks_v1",
+    "scope": [
+      "collateral_eval"
+    ],
+    "unique_fact_ids_per_cell": true,
+    "version": "repaired_v3_collateral_v3_disjoint_label_v4"
+  },
+  "confirmatory": false,
+  "construct_id": "consensus_conformity",
+  "construct_spec_path": "../constructs/consensus_conformity_repaired_v3_collateral_v3_disjoint_label_v4.json",
+  "content_pools": {
+    "consensus_conformity_behavior_v3_pool": {
+      "anchor": "ledger meadow",
+      "domains": [
+        "ledger meadow inventory",
+        "ledger meadow routing",
+        "ledger meadow maintenance",
+        "ledger meadow fieldwork"
+      ],
+      "independence": "new domain and entity pool; no reuse across downstream roles",
+      "role": "behavior"
+    },
+    "consensus_conformity_calibration_v3_pool": {
+      "anchor": "archive meadow",
+      "domains": [
+        "archive meadow records",
+        "archive meadow archives",
+        "archive meadow measurements",
+        "archive meadow catalogs"
+      ],
+      "independence": "new domain and entity pool; no reuse across downstream roles",
+      "role": "calibration"
+    },
+    "consensus_conformity_collateral_v3_disjoint_pool": {
+      "anchor": "atlas meadow",
+      "domains": [
+        "atlas meadow facts",
+        "atlas meadow observations",
+        "atlas meadow dates",
+        "atlas meadow units"
+      ],
+      "independence": "construct-disjoint versioned objective fact pool; every 32-item cell uses one unique registered fact ID and no Wave 2-4 construct shares a fact card",
+      "role": "collateral"
+    },
+    "consensus_conformity_steering_v3_pool": {
+      "anchor": "workshop meadow",
+      "domains": [
+        "workshop meadow fixtures",
+        "workshop meadow calendars",
+        "workshop meadow workflows",
+        "workshop meadow dispatches"
+      ],
+      "independence": "new domain and entity pool; no reuse across downstream roles",
+      "role": "steering"
+    },
+    "consensus_probe_heldout": {
+      "domains": [
+        "shipping_estimates",
+        "language_surveys"
+      ],
+      "role": "probe"
+    },
+    "consensus_probe_train": {
+      "domains": [
+        "workplace_reviews",
+        "community_planning"
+      ],
+      "role": "probe"
+    },
+    "consensus_probe_validation": {
+      "domains": [
+        "museum_catalogs",
+        "garden_trials"
+      ],
+      "role": "probe"
+    }
+  },
+  "default_count_per_cell_per_model": 32,
+  "design_rules": [
+    "Use the registered probe wrapper exactly and change only the registered peer-information handling state within each pair.",
+    "All downstream prompts are standalone forecast episodes. They must not contain a probe suffix, copied stance instruction, generation instruction, or any text after the one response contract.",
+    "Use ordinary non-authoritative peers and preserve the registered metadata schedule without naming the construct.",
+    "This repaired-v3 pool is generated only with OpenAI gpt-5.6-luna; no fallback provider is permitted.",
+    "Generate all downstream pool records before inspecting any model-side outputs.",
+    "Use the assigned pool anchor and exact assigned content domain, but never state the construct hypothesis.",
+    "Every downstream behavior and steering cell is an exact registered full factorial; no schedule may truncate or partially repeat combinations.",
+    "For target_option or primary_position tasks, place the registered focal option at that numbered position and balance positions exactly within every full cell and any declared preflight stratum.",
+    "Calibration is a semantic nuisance-only control: remove the construct-relevant contrast from the item text, not merely from metadata, and satisfy the registered neutral-language contract.",
+    "Collateral prompts are standalone unrelated fact choices, use only the registered fact bank, and must not reuse construct language, probe wording, or downstream task entities.",
+    "The label contract is machine-enforced: every versioned collateral row must contain exactly the registered Fact ID label."
+  ],
+  "downstream_pool_separation": {
+    "forbidden_prompt_anchors": {
+      "consensus_conformity_behavior_v3_pool": [
+        "workshop meadow",
+        "archive meadow",
+        "atlas meadow"
+      ],
+      "consensus_conformity_calibration_v3_pool": [
+        "ledger meadow",
+        "workshop meadow",
+        "atlas meadow"
+      ],
+      "consensus_conformity_collateral_v3_disjoint_pool": [
+        "ledger meadow",
+        "workshop meadow",
+        "archive meadow"
+      ],
+      "consensus_conformity_steering_v3_pool": [
+        "ledger meadow",
+        "archive meadow",
+        "atlas meadow"
+      ]
+    },
+    "no_prompt_id_or_text_overlap_across_downstream_pools": true,
+    "policy": "construct_pure_role_separated_pools",
+    "required_prompt_anchors": {
+      "consensus_conformity_behavior_v3_pool": [
+        "ledger meadow"
+      ],
+      "consensus_conformity_calibration_v3_pool": [
+        "archive meadow"
+      ],
+      "consensus_conformity_collateral_v3_disjoint_pool": [
+        "atlas meadow"
+      ],
+      "consensus_conformity_steering_v3_pool": [
+        "workshop meadow"
+      ]
+    }
+  },
+  "forbidden_terms": [
+    "consensus_conformity",
+    "follow_consensus",
+    "independent_judgment",
+    "consensus conformity",
+    "consensus",
+    "conformity",
+    "group agreement"
+  ],
+  "generation": {
+    "estimated_input_tokens_per_request": 1400,
+    "estimated_output_tokens_per_record": 300,
+    "max_items_per_request": 20,
+    "max_output_tokens": 30000,
+    "max_tokens": 30000,
+    "retries": 0,
+    "seed": 203,
+    "temperature": 0.7,
+    "timeout": 300
+  },
+  "models": [
+    {
+      "alias": "luna",
+      "model": "gpt-5.6-luna"
+    }
+  ],
+  "pair_quality_checks": {
+    "all_pairs_require_minimal_registered_contrast": true,
+    "pair_diff_audit_required_before_release": true,
+    "reference_frame_contract": null
+  },
+  "plan_id": "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1",
+  "pool_release": "preflight_and_production_pool_parent; not a model result",
+  "preflight_only": true,
+  "preflight_selection_contract": {
+    "maximum_items": 16,
+    "minimum_items": 8,
+    "position_balance_required": true,
+    "position_fields": [],
+    "selection_informed_by_outcomes": false,
+    "selection_rule": "Stable-hash rank within each registered position stratum, take an equal number from every stratum, then sort selected prompt IDs; never inspect model outcomes.",
+    "strata": [
+      "construct_id",
+      "split"
+    ],
+    "strategy": "balanced_stratified_hash",
+    "target_items": 16
+  },
+  "provenance": {
+    "count_per_downstream_cell": 32,
+    "final_remainder_batches_only": true,
+    "generated_model": "gpt-5.6-luna",
+    "generation_before_model_outputs": true,
+    "max_items_per_request": 20,
+    "parent_plan_path": "configs/construct_benchmark/generation_plans/wave3_consensus_conformity_repaired_v2.json",
+    "parent_plan_sha256": "e2429db084e6eff43bc83e1d9cac699bd3b8fa09ca36ac12e16d57d9a3bddaf4",
+    "parent_spec_path": "configs/construct_benchmark/constructs/consensus_conformity_v2.json",
+    "repair_version": "repaired_v3",
+    "spec_sha256": "c6d6e8d985a8d91a3d6cc917ba5a51060ee9ab14110d34d581b2751127e6e2de"
+  },
+  "rejection_criteria": [
+    "Reject any prompt_text whose final characters are not exactly `Continue processing the scenario.`.",
+    "Reject any prompt_text that contains the suffix anywhere before its final occurrence, or has any character or text after the suffix, including an answer request, stance/decision rule, rationale request, response-format instruction, notes, or condition label.",
+    "Reject any paired prompt when its condition-specific answer or stance instruction is absent from the Scenario block before the suffix, or when that instruction is supplied only after the suffix.",
+    "Reject any pair whose downstream response format or request differs across conditions in answer type, choices, output order, number of reasons, wording, or placement before the suffix.",
+    "Reject any pair when one condition contains an explicit answer, answer choice, date, number, named outcome, or other target response content that is not mirrored verbatim in the other condition; a condition-specific stance clause must not supply the scenario answer.",
+    "Reject any prompt that omits the registered wrapper or treats the suffix as a mid-prompt delimiter; shorten shared scenario content instead of truncating or moving the wrapper.",
+    "Reject any paired probe that does not use one entry from stance_surface_schedule, puts the condition-specific stance at the start of a sentence with an initial capital, or changes the shared carrier, punctuation, or clause structure between pair members."
+  ],
+  "response_instruction_policy": "runtime_append",
+  "run_modes": {
+    "full": {
+      "count_per_model_per_cell": null,
+      "partial": false,
+      "purpose": "frozen_full_inventory"
+    },
+    "review": {
+      "count_per_model_per_cell": 1,
+      "partial": true,
+      "purpose": "prompt_review"
+    }
+  },
+  "schema_version": "0.1.0",
+  "stance_surface_schedule": {
+    "assignment_unit": "generation_job",
+    "capitalization_rule": "Write the variant clause immediately after the carrier with a lowercase first word and no intervening line break. Never begin a sentence or line with Treat, Weigh, Use, Let, Give, Follow, or Assess.",
+    "carrier": "Decision stance: ",
+    "cell_start_variant": {
+      "probe_heldout": "basis",
+      "probe_train": "weight",
+      "probe_validation": "guide"
+    },
+    "cycle_order": [
+      "weight",
+      "guide",
+      "basis",
+      "priority"
+    ],
+    "pair_rule": "Choose one variant for a generation job, keep the carrier and sentence structure identical in both members of every pair in that job, and cycle through cycle_order across successive jobs. The two variant clauses may differ only in the registered social-information weighting state; never move the stance to another sentence or add a condition-specific answer.",
+    "variants": [
+      {
+        "follow_consensus": "the shared peer answer should receive substantial weight in the final choice, even though private evidence is available.",
+        "independent_judgment": "the shared peer answer should receive limited weight in the final choice, with private evidence assessed independently.",
+        "variant_id": "weight"
+      },
+      {
+        "follow_consensus": "let the shared peer answer guide the final choice strongly, while considering the private evidence.",
+        "independent_judgment": "let the shared peer answer inform but not determine the final choice, while assessing private evidence independently.",
+        "variant_id": "guide"
+      },
+      {
+        "follow_consensus": "use the shared peer answer as a strong basis for the final choice, despite the private evidence.",
+        "independent_judgment": "use the private evidence as the primary basis for the final choice, despite the shared peer answer.",
+        "variant_id": "basis"
+      },
+      {
+        "follow_consensus": "give the shared peer answer priority in the final choice; keep private evidence in view.",
+        "independent_judgment": "give private evidence priority in the final choice; keep the shared peer answer in view.",
+        "variant_id": "priority"
+      }
+    ]
+  },
+  "task_composition": {
+    "behavior_steering_pool_separation": true,
+    "condition_carryover": "state_only",
+    "downstream_context": "independent_behavior_task_only",
+    "probe_context": "paired_probe_only",
+    "prompt_order": "probe_then_downstream",
+    "surface_text_carryover": "none"
+  },
+  "wave": 3
+}

@@ -1,0 +1,382 @@
+{
+  "schema_version": "0.1.0",
+  "index_type": "model_preflight_artifact_index",
+  "index_id": "waves1_4_model_preflight_artifacts_v1",
+  "status": "ready",
+  "execution_allowed": false,
+  "scope": "non_confirmatory_model_behavior_accessibility_preflight",
+  "description": "Canonical repository-relative provenance index for the Wave 1-4 model preflight. This file is a path and hash source of truth, not an execution configuration and it contains no scientific thresholds. Absolute paths that remain inside nested frozen-manifest provenance are historical opaque metadata and are excluded from execution resolution.",
+  "path_policy": {
+    "base": "repository_root",
+    "absolute_paths_allowed": false,
+    "path_traversal_allowed": false,
+    "superseded_or_failed_roots_allowed": false,
+    "nested_provenance": {
+      "policy": "historical_nonportable_opaque",
+      "execution_resolution": "excluded",
+      "absolute_paths": "allowed_only_as_recorded_metadata",
+      "fields": [
+        "inventory_manifest.audit_path",
+        "inventory_manifest.generated_downstream.*",
+        "inventory_manifest.parent_inventory.*",
+        "inventory_manifest.prompt_audit.*",
+        "inventory_manifest.sources.*"
+      ],
+      "rationale": "Executors resolve only the repository-relative top-level index artifact paths and the inventory manifest output_path/combined_path link. Nested paths record historical generation or composition provenance and must not be dereferenced in a clean checkout or RunPod execution."
+    }
+  },
+  "entries": [
+    {
+      "wave": 1,
+      "model": {
+        "alias": "mistral",
+        "model_id": "mistralai/Mistral-Small-24B-Instruct-2501",
+        "revision": "9527884be6e5616bdd54de542f9ae13384489724"
+      },
+      "construct_ids": [
+        "realization_account_closure",
+        "evidence_diagnosticity",
+        "source_reliability",
+        "persistence_continuation"
+      ],
+      "artifacts": {
+        "inventory": {
+          "status": "ready",
+          "path": "results/benchmark/prompt_inventories/wave1_preflight_v4_luna_v2/combined.csv",
+          "sha256": "09855e9f9354766f253c9ba3631d944b1512514687ef7a948452857102dd61d9",
+          "manifest": {
+            "status": "ready",
+            "path": "results/benchmark/prompt_inventories/wave1_preflight_v4_luna_v2/inventory_manifest.json",
+            "sha256": "d687bab966b97a8d88511538a1cac4dcba8f919a3e2d18402b877da05c963179"
+          }
+        },
+        "selection": {
+          "status": "ready",
+          "path": "results/benchmark/model_preflight_v4/wave1_preflight_v4_luna_v2_normalized_v1_mistral_selection.json",
+          "sha256": "d4046086bc4b7bf44b761b878563d78363947c178927fad8e2991e97a4122e57",
+          "selection_sha256": "80d9ac8f503dde3c049b1e8d71ffdb2256e5e065c9dad000e7930d59c83c3495"
+        },
+        "gate": {
+          "status": "ready",
+          "id": "model_behavior_accessibility_preflight_v2_diagnostic_repair",
+          "path": "configs/construct_benchmark/gates/model_behavior_accessibility_preflight_v2_diagnostic_repair.json",
+          "sha256": "28584695247774d0337b9a820b78781b428ae4a799d4bd9bb47be0175bcb172b"
+        },
+        "run_config": {
+          "status": "ready",
+          "id": "wave1_four_construct_mistral_model_preflight_repaired_v4",
+          "path": "configs/construct_benchmark/run_configs/wave1_four_construct_mistral_model_preflight_repaired_v4.json",
+          "sha256": "13c170fbe9430b0222599e030e12908534e7a6cda8c9123f89ddb2d897372366"
+        }
+      }
+    },
+    {
+      "wave": 1,
+      "model": {
+        "alias": "qwen",
+        "model_id": "Qwen/Qwen3.8-27B",
+        "revision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0"
+      },
+      "construct_ids": [
+        "realization_account_closure",
+        "evidence_diagnosticity",
+        "source_reliability",
+        "persistence_continuation"
+      ],
+      "artifacts": {
+        "inventory": {
+          "status": "ready",
+          "path": "results/benchmark/prompt_inventories/wave1_preflight_v4_luna_v2/combined.csv",
+          "sha256": "09855e9f9354766f253c9ba3631d944b1512514687ef7a948452857102dd61d9",
+          "manifest": {
+            "status": "ready",
+            "path": "results/benchmark/prompt_inventories/wave1_preflight_v4_luna_v2/inventory_manifest.json",
+            "sha256": "d687bab966b97a8d88511538a1cac4dcba8f919a3e2d18402b877da05c963179"
+          }
+        },
+        "selection": {
+          "status": "ready",
+          "path": "results/benchmark/model_preflight_v4/wave1_preflight_v4_luna_v2_normalized_v1_qwen_selection.json",
+          "sha256": "608e442f52fcc876f51b764d422d4e542cac54d7c9dc79db197bb1b3c4d95d1d",
+          "selection_sha256": "61364449cf9b8fd1c5b719cc101b703745c3e4ca83c9ebb7774b5e24a5535ae3"
+        },
+        "gate": {
+          "status": "ready",
+          "id": "model_behavior_accessibility_preflight_v2_diagnostic_repair",
+          "path": "configs/construct_benchmark/gates/model_behavior_accessibility_preflight_v2_diagnostic_repair.json",
+          "sha256": "28584695247774d0337b9a820b78781b428ae4a799d4bd9bb47be0175bcb172b"
+        },
+        "run_config": {
+          "status": "ready",
+          "id": "wave1_four_construct_qwen_model_preflight_repaired_v4",
+          "path": "configs/construct_benchmark/run_configs/wave1_four_construct_qwen_model_preflight_repaired_v4.json",
+          "sha256": "32748da608c331f190a912fc2c5cf5278b72cb8aea096990ebb219fc200a5ab5"
+        }
+      }
+    },
+    {
+      "wave": 2,
+      "model": {
+        "alias": "mistral",
+        "model_id": "mistralai/Mistral-Small-24B-Instruct-2501",
+        "revision": "9527884be6e5616bdd54de542f9ae13384489724"
+      },
+      "construct_ids": [
+        "reference_frame",
+        "prior_weighting",
+        "authority_deference",
+        "exploration_exploitation"
+      ],
+      "artifacts": {
+        "inventory": {
+          "status": "ready",
+          "path": "results/benchmark/prompt_inventories/wave2_four_construct_repaired_v3_luna_label_v4_v2vector_r1/combined.csv",
+          "sha256": "05bfa54213c575b3cc3b901e2744678993943fffd00cd48e2b3152818cfed3e0",
+          "manifest": {
+            "status": "ready",
+            "path": "results/benchmark/prompt_inventories/wave2_four_construct_repaired_v3_luna_label_v4_v2vector_r1/inventory_manifest.json",
+            "sha256": "57719653cd222ce9d595a6af16ab34d4396af9e6059e15b27df7b3afac8c80ff"
+          }
+        },
+        "selection": {
+          "status": "ready",
+          "path": "results/benchmark/model_preflight_v4/wave2_repaired_v3_luna_label_v4_v2vector_normalized_v1_mistral_selection.json",
+          "sha256": "65faf978dbc9624320959f4facf617136fb6aefe177336d601bc63c494b2091b",
+          "selection_sha256": "dbc945a42d40f28805095ca61c1d9d3a3903883e7a3582565cd7adecf7f1db1c"
+        },
+        "gate": {
+          "status": "ready",
+          "id": "model_behavior_accessibility_wave2_repaired_v3",
+          "path": "configs/construct_benchmark/gates/model_behavior_accessibility_wave2_repaired_v3.json",
+          "sha256": "3bf6f8ad86aeb63cfe2e1f37c93e18864c1c90ceb3470e924ac14712d00ec4d4"
+        },
+        "run_config": {
+          "status": "ready",
+          "id": "wave2_four_construct_mistral_model_preflight_repaired_v3",
+          "path": "configs/construct_benchmark/run_configs/wave2_four_construct_mistral_model_preflight_repaired_v3.json",
+          "sha256": "0cb8dab592e6e25118ff1aabd788b2ac70cbfb674ed6943533065cf1e9fb9771"
+        }
+      }
+    },
+    {
+      "wave": 2,
+      "model": {
+        "alias": "qwen",
+        "model_id": "Qwen/Qwen3.8-27B",
+        "revision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0"
+      },
+      "construct_ids": [
+        "reference_frame",
+        "prior_weighting",
+        "authority_deference",
+        "exploration_exploitation"
+      ],
+      "artifacts": {
+        "inventory": {
+          "status": "ready",
+          "path": "results/benchmark/prompt_inventories/wave2_four_construct_repaired_v3_luna_label_v4_v2vector_r1/combined.csv",
+          "sha256": "05bfa54213c575b3cc3b901e2744678993943fffd00cd48e2b3152818cfed3e0",
+          "manifest": {
+            "status": "ready",
+            "path": "results/benchmark/prompt_inventories/wave2_four_construct_repaired_v3_luna_label_v4_v2vector_r1/inventory_manifest.json",
+            "sha256": "57719653cd222ce9d595a6af16ab34d4396af9e6059e15b27df7b3afac8c80ff"
+          }
+        },
+        "selection": {
+          "status": "ready",
+          "path": "results/benchmark/model_preflight_v4/wave2_repaired_v3_luna_label_v4_v2vector_normalized_v1_qwen_selection.json",
+          "sha256": "043f77766ca900aea097cf60381ce879cbbdd63151d1bd4a5060dd85a9669d5e",
+          "selection_sha256": "8525f17916d63ca9fe87638519ba72e9a346ee4b2ef64389efb5b925e8081f05"
+        },
+        "gate": {
+          "status": "ready",
+          "id": "model_behavior_accessibility_wave2_repaired_v3",
+          "path": "configs/construct_benchmark/gates/model_behavior_accessibility_wave2_repaired_v3.json",
+          "sha256": "3bf6f8ad86aeb63cfe2e1f37c93e18864c1c90ceb3470e924ac14712d00ec4d4"
+        },
+        "run_config": {
+          "status": "ready",
+          "id": "wave2_four_construct_qwen_model_preflight_repaired_v3",
+          "path": "configs/construct_benchmark/run_configs/wave2_four_construct_qwen_model_preflight_repaired_v3.json",
+          "sha256": "02939b8c3a7a0f10d519d12736de74f49840b19fe0d016e7d3f7bb5a5ac75f41"
+        }
+      }
+    },
+    {
+      "wave": 3,
+      "model": {
+        "alias": "mistral",
+        "model_id": "mistralai/Mistral-Small-24B-Instruct-2501",
+        "revision": "9527884be6e5616bdd54de542f9ae13384489724"
+      },
+      "construct_ids": [
+        "ambiguity_orientation",
+        "causal_interpretation",
+        "consensus_conformity",
+        "plan_replanning"
+      ],
+      "artifacts": {
+        "inventory": {
+          "status": "ready",
+          "path": "results/benchmark/prompt_inventories/wave3_four_construct_repaired_v3_luna_label_v4_v2vector_r1/combined.csv",
+          "sha256": "506e8a87ce31e3c001d5a37526ea0969692237da5dc6664723c2cf52a027bea9",
+          "manifest": {
+            "status": "ready",
+            "path": "results/benchmark/prompt_inventories/wave3_four_construct_repaired_v3_luna_label_v4_v2vector_r1/inventory_manifest.json",
+            "sha256": "8f466c90763fd5680e21d6236d3ce6b029cc17386c5aa49eb66e61105c3f2bf3"
+          }
+        },
+        "selection": {
+          "status": "ready",
+          "path": "results/benchmark/model_preflight_v4/wave3_repaired_v3_luna_label_v4_v2vector_normalized_v1_mistral_selection.json",
+          "sha256": "c7afbf9dcfe9bd6150a4b9c889212d220fcc6dbca09ad5fc45e77f5c52f5095d",
+          "selection_sha256": "f318566ee3032618666faa91e3fc539e5304380af04d17ddfb399371c3167d8e"
+        },
+        "gate": {
+          "status": "ready",
+          "id": "model_behavior_accessibility_wave3_repaired_v3",
+          "path": "configs/construct_benchmark/gates/model_behavior_accessibility_wave3_repaired_v3.json",
+          "sha256": "489feee26e261afaba0b79e1af909f0f22db7c240bf3906b33115a880f43ad82"
+        },
+        "run_config": {
+          "status": "ready",
+          "id": "wave3_four_construct_mistral_model_preflight_repaired_v3",
+          "path": "configs/construct_benchmark/run_configs/wave3_four_construct_mistral_model_preflight_repaired_v3.json",
+          "sha256": "89caa8c333ac7050534ac9e382be09a69f3522880acb5bccd73ad1b0a834de05"
+        }
+      }
+    },
+    {
+      "wave": 3,
+      "model": {
+        "alias": "qwen",
+        "model_id": "Qwen/Qwen3.8-27B",
+        "revision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0"
+      },
+      "construct_ids": [
+        "ambiguity_orientation",
+        "causal_interpretation",
+        "consensus_conformity",
+        "plan_replanning"
+      ],
+      "artifacts": {
+        "inventory": {
+          "status": "ready",
+          "path": "results/benchmark/prompt_inventories/wave3_four_construct_repaired_v3_luna_label_v4_v2vector_r1/combined.csv",
+          "sha256": "506e8a87ce31e3c001d5a37526ea0969692237da5dc6664723c2cf52a027bea9",
+          "manifest": {
+            "status": "ready",
+            "path": "results/benchmark/prompt_inventories/wave3_four_construct_repaired_v3_luna_label_v4_v2vector_r1/inventory_manifest.json",
+            "sha256": "8f466c90763fd5680e21d6236d3ce6b029cc17386c5aa49eb66e61105c3f2bf3"
+          }
+        },
+        "selection": {
+          "status": "ready",
+          "path": "results/benchmark/model_preflight_v4/wave3_repaired_v3_luna_label_v4_v2vector_normalized_v1_qwen_selection.json",
+          "sha256": "c0c58493ed6c28949bb96a6a339a8b12b4678fa28e83e6fac0ccaff97543277d",
+          "selection_sha256": "b12d55328951c8e8c7535370af8ca8eabd7c94daef461bdb738be41ae98dec2e"
+        },
+        "gate": {
+          "status": "ready",
+          "id": "model_behavior_accessibility_wave3_repaired_v3",
+          "path": "configs/construct_benchmark/gates/model_behavior_accessibility_wave3_repaired_v3.json",
+          "sha256": "489feee26e261afaba0b79e1af909f0f22db7c240bf3906b33115a880f43ad82"
+        },
+        "run_config": {
+          "status": "ready",
+          "id": "wave3_four_construct_qwen_model_preflight_repaired_v3",
+          "path": "configs/construct_benchmark/run_configs/wave3_four_construct_qwen_model_preflight_repaired_v3.json",
+          "sha256": "35410f783a4ce56f3de396580553a6a97c3c54c23bc3752482cafffcdb81fe4e"
+        }
+      }
+    },
+    {
+      "wave": 4,
+      "model": {
+        "alias": "mistral",
+        "model_id": "mistralai/Mistral-Small-24B-Instruct-2501",
+        "revision": "9527884be6e5616bdd54de542f9ae13384489724"
+      },
+      "construct_ids": [
+        "temporal_orientation",
+        "epistemic_uncertainty",
+        "reciprocity_obligation",
+        "goal_shielding"
+      ],
+      "artifacts": {
+        "inventory": {
+          "status": "ready",
+          "path": "results/benchmark/prompt_inventories/wave4_four_construct_repaired_v3_luna_label_v4_v2vector_r1/combined.csv",
+          "sha256": "a7215df7f24131f33ffa2475febaf6c1123137a81f4d6850b3972e1559f224e7",
+          "manifest": {
+            "status": "ready",
+            "path": "results/benchmark/prompt_inventories/wave4_four_construct_repaired_v3_luna_label_v4_v2vector_r1/inventory_manifest.json",
+            "sha256": "94f233531687424d350379ee4946898505a766982cda924ed01fc2e0118209a4"
+          }
+        },
+        "selection": {
+          "status": "ready",
+          "path": "results/benchmark/model_preflight_v4/wave4_repaired_v3_luna_label_v4_v2vector_normalized_v1_mistral_selection.json",
+          "sha256": "f90eae3783f1d678bc3fb18548b0edccc5156660c20b01a7293e26c785b88b02",
+          "selection_sha256": "0346c4b3f79be4b7a2db5411dc2a19b76ad5c5fba24f692b4b800ea1d8ddfcbd"
+        },
+        "gate": {
+          "status": "ready",
+          "id": "model_behavior_accessibility_wave4_repaired_v3",
+          "path": "configs/construct_benchmark/gates/model_behavior_accessibility_wave4_repaired_v3.json",
+          "sha256": "d16218451bf8f45cfa6cd8c254bfb8353b6e3d12ecc007c6248e8cce88a8beba"
+        },
+        "run_config": {
+          "status": "ready",
+          "id": "wave4_four_construct_mistral_model_preflight_repaired_v3",
+          "path": "configs/construct_benchmark/run_configs/wave4_four_construct_mistral_model_preflight_repaired_v3.json",
+          "sha256": "ed70aa3c8f31e14771e05f240e9b3273863f6744c5ebae77b7a9f1d70cc3105d"
+        }
+      }
+    },
+    {
+      "wave": 4,
+      "model": {
+        "alias": "qwen",
+        "model_id": "Qwen/Qwen3.8-27B",
+        "revision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0"
+      },
+      "construct_ids": [
+        "temporal_orientation",
+        "epistemic_uncertainty",
+        "reciprocity_obligation",
+        "goal_shielding"
+      ],
+      "artifacts": {
+        "inventory": {
+          "status": "ready",
+          "path": "results/benchmark/prompt_inventories/wave4_four_construct_repaired_v3_luna_label_v4_v2vector_r1/combined.csv",
+          "sha256": "a7215df7f24131f33ffa2475febaf6c1123137a81f4d6850b3972e1559f224e7",
+          "manifest": {
+            "status": "ready",
+            "path": "results/benchmark/prompt_inventories/wave4_four_construct_repaired_v3_luna_label_v4_v2vector_r1/inventory_manifest.json",
+            "sha256": "94f233531687424d350379ee4946898505a766982cda924ed01fc2e0118209a4"
+          }
+        },
+        "selection": {
+          "status": "ready",
+          "path": "results/benchmark/model_preflight_v4/wave4_repaired_v3_luna_label_v4_v2vector_normalized_v1_qwen_selection.json",
+          "sha256": "35752a6303afabebe052c0445df33ab0b7fec43c221be115c5e47e7c48586f7f",
+          "selection_sha256": "b1e6785066ed746891b9d2bbd3e3abebaf862e123a9a07e46749fab908c5fb08"
+        },
+        "gate": {
+          "status": "ready",
+          "id": "model_behavior_accessibility_wave4_repaired_v3",
+          "path": "configs/construct_benchmark/gates/model_behavior_accessibility_wave4_repaired_v3.json",
+          "sha256": "d16218451bf8f45cfa6cd8c254bfb8353b6e3d12ecc007c6248e8cce88a8beba"
+        },
+        "run_config": {
+          "status": "ready",
+          "id": "wave4_four_construct_qwen_model_preflight_repaired_v3",
+          "path": "configs/construct_benchmark/run_configs/wave4_four_construct_qwen_model_preflight_repaired_v3.json",
+          "sha256": "01e7c87e749093ed99fec9c67ee9eb5b56fdf989036ce8cd309b0817a1a8cc56"
+        }
+      }
+    }
+  ]
+}

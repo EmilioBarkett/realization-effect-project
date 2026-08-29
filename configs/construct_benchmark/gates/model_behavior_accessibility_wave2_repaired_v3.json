@@ -1,0 +1,160 @@
+{
+  "confirmatory": false,
+  "construct_ids": [
+    "reference_frame",
+    "prior_weighting",
+    "authority_deference",
+    "exploration_exploitation"
+  ],
+  "execution_contract": {
+    "allowed_run_modes": [
+      "test"
+    ],
+    "constrained_numeric_generation": true,
+    "disable_thinking_when_supported": true,
+    "forbidden_run_modes": [
+      "full",
+      "confirmatory",
+      "production"
+    ],
+    "max_new_tokens": 8,
+    "min_new_tokens": 1,
+    "nonzero_injection_required": true,
+    "preflight_only": true,
+    "prompt_format": "chat",
+    "steering_intervention_timing": "prefill_only",
+    "target_doses": [
+      -1.0,
+      0.0,
+      1.0
+    ],
+    "zero_dose_controls_required": true
+  },
+  "failure_policy": {
+    "any_model_construct_failure_blocks_pair": true,
+    "no_full_production_in_this_task": true,
+    "preserve_failure_samples": true
+  },
+  "gate_id": "model_behavior_accessibility_wave2_repaired_v3",
+  "item_bounds": {
+    "maximum": 16,
+    "minimum": 8,
+    "target": 16
+  },
+  "models": [
+    {
+      "model_id": "mistralai/Mistral-Small-24B-Instruct-2501",
+      "revision": "9527884be6e5616bdd54de542f9ae13384489724",
+      "revision_required": true,
+      "tokenizer_id": "mistralai/Mistral-Small-24B-Instruct-2501"
+    },
+    {
+      "model_id": "Qwen/Qwen3.8-27B",
+      "revision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+      "revision_required": true,
+      "tokenizer_id": "Qwen/Qwen3.8-27B"
+    }
+  ],
+  "prompt_release": {
+    "forbidden_path_tokens": [
+      "four_construct_confirmatory_v1",
+      "repaired_v2",
+      "confirmatory_v1"
+    ],
+    "frozen_parent_release": "wave2_four_construct_confirmatory_v1",
+    "required_inventory_version": "wave2_four_construct_repaired_v3_luna_label_v4_v2vector_r1",
+    "required_path_tokens": [
+      "wave2_four_construct_repaired_v3_luna_label_v4_v2vector_r1",
+      "luna"
+    ]
+  },
+  "prompt_repair": {
+    "frozen_parent_inventories_untouched": true,
+    "independent_downstream_and_collateral_pools": true,
+    "new_versioned_inventory_required": true,
+    "outcome_tuning_of_constructs_or_doses": false,
+    "selection_informed_by_outcomes": false
+  },
+  "purpose": "Non-confirmatory repaired-v3 release gate for Wave 2 model-side accessibility",
+  "release_thresholds": {
+    "behavior_maximum_ceiling_share": 0.8,
+    "behavior_maximum_floor_share": 0.8,
+    "behavior_maximum_invalid_items": 0,
+    "behavior_minimum_distinct_outcomes": 2,
+    "behavior_minimum_sample_sd": 1e-06,
+    "behavior_minimum_valid_rate": 1.0,
+    "collateral_minimum_correctness_rate": 0.75,
+    "collateral_minimum_valid_rate": 0.95,
+    "steering_intervention_timing": "prefill_only",
+    "steering_minimum_mean_abs_injection_shift": 1e-06,
+    "steering_minimum_target_dose_response_span": 1e-06,
+    "steering_minimum_valid_rate": 0.95,
+    "steering_require_correct_injection_sign": true,
+    "steering_required_direction_kinds": [
+      "target",
+      "shuffled",
+      "random"
+    ],
+    "steering_required_target_doses": [
+      -1.0,
+      0.0,
+      1.0
+    ],
+    "steering_requires_nonzero_target_injection": true
+  },
+  "schema_version": "0.1.0",
+  "selection": {
+    "maximum_items_per_stratum": 8,
+    "minimum_items_per_stratum": 4,
+    "position_balance_required": true,
+    "position_balanced_splits": [
+      "behavior_eval",
+      "steering_eval",
+      "collateral_eval"
+    ],
+    "position_fields": {
+      "authority_deference": "target_option",
+      "exploration_exploitation": "target_option",
+      "prior_weighting": null,
+      "reference_frame": "target_option"
+    },
+    "position_fields_by_split": {
+      "authority_deference": {
+        "behavior_eval": "target_option",
+        "collateral_eval": "correct_option",
+        "steering_eval": "target_option"
+      },
+      "exploration_exploitation": {
+        "behavior_eval": "target_option",
+        "collateral_eval": "correct_option",
+        "steering_eval": "target_option"
+      },
+      "prior_weighting": {
+        "behavior_eval": null,
+        "collateral_eval": "correct_option",
+        "steering_eval": null
+      },
+      "reference_frame": {
+        "behavior_eval": "target_option",
+        "collateral_eval": "correct_option",
+        "steering_eval": "target_option"
+      }
+    },
+    "position_levels": [
+      1,
+      2
+    ],
+    "selection_informed_by_outcomes": false,
+    "selection_rule": "Within each construct, split, and registered position stratum, rank prompt IDs by a stable SHA-256 hash, take the same count from every position stratum, and sort the selected IDs; inspect no model outcomes.",
+    "strata": [
+      "construct_id",
+      "split",
+      "position_field",
+      "position_value"
+    ],
+    "strategy": "balanced_stratified_hash",
+    "target_items_per_stratum": 8
+  },
+  "selection_informed_by_outcomes": false,
+  "supersedes": "model_behavior_accessibility_preflight_v2_diagnostic_repair"
+}

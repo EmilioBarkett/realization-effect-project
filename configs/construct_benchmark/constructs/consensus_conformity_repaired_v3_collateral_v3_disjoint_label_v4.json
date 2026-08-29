@@ -1,0 +1,576 @@
+{
+  "collateral_behavior_task": {
+    "fact_bank": [
+      {
+        "correct_option": 1,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_01",
+        "statement_1": "The Battle of Hastings occurred in 1066.",
+        "statement_2": "The Battle of Hastings occurred in 1166."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_02",
+        "statement_1": "The Titanic sank in 1812.",
+        "statement_2": "The Titanic sank in 1912."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_03",
+        "statement_1": "The first modern Olympic Games were held in 1896.",
+        "statement_2": "The first modern Olympic Games were held in 1796."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_04",
+        "statement_1": "The Wright brothers made a powered flight in 1803.",
+        "statement_2": "The Wright brothers made a powered flight in 1903."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_05",
+        "statement_1": "The Panama Canal opened in 1914.",
+        "statement_2": "The Panama Canal opened in 1814."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_06",
+        "statement_1": "The Roman Colosseum is in Athens.",
+        "statement_2": "The Roman Colosseum is in Rome."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_07",
+        "statement_1": "Pompeii was buried by an eruption of Mount Vesuvius.",
+        "statement_2": "Pompeii was buried by an eruption of Mount Etna."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_08",
+        "statement_1": "Babylon was an ancient city in Scandinavia.",
+        "statement_2": "Babylon was an ancient city in Mesopotamia."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_09",
+        "statement_1": "Hammurabi is associated with ancient Babylon.",
+        "statement_2": "Hammurabi is associated with ancient Athens."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_10",
+        "statement_1": "The Roman Republic followed the Roman Empire.",
+        "statement_2": "The Roman Republic preceded the Roman Empire."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_11",
+        "statement_1": "The Byzantine Empire was centered on Constantinople.",
+        "statement_2": "The Byzantine Empire was centered on Lima."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_12",
+        "statement_1": "The Black Death devastated Europe in the eighteenth century.",
+        "statement_2": "The Black Death devastated Europe in the fourteenth century."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_13",
+        "statement_1": "The Industrial Revolution began in Britain.",
+        "statement_2": "The Industrial Revolution began in Antarctica."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_14",
+        "statement_1": "The United States Nineteenth Amendment was ratified in 1820.",
+        "statement_2": "The United States Nineteenth Amendment was ratified in 1920."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_15",
+        "statement_1": "The United Nations was founded in 1945.",
+        "statement_2": "The United Nations was founded in 1845."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_16",
+        "statement_1": "The Mayflower reached Plymouth in 1720.",
+        "statement_2": "The Mayflower reached Plymouth in 1620."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_17",
+        "statement_1": "The American Civil War began in 1861.",
+        "statement_2": "The American Civil War began in 1761."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_18",
+        "statement_1": "The Meiji Restoration began in 1768.",
+        "statement_2": "The Meiji Restoration began in 1868."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_19",
+        "statement_1": "India became independent in 1947.",
+        "statement_2": "India became independent in 1847."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_20",
+        "statement_1": "The Suez Canal opened in 1769.",
+        "statement_2": "The Suez Canal opened in 1869."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_21",
+        "statement_1": "The first Nobel Prizes were awarded in 1901.",
+        "statement_2": "The first Nobel Prizes were awarded in 1801."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_22",
+        "statement_1": "The Treaty of Versailles was signed in 1819.",
+        "statement_2": "The Treaty of Versailles was signed in 1919."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_23",
+        "statement_1": "Tenochtitlan was the capital of the Aztec Empire.",
+        "statement_2": "Tenochtitlan was the capital of the Roman Empire."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_24",
+        "statement_1": "The Inca civilization was centered in the Sahara.",
+        "statement_2": "The Inca civilization was centered in the Andes."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_25",
+        "statement_1": "Ancient Greek democracy developed in Athens.",
+        "statement_2": "Ancient Greek democracy developed in Beijing."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_26",
+        "statement_1": "The Rosetta Stone was found in Iceland.",
+        "statement_2": "The Rosetta Stone was found in Egypt."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_27",
+        "statement_1": "The Terracotta Army is associated with Qin Shi Huang.",
+        "statement_2": "The Terracotta Army is associated with Alexander the Great."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_28",
+        "statement_1": "The first transcontinental railroad in the United States was completed in 1769.",
+        "statement_2": "The first transcontinental railroad in the United States was completed in 1869."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_29",
+        "statement_1": "The city of Carthage was in North Africa.",
+        "statement_2": "The city of Carthage was in northern Europe."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_30",
+        "statement_1": "The Parthenon is an ancient temple in Dublin.",
+        "statement_2": "The Parthenon is an ancient temple in Athens."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_31",
+        "statement_1": "The Code of Hammurabi is an ancient legal code.",
+        "statement_2": "The Code of Hammurabi is a modern traffic manual."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "history",
+        "fact_id": "neutral_card_c_32",
+        "statement_1": "The Hellenistic period preceded the life of Alexander the Great.",
+        "statement_2": "The Hellenistic period followed the conquests of Alexander the Great."
+      }
+    ],
+    "fact_bank_version": "unique_32_opaque_label_c_v1",
+    "item_metadata_schema": {
+      "properties": {
+        "correct_option": {
+          "enum": [
+            1,
+            2
+          ],
+          "type": "integer"
+        },
+        "fact_domain": {
+          "enum": [
+            "history"
+          ],
+          "type": "string"
+        },
+        "fact_id": {
+          "enum": [
+            "neutral_card_c_01",
+            "neutral_card_c_02",
+            "neutral_card_c_03",
+            "neutral_card_c_04",
+            "neutral_card_c_05",
+            "neutral_card_c_06",
+            "neutral_card_c_07",
+            "neutral_card_c_08",
+            "neutral_card_c_09",
+            "neutral_card_c_10",
+            "neutral_card_c_11",
+            "neutral_card_c_12",
+            "neutral_card_c_13",
+            "neutral_card_c_14",
+            "neutral_card_c_15",
+            "neutral_card_c_16",
+            "neutral_card_c_17",
+            "neutral_card_c_18",
+            "neutral_card_c_19",
+            "neutral_card_c_20",
+            "neutral_card_c_21",
+            "neutral_card_c_22",
+            "neutral_card_c_23",
+            "neutral_card_c_24",
+            "neutral_card_c_25",
+            "neutral_card_c_26",
+            "neutral_card_c_27",
+            "neutral_card_c_28",
+            "neutral_card_c_29",
+            "neutral_card_c_30",
+            "neutral_card_c_31",
+            "neutral_card_c_32"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "fact_id",
+        "fact_domain",
+        "correct_option"
+      ]
+    },
+    "label_contract_version": "fact_id_label_v1",
+    "primary_outcome": "correct_option",
+    "prompt_template": "In a separate factual item, include the assigned neutral label exactly as 'Fact ID: <fact_id>' and use the two registered statements for the assigned fact_id. Exactly one statement is correct; do not identify it in the prompt. Return exactly one integer: 1 or 2 for the correct statement.",
+    "response_format": "single_integer_1_or_2",
+    "secondary_outcomes": [
+      "incorrect_option",
+      "compliance"
+    ],
+    "task_family": "unrelated_factual_choice",
+    "task_id": "collateral_fact_choice_v3"
+  },
+  "construct_id": "consensus_conformity",
+  "contrast_conditions": [
+    {
+      "condition_id": "follow_consensus",
+      "definition": "The decision maker treats a shared peer judgment as a strong reason to align with the group's answer, even when private evidence is available.",
+      "label": "Follow the group judgment"
+    },
+    {
+      "condition_id": "independent_judgment",
+      "definition": "The decision maker weighs private evidence independently and does not treat agreement among peers as decisive merely because it is shared.",
+      "label": "Maintain independent judgment"
+    }
+  ],
+  "controls": [
+    "peer_judgment_direction_crossing",
+    "private_evidence_strength_crossing",
+    "peer_count_crossing",
+    "ordinary_peer_status_control",
+    "new_domain_behavior_task",
+    "lexical_overlap_audit",
+    "neutral_behavior_prompt",
+    "shuffled_pair_labels",
+    "random_direction",
+    "unrelated_collateral_behavior"
+  ],
+  "description": "Whether a shared ordinary-peer judgment is represented as something to follow or as information to evaluate independently, tested downstream by a fresh forecast item with a clean episode boundary.",
+  "expected_direction": {
+    "behavior": {
+      "direction_status": "preregister_before_data_collection",
+      "estimand": "peer_weighting_state_transfer_to_independent_forecast",
+      "expected_by_private_evidence": {
+        "agrees_with_peers": "follow_consensus has a small or ceiling-limited additional effect when private evidence agrees with the peers",
+        "conflicts_with_peers": "follow_consensus moves claim_probability toward the peer judgment more than independent_judgment, especially when private evidence is strong"
+      },
+      "outcome": "focal_claim_probability",
+      "warning": "The downstream task is a fresh forecast episode and does not append the probe continuation instruction."
+    },
+    "readout": {
+      "estimand": "heldout_projection_margin",
+      "negative_condition": "independent_judgment",
+      "positive_condition": "follow_consensus"
+    }
+  },
+  "family": "social",
+  "independent_behavior_task": {
+    "independence_requirements": [
+      "Use new factual domains, claims, peer names, and evidence items not present in probe prompts.",
+      "Cross peer judgment direction, private evidence relation, private evidence strength, and peer count independently.",
+      "Peers must have no special authority or status cues; do not ask the model to classify conformity or independence."
+    ],
+    "item_metadata_schema": {
+      "properties": {
+        "peer_count": {
+          "enum": [
+            "small",
+            "large"
+          ],
+          "type": "string"
+        },
+        "peer_judgment_direction": {
+          "enum": [
+            "supports_claim",
+            "contradicts_claim",
+            "neutral"
+          ],
+          "type": "string"
+        },
+        "private_evidence_relation": {
+          "enum": [
+            "agrees_with_peers",
+            "conflicts_with_peers",
+            "neutral"
+          ],
+          "type": "string"
+        },
+        "private_evidence_strength": {
+          "enum": [
+            "weak",
+            "strong"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "peer_judgment_direction",
+        "private_evidence_relation",
+        "private_evidence_strength",
+        "peer_count"
+      ]
+    },
+    "primary_outcome": "focal_claim_probability",
+    "prompt_template": "In a new factual estimation task, several ordinary reviewers give an answer and one private measurement is available. Report from 0 to 100 the probability that the focal claim is true. Use only this item's information.",
+    "response_format": "single_integer_0_to_100",
+    "secondary_outcomes": [
+      "compliance"
+    ],
+    "task_family": "peer_evidence_forecast",
+    "task_id": "peer_evidence_forecast_v3"
+  },
+  "metadata": {
+    "behavioral_design": {
+      "behavior_factor_fields": [
+        "peer_judgment_direction",
+        "private_evidence_relation",
+        "private_evidence_strength",
+        "peer_count"
+      ],
+      "behavior_factor_levels": {
+        "peer_judgment_direction": [
+          "supports_claim",
+          "contradicts_claim"
+        ],
+        "private_evidence_relation": [
+          "agrees_with_peers",
+          "conflicts_with_peers"
+        ]
+      },
+      "behavior_fixed_fields": {},
+      "calibration_factor_fields": [
+        "private_evidence_strength",
+        "peer_count"
+      ],
+      "calibration_fixed_fields": {
+        "peer_judgment_direction": "neutral",
+        "private_evidence_relation": "neutral"
+      },
+      "calibration_forbidden_terms": [
+        "peer",
+        "reviewers",
+        "consensus",
+        "conformity",
+        "group",
+        "private measurement",
+        "supports the claim",
+        "contradicts the claim"
+      ],
+      "calibration_neutral_fields": {
+        "peer_judgment_direction": "neutral",
+        "private_evidence_relation": "neutral"
+      },
+      "calibration_required_patterns": [
+        "\\bsingle\\s+independent\\s+forecast\\b|\\bstandalone\\s+forecast\\b",
+        "\\bno\\s+collective\\s+judgment\\b|\\bno\\s+other\\s+assessors?\\b"
+      ],
+      "collateral_cross_construct_disjoint": true,
+      "collateral_fact_bank_ids": [
+        "neutral_card_c_01",
+        "neutral_card_c_02",
+        "neutral_card_c_03",
+        "neutral_card_c_04",
+        "neutral_card_c_05",
+        "neutral_card_c_06",
+        "neutral_card_c_07",
+        "neutral_card_c_08",
+        "neutral_card_c_09",
+        "neutral_card_c_10",
+        "neutral_card_c_11",
+        "neutral_card_c_12",
+        "neutral_card_c_13",
+        "neutral_card_c_14",
+        "neutral_card_c_15",
+        "neutral_card_c_16",
+        "neutral_card_c_17",
+        "neutral_card_c_18",
+        "neutral_card_c_19",
+        "neutral_card_c_20",
+        "neutral_card_c_21",
+        "neutral_card_c_22",
+        "neutral_card_c_23",
+        "neutral_card_c_24",
+        "neutral_card_c_25",
+        "neutral_card_c_26",
+        "neutral_card_c_27",
+        "neutral_card_c_28",
+        "neutral_card_c_29",
+        "neutral_card_c_30",
+        "neutral_card_c_31",
+        "neutral_card_c_32"
+      ],
+      "collateral_fact_bank_version": "unique_32_opaque_label_c_v1",
+      "collateral_fact_id_label_required": true,
+      "collateral_label_contract_version": "fact_id_label_v1",
+      "collateral_parser_id": "single_integer_choice_1_or_2_v1",
+      "collateral_repair_version": "repaired_v3_collateral_v3_disjoint_label_v4",
+      "collateral_required_metadata": [
+        "fact_id",
+        "fact_domain",
+        "correct_option"
+      ],
+      "collateral_response_format": "single_integer_1_or_2",
+      "collateral_task_id": "collateral_fact_choice_v3",
+      "collateral_unique_fact_ids_required": true,
+      "design_kind": "consensus_balanced_probability",
+      "forbidden_downstream_terms": [
+        "consensus_conformity",
+        "follow_consensus",
+        "independent_judgment"
+      ],
+      "full_factorial_required": true,
+      "pair_contract": null,
+      "parser_id": "single_integer_probability_v1",
+      "position_field": null,
+      "primary_outcome": "focal_claim_probability",
+      "repair_family": "waves2_4_repaired_v3",
+      "required_schedule_fields": [
+        "peer_judgment_direction",
+        "private_evidence_relation",
+        "private_evidence_strength",
+        "peer_count"
+      ],
+      "required_task_metadata": [
+        "peer_judgment_direction",
+        "private_evidence_relation",
+        "private_evidence_strength",
+        "peer_count"
+      ],
+      "response_format": "single_integer_0_to_100",
+      "secondary_outcomes": [
+        "compliance"
+      ],
+      "task_id": "peer_evidence_forecast_v3"
+    },
+    "collateral_task_independent_of_construct": true,
+    "do_not_tune_from_wave1_outcomes": true,
+    "downstream_independence": "The downstream item is regenerated as a standalone factual forecast with no probe suffix or copied stance instruction.",
+    "not_claimed_as": "authority_deference_or_generic_social_compliance",
+    "option_order_policy": "Every choice/allocation downstream cell registers a balanced target_option or primary_position schedule; parser scoring uses that frozen field.",
+    "parent_spec_path": "configs/construct_benchmark/constructs/consensus_conformity_repaired_v3_collateral_v3_disjoint.json",
+    "parent_spec_sha256": "8a2db6be677c90e369a5259b323f1a9b9853603aa4a12bc5c2275cd1bfa89ddb",
+    "primary_question": "Is a peer-agreement orientation decodable, and does it transfer to weighting controlled peer judgments in a new factual task?",
+    "probe_state_is": "consensus_conformity_state",
+    "release_note": "Supersedes the v1 mixed probe/downstream composition for future review and generation; v1 artifacts remain historical.",
+    "repair_scope": [
+      "collateral_eval only",
+      "machine-enforced registered Fact ID label",
+      "preserve construct-disjoint fact bank and gold answers"
+    ],
+    "repair_version": "repaired_v3_collateral_v3_disjoint_label_v4"
+  },
+  "paired_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout"
+  ],
+  "parsing_rules": {
+    "extra_text_policy": "invalid",
+    "invalid_response_policy": "exclude_from_outcome_denominator_and_report_compliance",
+    "outcome_aliases": {
+      "compliance": "compliance",
+      "focal_claim_probability": "focal_claim_probability"
+    },
+    "parser_id": "single_integer_probability_v1",
+    "valid_ranges": {
+      "compliance": [
+        0,
+        100
+      ],
+      "focal_claim_probability": [
+        0,
+        100
+      ]
+    }
+  },
+  "probe_prompt_template": "Read the following short social-information scenario. Track how the shared peer judgment is handled without answering a later task.\n\nScenario:\n{scenario}\n\nKeep the scenario in working memory without adding a response.",
+  "required_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout",
+    "behavior_eval",
+    "steering_eval",
+    "calibration",
+    "collateral_eval"
+  ],
+  "schema_version": "0.1.0",
+  "title": "Peer-information weighting with independent forecast",
+  "version": "repaired_v3_collateral_v3_disjoint_label_v4"
+}

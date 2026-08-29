@@ -1,0 +1,79 @@
+{
+  "base_plan_path": "wave1_realization_account_closure_v2.json",
+  "plan_id": "wave1_realization_account_closure_behavioral_repair_v4",
+  "response_instruction_policy": "runtime_append",
+  "allocation_payoff_structure": {
+    "curve_id": "crossing_concave_portfolio_5x20_v1",
+    "budget_points": 100,
+    "block_points": 20,
+    "block_count": 5,
+    "objective": "maximize total expected portfolio return across the five assigned blocks",
+    "allocation_unit": "complete_20_point_blocks",
+    "allocation_mapping": "If k complete blocks are assigned to Option A, use the first k Option A returns and the first (5-k) Option B returns; maximize their summed expected portfolio return.",
+    "risky_marginal_return_units": [20, 18, 16, 12, 8],
+    "sure_marginal_return_units": [20, 19, 15, 14, 13]
+  },
+  "construct_spec_path": "../constructs/realization_account_closure_v4.json",
+  "generation": {"temperature": 0.7, "max_tokens": 30000, "max_output_tokens": 30000, "seed": 241, "timeout": 300, "retries": 0, "max_items_per_request": 20, "estimated_input_tokens_per_request": 2200, "estimated_output_tokens_per_record": 420},
+  "design_rules": [
+    "Instantiate a separate self-contained risky-versus-sure allocation task; do not refer to a probe or to the construct.",
+    "Use the registered numeric payoff metadata exactly. The sure amount must lie strictly between the risky high and low outcomes, so neither option strictly dominates.",
+    "State the registered optimization objective and allocation mapping exactly: maximize total expected portfolio return across the five assigned blocks; use complete 20-point blocks; if k complete blocks go to Option A, use the first k Option A returns and the first (5-k) Option B returns. Also state the 100-point budget in five successive 20-point blocks, with Option A marginal expected returns 20, 18, 16, 12, and 8 units and Option B marginal expected returns 20, 19, 15, 14, and 13 units. Never state or suggest a target allocation, mix, split, optimum, or recommendation.",
+    "Cross gain and loss, low and high stakes, even and uneven probabilities, both narrative orders, and both near-indifference and modest-risk-premium EV bins.",
+    "State in the task body that Option A is always the risky option, even when the sure option is narrated first; omit any response request because the runtime appends it.",
+    "Do not include realization/account-closure wording, probe wording, condition labels, benchmark terminology, or a second response request."
+  ],
+  "forbidden_terms": ["realization_account_closure", "account closure", "open_pending", "closed_settled", "provisional", "unresolved", "finalized", "settled", "realization state", "probe state", "construct", "mix", "split evenly", "balanced split", "recommended allocation", "preferred allocation", "best allocation", "optimal allocation", "target allocation", "allocate evenly"],
+  "content_pools": {
+    "realization_behavior_repair_v4": {"role": "behavior", "domains": ["harbor_insurance_portfolio_v4", "orchard_reserve_portfolio_v4"]},
+    "realization_steering_repair_v4": {"role": "steering", "domains": ["telescope_allocation_portfolio_v4", "community_grant_portfolio_v4"]},
+    "realization_calibration_repair_v4": {"role": "calibration", "domains": ["abstract_index_portfolio_v4", "inventory_unit_portfolio_v4"]},
+    "realization_collateral_repair_v4": {"role": "collateral", "domains": ["mineral identification", "electrical materials", "geology", "weather instruments"]}
+  },
+  "downstream_pool_separation": {
+    "required_prompt_anchors": {"realization_behavior_repair_v4": ["harbor", "reserve"], "realization_steering_repair_v4": ["telescope", "observatory", "grant"], "realization_calibration_repair_v4": ["abstract", "index", "units"]},
+    "forbidden_prompt_anchors": {"realization_behavior_repair_v4": ["telescope", "observatory", "grant", "abstract", "index"], "realization_steering_repair_v4": ["harbor", "reserve", "abstract", "index"], "realization_calibration_repair_v4": ["harbor", "reserve", "telescope", "observatory", "grant"]}
+  },
+  "behavioral_schedule_contract": {
+    "required_fields": ["outcome_valence", "stake_level", "risk_probability", "option_order", "ev_bin", "dominance_status", "allocation_region", "curve_profile", "sure_value_units", "risky_high_value_units", "risky_low_value_units", "risk_probability_percent"],
+    "factors": {"outcome_valence": ["gain", "loss"], "stake_level": ["low", "high"], "risk_probability": ["even", "uneven"], "option_order": ["risky_first", "sure_first"], "ev_bin": ["near_indifferent", "modest_risk_premium"]},
+    "factor_order": ["outcome_valence", "stake_level", "risk_probability", "option_order", "ev_bin"],
+    "full_factorial": true,
+    "required_values": {"outcome_valence": ["gain", "loss"], "ev_bin": ["near_indifferent", "modest_risk_premium"]},
+    "balanced_fields": ["outcome_valence", "stake_level", "risk_probability", "option_order", "ev_bin"],
+    "calibration_neutral_fields": {"outcome_valence": "neutral", "dominance_status": "not_applicable", "allocation_region": "not_applicable", "curve_profile": "neutral_calibration"}
+  },
+  "calibration_factor_schedule": {
+    "purpose": "neutral_risky_allocation_variance",
+    "nuisance_fields": ["stake_level", "risk_probability", "option_order", "ev_bin"],
+    "neutral_fields": {"outcome_valence": "neutral", "dominance_status": "not_applicable", "allocation_region": "not_applicable", "curve_profile": "neutral_calibration"},
+    "forbidden_terms": ["realization", "closure", "provisional", "settled", "gain", "loss", "reward", "payment", "probe"],
+    "required_response_format": "single_integer_allocation_0_to_100"
+  },
+  "factorial_schedules": {
+    "realization_behavior_full": {
+      "factors": {"outcome_valence": ["gain", "loss"], "stake_level": ["low", "high"], "risk_probability": ["even", "uneven"], "option_order": ["risky_first", "sure_first"], "ev_bin": ["near_indifferent", "modest_risk_premium"]},
+      "factor_order": ["outcome_valence", "stake_level", "risk_probability", "option_order", "ev_bin"],
+      "fixed_fields": {"dominance_status": "no_strict_dominance", "allocation_region": "interior", "curve_profile": "diminishing_returns_portfolio"},
+      "derived_fields": {
+        "sure_value_units": {"sources": ["stake_level", "outcome_valence"], "lookup": {"low|gain": 20, "high|gain": 60, "low|loss": -20, "high|loss": -60}},
+        "risk_probability_percent": {"source": "risk_probability", "lookup": {"even": 50, "uneven": 75}},
+        "risky_high_value_units": {"sources": ["stake_level", "outcome_valence", "risk_probability", "ev_bin"], "lookup": {"low|gain|even|near_indifferent": 40, "low|gain|even|modest_risk_premium": 50, "low|gain|uneven|near_indifferent": 30, "low|gain|uneven|modest_risk_premium": 40, "high|gain|even|near_indifferent": 80, "high|gain|even|modest_risk_premium": 90, "high|gain|uneven|near_indifferent": 70, "high|gain|uneven|modest_risk_premium": 80, "low|loss|even|near_indifferent": 0, "low|loss|even|modest_risk_premium": 10, "low|loss|uneven|near_indifferent": -10, "low|loss|uneven|modest_risk_premium": 0, "high|loss|even|near_indifferent": -40, "high|loss|even|modest_risk_premium": -30, "high|loss|uneven|near_indifferent": -50, "high|loss|uneven|modest_risk_premium": -40}},
+        "risky_low_value_units": {"sources": ["stake_level", "outcome_valence", "risk_probability", "ev_bin"], "lookup": {"low|gain|even|near_indifferent": 0, "low|gain|even|modest_risk_premium": 0, "low|gain|uneven|near_indifferent": -10, "low|gain|uneven|modest_risk_premium": -10, "high|gain|even|near_indifferent": 40, "high|gain|even|modest_risk_premium": 40, "high|gain|uneven|near_indifferent": 30, "high|gain|uneven|modest_risk_premium": 30, "low|loss|even|near_indifferent": -40, "low|loss|even|modest_risk_premium": -40, "low|loss|uneven|near_indifferent": -50, "low|loss|uneven|modest_risk_premium": -50, "high|loss|even|near_indifferent": -80, "high|loss|even|modest_risk_premium": -80, "high|loss|uneven|near_indifferent": -90, "high|loss|uneven|modest_risk_premium": -90}}
+      }
+    },
+    "realization_calibration": {
+      "factors": {"stake_level": ["low", "high"], "risk_probability": ["even", "uneven"], "option_order": ["risky_first", "sure_first"], "ev_bin": ["near_indifferent", "modest_risk_premium"]},
+      "factor_order": ["stake_level", "risk_probability", "option_order", "ev_bin"],
+      "fixed_fields": {"outcome_valence": "neutral", "dominance_status": "not_applicable", "allocation_region": "not_applicable", "curve_profile": "neutral_calibration", "sure_value_units": 10, "risky_high_value_units": 20, "risky_low_value_units": 0, "risk_probability_percent": 50}
+    }
+  },
+  "overrides": {
+    "append_cells": [{"cell_id": "collateral_eval", "split": "collateral_eval", "prompt_role": "collateral", "mode": "single", "prompt_family": "realization_collateral_repair_v4", "content_pool": "realization_collateral_repair_v4", "condition_id": "neutral", "task_id": "collateral_factual_choice_realization_account_closure_v1", "parser_id": "single_integer_choice_1_or_2_v1", "expected_output_format": "single_integer_1_or_2", "count_per_model": 32, "factorial_schedule": {"factors": {"correct_option": [1, 2], "difficulty": ["low", "high"], "domain_family": ["domain_a", "domain_b", "domain_c", "domain_d"], "option_order": ["option_1_first", "option_2_first"]}, "factor_order": ["correct_option", "difficulty", "domain_family", "option_order"]}, "instructions": "Generate one independent factual two-option question in the assigned domain. Make the registered correct option true, keep the alternative plausible, and include exactly one response contract at the end. Do not mention a probe, construct, behavior, or benchmark."}],
+    "cells": {
+      "behavior_eval": {"category_balance": {}, "metadata_schedule": {}, "prompt_family": "realization_behavior_repair_v4", "content_pool": "realization_behavior_repair_v4", "task_id": "realization_risk_allocation_v4", "parser_id": "single_integer_allocation_0_to_100_v1", "expected_output_format": "single_integer_allocation_0_to_100", "factor_schedule": "behavior_factor_schedule", "count_per_model": 32, "factorial_schedule_ref": "realization_behavior_full", "instructions": "Generate one concise independent portfolio-allocation task body per assigned schedule. State the numeric sure amount, risky high and low amounts, probability, and Option A risky mapping exactly as assigned. State that the goal is to maximize total expected portfolio return, use complete 20-point blocks, and if k complete blocks go to Option A use the first k Option A returns and first (5-k) Option B returns. State the registered 100-point, five-block payoff curve using digits: for successive 20-point blocks, Option A returns 20, 18, 16, 12, and 8 expected portfolio-return units, and Option B returns 20, 19, 15, 14, and 13. Do not state or suggest a target allocation, mix, split, optimum, or recommendation, and omit any response request because the runtime appends the registered sentence."},
+      "steering_eval": {"category_balance": {}, "metadata_schedule": {}, "prompt_family": "realization_steering_repair_v4", "content_pool": "realization_steering_repair_v4", "task_id": "realization_risk_allocation_v4", "parser_id": "single_integer_allocation_0_to_100_v1", "expected_output_format": "single_integer_allocation_0_to_100", "factor_schedule": "behavior_factor_schedule", "count_per_model": 32, "factorial_schedule_ref": "realization_behavior_full", "instructions": "Generate a concise domain-disjoint telescope, observatory, or community-grant portfolio task body with the exact assigned numeric facts and Option A risky mapping. State that the goal is to maximize total expected portfolio return, use complete 20-point blocks, and if k complete blocks go to Option A use the first k Option A returns and first (5-k) Option B returns. State the registered 100-point, five-block payoff curve using digits: for successive 20-point blocks, Option A returns 20, 18, 16, 12, and 8 expected portfolio-return units, and Option B returns 20, 19, 15, 14, and 13. Do not state or suggest a target allocation, mix, split, optimum, or recommendation; do not refer to any earlier scenario, include a probe suffix, or write a response request because the runtime appends the registered sentence."},
+      "calibration": {"category_balance": {}, "metadata_schedule": {}, "prompt_family": "realization_calibration_repair_v4", "content_pool": "realization_calibration_repair_v4", "task_id": "realization_risk_allocation_v4", "parser_id": "single_integer_allocation_0_to_100_v1", "expected_output_format": "single_integer_allocation_0_to_100", "factor_schedule": "calibration_factor_schedule", "count_per_model": 16, "factorial_schedule_ref": "realization_calibration", "instructions": "Generate a concise neutral abstract or inventory-unit calibration task body without any realization-state or gain/loss language. Omit any response request; the runtime appends the registered sentence."}
+    }
+  }
+}

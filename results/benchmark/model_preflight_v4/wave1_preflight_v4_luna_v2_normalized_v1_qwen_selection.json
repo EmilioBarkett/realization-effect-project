@@ -1,0 +1,367 @@
+{
+  "confirmatory": false,
+  "construct_ids": [
+    "realization_account_closure",
+    "evidence_diagnosticity",
+    "source_reliability",
+    "persistence_continuation"
+  ],
+  "gate_config_sha256": "28584695247774d0337b9a820b78781b428ae4a799d4bd9bb47be0175bcb172b",
+  "gate_id": "model_behavior_accessibility_preflight_v2_diagnostic_repair",
+  "item_bounds": {
+    "maximum": 16,
+    "minimum": 8,
+    "target": 16
+  },
+  "manifest_type": "model_behavior_accessibility_preflight_selection",
+  "model": {
+    "model_id": "Qwen/Qwen3.8-27B",
+    "revision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+    "tokenizer_id": "Qwen/Qwen3.8-27B"
+  },
+  "output": "results/benchmark/model_preflight_v4/wave1_preflight_v4_luna_v2_normalized_v1_qwen_selection.json",
+  "preflight_id": "model_behavior_accessibility_v2",
+  "purpose": "release_gate_before_any_further_large_model_execution",
+  "schema_version": "0.1.0",
+  "seed": 1729,
+  "selected": {
+    "evidence_diagnosticity": {
+      "behavior_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "prompt_ids": [
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__behavior_eval__variant_01",
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__behavior_eval__variant_02",
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__behavior_eval__variant_03",
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__behavior_eval__variant_04",
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__behavior_eval__variant_05",
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__behavior_eval__variant_06",
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__behavior_eval__variant_07",
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__behavior_eval__variant_08",
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__behavior_eval__variant_09",
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__behavior_eval__variant_10",
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__behavior_eval__variant_11",
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__behavior_eval__variant_12",
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__behavior_eval__variant_13",
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__behavior_eval__variant_14",
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__behavior_eval__variant_15",
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__behavior_eval__variant_16"
+        ],
+        "source_item_count": 16,
+        "target_items": 16
+      },
+      "collateral_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "prompt_ids": [
+          "evidence_diagnosticity_collateral_v1__evidence_diagnosticity__luna__collateral_eval__part_001__item_01",
+          "evidence_diagnosticity_collateral_v1__evidence_diagnosticity__luna__collateral_eval__part_001__item_04",
+          "evidence_diagnosticity_collateral_v1__evidence_diagnosticity__luna__collateral_eval__part_001__item_06",
+          "evidence_diagnosticity_collateral_v1__evidence_diagnosticity__luna__collateral_eval__part_001__item_07",
+          "evidence_diagnosticity_collateral_v1__evidence_diagnosticity__luna__collateral_eval__part_001__item_08",
+          "evidence_diagnosticity_collateral_v1__evidence_diagnosticity__luna__collateral_eval__part_001__item_09",
+          "evidence_diagnosticity_collateral_v1__evidence_diagnosticity__luna__collateral_eval__part_001__item_10",
+          "evidence_diagnosticity_collateral_v1__evidence_diagnosticity__luna__collateral_eval__part_001__item_11",
+          "evidence_diagnosticity_collateral_v1__evidence_diagnosticity__luna__collateral_eval__part_001__item_13",
+          "evidence_diagnosticity_collateral_v1__evidence_diagnosticity__luna__collateral_eval__part_001__item_14",
+          "evidence_diagnosticity_collateral_v1__evidence_diagnosticity__luna__collateral_eval__part_001__item_15",
+          "evidence_diagnosticity_collateral_v1__evidence_diagnosticity__luna__collateral_eval__part_001__item_18",
+          "evidence_diagnosticity_collateral_v1__evidence_diagnosticity__luna__collateral_eval__part_002__variant_02",
+          "evidence_diagnosticity_collateral_v1__evidence_diagnosticity__luna__collateral_eval__part_002__variant_06",
+          "evidence_diagnosticity_collateral_v1__evidence_diagnosticity__luna__collateral_eval__part_002__variant_07",
+          "evidence_diagnosticity_collateral_v1__evidence_diagnosticity__luna__collateral_eval__part_002__variant_09"
+        ],
+        "source_item_count": 32,
+        "target_items": 16
+      },
+      "steering_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "prompt_ids": [
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__steering_eval__v01",
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__steering_eval__v02",
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__steering_eval__v03",
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__steering_eval__v04",
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__steering_eval__v05",
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__steering_eval__v06",
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__steering_eval__v07",
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__steering_eval__v08",
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__steering_eval__v09",
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__steering_eval__v10",
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__steering_eval__v11",
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__steering_eval__v12",
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__steering_eval__v13",
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__steering_eval__v14",
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__steering_eval__v15",
+          "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight__evidence_diagnosticity__luna__steering_eval__v16"
+        ],
+        "source_item_count": 16,
+        "target_items": 16
+      }
+    },
+    "persistence_continuation": {
+      "behavior_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "prompt_ids": [
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__behavior_eval__p01",
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__behavior_eval__p02",
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__behavior_eval__p03",
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__behavior_eval__p04",
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__behavior_eval__p05",
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__behavior_eval__p06",
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__behavior_eval__p07",
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__behavior_eval__p08",
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__behavior_eval__p09",
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__behavior_eval__p10",
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__behavior_eval__p11",
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__behavior_eval__p12",
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__behavior_eval__p13",
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__behavior_eval__p14",
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__behavior_eval__p15",
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__behavior_eval__p16"
+        ],
+        "source_item_count": 16,
+        "target_items": 16
+      },
+      "collateral_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "prompt_ids": [
+          "persistence_continuation_collateral_v1__persistence_continuation__luna__collateral_eval__part_001__v01",
+          "persistence_continuation_collateral_v1__persistence_continuation__luna__collateral_eval__part_001__v02",
+          "persistence_continuation_collateral_v1__persistence_continuation__luna__collateral_eval__part_001__v09",
+          "persistence_continuation_collateral_v1__persistence_continuation__luna__collateral_eval__part_001__v10",
+          "persistence_continuation_collateral_v1__persistence_continuation__luna__collateral_eval__part_001__v12",
+          "persistence_continuation_collateral_v1__persistence_continuation__luna__collateral_eval__part_001__v13",
+          "persistence_continuation_collateral_v1__persistence_continuation__luna__collateral_eval__part_001__v14",
+          "persistence_continuation_collateral_v1__persistence_continuation__luna__collateral_eval__part_001__v15",
+          "persistence_continuation_collateral_v1__persistence_continuation__luna__collateral_eval__part_001__v19",
+          "persistence_continuation_collateral_v1__persistence_continuation__luna__collateral_eval__part_001__v20",
+          "persistence_continuation_collateral_v1__persistence_continuation__luna__collateral_eval__part_002__item_01",
+          "persistence_continuation_collateral_v1__persistence_continuation__luna__collateral_eval__part_002__item_06",
+          "persistence_continuation_collateral_v1__persistence_continuation__luna__collateral_eval__part_002__item_07",
+          "persistence_continuation_collateral_v1__persistence_continuation__luna__collateral_eval__part_002__item_08",
+          "persistence_continuation_collateral_v1__persistence_continuation__luna__collateral_eval__part_002__item_09",
+          "persistence_continuation_collateral_v1__persistence_continuation__luna__collateral_eval__part_002__item_12"
+        ],
+        "source_item_count": 32,
+        "target_items": 16
+      },
+      "steering_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "prompt_ids": [
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__steering_eval__v01",
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__steering_eval__v02",
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__steering_eval__v03",
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__steering_eval__v04",
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__steering_eval__v05",
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__steering_eval__v06",
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__steering_eval__v07",
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__steering_eval__v08",
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__steering_eval__v09",
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__steering_eval__v10",
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__steering_eval__v11",
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__steering_eval__v12",
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__steering_eval__v13",
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__steering_eval__v14",
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__steering_eval__v15",
+          "wave1_persistence_continuation_behavioral_repair_v4_preflight__persistence_continuation__luna__steering_eval__v16"
+        ],
+        "source_item_count": 16,
+        "target_items": 16
+      }
+    },
+    "realization_account_closure": {
+      "behavior_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "prompt_ids": [
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__behavior_eval__p01",
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__behavior_eval__p02",
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__behavior_eval__p03",
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__behavior_eval__p04",
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__behavior_eval__p05",
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__behavior_eval__p06",
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__behavior_eval__p07",
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__behavior_eval__p08",
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__behavior_eval__p09",
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__behavior_eval__p10",
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__behavior_eval__p11",
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__behavior_eval__p12",
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__behavior_eval__p13",
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__behavior_eval__p14",
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__behavior_eval__p15",
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__behavior_eval__p16"
+        ],
+        "source_item_count": 16,
+        "target_items": 16
+      },
+      "collateral_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "prompt_ids": [
+          "realization_account_closure_collateral_v1__realization_account_closure__luna__collateral_eval__part_001__variant_01",
+          "realization_account_closure_collateral_v1__realization_account_closure__luna__collateral_eval__part_001__variant_03",
+          "realization_account_closure_collateral_v1__realization_account_closure__luna__collateral_eval__part_001__variant_04",
+          "realization_account_closure_collateral_v1__realization_account_closure__luna__collateral_eval__part_001__variant_08",
+          "realization_account_closure_collateral_v1__realization_account_closure__luna__collateral_eval__part_001__variant_09",
+          "realization_account_closure_collateral_v1__realization_account_closure__luna__collateral_eval__part_001__variant_11",
+          "realization_account_closure_collateral_v1__realization_account_closure__luna__collateral_eval__part_001__variant_13",
+          "realization_account_closure_collateral_v1__realization_account_closure__luna__collateral_eval__part_001__variant_16",
+          "realization_account_closure_collateral_v1__realization_account_closure__luna__collateral_eval__part_001__variant_18",
+          "realization_account_closure_collateral_v1__realization_account_closure__luna__collateral_eval__part_001__variant_19",
+          "realization_account_closure_collateral_v1__realization_account_closure__luna__collateral_eval__part_002__collateral_01",
+          "realization_account_closure_collateral_v1__realization_account_closure__luna__collateral_eval__part_002__collateral_02",
+          "realization_account_closure_collateral_v1__realization_account_closure__luna__collateral_eval__part_002__collateral_03",
+          "realization_account_closure_collateral_v1__realization_account_closure__luna__collateral_eval__part_002__collateral_04",
+          "realization_account_closure_collateral_v1__realization_account_closure__luna__collateral_eval__part_002__collateral_06",
+          "realization_account_closure_collateral_v1__realization_account_closure__luna__collateral_eval__part_002__collateral_12"
+        ],
+        "source_item_count": 32,
+        "target_items": 16
+      },
+      "steering_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "prompt_ids": [
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__steering_eval__v01",
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__steering_eval__v02",
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__steering_eval__v03",
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__steering_eval__v04",
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__steering_eval__v05",
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__steering_eval__v06",
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__steering_eval__v07",
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__steering_eval__v08",
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__steering_eval__v09",
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__steering_eval__v10",
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__steering_eval__v11",
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__steering_eval__v12",
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__steering_eval__v13",
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__steering_eval__v14",
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__steering_eval__v15",
+          "wave1_realization_account_closure_behavioral_repair_v4_preflight__realization_account_closure__luna__steering_eval__v16"
+        ],
+        "source_item_count": 16,
+        "target_items": 16
+      }
+    },
+    "source_reliability": {
+      "behavior_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "prompt_ids": [
+          "source_reliability_supplement_v1__source_reliability__luna__behavior_eval__source_behavior_01",
+          "source_reliability_supplement_v1__source_reliability__luna__behavior_eval__source_behavior_02",
+          "source_reliability_supplement_v1__source_reliability__luna__behavior_eval__source_behavior_03",
+          "source_reliability_supplement_v1__source_reliability__luna__behavior_eval__source_behavior_04",
+          "source_reliability_supplement_v1__source_reliability__luna__behavior_eval__source_behavior_06",
+          "source_reliability_supplement_v1__source_reliability__luna__behavior_eval__source_behavior_10",
+          "source_reliability_supplement_v1__source_reliability__luna__behavior_eval__source_behavior_14",
+          "source_reliability_supplement_v1__source_reliability__luna__behavior_eval__source_behavior_15",
+          "source_reliability_supplement_v1__source_reliability__luna__behavior_eval__source_behavior_16",
+          "wave1_source_reliability_prompts_v2__source_reliability__luna__behavior_eval__item_02",
+          "wave1_source_reliability_prompts_v2__source_reliability__luna__behavior_eval__item_03",
+          "wave1_source_reliability_prompts_v2__source_reliability__luna__behavior_eval__item_04",
+          "wave1_source_reliability_prompts_v2__source_reliability__luna__behavior_eval__item_07",
+          "wave1_source_reliability_prompts_v2__source_reliability__luna__behavior_eval__item_08",
+          "wave1_source_reliability_prompts_v2__source_reliability__luna__behavior_eval__item_09",
+          "wave1_source_reliability_prompts_v2__source_reliability__luna__behavior_eval__item_12"
+        ],
+        "source_item_count": 32,
+        "target_items": 16
+      },
+      "collateral_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "prompt_ids": [
+          "source_reliability_collateral_v1__source_reliability__luna__collateral_eval__part_001__v01",
+          "source_reliability_collateral_v1__source_reliability__luna__collateral_eval__part_001__v04",
+          "source_reliability_collateral_v1__source_reliability__luna__collateral_eval__part_001__v05",
+          "source_reliability_collateral_v1__source_reliability__luna__collateral_eval__part_001__v06",
+          "source_reliability_collateral_v1__source_reliability__luna__collateral_eval__part_001__v07",
+          "source_reliability_collateral_v1__source_reliability__luna__collateral_eval__part_001__v08",
+          "source_reliability_collateral_v1__source_reliability__luna__collateral_eval__part_001__v12",
+          "source_reliability_collateral_v1__source_reliability__luna__collateral_eval__part_001__v13",
+          "source_reliability_collateral_v1__source_reliability__luna__collateral_eval__part_001__v14",
+          "source_reliability_collateral_v1__source_reliability__luna__collateral_eval__part_001__v15",
+          "source_reliability_collateral_v1__source_reliability__luna__collateral_eval__part_001__v18",
+          "source_reliability_collateral_v1__source_reliability__luna__collateral_eval__part_001__v19",
+          "source_reliability_collateral_v1__source_reliability__luna__collateral_eval__part_002__item_03",
+          "source_reliability_collateral_v1__source_reliability__luna__collateral_eval__part_002__item_04",
+          "source_reliability_collateral_v1__source_reliability__luna__collateral_eval__part_002__item_05",
+          "source_reliability_collateral_v1__source_reliability__luna__collateral_eval__part_002__item_12"
+        ],
+        "source_item_count": 32,
+        "target_items": 16
+      },
+      "steering_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "prompt_ids": [
+          "source_reliability_supplement_v1__source_reliability__luna__steering_eval__steering_eval_01",
+          "source_reliability_supplement_v1__source_reliability__luna__steering_eval__steering_eval_02",
+          "source_reliability_supplement_v1__source_reliability__luna__steering_eval__steering_eval_03",
+          "source_reliability_supplement_v1__source_reliability__luna__steering_eval__steering_eval_05",
+          "source_reliability_supplement_v1__source_reliability__luna__steering_eval__steering_eval_10",
+          "source_reliability_supplement_v1__source_reliability__luna__steering_eval__steering_eval_11",
+          "source_reliability_supplement_v1__source_reliability__luna__steering_eval__steering_eval_12",
+          "source_reliability_supplement_v1__source_reliability__luna__steering_eval__steering_eval_13",
+          "source_reliability_supplement_v1__source_reliability__luna__steering_eval__steering_eval_14",
+          "source_reliability_supplement_v1__source_reliability__luna__steering_eval__steering_eval_15",
+          "wave1_source_reliability_prompts_v2__source_reliability__luna__steering_eval__01",
+          "wave1_source_reliability_prompts_v2__source_reliability__luna__steering_eval__03",
+          "wave1_source_reliability_prompts_v2__source_reliability__luna__steering_eval__04",
+          "wave1_source_reliability_prompts_v2__source_reliability__luna__steering_eval__09",
+          "wave1_source_reliability_prompts_v2__source_reliability__luna__steering_eval__10",
+          "wave1_source_reliability_prompts_v2__source_reliability__luna__steering_eval__16"
+        ],
+        "source_item_count": 32,
+        "target_items": 16
+      }
+    }
+  },
+  "selection_contract": {
+    "position_balance_required": false,
+    "position_balanced_splits": [],
+    "strategy": "stable_hash"
+  },
+  "selection_informed_by_outcomes": false,
+  "selection_rule": "For each model, construct, and split, rank registered prompt IDs by a frozen SHA-256 schedule and retain the first target_items; inspect no outcomes during selection.",
+  "selection_sha256": "61364449cf9b8fd1c5b719cc101b703745c3e4ca83c9ebb7774b5e24a5535ae3",
+  "source_inventory": "results/benchmark/prompt_inventories/wave1_preflight_v4_luna_v2/combined.csv",
+  "source_inventory_sha256": "09855e9f9354766f253c9ba3631d944b1512514687ef7a948452857102dd61d9",
+  "steering_requirements": {
+    "required_direction_kinds": [
+      "target",
+      "shuffled",
+      "random"
+    ],
+    "required_doses_by_direction_kind": {
+      "random": [
+        0.0
+      ],
+      "shuffled": [
+        0.0
+      ],
+      "target": [
+        -1.0,
+        0.0,
+        1.0
+      ]
+    }
+  }
+}

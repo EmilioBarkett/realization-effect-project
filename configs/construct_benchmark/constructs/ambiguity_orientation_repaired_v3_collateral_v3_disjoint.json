@@ -1,0 +1,594 @@
+{
+  "collateral_behavior_task": {
+    "fact_bank": [
+      {
+        "correct_option": 1,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_01",
+        "statement_1": "Granite is an igneous rock.",
+        "statement_2": "Granite is a sedimentary rock."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_02",
+        "statement_1": "Basalt is a metamorphic rock.",
+        "statement_2": "Basalt is an igneous rock."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_03",
+        "statement_1": "Sandstone is a sedimentary rock.",
+        "statement_2": "Sandstone is an igneous rock."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_04",
+        "statement_1": "Limestone is an igneous rock.",
+        "statement_2": "Limestone is a sedimentary rock."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_05",
+        "statement_1": "Marble is a metamorphic rock.",
+        "statement_2": "Marble is an igneous rock."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_06",
+        "statement_1": "Slate is a sedimentary rock.",
+        "statement_2": "Slate is a metamorphic rock."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_07",
+        "statement_1": "Quartz is a mineral.",
+        "statement_2": "Quartz is an animal."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_08",
+        "statement_1": "Diamond is a compound of water.",
+        "statement_2": "Diamond is an allotrope of carbon."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_09",
+        "statement_1": "Earth's crust is its outer rocky layer.",
+        "statement_2": "Earth's crust is its innermost metallic layer."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_10",
+        "statement_1": "A volcano can release ice.",
+        "statement_2": "A volcano can release lava."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_11",
+        "statement_1": "Tectonic plates move over geologic time.",
+        "statement_2": "Tectonic plates are permanently fixed."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_12",
+        "statement_1": "Erosion creates matter from nothing.",
+        "statement_2": "Erosion wears down exposed surfaces."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_13",
+        "statement_1": "Soil commonly contains mineral particles.",
+        "statement_2": "Soil contains only light."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_14",
+        "statement_1": "A fossil records a future event.",
+        "statement_2": "A fossil records evidence of past life."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_15",
+        "statement_1": "A glacier is moving ice.",
+        "statement_2": "A glacier is molten rock."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_16",
+        "statement_1": "Magma is frozen air below Earth's surface.",
+        "statement_2": "Magma is molten rock below Earth's surface."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_17",
+        "statement_1": "Lava is magma that reaches Earth's surface.",
+        "statement_2": "Lava is groundwater below Earth's surface."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_18",
+        "statement_1": "Sediment consists of stars.",
+        "statement_2": "Sediment consists of deposited particles."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_19",
+        "statement_1": "An earthquake is sudden ground shaking.",
+        "statement_2": "An earthquake is daily rainfall."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_20",
+        "statement_1": "A fault is a flowering plant.",
+        "statement_2": "A fault is a fracture where rocks can move."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_21",
+        "statement_1": "A mineral has an ordered crystal structure.",
+        "statement_2": "A mineral has no atomic structure."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_22",
+        "statement_1": "The water table is the upper level of clouds.",
+        "statement_2": "The water table is the upper level of groundwater."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_23",
+        "statement_1": "Karst landscapes can form in soluble limestone.",
+        "statement_2": "Karst landscapes can form only in solid steel."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_24",
+        "statement_1": "Coal is an igneous metal.",
+        "statement_2": "Coal is an organic sedimentary rock."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_25",
+        "statement_1": "Petroleum is a fossil fuel.",
+        "statement_2": "Petroleum is a pure metal."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_26",
+        "statement_1": "Earth's mantle lies outside the atmosphere.",
+        "statement_2": "Earth's mantle lies beneath its crust."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_27",
+        "statement_1": "Earth's core contains substantial iron and nickel.",
+        "statement_2": "Earth's core contains only oxygen gas."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_28",
+        "statement_1": "Weathering creates a mountain instantly.",
+        "statement_2": "Weathering breaks down rock at or near the surface."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_29",
+        "statement_1": "A geode can contain crystals lining its cavity.",
+        "statement_2": "A geode always contains liquid metal."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_30",
+        "statement_1": "Pumice is always denser than lead.",
+        "statement_2": "Pumice can float because it contains many pores."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_31",
+        "statement_1": "Obsidian is volcanic glass.",
+        "statement_2": "Obsidian is a sedimentary clay."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geology",
+        "fact_id": "ambiguity_32",
+        "statement_1": "Sedimentary layers cannot preserve any fossils.",
+        "statement_2": "Sedimentary layers can preserve fossils."
+      }
+    ],
+    "fact_bank_version": "unique_32_wave3_ambiguity_v3",
+    "item_metadata_schema": {
+      "properties": {
+        "correct_option": {
+          "enum": [
+            1,
+            2
+          ],
+          "type": "integer"
+        },
+        "fact_domain": {
+          "enum": [
+            "geology"
+          ],
+          "type": "string"
+        },
+        "fact_id": {
+          "enum": [
+            "ambiguity_01",
+            "ambiguity_02",
+            "ambiguity_03",
+            "ambiguity_04",
+            "ambiguity_05",
+            "ambiguity_06",
+            "ambiguity_07",
+            "ambiguity_08",
+            "ambiguity_09",
+            "ambiguity_10",
+            "ambiguity_11",
+            "ambiguity_12",
+            "ambiguity_13",
+            "ambiguity_14",
+            "ambiguity_15",
+            "ambiguity_16",
+            "ambiguity_17",
+            "ambiguity_18",
+            "ambiguity_19",
+            "ambiguity_20",
+            "ambiguity_21",
+            "ambiguity_22",
+            "ambiguity_23",
+            "ambiguity_24",
+            "ambiguity_25",
+            "ambiguity_26",
+            "ambiguity_27",
+            "ambiguity_28",
+            "ambiguity_29",
+            "ambiguity_30",
+            "ambiguity_31",
+            "ambiguity_32"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "fact_id",
+        "fact_domain",
+        "correct_option"
+      ]
+    },
+    "primary_outcome": "correct_option",
+    "prompt_template": "In a separate factual item, use the two registered statements for the assigned fact_id. Exactly one statement is correct; do not identify it in the prompt. Return exactly one integer: 1 or 2 for the correct statement.",
+    "response_format": "single_integer_1_or_2",
+    "secondary_outcomes": [
+      "incorrect_option",
+      "compliance"
+    ],
+    "task_family": "unrelated_factual_choice",
+    "task_id": "collateral_fact_choice_v3"
+  },
+  "construct_id": "ambiguity_orientation",
+  "contrast_conditions": [
+    {
+      "condition_id": "accept_ambiguity",
+      "definition": "The decision maker treats an explicitly bounded numeric probability interval as usable information and proceeds without first obtaining one precise probability.",
+      "label": "Proceed with a bounded interval"
+    },
+    {
+      "condition_id": "resolve_ambiguity",
+      "definition": "The decision maker treats the same explicitly bounded numeric probability interval as a reason to obtain one precise probability before committing.",
+      "label": "Seek one precise probability"
+    }
+  ],
+  "controls": [
+    "known_and_unknown_probability_option_quality_crossing",
+    "payoff_scale_balance",
+    "expected_value_and_stakes_matching_within_pairs",
+    "new_domain_behavior_task",
+    "lexical_overlap_audit",
+    "neutral_behavior_prompt",
+    "shuffled_pair_labels",
+    "random_direction",
+    "unrelated_collateral_behavior"
+  ],
+  "description": "Whether a bounded but imprecise information state is represented as acceptable for action or as a reason to seek precision, tested downstream by allocating a fixed information budget.",
+  "expected_direction": {
+    "behavior": {
+      "direction_status": "preregister_before_data_collection",
+      "estimand": "ambiguity_state_transfer_to_information_budget_allocation",
+      "expected_by_lottery_quality": {
+        "quality_crossed": "estimate the orientation contrast after accounting for independently crossed option quality, payoff scale, and numeric interval width",
+        "quality_matched": "proceed-with-interval and seek-precision conditions are compared within each crossed option-quality, payoff-scale, and interval-width cell"
+      },
+      "outcome": "interval_plan_allocation",
+      "warning": "This is a distal allocation task with a registered bounded forecast; it is not a generic uncertainty or risk estimate."
+    },
+    "readout": {
+      "estimand": "heldout_projection_margin",
+      "negative_condition": "resolve_ambiguity",
+      "positive_condition": "accept_ambiguity"
+    }
+  },
+  "family": "decision",
+  "independent_behavior_task": {
+    "independence_requirements": [
+      "Use new domains, actors, stakes, and lottery identifiers not present in probe prompts.",
+      "Cross the stated-probability option's quality, the bounded-interval option's quality, payoff scale, and numeric interval width independently.",
+      "Do not ask the model to classify ambiguity tolerance, ambiguity aversion, epistemic uncertainty, or any construct condition."
+    ],
+    "item_metadata_schema": {
+      "properties": {
+        "ambiguity_range_width": {
+          "enum": [
+            "narrow",
+            "wide",
+            "neutral"
+          ],
+          "type": "string"
+        },
+        "known_lottery_quality": {
+          "enum": [
+            "favorable",
+            "unfavorable",
+            "neutral"
+          ],
+          "type": "string"
+        },
+        "payoff_scale": {
+          "enum": [
+            "small",
+            "large"
+          ],
+          "type": "string"
+        },
+        "primary_position": {
+          "enum": [
+            1,
+            2
+          ],
+          "type": "integer"
+        },
+        "unknown_lottery_quality": {
+          "enum": [
+            "favorable",
+            "unfavorable",
+            "neutral"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "known_lottery_quality",
+        "unknown_lottery_quality",
+        "payoff_scale",
+        "ambiguity_range_width",
+        "primary_position"
+      ]
+    },
+    "primary_outcome": "interval_plan_allocation",
+    "prompt_template": "In a new planning task, allocate exactly 100 points between a plan with a fixed forecast and a plan with a bounded forecast interval. The item states which numbered option is each plan. Return exactly two integers on separate lines in numbered-option order; the two integers must sum to 100.",
+    "response_format": "two_integers_sum_100",
+    "secondary_outcomes": [
+      "fixed_plan_allocation",
+      "compliance"
+    ],
+    "task_family": "uncertainty_budget_allocation",
+    "task_id": "bounded_information_budget_v3"
+  },
+  "metadata": {
+    "behavioral_design": {
+      "behavior_factor_fields": [
+        "known_lottery_quality",
+        "unknown_lottery_quality",
+        "payoff_scale",
+        "ambiguity_range_width",
+        "primary_position"
+      ],
+      "behavior_factor_levels": {
+        "ambiguity_range_width": [
+          "narrow",
+          "wide"
+        ],
+        "known_lottery_quality": [
+          "favorable",
+          "unfavorable"
+        ],
+        "unknown_lottery_quality": [
+          "favorable",
+          "unfavorable"
+        ]
+      },
+      "behavior_fixed_fields": {},
+      "calibration_factor_fields": [
+        "payoff_scale",
+        "primary_position"
+      ],
+      "calibration_fixed_fields": {
+        "ambiguity_range_width": "neutral",
+        "known_lottery_quality": "neutral",
+        "unknown_lottery_quality": "neutral"
+      },
+      "calibration_forbidden_terms": [
+        "fixed forecast",
+        "bounded forecast",
+        "interval",
+        "known probability",
+        "unknown probability",
+        "ambiguity",
+        "ambiguous",
+        "accept uncertainty"
+      ],
+      "calibration_neutral_fields": {
+        "ambiguity_range_width": "neutral",
+        "known_lottery_quality": "neutral",
+        "unknown_lottery_quality": "neutral"
+      },
+      "calibration_required_patterns": [
+        "\\btwo\\s+matched\\s+options?\\b",
+        "\\bno\\s+probability\\s+range\\b|\\bequal(?:ly)?\\s+specified\\b"
+      ],
+      "collateral_cross_construct_disjoint": true,
+      "collateral_fact_bank_ids": [
+        "ambiguity_01",
+        "ambiguity_02",
+        "ambiguity_03",
+        "ambiguity_04",
+        "ambiguity_05",
+        "ambiguity_06",
+        "ambiguity_07",
+        "ambiguity_08",
+        "ambiguity_09",
+        "ambiguity_10",
+        "ambiguity_11",
+        "ambiguity_12",
+        "ambiguity_13",
+        "ambiguity_14",
+        "ambiguity_15",
+        "ambiguity_16",
+        "ambiguity_17",
+        "ambiguity_18",
+        "ambiguity_19",
+        "ambiguity_20",
+        "ambiguity_21",
+        "ambiguity_22",
+        "ambiguity_23",
+        "ambiguity_24",
+        "ambiguity_25",
+        "ambiguity_26",
+        "ambiguity_27",
+        "ambiguity_28",
+        "ambiguity_29",
+        "ambiguity_30",
+        "ambiguity_31",
+        "ambiguity_32"
+      ],
+      "collateral_fact_bank_version": "unique_32_wave3_ambiguity_v3",
+      "collateral_parser_id": "single_integer_choice_1_or_2_v1",
+      "collateral_repair_version": "repaired_v3_collateral_v3_disjoint",
+      "collateral_required_metadata": [
+        "fact_id",
+        "fact_domain",
+        "correct_option"
+      ],
+      "collateral_response_format": "single_integer_1_or_2",
+      "collateral_task_id": "collateral_fact_choice_v3",
+      "collateral_unique_fact_ids_required": true,
+      "design_kind": "ambiguity_balanced_allocation",
+      "forbidden_downstream_terms": [
+        "ambiguity_orientation",
+        "accept_ambiguity",
+        "resolve_ambiguity"
+      ],
+      "full_factorial_required": true,
+      "pair_contract": null,
+      "parser_id": "two_integers_sum_100_v1",
+      "position_field": "primary_position",
+      "primary_outcome": "interval_plan_allocation",
+      "repair_family": "waves2_4_repaired_v3",
+      "required_schedule_fields": [
+        "known_lottery_quality",
+        "unknown_lottery_quality",
+        "payoff_scale",
+        "ambiguity_range_width",
+        "primary_position"
+      ],
+      "required_task_metadata": [
+        "known_lottery_quality",
+        "unknown_lottery_quality",
+        "payoff_scale",
+        "ambiguity_range_width",
+        "primary_position"
+      ],
+      "response_format": "two_integers_sum_100",
+      "secondary_outcomes": [
+        "fixed_plan_allocation",
+        "compliance"
+      ],
+      "task_id": "bounded_information_budget_v3"
+    },
+    "collateral_task_independent_of_construct": true,
+    "do_not_tune_from_wave1_outcomes": true,
+    "downstream_independence": "The downstream item changes the domain and asks for budget allocation rather than the probe's stated lottery comparison.",
+    "not_claimed_as": "risk_preference_or_generic_uncertainty_avoidance",
+    "option_order_policy": "Every choice/allocation downstream cell registers a balanced target_option or primary_position schedule; parser scoring uses that frozen field.",
+    "parent_spec_path": "configs/construct_benchmark/constructs/ambiguity_orientation_repaired_v3_collateral_v2.json",
+    "parent_spec_sha256": "d6e72ef9afe35b62ae08128b2e7c5a6a81f158b87afefb6178d2ade04807f9bb",
+    "primary_question": "Is an orientation toward acting under unresolved probabilities decodable, and does it transfer to an independent known-versus-underspecified lottery allocation?",
+    "probe_state_is": "ambiguity_orientation_state",
+    "release_note": "Supersedes the v1 lottery-allocation wording for future review and generation; v1 artifacts remain historical.",
+    "repair_scope": [
+      "Waves 2-4 collateral task only",
+      "construct-disjoint 32-fact objective bank",
+      "deterministic registered collateral gold answers",
+      "balanced correct-option positions"
+    ],
+    "repair_version": "repaired_v3_collateral_v3_disjoint"
+  },
+  "paired_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout"
+  ],
+  "parsing_rules": {
+    "extra_text_policy": "invalid",
+    "invalid_response_policy": "exclude_from_outcome_denominator_and_report_compliance",
+    "outcome_aliases": {
+      "fixed_plan_allocation": "fixed_plan_allocation",
+      "interval_plan_allocation": "interval_plan_allocation"
+    },
+    "parser_id": "two_integers_sum_100_v1",
+    "sum_constraint": 100,
+    "valid_ranges": {
+      "fixed_plan_allocation": [
+        0,
+        100
+      ],
+      "interval_plan_allocation": [
+        0,
+        100
+      ]
+    }
+  },
+  "probe_prompt_template": "Read the following short decision scenario. Track how the bounded information state is handled without answering a later task.\n\nScenario:\n{scenario}\n\nKeep the scenario in working memory without adding a response.",
+  "required_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout",
+    "behavior_eval",
+    "steering_eval",
+    "calibration",
+    "collateral_eval"
+  ],
+  "schema_version": "0.1.0",
+  "title": "Bounded uncertainty orientation with information budgeting",
+  "version": "repaired_v3_collateral_v3_disjoint"
+}

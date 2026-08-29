@@ -1,0 +1,578 @@
+{
+  "collateral_behavior_task": {
+    "fact_bank": [
+      {
+        "correct_option": 1,
+        "fact_domain": "geography",
+        "fact_id": "plan_01",
+        "statement_1": "The Andes run along the western edge of South America.",
+        "statement_2": "The Andes run along the eastern edge of Africa."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geography",
+        "fact_id": "plan_02",
+        "statement_1": "The Himalayas are in North America.",
+        "statement_2": "The Himalayas are in Asia."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "geography",
+        "fact_id": "plan_03",
+        "statement_1": "The Gobi Desert is in Asia.",
+        "statement_2": "The Gobi Desert is in Australia."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geography",
+        "fact_id": "plan_04",
+        "statement_1": "The Kalahari Desert is in Europe.",
+        "statement_2": "The Kalahari Desert is in southern Africa."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "geography",
+        "fact_id": "plan_05",
+        "statement_1": "The Atacama Desert is in South America.",
+        "statement_2": "The Atacama Desert is in Asia."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geography",
+        "fact_id": "plan_06",
+        "statement_1": "The Mojave Desert is in Africa.",
+        "statement_2": "The Mojave Desert is in North America."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "geography",
+        "fact_id": "plan_07",
+        "statement_1": "The Amazon River is in South America.",
+        "statement_2": "The Amazon River is in Europe."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geography",
+        "fact_id": "plan_08",
+        "statement_1": "The Mississippi River is in Africa.",
+        "statement_2": "The Mississippi River is in North America."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "geography",
+        "fact_id": "plan_09",
+        "statement_1": "The Yangtze River is in China.",
+        "statement_2": "The Yangtze River is in India."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geography",
+        "fact_id": "plan_10",
+        "statement_1": "The Mekong River flows through South America.",
+        "statement_2": "The Mekong River flows through Southeast Asia."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "geography",
+        "fact_id": "plan_11",
+        "statement_1": "Lake Victoria is in Africa.",
+        "statement_2": "Lake Victoria is in Europe."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geography",
+        "fact_id": "plan_12",
+        "statement_1": "Lake Superior is in Africa.",
+        "statement_2": "Lake Superior is in North America."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "geography",
+        "fact_id": "plan_13",
+        "statement_1": "The Caspian Sea is the world's largest inland body of water.",
+        "statement_2": "The Caspian Sea is the world's smallest inland body of water."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geography",
+        "fact_id": "plan_14",
+        "statement_1": "Greenland is the world's smallest island.",
+        "statement_2": "Greenland is the world's largest island."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "geography",
+        "fact_id": "plan_15",
+        "statement_1": "Madagascar is an island country in the Indian Ocean.",
+        "statement_2": "Madagascar is an island country in the Atlantic Ocean."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geography",
+        "fact_id": "plan_16",
+        "statement_1": "Borneo is an island in North America.",
+        "statement_2": "Borneo is an island in Southeast Asia."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "geography",
+        "fact_id": "plan_17",
+        "statement_1": "New Guinea lies north of Australia.",
+        "statement_2": "New Guinea lies north of Europe."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geography",
+        "fact_id": "plan_18",
+        "statement_1": "The Galapagos Islands belong to Norway.",
+        "statement_2": "The Galapagos Islands belong to Ecuador."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "geography",
+        "fact_id": "plan_19",
+        "statement_1": "Mount Kilimanjaro is in Tanzania.",
+        "statement_2": "Mount Kilimanjaro is in Peru."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geography",
+        "fact_id": "plan_20",
+        "statement_1": "Victoria Falls is on the Rhine River.",
+        "statement_2": "Victoria Falls is on the Zambezi River."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "geography",
+        "fact_id": "plan_21",
+        "statement_1": "A fjord is a glacially carved coastal inlet.",
+        "statement_2": "A fjord is a volcanic crater on a plateau."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geography",
+        "fact_id": "plan_22",
+        "statement_1": "A river delta forms where stars are born.",
+        "statement_2": "A river delta forms where a river deposits sediment."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "geography",
+        "fact_id": "plan_23",
+        "statement_1": "An archipelago is a group of islands.",
+        "statement_2": "An archipelago is a single mountain."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geography",
+        "fact_id": "plan_24",
+        "statement_1": "A peninsula is land completely surrounded by water.",
+        "statement_2": "A peninsula is land mostly surrounded by water."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "geography",
+        "fact_id": "plan_25",
+        "statement_1": "A strait is a narrow waterway connecting larger bodies of water.",
+        "statement_2": "A strait is a mountain range with no water."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geography",
+        "fact_id": "plan_26",
+        "statement_1": "An isthmus is a deep ocean trench.",
+        "statement_2": "An isthmus is a narrow land bridge between larger land areas."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "geography",
+        "fact_id": "plan_27",
+        "statement_1": "The Arctic Ocean surrounds the North Pole.",
+        "statement_2": "The Arctic Ocean surrounds the South Pole."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geography",
+        "fact_id": "plan_28",
+        "statement_1": "The Southern Ocean surrounds the Sahara Desert.",
+        "statement_2": "The Southern Ocean surrounds Antarctica."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "geography",
+        "fact_id": "plan_29",
+        "statement_1": "The Equator crosses Kenya.",
+        "statement_2": "The Equator crosses Egypt."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geography",
+        "fact_id": "plan_30",
+        "statement_1": "The International Date Line roughly follows the prime meridian.",
+        "statement_2": "The International Date Line roughly follows the 180th meridian."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "geography",
+        "fact_id": "plan_31",
+        "statement_1": "The Great Rift Valley extends through East Africa.",
+        "statement_2": "The Great Rift Valley extends through western Europe."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "geography",
+        "fact_id": "plan_32",
+        "statement_1": "Coral reefs are built by cooling granite alone.",
+        "statement_2": "Coral reefs are built by tiny coral animals."
+      }
+    ],
+    "fact_bank_version": "unique_32_wave3_plan_v3",
+    "item_metadata_schema": {
+      "properties": {
+        "correct_option": {
+          "enum": [
+            1,
+            2
+          ],
+          "type": "integer"
+        },
+        "fact_domain": {
+          "enum": [
+            "geography"
+          ],
+          "type": "string"
+        },
+        "fact_id": {
+          "enum": [
+            "plan_01",
+            "plan_02",
+            "plan_03",
+            "plan_04",
+            "plan_05",
+            "plan_06",
+            "plan_07",
+            "plan_08",
+            "plan_09",
+            "plan_10",
+            "plan_11",
+            "plan_12",
+            "plan_13",
+            "plan_14",
+            "plan_15",
+            "plan_16",
+            "plan_17",
+            "plan_18",
+            "plan_19",
+            "plan_20",
+            "plan_21",
+            "plan_22",
+            "plan_23",
+            "plan_24",
+            "plan_25",
+            "plan_26",
+            "plan_27",
+            "plan_28",
+            "plan_29",
+            "plan_30",
+            "plan_31",
+            "plan_32"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "fact_id",
+        "fact_domain",
+        "correct_option"
+      ]
+    },
+    "primary_outcome": "correct_option",
+    "prompt_template": "In a separate factual item, use the two registered statements for the assigned fact_id. Exactly one statement is correct; do not identify it in the prompt. Return exactly one integer: 1 or 2 for the correct statement.",
+    "response_format": "single_integer_1_or_2",
+    "secondary_outcomes": [
+      "incorrect_option",
+      "compliance"
+    ],
+    "task_family": "unrelated_factual_choice",
+    "task_id": "collateral_fact_choice_v3"
+  },
+  "construct_id": "plan_replanning",
+  "contrast_conditions": [
+    {
+      "condition_id": "adapt_plan",
+      "definition": "The decision maker preserves a focal goal that remains feasible and valuable in the scenario while revising the route, schedule, or means when changed constraints make the original means less suitable or efficient; both the original and alternative means remain feasible and usable.",
+      "label": "Adapt the means"
+    },
+    {
+      "condition_id": "preserve_plan",
+      "definition": "The decision maker keeps the original route, schedule, or means despite changed constraints, even though those original means remain feasible and usable but are less suitable or efficient than an available alternative, while the same focal goal remains feasible and valuable.",
+      "label": "Preserve the current plan"
+    }
+  ],
+  "controls": [
+    "constraint_change_crossing",
+    "alternative_quality_crossing",
+    "goal_value_crossing",
+    "goal_retention_control",
+    "original_means_feasibility_control",
+    "relative_means_suitability_control",
+    "new_domain_behavior_task",
+    "lexical_overlap_audit",
+    "neutral_behavior_prompt",
+    "shuffled_pair_labels",
+    "random_direction",
+    "unrelated_collateral_behavior"
+  ],
+  "description": "Whether a changed constraint is represented as a reason to adapt means while preserving the goal or as a reason to preserve the original means, tested downstream by a new resource-reallocation task.",
+  "expected_direction": {
+    "behavior": {
+      "direction_status": "preregister_before_data_collection",
+      "estimand": "plan_state_transfer_to_constrained_resource_reallocation",
+      "expected_by_constraint_change": {
+        "major": "adapt_plan increases revised-plan allocation more strongly, especially when the alternative is strong and the focal goal remains valuable",
+        "minor": "adapt_plan may produce a modest increase in revised-plan allocation when the alternative is viable"
+      },
+      "outcome": "revised_work_allocation",
+      "warning": "The downstream task is a standalone resource-allocation episode with both work packages feasible; it is not a persistence-after-failure measure."
+    },
+    "readout": {
+      "estimand": "heldout_projection_margin",
+      "negative_condition": "preserve_plan",
+      "positive_condition": "adapt_plan"
+    }
+  },
+  "family": "agentic",
+  "independent_behavior_task": {
+    "independence_requirements": [
+      "Use new projects, goals, actors, domains, and constraint types not present in probe prompts.",
+      "Cross constraint change, alternative quality, and goal value independently.",
+      "Keep both the original and revised means feasible and usable after the constraint change; make the original means less suitable or efficient rather than removing their feasibility.",
+      "Keep the focal goal intact and do not ask the model to classify plan adaptation, persistence, or abandonment."
+    ],
+    "item_metadata_schema": {
+      "properties": {
+        "alternative_quality": {
+          "enum": [
+            "weak",
+            "strong"
+          ],
+          "type": "string"
+        },
+        "constraint_change": {
+          "enum": [
+            "minor",
+            "major",
+            "neutral"
+          ],
+          "type": "string"
+        },
+        "goal_value": {
+          "enum": [
+            "high",
+            "low"
+          ],
+          "type": "string"
+        },
+        "primary_position": {
+          "enum": [
+            1,
+            2
+          ],
+          "type": "integer"
+        }
+      },
+      "required": [
+        "constraint_change",
+        "alternative_quality",
+        "goal_value",
+        "primary_position"
+      ]
+    },
+    "primary_outcome": "revised_work_allocation",
+    "prompt_template": "In a new resource-allocation task, an original work package and a revised work package are both feasible after a changed constraint. The item states which numbered option is revised and which is original. Allocate exactly 100 effort points between the two options in numbered-option order. Return exactly two integers on separate lines; the two integers must sum to 100.",
+    "response_format": "two_integers_sum_100",
+    "secondary_outcomes": [
+      "original_work_allocation",
+      "compliance"
+    ],
+    "task_family": "resource_reallocation_under_constraint",
+    "task_id": "constraint_resource_allocation_v3"
+  },
+  "metadata": {
+    "behavioral_design": {
+      "behavior_factor_fields": [
+        "constraint_change",
+        "alternative_quality",
+        "goal_value",
+        "primary_position"
+      ],
+      "behavior_factor_levels": {
+        "constraint_change": [
+          "minor",
+          "major"
+        ]
+      },
+      "behavior_fixed_fields": {},
+      "calibration_factor_fields": [
+        "alternative_quality",
+        "goal_value",
+        "primary_position"
+      ],
+      "calibration_fixed_fields": {
+        "constraint_change": "neutral"
+      },
+      "calibration_forbidden_terms": [
+        "revised package",
+        "original package",
+        "changed constraint",
+        "replanning",
+        "adapt the plan",
+        "preserve the plan",
+        "blocked",
+        "infeasible"
+      ],
+      "calibration_neutral_fields": {
+        "constraint_change": "neutral"
+      },
+      "calibration_required_patterns": [
+        "\\btwo\\s+feasible\\s+work\\s+packages?\\b|\\btwo\\s+matched\\s+packages?\\b",
+        "\\bno\\s+constraint\\s+has\\s+changed\\b|\\bthe\\s+constraint\\s+is\\s+unchanged\\b"
+      ],
+      "collateral_cross_construct_disjoint": true,
+      "collateral_fact_bank_ids": [
+        "plan_01",
+        "plan_02",
+        "plan_03",
+        "plan_04",
+        "plan_05",
+        "plan_06",
+        "plan_07",
+        "plan_08",
+        "plan_09",
+        "plan_10",
+        "plan_11",
+        "plan_12",
+        "plan_13",
+        "plan_14",
+        "plan_15",
+        "plan_16",
+        "plan_17",
+        "plan_18",
+        "plan_19",
+        "plan_20",
+        "plan_21",
+        "plan_22",
+        "plan_23",
+        "plan_24",
+        "plan_25",
+        "plan_26",
+        "plan_27",
+        "plan_28",
+        "plan_29",
+        "plan_30",
+        "plan_31",
+        "plan_32"
+      ],
+      "collateral_fact_bank_version": "unique_32_wave3_plan_v3",
+      "collateral_parser_id": "single_integer_choice_1_or_2_v1",
+      "collateral_repair_version": "repaired_v3_collateral_v3_disjoint",
+      "collateral_required_metadata": [
+        "fact_id",
+        "fact_domain",
+        "correct_option"
+      ],
+      "collateral_response_format": "single_integer_1_or_2",
+      "collateral_task_id": "collateral_fact_choice_v3",
+      "collateral_unique_fact_ids_required": true,
+      "design_kind": "replanning_balanced_allocation",
+      "forbidden_downstream_terms": [
+        "plan_replanning",
+        "adapt_plan",
+        "preserve_plan"
+      ],
+      "full_factorial_required": true,
+      "pair_contract": null,
+      "parser_id": "two_integers_sum_100_v1",
+      "position_field": "primary_position",
+      "primary_outcome": "revised_work_allocation",
+      "repair_family": "waves2_4_repaired_v3",
+      "required_schedule_fields": [
+        "constraint_change",
+        "alternative_quality",
+        "goal_value",
+        "primary_position"
+      ],
+      "required_task_metadata": [
+        "constraint_change",
+        "alternative_quality",
+        "goal_value",
+        "primary_position"
+      ],
+      "response_format": "two_integers_sum_100",
+      "secondary_outcomes": [
+        "original_work_allocation",
+        "compliance"
+      ],
+      "task_id": "constraint_resource_allocation_v3"
+    },
+    "collateral_task_independent_of_construct": true,
+    "do_not_tune_from_wave1_outcomes": true,
+    "downstream_independence": "The downstream item changes the domain and asks for resource allocation rather than continuing a probe episode.",
+    "not_claimed_as": "goal_abandonment_or_generic_agentic_drive",
+    "option_order_policy": "Every choice/allocation downstream cell registers a balanced target_option or primary_position schedule; parser scoring uses that frozen field.",
+    "parent_spec_path": "configs/construct_benchmark/constructs/plan_replanning_repaired_v3_collateral_v2.json",
+    "parent_spec_sha256": "2b97ad6d851cee356a4716ccc0920e9862b47eaace56fceb9d90bcf6efc5846c",
+    "primary_question": "Is a means-adaptation direction decodable, and does it transfer to revising a plan after an independent constraint change?",
+    "probe_state_is": "plan_adaptation_state",
+    "release_note": "Supersedes the v1 mixed composition for future review and generation; v1 artifacts remain historical.",
+    "repair_scope": [
+      "Waves 2-4 collateral task only",
+      "construct-disjoint 32-fact objective bank",
+      "deterministic registered collateral gold answers",
+      "balanced correct-option positions"
+    ],
+    "repair_version": "repaired_v3_collateral_v3_disjoint"
+  },
+  "paired_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout"
+  ],
+  "parsing_rules": {
+    "extra_text_policy": "invalid",
+    "field_order": [
+      "revised_plan_allocation",
+      "original_plan_allocation"
+    ],
+    "invalid_response_policy": "exclude_from_outcome_denominator_and_report_compliance",
+    "outcome_aliases": {
+      "original_work_allocation": "original_work_allocation",
+      "revised_work_allocation": "revised_work_allocation"
+    },
+    "parser_id": "two_integers_sum_100_v1",
+    "sum_constraint": 100,
+    "valid_ranges": {
+      "original_work_allocation": [
+        0,
+        100
+      ],
+      "revised_work_allocation": [
+        0,
+        100
+      ]
+    }
+  },
+  "probe_prompt_template": "Read the following short planning scenario. Track how the changed constraint is handled without answering a later task.\n\nScenario:\n{scenario}\n\nKeep the scenario in working memory without adding a response.",
+  "required_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout",
+    "behavior_eval",
+    "steering_eval",
+    "calibration",
+    "collateral_eval"
+  ],
+  "schema_version": "0.1.0",
+  "title": "Plan adaptation with constrained resource reallocation",
+  "version": "repaired_v3_collateral_v3_disjoint"
+}

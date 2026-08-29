@@ -1,0 +1,564 @@
+{
+  "collateral_behavior_task": {
+    "fact_bank": [
+      {
+        "correct_option": 1,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_01",
+        "statement_1": "The chemical symbol for hydrogen is H.",
+        "statement_2": "The chemical symbol for hydrogen is He."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_02",
+        "statement_1": "The chemical symbol for carbon is Ca.",
+        "statement_2": "The chemical symbol for carbon is C."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_03",
+        "statement_1": "The chemical symbol for nitrogen is N.",
+        "statement_2": "The chemical symbol for nitrogen is Ne."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_04",
+        "statement_1": "The chemical symbol for sodium is K.",
+        "statement_2": "The chemical symbol for sodium is Na."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_05",
+        "statement_1": "The chemical symbol for iron is Fe.",
+        "statement_2": "The chemical symbol for iron is F."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_06",
+        "statement_1": "The chemical symbol for copper is Co.",
+        "statement_2": "The chemical symbol for copper is Cu."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_07",
+        "statement_1": "The chemical symbol for silver is Ag.",
+        "statement_2": "The chemical symbol for silver is Al."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_08",
+        "statement_1": "The chemical symbol for tin is Si.",
+        "statement_2": "The chemical symbol for tin is Sn."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_09",
+        "statement_1": "The chemical symbol for lead is Pb.",
+        "statement_2": "The chemical symbol for lead is Pt."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_10",
+        "statement_1": "The chemical symbol for potassium is Ca.",
+        "statement_2": "The chemical symbol for potassium is K."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_11",
+        "statement_1": "The chemical symbol for calcium is Ca.",
+        "statement_2": "The chemical symbol for calcium is C."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_12",
+        "statement_1": "The chemical symbol for chlorine is C.",
+        "statement_2": "The chemical symbol for chlorine is Cl."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_13",
+        "statement_1": "The chemical symbol for fluorine is F.",
+        "statement_2": "The chemical symbol for fluorine is Fe."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_14",
+        "statement_1": "The chemical symbol for helium is H.",
+        "statement_2": "The chemical symbol for helium is He."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_15",
+        "statement_1": "The chemical symbol for neon is Ne.",
+        "statement_2": "The chemical symbol for neon is N."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_16",
+        "statement_1": "The chemical symbol for argon is Al.",
+        "statement_2": "The chemical symbol for argon is Ar."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_17",
+        "statement_1": "Lithium has atomic number 3.",
+        "statement_2": "Lithium has atomic number 4."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_18",
+        "statement_1": "Beryllium has atomic number 5.",
+        "statement_2": "Beryllium has atomic number 4."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_19",
+        "statement_1": "Boron has atomic number 5.",
+        "statement_2": "Boron has atomic number 6."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_20",
+        "statement_1": "Carbon has atomic number 7.",
+        "statement_2": "Carbon has atomic number 6."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_21",
+        "statement_1": "Nitrogen has atomic number 7.",
+        "statement_2": "Nitrogen has atomic number 9."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_22",
+        "statement_1": "Fluorine has atomic number 10.",
+        "statement_2": "Fluorine has atomic number 9."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_23",
+        "statement_1": "Neon has atomic number 10.",
+        "statement_2": "Neon has atomic number 11."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_24",
+        "statement_1": "Sodium has atomic number 12.",
+        "statement_2": "Sodium has atomic number 11."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_25",
+        "statement_1": "Magnesium has atomic number 12.",
+        "statement_2": "Magnesium has atomic number 13."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_26",
+        "statement_1": "Aluminum has atomic number 14.",
+        "statement_2": "Aluminum has atomic number 13."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_27",
+        "statement_1": "Silicon has atomic number 14.",
+        "statement_2": "Silicon has atomic number 15."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_28",
+        "statement_1": "Phosphorus has atomic number 16.",
+        "statement_2": "Phosphorus has atomic number 15."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_29",
+        "statement_1": "Sulfur has atomic number 16.",
+        "statement_2": "Sulfur has atomic number 17."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_30",
+        "statement_1": "Chlorine has atomic number 18.",
+        "statement_2": "Chlorine has atomic number 17."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_31",
+        "statement_1": "Argon has atomic number 18.",
+        "statement_2": "Argon has atomic number 20."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "chemistry",
+        "fact_id": "prior_32",
+        "statement_1": "Calcium has atomic number 21.",
+        "statement_2": "Calcium has atomic number 20."
+      }
+    ],
+    "fact_bank_version": "unique_32_wave2_prior_v3",
+    "item_metadata_schema": {
+      "properties": {
+        "correct_option": {
+          "enum": [
+            1,
+            2
+          ],
+          "type": "integer"
+        },
+        "fact_domain": {
+          "enum": [
+            "chemistry"
+          ],
+          "type": "string"
+        },
+        "fact_id": {
+          "enum": [
+            "prior_01",
+            "prior_02",
+            "prior_03",
+            "prior_04",
+            "prior_05",
+            "prior_06",
+            "prior_07",
+            "prior_08",
+            "prior_09",
+            "prior_10",
+            "prior_11",
+            "prior_12",
+            "prior_13",
+            "prior_14",
+            "prior_15",
+            "prior_16",
+            "prior_17",
+            "prior_18",
+            "prior_19",
+            "prior_20",
+            "prior_21",
+            "prior_22",
+            "prior_23",
+            "prior_24",
+            "prior_25",
+            "prior_26",
+            "prior_27",
+            "prior_28",
+            "prior_29",
+            "prior_30",
+            "prior_31",
+            "prior_32"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "fact_id",
+        "fact_domain",
+        "correct_option"
+      ]
+    },
+    "primary_outcome": "correct_option",
+    "prompt_template": "In a separate factual item, use the two registered statements for the assigned fact_id. Exactly one statement is correct; do not identify it in the prompt. Return exactly one integer: 1 or 2 for the correct statement.",
+    "response_format": "single_integer_1_or_2",
+    "secondary_outcomes": [
+      "incorrect_option",
+      "compliance"
+    ],
+    "task_family": "unrelated_factual_choice",
+    "task_id": "collateral_fact_choice_v3"
+  },
+  "construct_id": "prior_weighting",
+  "contrast_conditions": [
+    {
+      "condition_id": "prior_sensitive",
+      "definition": "The reasoning state preserves and gives substantial weight to the base rate or prior probability when interpreting a new case.",
+      "label": "Prior/base-rate sensitive"
+    },
+    {
+      "condition_id": "case_evidence_sensitive",
+      "definition": "The reasoning state gives substantial weight to case-specific evidence when interpreting a new case, relative to the registered base rate.",
+      "label": "Case-evidence sensitive"
+    }
+  ],
+  "controls": [
+    "prior_probability_crossing",
+    "supporting_and_contradicting_evidence",
+    "diagnosticity_constant_at_moderate_force",
+    "new_domain_behavior_task",
+    "lexical_overlap_audit",
+    "neutral_behavior_prompt",
+    "shuffled_pair_labels",
+    "random_direction",
+    "unrelated_collateral_behavior"
+  ],
+  "description": "Whether reasoning is represented as anchored more strongly to a registered base rate or as responsive more strongly to case-specific evidence, tested downstream by a forecast of whether a follow-up check would change a decision.",
+  "expected_direction": {
+    "behavior": {
+      "direction_status": "preregister_before_data_collection",
+      "estimand": "prior_evidence_state_transfer_to_information_change_forecast",
+      "expected_by_evidence_strength": {
+        "moderate": "prior_sensitive produces a smaller posterior distance from the stated prior than case_evidence_sensitive"
+      },
+      "outcome": "information_change_probability",
+      "warning": "This downstream forecast is a distinct information-value task, not a posterior-probability readout or a diagnosticity measure."
+    },
+    "readout": {
+      "estimand": "heldout_projection_margin",
+      "negative_condition": "case_evidence_sensitive",
+      "positive_condition": "prior_sensitive"
+    }
+  },
+  "family": "epistemic",
+  "independent_behavior_task": {
+    "independence_requirements": [
+      "Use new hypotheses, domains, entities, and evidence items not present in probe prompts.",
+      "Cross low, middle, and high priors with supporting and contradicting evidence.",
+      "Hold case-evidence force at the registered moderate level; do not vary diagnosticity, reliability, specificity, or noise.",
+      "Do not ask the model to label the reasoning style or to repeat the probe scenario."
+    ],
+    "item_metadata_schema": {
+      "properties": {
+        "evidence_strength": {
+          "enum": [
+            "moderate"
+          ],
+          "type": "string"
+        },
+        "evidence_valence": {
+          "enum": [
+            "supporting",
+            "contradicting",
+            "neutral"
+          ],
+          "type": "string"
+        },
+        "prior_probability": {
+          "enum": [
+            20,
+            40,
+            60,
+            80
+          ],
+          "type": "integer"
+        }
+      },
+      "required": [
+        "prior_probability",
+        "evidence_valence",
+        "evidence_strength"
+      ]
+    },
+    "primary_outcome": "information_change_probability",
+    "prompt_template": "In a new information-allocation task, a preliminary signal and a stated base rate are provided. Report from 0 to 100 how likely one specified follow-up check is to change the current decision. Use only this item's numbers and evidence.",
+    "response_format": "single_integer_0_to_100",
+    "secondary_outcomes": [
+      "compliance"
+    ],
+    "task_family": "information_change_forecast",
+    "task_id": "information_change_forecast_v3"
+  },
+  "metadata": {
+    "behavioral_design": {
+      "behavior_factor_fields": [
+        "prior_probability",
+        "evidence_valence",
+        "evidence_strength"
+      ],
+      "behavior_factor_levels": {
+        "evidence_valence": [
+          "supporting",
+          "contradicting"
+        ]
+      },
+      "behavior_fixed_fields": {},
+      "calibration_factor_fields": [
+        "prior_probability"
+      ],
+      "calibration_fixed_fields": {
+        "evidence_strength": "moderate",
+        "evidence_valence": "neutral"
+      },
+      "calibration_forbidden_terms": [
+        "supporting",
+        "contradicting",
+        "supports",
+        "contradicts",
+        "diagnostic",
+        "prior weighting",
+        "case-specific evidence",
+        "base-rate sensitive"
+      ],
+      "calibration_neutral_fields": {
+        "evidence_strength": "moderate",
+        "evidence_valence": "neutral"
+      },
+      "calibration_required_patterns": [
+        "\\bneutral\\s+(?:signal|evidence|observation)\\b",
+        "\\bno\\s+(?:directional|case[- ]specific)\\s+content\\b"
+      ],
+      "collateral_cross_construct_disjoint": true,
+      "collateral_fact_bank_ids": [
+        "prior_01",
+        "prior_02",
+        "prior_03",
+        "prior_04",
+        "prior_05",
+        "prior_06",
+        "prior_07",
+        "prior_08",
+        "prior_09",
+        "prior_10",
+        "prior_11",
+        "prior_12",
+        "prior_13",
+        "prior_14",
+        "prior_15",
+        "prior_16",
+        "prior_17",
+        "prior_18",
+        "prior_19",
+        "prior_20",
+        "prior_21",
+        "prior_22",
+        "prior_23",
+        "prior_24",
+        "prior_25",
+        "prior_26",
+        "prior_27",
+        "prior_28",
+        "prior_29",
+        "prior_30",
+        "prior_31",
+        "prior_32"
+      ],
+      "collateral_fact_bank_version": "unique_32_wave2_prior_v3",
+      "collateral_parser_id": "single_integer_choice_1_or_2_v1",
+      "collateral_repair_version": "repaired_v3_collateral_v3_disjoint",
+      "collateral_required_metadata": [
+        "fact_id",
+        "fact_domain",
+        "correct_option"
+      ],
+      "collateral_response_format": "single_integer_1_or_2",
+      "collateral_task_id": "collateral_fact_choice_v3",
+      "collateral_unique_fact_ids_required": true,
+      "design_kind": "prior_weighting_balanced_probability",
+      "forbidden_downstream_terms": [
+        "prior_weighting",
+        "prior_sensitive",
+        "case_evidence_sensitive"
+      ],
+      "full_factorial_required": true,
+      "pair_contract": null,
+      "parser_id": "single_integer_probability_v1",
+      "position_field": null,
+      "primary_outcome": "information_change_probability",
+      "repair_family": "waves2_4_repaired_v3",
+      "required_schedule_fields": [
+        "prior_probability",
+        "evidence_valence",
+        "evidence_strength"
+      ],
+      "required_task_metadata": [
+        "prior_probability",
+        "evidence_valence",
+        "evidence_strength"
+      ],
+      "response_format": "single_integer_0_to_100",
+      "secondary_outcomes": [
+        "compliance"
+      ],
+      "task_id": "information_change_forecast_v3"
+    },
+    "collateral_task_independent_of_construct": true,
+    "diagnosticity_control": "fixed_moderate_case_evidence_force",
+    "do_not_tune_from_wave1_outcomes": true,
+    "downstream_independence": "The downstream item forecasts the value of one follow-up check rather than asking for the posterior of the probe hypothesis.",
+    "not_claimed_as": "evidence_diagnosticity_or_generic_belief_confidence",
+    "nuisance_factors": [
+      "prior_probability",
+      "evidence_valence",
+      "fixed_moderate_evidence_strength",
+      "hypothesis_domain"
+    ],
+    "option_order_policy": "Every choice/allocation downstream cell registers a balanced target_option or primary_position schedule; parser scoring uses that frozen field.",
+    "parent_spec_path": "configs/construct_benchmark/constructs/prior_weighting_repaired_v3_collateral_v2.json",
+    "parent_spec_sha256": "56d6a15ac27858dff73d6e7a56c6fd6a3cf7a07289455bf98296774ae3bbe75c",
+    "primary_question": "Does a prior-versus-case weighting direction transfer to posterior judgments in new domains?",
+    "probe_state_is": "relative_prior_evidence_weighting",
+    "release_note": "Supersedes the v1 posterior-judgment transfer task for future review and generation; v1 artifacts remain historical.",
+    "repair_scope": [
+      "Waves 2-4 collateral task only",
+      "construct-disjoint 32-fact objective bank",
+      "deterministic registered collateral gold answers",
+      "balanced correct-option positions"
+    ],
+    "repair_version": "repaired_v3_collateral_v3_disjoint"
+  },
+  "paired_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout"
+  ],
+  "parsing_rules": {
+    "extra_text_policy": "invalid",
+    "invalid_response_policy": "exclude_from_outcome_denominator_and_report_compliance",
+    "outcome_aliases": {
+      "compliance": "compliance",
+      "information_change_probability": "information_change_probability"
+    },
+    "parser_id": "single_integer_probability_v1",
+    "valid_ranges": {
+      "compliance": [
+        0,
+        100
+      ],
+      "information_change_probability": [
+        0,
+        100
+      ]
+    }
+  },
+  "probe_prompt_template": "Read the following short reasoning scenario. Track how the base rate and case-specific evidence are weighted without answering a later task.\n\nScenario:\n{scenario}\n\nKeep the scenario in working memory without adding a response.",
+  "required_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout",
+    "behavior_eval",
+    "steering_eval",
+    "calibration",
+    "collateral_eval"
+  ],
+  "schema_version": "0.1.0",
+  "title": "Prior versus case-evidence weighting with information-change forecast",
+  "version": "repaired_v3_collateral_v3_disjoint"
+}

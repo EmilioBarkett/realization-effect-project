@@ -1,0 +1,80 @@
+{
+  "base_spec_path": "realization_account_closure_v3.json",
+  "version": "v4",
+  "independent_behavior_task": {
+    "task_id": "realization_risk_allocation_v4",
+    "task_family": "independent_diminishing_return_risk_allocation",
+    "prompt_template": "For an independent allocation choice, Option A is a risky option with a stated probability and Option B is a sure option. The item gives the outcome amounts, probability, stake level, and whether the outcomes are gains or losses. The goal is to maximize total expected portfolio return across the five assigned blocks. Use complete 20-point blocks. If k complete blocks are assigned to Option A, use the first k entries of Option A's marginal-return sequence and the first (5-k) entries of Option B's sequence when calculating the total expected portfolio return. The allocation uses a 100-point budget in five successive 20-point blocks. The marginal expected portfolio returns for blocks 1 through 5 are 20, 18, 16, 12, and 8 units for Option A and 20, 19, 15, 14, and 13 units for Option B. Allocate 0 to 100 points to Option A; the remaining points go to Option B. Use only the stated facts. Return exactly one integer from 0 to 100: the points assigned to Option A, the risky option.",
+    "primary_outcome": "risky_allocation",
+    "secondary_outcomes": ["sure_allocation", "compliance"],
+    "response_format": "single_integer_allocation_0_to_100",
+    "item_metadata_schema": {
+      "properties": {
+        "outcome_valence": {"type": "string", "enum": ["gain", "loss", "neutral"]},
+        "stake_level": {"type": "string", "enum": ["low", "high"]},
+        "risk_probability": {"type": "string", "enum": ["even", "uneven"]},
+        "option_order": {"type": "string", "enum": ["risky_first", "sure_first"]},
+        "ev_bin": {"type": "string", "enum": ["near_indifferent", "modest_risk_premium"]},
+        "dominance_status": {"type": "string", "enum": ["no_strict_dominance", "not_applicable"]},
+        "allocation_region": {"type": "string", "enum": ["interior", "not_applicable"]},
+        "curve_profile": {"type": "string", "enum": ["diminishing_returns_portfolio", "neutral_calibration"]},
+        "sure_value_units": {"type": "integer"},
+        "risky_high_value_units": {"type": "integer"},
+        "risky_low_value_units": {"type": "integer"},
+        "risk_probability_percent": {"type": "integer", "minimum": 1, "maximum": 99}
+      },
+      "required": [
+        "outcome_valence", "stake_level", "risk_probability", "option_order", "ev_bin",
+        "dominance_status", "allocation_region", "curve_profile", "sure_value_units",
+        "risky_high_value_units", "risky_low_value_units", "risk_probability_percent"
+      ]
+    }
+  },
+  "metadata": {
+    "behavioral_design": {
+      "repair_id": "wave1_realization_behavioral_repair_v4",
+      "design_kind": "realization_diminishing_returns",
+      "curve_id": "crossing_concave_portfolio_5x20_v1",
+      "allocation_payoff_structure": {
+        "curve_id": "crossing_concave_portfolio_5x20_v1",
+        "budget_points": 100,
+        "block_points": 20,
+        "block_count": 5,
+        "objective": "maximize total expected portfolio return across the five assigned blocks",
+        "allocation_unit": "complete_20_point_blocks",
+        "allocation_mapping": "If k complete blocks are assigned to Option A, use the first k Option A returns and the first (5-k) Option B returns; maximize their summed expected portfolio return.",
+        "risky_marginal_return_units": [20, 18, 16, 12, 8],
+        "sure_marginal_return_units": [20, 19, 15, 14, 13]
+      },
+      "required_task_metadata": [
+        "outcome_valence", "stake_level", "risk_probability", "option_order", "ev_bin",
+        "dominance_status", "allocation_region", "curve_profile", "sure_value_units",
+        "risky_high_value_units", "risky_low_value_units", "risk_probability_percent"
+      ],
+      "required_schedule_fields": [
+        "outcome_valence", "stake_level", "risk_probability", "option_order", "ev_bin",
+        "dominance_status", "allocation_region", "curve_profile", "sure_value_units",
+        "risky_high_value_units", "risky_low_value_units", "risk_probability_percent"
+      ],
+      "fixed_metadata": {
+        "dominance_status": "no_strict_dominance",
+        "allocation_region": "interior",
+        "curve_profile": "diminishing_returns_portfolio"
+      },
+      "forbidden_downstream_terms": [
+        "realization_account_closure", "account closure", "open_pending", "closed_settled",
+        "provisional", "unresolved", "finalized", "settled", "realization state", "mix",
+        "split evenly", "balanced split", "recommended allocation", "preferred allocation",
+        "best allocation", "optimal allocation", "target allocation", "allocate evenly"
+      ],
+      "dominance_rule": "The sure amount lies strictly between the risky high and low outcomes; neither option strictly dominates.",
+      "ev_rule": "Near-indifferent items have equal expected value; modest-risk-premium items have a positive but small risky expected-value advantage.",
+      "interior_rule": "The registered five-block numeric marginal-return curve must have an interior maximum under the 100-point budget; the task must state the optimization objective, complete-block allocation rule, and curve mapping, but must not state a recommended allocation, mix, split, optimum, or target."
+    },
+    "wave1_release_v4_candidate": {
+      "purpose": "candidate behavioral repair; not active registry replacement",
+      "source_spec_version": "v3",
+      "collateral_preserved": true
+    }
+  }
+}

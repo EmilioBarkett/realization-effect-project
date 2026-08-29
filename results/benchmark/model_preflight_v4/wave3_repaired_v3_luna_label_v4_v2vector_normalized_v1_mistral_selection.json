@@ -1,0 +1,471 @@
+{
+  "confirmatory": false,
+  "construct_ids": [
+    "ambiguity_orientation",
+    "causal_interpretation",
+    "consensus_conformity",
+    "plan_replanning"
+  ],
+  "gate_config_sha256": "489feee26e261afaba0b79e1af909f0f22db7c240bf3906b33115a880f43ad82",
+  "gate_id": "model_behavior_accessibility_wave3_repaired_v3",
+  "item_bounds": {
+    "maximum": 16,
+    "minimum": 8,
+    "target": 16
+  },
+  "manifest_type": "model_behavior_accessibility_preflight_selection",
+  "model": {
+    "model_id": "mistralai/Mistral-Small-24B-Instruct-2501",
+    "revision": "9527884be6e5616bdd54de542f9ae13384489724",
+    "tokenizer_id": "mistralai/Mistral-Small-24B-Instruct-2501"
+  },
+  "output": "results/benchmark/model_preflight_v4/wave3_repaired_v3_luna_label_v4_v2vector_normalized_v1_mistral_selection.json",
+  "preflight_id": "model_behavior_accessibility_v2",
+  "purpose": "release_gate_before_any_further_large_model_execution",
+  "schema_version": "0.1.0",
+  "seed": 1729,
+  "selected": {
+    "ambiguity_orientation": {
+      "behavior_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "position_balance": {
+          "counts": {
+            "1": 8,
+            "2": 8
+          },
+          "field": "primary_position",
+          "levels": [
+            1,
+            2
+          ],
+          "selected_count": 16
+        },
+        "prompt_ids": [
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__behavior_eval__part_001__p01",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__behavior_eval__part_001__p06",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__behavior_eval__part_001__p12",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__behavior_eval__part_001__p13",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__behavior_eval__part_001__p14",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__behavior_eval__part_001__p15",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__behavior_eval__part_001__p18",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__behavior_eval__part_001__p19",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__behavior_eval__part_001__p20",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__behavior_eval__part_002__p01",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__behavior_eval__part_002__p02",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__behavior_eval__part_002__p03",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__behavior_eval__part_002__p07",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__behavior_eval__part_002__p09",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__behavior_eval__part_002__p10",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__behavior_eval__part_002__p12"
+        ],
+        "source_item_count": 32,
+        "target_items": 16
+      },
+      "collateral_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "position_balance": {
+          "counts": {
+            "1": 8,
+            "2": 8
+          },
+          "field": "correct_option",
+          "levels": [
+            1,
+            2
+          ],
+          "selected_count": 16
+        },
+        "prompt_ids": [
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__ambiguity_orientation__luna__collateral_eval__part_001__1",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__ambiguity_orientation__luna__collateral_eval__part_001__12",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__ambiguity_orientation__luna__collateral_eval__part_001__13",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__ambiguity_orientation__luna__collateral_eval__part_001__14",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__ambiguity_orientation__luna__collateral_eval__part_001__18",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__ambiguity_orientation__luna__collateral_eval__part_001__19",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__ambiguity_orientation__luna__collateral_eval__part_001__20",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__ambiguity_orientation__luna__collateral_eval__part_001__3",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__ambiguity_orientation__luna__collateral_eval__part_001__4",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__ambiguity_orientation__luna__collateral_eval__part_001__6",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__ambiguity_orientation__luna__collateral_eval__part_001__7",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__ambiguity_orientation__luna__collateral_eval__part_001__8",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__ambiguity_orientation__luna__collateral_eval__part_002__atlas_pebble_03",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__ambiguity_orientation__luna__collateral_eval__part_002__atlas_pebble_07",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__ambiguity_orientation__luna__collateral_eval__part_002__atlas_pebble_11",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__ambiguity_orientation__luna__collateral_eval__part_002__atlas_pebble_12"
+        ],
+        "source_item_count": 32,
+        "target_items": 16
+      },
+      "steering_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "position_balance": {
+          "counts": {
+            "1": 8,
+            "2": 8
+          },
+          "field": "primary_position",
+          "levels": [
+            1,
+            2
+          ],
+          "selected_count": 16
+        },
+        "prompt_ids": [
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__steering_eval__part_001__item_01",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__steering_eval__part_001__item_08",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__steering_eval__part_001__item_11",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__steering_eval__part_001__item_12",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__steering_eval__part_001__item_13",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__steering_eval__part_001__item_15",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__steering_eval__part_001__item_16",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__steering_eval__part_001__item_17",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__steering_eval__part_001__item_20",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__steering_eval__part_002__v01",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__steering_eval__part_002__v02",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__steering_eval__part_002__v03",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__steering_eval__part_002__v04",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__steering_eval__part_002__v10",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__steering_eval__part_002__v11",
+          "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__ambiguity_orientation__luna__steering_eval__part_002__v12"
+        ],
+        "source_item_count": 32,
+        "target_items": 16
+      }
+    },
+    "causal_interpretation": {
+      "behavior_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "prompt_ids": [
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__behavior_eval__part_001__1",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__behavior_eval__part_001__12",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__behavior_eval__part_001__13",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__behavior_eval__part_001__17",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__behavior_eval__part_001__18",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__behavior_eval__part_001__20",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__behavior_eval__part_001__4",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__behavior_eval__part_001__6",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__behavior_eval__part_001__8",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__behavior_eval__part_001__9",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__behavior_eval__part_002__1",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__behavior_eval__part_002__11",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__behavior_eval__part_002__3",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__behavior_eval__part_002__5",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__behavior_eval__part_002__6",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__behavior_eval__part_002__8"
+        ],
+        "source_item_count": 32,
+        "target_items": 16
+      },
+      "collateral_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "position_balance": {
+          "counts": {
+            "1": 8,
+            "2": 8
+          },
+          "field": "correct_option",
+          "levels": [
+            1,
+            2
+          ],
+          "selected_count": 16
+        },
+        "prompt_ids": [
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__causal_interpretation__luna__collateral_eval__part_001__collateral_01",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__causal_interpretation__luna__collateral_eval__part_001__collateral_04",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__causal_interpretation__luna__collateral_eval__part_001__collateral_05",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__causal_interpretation__luna__collateral_eval__part_001__collateral_06",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__causal_interpretation__luna__collateral_eval__part_001__collateral_09",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__causal_interpretation__luna__collateral_eval__part_001__collateral_12",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__causal_interpretation__luna__collateral_eval__part_001__collateral_15",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__causal_interpretation__luna__collateral_eval__part_001__collateral_18",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__causal_interpretation__luna__collateral_eval__part_002__collateral_03",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__causal_interpretation__luna__collateral_eval__part_002__collateral_04",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__causal_interpretation__luna__collateral_eval__part_002__collateral_06",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__causal_interpretation__luna__collateral_eval__part_002__collateral_07",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__causal_interpretation__luna__collateral_eval__part_002__collateral_09",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__causal_interpretation__luna__collateral_eval__part_002__collateral_10",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__causal_interpretation__luna__collateral_eval__part_002__collateral_11",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__causal_interpretation__luna__collateral_eval__part_002__collateral_12"
+        ],
+        "source_item_count": 32,
+        "target_items": 16
+      },
+      "steering_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "prompt_ids": [
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__steering_eval__part_001__10",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__steering_eval__part_001__11",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__steering_eval__part_001__12",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__steering_eval__part_001__15",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__steering_eval__part_001__17",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__steering_eval__part_001__2",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__steering_eval__part_001__20",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__steering_eval__part_001__4",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__steering_eval__part_001__5",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__steering_eval__part_002__item_01",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__steering_eval__part_002__item_02",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__steering_eval__part_002__item_04",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__steering_eval__part_002__item_05",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__steering_eval__part_002__item_09",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__steering_eval__part_002__item_10",
+          "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2__causal_interpretation__luna__steering_eval__part_002__item_12"
+        ],
+        "source_item_count": 32,
+        "target_items": 16
+      }
+    },
+    "consensus_conformity": {
+      "behavior_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "prompt_ids": [
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__behavior_eval__part_001__01",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__behavior_eval__part_001__02",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__behavior_eval__part_001__05",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__behavior_eval__part_001__10",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__behavior_eval__part_001__11",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__behavior_eval__part_001__13",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__behavior_eval__part_001__14",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__behavior_eval__part_001__18",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__behavior_eval__part_001__19",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__behavior_eval__part_001__20",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__behavior_eval__part_002__lm_03",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__behavior_eval__part_002__lm_06",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__behavior_eval__part_002__lm_07",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__behavior_eval__part_002__lm_10",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__behavior_eval__part_002__lm_11",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__behavior_eval__part_002__lm_12"
+        ],
+        "source_item_count": 32,
+        "target_items": 16
+      },
+      "collateral_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "position_balance": {
+          "counts": {
+            "1": 8,
+            "2": 8
+          },
+          "field": "correct_option",
+          "levels": [
+            1,
+            2
+          ],
+          "selected_count": 16
+        },
+        "prompt_ids": [
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__consensus_conformity__luna__collateral_eval__part_001__atlas_meadow_collateral_04",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__consensus_conformity__luna__collateral_eval__part_001__atlas_meadow_collateral_06",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__consensus_conformity__luna__collateral_eval__part_001__atlas_meadow_collateral_07",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__consensus_conformity__luna__collateral_eval__part_001__atlas_meadow_collateral_10",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__consensus_conformity__luna__collateral_eval__part_001__atlas_meadow_collateral_11",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__consensus_conformity__luna__collateral_eval__part_001__atlas_meadow_collateral_17",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__consensus_conformity__luna__collateral_eval__part_001__atlas_meadow_collateral_18",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__consensus_conformity__luna__collateral_eval__part_002__01",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__consensus_conformity__luna__collateral_eval__part_002__03",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__consensus_conformity__luna__collateral_eval__part_002__04",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__consensus_conformity__luna__collateral_eval__part_002__05",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__consensus_conformity__luna__collateral_eval__part_002__06",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__consensus_conformity__luna__collateral_eval__part_002__09",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__consensus_conformity__luna__collateral_eval__part_002__10",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__consensus_conformity__luna__collateral_eval__part_002__11",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint_label_v1__consensus_conformity__luna__collateral_eval__part_002__12"
+        ],
+        "source_item_count": 32,
+        "target_items": 16
+      },
+      "steering_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "prompt_ids": [
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__steering_eval__part_001__v01",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__steering_eval__part_001__v05",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__steering_eval__part_001__v06",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__steering_eval__part_001__v07",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__steering_eval__part_001__v08",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__steering_eval__part_001__v10",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__steering_eval__part_001__v13",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__steering_eval__part_001__v14",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__steering_eval__part_001__v16",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__steering_eval__part_001__v17",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__steering_eval__part_001__v20",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__steering_eval__part_002__prompt_01",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__steering_eval__part_002__prompt_03",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__steering_eval__part_002__prompt_06",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__steering_eval__part_002__prompt_09",
+          "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2__consensus_conformity__luna__steering_eval__part_002__prompt_10"
+        ],
+        "source_item_count": 32,
+        "target_items": 16
+      }
+    },
+    "plan_replanning": {
+      "behavior_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "position_balance": {
+          "counts": {
+            "1": 8,
+            "2": 8
+          },
+          "field": "primary_position",
+          "levels": [
+            1,
+            2
+          ],
+          "selected_count": 16
+        },
+        "prompt_ids": [
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__behavior_eval__part_001__item_01",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__behavior_eval__part_001__item_02",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__behavior_eval__part_001__item_03",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__behavior_eval__part_001__item_04",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__behavior_eval__part_001__item_05",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__behavior_eval__part_001__item_07",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__behavior_eval__part_001__item_08",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__behavior_eval__part_001__item_09",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__behavior_eval__part_001__item_13",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__behavior_eval__part_001__item_14",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__behavior_eval__part_001__item_17",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__behavior_eval__part_001__item_20",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__behavior_eval__part_002__item_02",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__behavior_eval__part_002__item_04",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__behavior_eval__part_002__item_06",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__behavior_eval__part_002__item_07"
+        ],
+        "source_item_count": 32,
+        "target_items": 16
+      },
+      "collateral_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "position_balance": {
+          "counts": {
+            "1": 8,
+            "2": 8
+          },
+          "field": "correct_option",
+          "levels": [
+            1,
+            2
+          ],
+          "selected_count": 16
+        },
+        "prompt_ids": [
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__plan_replanning__luna__collateral_eval__part_001__04",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__plan_replanning__luna__collateral_eval__part_001__06",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__plan_replanning__luna__collateral_eval__part_001__08",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__plan_replanning__luna__collateral_eval__part_001__09",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__plan_replanning__luna__collateral_eval__part_001__11",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__plan_replanning__luna__collateral_eval__part_001__14",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__plan_replanning__luna__collateral_eval__part_001__15",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__plan_replanning__luna__collateral_eval__part_001__16",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__plan_replanning__luna__collateral_eval__part_001__17",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__plan_replanning__luna__collateral_eval__part_001__18",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__plan_replanning__luna__collateral_eval__part_001__19",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__plan_replanning__luna__collateral_eval__part_001__20",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__plan_replanning__luna__collateral_eval__part_002__item_05",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__plan_replanning__luna__collateral_eval__part_002__item_06",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__plan_replanning__luna__collateral_eval__part_002__item_07",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2_collateral_v3_disjoint__plan_replanning__luna__collateral_eval__part_002__item_09"
+        ],
+        "source_item_count": 32,
+        "target_items": 16
+      },
+      "steering_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "position_balance": {
+          "counts": {
+            "1": 8,
+            "2": 8
+          },
+          "field": "primary_position",
+          "levels": [
+            1,
+            2
+          ],
+          "selected_count": 16
+        },
+        "prompt_ids": [
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__steering_eval__part_001__steering_02",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__steering_eval__part_001__steering_05",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__steering_eval__part_001__steering_06",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__steering_eval__part_001__steering_10",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__steering_eval__part_001__steering_11",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__steering_eval__part_001__steering_13",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__steering_eval__part_001__steering_15",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__steering_eval__part_002__10",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__steering_eval__part_002__11",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__steering_eval__part_002__2",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__steering_eval__part_002__3",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__steering_eval__part_002__4",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__steering_eval__part_002__5",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__steering_eval__part_002__6",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__steering_eval__part_002__7",
+          "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2__plan_replanning__luna__steering_eval__part_002__8"
+        ],
+        "source_item_count": 32,
+        "target_items": 16
+      }
+    }
+  },
+  "selection_contract": {
+    "position_balance_required": true,
+    "position_balanced_splits": [
+      "behavior_eval",
+      "steering_eval",
+      "collateral_eval"
+    ],
+    "position_levels": [
+      1,
+      2
+    ],
+    "strategy": "balanced_stratified_hash"
+  },
+  "selection_informed_by_outcomes": false,
+  "selection_rule": "For each model, construct, split, and registered position stratum, rank prompt IDs by a frozen SHA-256 schedule, retain equal counts from every stratum, and inspect no outcomes during selection.",
+  "selection_sha256": "f318566ee3032618666faa91e3fc539e5304380af04d17ddfb399371c3167d8e",
+  "source_inventory": "results/benchmark/prompt_inventories/wave3_four_construct_repaired_v3_luna_label_v4_v2vector_r1/combined.csv",
+  "source_inventory_sha256": "506e8a87ce31e3c001d5a37526ea0969692237da5dc6664723c2cf52a027bea9",
+  "steering_requirements": {
+    "required_direction_kinds": [
+      "target",
+      "shuffled",
+      "random"
+    ],
+    "required_doses_by_direction_kind": {
+      "random": [
+        0.0
+      ],
+      "shuffled": [
+        0.0
+      ],
+      "target": [
+        -1.0,
+        0.0,
+        1.0
+      ]
+    }
+  }
+}

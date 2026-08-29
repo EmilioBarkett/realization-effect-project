@@ -1,0 +1,1123 @@
+{
+  "behavior_factor_schedule": {
+    "balance_check": "Each combination must appear once per behavior and steering content pool.",
+    "factors": {
+      "distractor_salience": [
+        "low",
+        "high"
+      ],
+      "focal_urgency": [
+        "low",
+        "high"
+      ],
+      "switching_cost": [
+        "low",
+        "high"
+      ]
+    },
+    "note": "Cross distractor salience, focal urgency, and switching cost independently in behavior_eval and steering_eval.",
+    "required_combinations": [
+      {
+        "distractor_salience": "low",
+        "focal_urgency": "low",
+        "switching_cost": "low"
+      },
+      {
+        "distractor_salience": "low",
+        "focal_urgency": "low",
+        "switching_cost": "high"
+      },
+      {
+        "distractor_salience": "low",
+        "focal_urgency": "high",
+        "switching_cost": "low"
+      },
+      {
+        "distractor_salience": "low",
+        "focal_urgency": "high",
+        "switching_cost": "high"
+      },
+      {
+        "distractor_salience": "high",
+        "focal_urgency": "low",
+        "switching_cost": "low"
+      },
+      {
+        "distractor_salience": "high",
+        "focal_urgency": "low",
+        "switching_cost": "high"
+      },
+      {
+        "distractor_salience": "high",
+        "focal_urgency": "high",
+        "switching_cost": "low"
+      },
+      {
+        "distractor_salience": "high",
+        "focal_urgency": "high",
+        "switching_cost": "high"
+      }
+    ],
+    "required_item_fields": [
+      "distractor_salience",
+      "focal_urgency",
+      "switching_cost"
+    ]
+  },
+  "behavioral_schedule_contract": {
+    "balanced_fields": [
+      "distractor_salience",
+      "focal_urgency",
+      "switching_cost",
+      "primary_position"
+    ],
+    "calibration_balanced_fields": [
+      "switching_cost",
+      "primary_position"
+    ],
+    "calibration_combination_count": 4,
+    "calibration_factor_order": [
+      "switching_cost",
+      "primary_position"
+    ],
+    "calibration_factors": {
+      "primary_position": [
+        1,
+        2
+      ],
+      "switching_cost": [
+        "low",
+        "high"
+      ]
+    },
+    "calibration_fixed_fields": {
+      "distractor_salience": "neutral",
+      "focal_urgency": "neutral"
+    },
+    "calibration_full_factorial": true,
+    "calibration_neutral_fields": {
+      "distractor_salience": "neutral",
+      "focal_urgency": "neutral"
+    },
+    "calibration_repetitions": 8,
+    "collateral": {
+      "balanced_fields": [
+        "fact_id",
+        "correct_option"
+      ],
+      "combination_count": 32,
+      "derived_fields": {
+        "correct_option": "collateral_fact_bank",
+        "fact_domain": "collateral_fact_bank"
+      },
+      "factor_order": [
+        "fact_id"
+      ],
+      "factors": {
+        "fact_id": [
+          "goal_01",
+          "goal_02",
+          "goal_03",
+          "goal_04",
+          "goal_05",
+          "goal_06",
+          "goal_07",
+          "goal_08",
+          "goal_09",
+          "goal_10",
+          "goal_11",
+          "goal_12",
+          "goal_13",
+          "goal_14",
+          "goal_15",
+          "goal_16",
+          "goal_17",
+          "goal_18",
+          "goal_19",
+          "goal_20",
+          "goal_21",
+          "goal_22",
+          "goal_23",
+          "goal_24",
+          "goal_25",
+          "goal_26",
+          "goal_27",
+          "goal_28",
+          "goal_29",
+          "goal_30",
+          "goal_31",
+          "goal_32"
+        ]
+      },
+      "fixed_fields": {},
+      "full_factorial": true,
+      "repetitions": 1
+    },
+    "combination_count": 16,
+    "factor_order": [
+      "distractor_salience",
+      "focal_urgency",
+      "switching_cost",
+      "primary_position"
+    ],
+    "factors": {
+      "distractor_salience": [
+        "low",
+        "high"
+      ],
+      "focal_urgency": [
+        "low",
+        "high"
+      ],
+      "primary_position": [
+        1,
+        2
+      ],
+      "switching_cost": [
+        "low",
+        "high"
+      ]
+    },
+    "fixed_fields": {},
+    "full_factorial": true,
+    "repetitions": 2,
+    "required_fields": [
+      "distractor_salience",
+      "focal_urgency",
+      "switching_cost",
+      "primary_position"
+    ]
+  },
+  "calibration_factor_schedule": {
+    "forbidden_terms": [
+      "focal task",
+      "distractor",
+      "goal",
+      "shield",
+      "priority",
+      "competing task",
+      "attention switching",
+      "urgency"
+    ],
+    "neutral_fields": {
+      "distractor_salience": "neutral",
+      "focal_urgency": "neutral"
+    },
+    "nuisance_fields": [
+      "switching_cost",
+      "primary_position"
+    ],
+    "purpose": "semantic_neutral_nuisance_only_goal_shielding_v3",
+    "required_response_format": "two_integers_sum_100",
+    "schedule_id": "calibration_factor_schedule",
+    "semantic_independence": {
+      "metadata_is_insufficient": true,
+      "mode": "no_construct_relevant_contrast",
+      "required_absent_terms": [
+        "focal task",
+        "distractor",
+        "goal",
+        "shield",
+        "priority",
+        "competing task",
+        "attention switching",
+        "urgency"
+      ],
+      "required_patterns": [
+        "\\btwo\\s+matched\\s+activities\\b|\\btwo\\s+matched\\s+options?\\b",
+        "\\bneither\\s+activity\\s+is\\s+designated\\s+as\\s+the\\s+main\\s+one\\b|\\bequal\\s+status\\b"
+      ]
+    }
+  },
+  "cells": [
+    {
+      "category_balance": {},
+      "cell_id": "probe_train",
+      "condition_ids": [
+        "shield_focal_goal",
+        "attend_competing_goal"
+      ],
+      "content_pool": "shielding_probe_train",
+      "count_per_model": 100,
+      "instructions": "Generate complete matched probe pairs with the exact registered wrapper. Keep objectives, actors, and wording identical within a pair except the registered shared-decision salience clause inside Scenario; append nothing after the wrapper.",
+      "mode": "paired",
+      "paired_metadata_schedule": null,
+      "prompt_family": "shielding_probe_train",
+      "prompt_role": "probe",
+      "split": "direction_train"
+    },
+    {
+      "category_balance": {},
+      "cell_id": "probe_validation",
+      "condition_ids": [
+        "shield_focal_goal",
+        "attend_competing_goal"
+      ],
+      "content_pool": "shielding_probe_validation",
+      "count_per_model": 40,
+      "instructions": "Generate new matched validation probe pairs with the exact registered wrapper. Change only the registered shared-decision salience clause; append nothing after the wrapper.",
+      "mode": "paired",
+      "paired_metadata_schedule": null,
+      "prompt_family": "shielding_probe_validation",
+      "prompt_role": "probe",
+      "split": "direction_validation"
+    },
+    {
+      "category_balance": {},
+      "cell_id": "probe_heldout",
+      "condition_ids": [
+        "shield_focal_goal",
+        "attend_competing_goal"
+      ],
+      "content_pool": "shielding_probe_heldout",
+      "count_per_model": 40,
+      "instructions": "Generate held-out matched probe pairs with the exact registered wrapper and new domains. Change only the registered shared-decision salience clause; append nothing after the wrapper.",
+      "mode": "paired",
+      "paired_metadata_schedule": null,
+      "prompt_family": "shielding_probe_heldout",
+      "prompt_role": "probe",
+      "split": "direction_heldout"
+    },
+    {
+      "category_balance": {
+        "distractor_salience": [
+          "low",
+          "low",
+          "low",
+          "low",
+          "low",
+          "low",
+          "low",
+          "low",
+          "high",
+          "high",
+          "high",
+          "high",
+          "high",
+          "high",
+          "high",
+          "high",
+          "low",
+          "low",
+          "low",
+          "low",
+          "low",
+          "low",
+          "low",
+          "low",
+          "high",
+          "high",
+          "high",
+          "high",
+          "high",
+          "high",
+          "high",
+          "high"
+        ],
+        "focal_urgency": [
+          "low",
+          "low",
+          "low",
+          "low",
+          "high",
+          "high",
+          "high",
+          "high",
+          "low",
+          "low",
+          "low",
+          "low",
+          "high",
+          "high",
+          "high",
+          "high",
+          "low",
+          "low",
+          "low",
+          "low",
+          "high",
+          "high",
+          "high",
+          "high",
+          "low",
+          "low",
+          "low",
+          "low",
+          "high",
+          "high",
+          "high",
+          "high"
+        ],
+        "primary_position": [
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2
+        ],
+        "switching_cost": [
+          "low",
+          "low",
+          "high",
+          "high",
+          "low",
+          "low",
+          "high",
+          "high",
+          "low",
+          "low",
+          "high",
+          "high",
+          "low",
+          "low",
+          "high",
+          "high",
+          "low",
+          "low",
+          "high",
+          "high",
+          "low",
+          "low",
+          "high",
+          "high",
+          "low",
+          "low",
+          "high",
+          "high",
+          "low",
+          "low",
+          "high",
+          "high"
+        ]
+      },
+      "cell_id": "behavior_eval",
+      "condition_id": "neutral",
+      "content_pool": "goal_shielding_behavior_v3_pool",
+      "count_per_model": 32,
+      "expected_output_format": "two_integers_sum_100",
+      "factor_schedule": "behavior_factor_schedule",
+      "instructions": "Generate a standalone behavior item with the assigned metadata. Use the exact pool anchor 'ledger indigo' in the setting and the assigned content domain. For the registered focal element, place it at the scheduled primary_position position when applicable. Do not mention a probe, construct, target label, or generation schedule. Do not include a response contract; the runtime appends exactly one registered response contract.",
+      "mode": "single",
+      "parser_id": "two_integers_sum_100_v1",
+      "prompt_family": "goal_shielding_behavior_v3",
+      "prompt_role": "behavior",
+      "split": "behavior_eval",
+      "task_id": "fresh_attention_budget_v3"
+    },
+    {
+      "category_balance": {
+        "distractor_salience": [
+          "low",
+          "low",
+          "low",
+          "low",
+          "low",
+          "low",
+          "low",
+          "low",
+          "high",
+          "high",
+          "high",
+          "high",
+          "high",
+          "high",
+          "high",
+          "high",
+          "low",
+          "low",
+          "low",
+          "low",
+          "low",
+          "low",
+          "low",
+          "low",
+          "high",
+          "high",
+          "high",
+          "high",
+          "high",
+          "high",
+          "high",
+          "high"
+        ],
+        "focal_urgency": [
+          "low",
+          "low",
+          "low",
+          "low",
+          "high",
+          "high",
+          "high",
+          "high",
+          "low",
+          "low",
+          "low",
+          "low",
+          "high",
+          "high",
+          "high",
+          "high",
+          "low",
+          "low",
+          "low",
+          "low",
+          "high",
+          "high",
+          "high",
+          "high",
+          "low",
+          "low",
+          "low",
+          "low",
+          "high",
+          "high",
+          "high",
+          "high"
+        ],
+        "primary_position": [
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2
+        ],
+        "switching_cost": [
+          "low",
+          "low",
+          "high",
+          "high",
+          "low",
+          "low",
+          "high",
+          "high",
+          "low",
+          "low",
+          "high",
+          "high",
+          "low",
+          "low",
+          "high",
+          "high",
+          "low",
+          "low",
+          "high",
+          "high",
+          "low",
+          "low",
+          "high",
+          "high",
+          "low",
+          "low",
+          "high",
+          "high",
+          "low",
+          "low",
+          "high",
+          "high"
+        ]
+      },
+      "cell_id": "steering_eval",
+      "condition_id": "neutral",
+      "content_pool": "goal_shielding_steering_v3_pool",
+      "count_per_model": 32,
+      "expected_output_format": "two_integers_sum_100",
+      "factor_schedule": "behavior_factor_schedule",
+      "instructions": "Generate a standalone steering item with the assigned metadata. Use the exact pool anchor 'workshop indigo' in the setting and the assigned content domain. For the registered focal element, place it at the scheduled primary_position position when applicable. Do not mention a probe, construct, target label, or generation schedule. Do not include a response contract; the runtime appends exactly one registered response contract.",
+      "mode": "single",
+      "parser_id": "two_integers_sum_100_v1",
+      "prompt_family": "goal_shielding_steering_v3",
+      "prompt_role": "steering",
+      "split": "steering_eval",
+      "task_id": "fresh_attention_budget_v3"
+    },
+    {
+      "category_balance": {
+        "distractor_salience": [
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral"
+        ],
+        "focal_urgency": [
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral",
+          "neutral"
+        ],
+        "primary_position": [
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2
+        ],
+        "switching_cost": [
+          "low",
+          "low",
+          "high",
+          "high",
+          "low",
+          "low",
+          "high",
+          "high",
+          "low",
+          "low",
+          "high",
+          "high",
+          "low",
+          "low",
+          "high",
+          "high",
+          "low",
+          "low",
+          "high",
+          "high",
+          "low",
+          "low",
+          "high",
+          "high",
+          "low",
+          "low",
+          "high",
+          "high",
+          "low",
+          "low",
+          "high",
+          "high"
+        ]
+      },
+      "cell_id": "calibration",
+      "condition_id": "neutral",
+      "content_pool": "goal_shielding_calibration_v3_pool",
+      "count_per_model": 32,
+      "expected_output_format": "two_integers_sum_100",
+      "factor_schedule": "calibration_factor_schedule",
+      "instructions": "Generate a standalone calibration item with the assigned metadata. Use the exact pool anchor 'archive indigo' in the setting and the assigned content domain. For the registered focal element, place it at the scheduled primary_position position when applicable. This is a semantic nuisance-only calibration: do not instantiate the construct-relevant contrast, use the registered neutral metadata values, and explicitly satisfy the neutral language contract. Use these exact neutral-language phrases in the item: 'two matched activities'; 'neither activity is designated as the main one'. Do not mention a probe, construct, target label, or generation schedule. Do not use these construct-specific terms, even as option labels: 'focal task'; 'distractor'; 'goal'; 'shield'; 'priority'; 'competing task'; 'attention switching'; 'urgency'. Do not include a response contract; the runtime appends exactly one registered response contract.",
+      "mode": "single",
+      "parser_id": "two_integers_sum_100_v1",
+      "prompt_family": "goal_shielding_calibration_v3",
+      "prompt_role": "calibration",
+      "split": "calibration",
+      "task_id": "fresh_attention_budget_v3"
+    },
+    {
+      "category_balance": {
+        "correct_option": [
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2
+        ],
+        "fact_domain": [
+          "history",
+          "history",
+          "history",
+          "history",
+          "geography",
+          "history",
+          "history",
+          "geography",
+          "history",
+          "history",
+          "geography",
+          "geography",
+          "geography",
+          "geography",
+          "geography",
+          "geography",
+          "geography",
+          "geography",
+          "geography",
+          "geography",
+          "geography",
+          "geography",
+          "geography",
+          "geography",
+          "geography",
+          "geography",
+          "geography",
+          "geography",
+          "geography",
+          "geography",
+          "geography",
+          "astronomy"
+        ],
+        "fact_id": [
+          "goal_01",
+          "goal_02",
+          "goal_03",
+          "goal_04",
+          "goal_05",
+          "goal_06",
+          "goal_07",
+          "goal_08",
+          "goal_09",
+          "goal_10",
+          "goal_11",
+          "goal_12",
+          "goal_13",
+          "goal_14",
+          "goal_15",
+          "goal_16",
+          "goal_17",
+          "goal_18",
+          "goal_19",
+          "goal_20",
+          "goal_21",
+          "goal_22",
+          "goal_23",
+          "goal_24",
+          "goal_25",
+          "goal_26",
+          "goal_27",
+          "goal_28",
+          "goal_29",
+          "goal_30",
+          "goal_31",
+          "goal_32"
+        ]
+      },
+      "cell_id": "collateral_eval",
+      "condition_id": "neutral",
+      "content_pool": "goal_shielding_collateral_v3_disjoint_pool",
+      "count_per_model": 32,
+      "expected_output_format": "single_integer_1_or_2",
+      "factor_schedule": "collateral_factor_schedule",
+      "instructions": "Generate an unrelated factual-choice item using the exact pool anchor 'atlas indigo' and the assigned content domain. Use the exact two statements from the registered construct-disjoint fact bank for the assigned fact_id; do not paraphrase. The 32 scheduled fact IDs are all distinct and every scheduled fact_id must be used exactly once in this full collateral cell. Include the assigned fact ID exactly as a neutral label in the item in the form 'Fact ID: <fact_id>'. Exactly one statement must be correct, and its numbered position must equal the registered correct_option. Do not mention a probe, construct, downstream task, or generation schedule. Do not include a response contract; the runtime appends exactly one registered response contract.",
+      "mode": "single",
+      "parser_id": "single_integer_choice_1_or_2_v1",
+      "prompt_family": "goal_shielding_collateral_v3_disjoint",
+      "prompt_role": "collateral",
+      "split": "collateral_eval",
+      "task_id": "collateral_fact_choice_v3"
+    }
+  ],
+  "collateral_repair": {
+    "cross_construct_disjoint_fact_bank": true,
+    "fact_bank_size": 32,
+    "fact_bank_version": "unique_32_wave4_goal_v3",
+    "parent_plan_id": "wave4_goal_shielding_prompts_repaired_v3_r5_collateral_v2",
+    "parent_plan_path": "configs/construct_benchmark/generation_plans/wave4_goal_shielding_prompts_repaired_v3_collateral_v2.json",
+    "parent_plan_sha256": "bca4fb39a7856236044c3b3c3402eb9238960c4749a09f10ddf0859ef9d6c8a4",
+    "preserve_noncollateral_parent_contracts": true,
+    "schedule_revision": "construct_disjoint_collateral_banks_v1",
+    "scope": [
+      "collateral_eval"
+    ],
+    "unique_fact_ids_per_cell": true,
+    "version": "repaired_v3_collateral_v3_disjoint"
+  },
+  "confirmatory": false,
+  "construct_id": "goal_shielding",
+  "construct_spec_path": "../constructs/goal_shielding_repaired_v3_collateral_v3_disjoint.json",
+  "content_pools": {
+    "goal_shielding_behavior_v3_pool": {
+      "anchor": "ledger indigo",
+      "domains": [
+        "ledger indigo inventory",
+        "ledger indigo routing",
+        "ledger indigo maintenance",
+        "ledger indigo fieldwork"
+      ],
+      "independence": "new domain and entity pool; no reuse across downstream roles",
+      "role": "behavior"
+    },
+    "goal_shielding_calibration_v3_pool": {
+      "anchor": "archive indigo",
+      "domains": [
+        "archive indigo records",
+        "archive indigo archives",
+        "archive indigo measurements",
+        "archive indigo catalogs"
+      ],
+      "independence": "new domain and entity pool; no reuse across downstream roles",
+      "role": "calibration"
+    },
+    "goal_shielding_collateral_v3_disjoint_pool": {
+      "anchor": "atlas indigo",
+      "domains": [
+        "atlas indigo facts",
+        "atlas indigo observations",
+        "atlas indigo dates",
+        "atlas indigo units"
+      ],
+      "independence": "construct-disjoint versioned objective fact pool; every 32-item cell uses one unique registered fact ID and no Wave 2-4 construct shares a fact card",
+      "role": "collateral"
+    },
+    "goal_shielding_steering_v3_pool": {
+      "anchor": "workshop indigo",
+      "domains": [
+        "workshop indigo fixtures",
+        "workshop indigo calendars",
+        "workshop indigo workflows",
+        "workshop indigo dispatches"
+      ],
+      "independence": "new domain and entity pool; no reuse across downstream roles",
+      "role": "steering"
+    },
+    "shielding_probe_heldout": {
+      "domains": [
+        "data_analysis",
+        "community_campaigns"
+      ],
+      "role": "probe"
+    },
+    "shielding_probe_train": {
+      "domains": [
+        "exam_preparation",
+        "kitchen_workflows"
+      ],
+      "role": "probe"
+    },
+    "shielding_probe_validation": {
+      "domains": [
+        "warehouse_operations",
+        "music_rehearsals"
+      ],
+      "role": "probe"
+    }
+  },
+  "default_count_per_cell_per_model": 32,
+  "design_rules": [
+    "Use the registered probe wrapper exactly and change only the registered shared-decision salience state within each pair.",
+    "Downstream prompts are standalone attention-budget episodes with new tasks and distractors. Do not state the target state, and include exactly one response contract with no probe suffix.",
+    "Do not ask the model to label goal shielding, persistence, or plan flexibility.",
+    "This repaired-v3 pool is generated only with OpenAI gpt-5.6-luna; no fallback provider is permitted.",
+    "Generate all downstream pool records before inspecting any model-side outputs.",
+    "Use the assigned pool anchor and exact assigned content domain, but never state the construct hypothesis.",
+    "Every downstream behavior and steering cell is an exact registered full factorial; no schedule may truncate or partially repeat combinations.",
+    "For target_option or primary_position tasks, place the registered focal option at that numbered position and balance positions exactly within every full cell and any declared preflight stratum.",
+    "Calibration is a semantic nuisance-only control: remove the construct-relevant contrast from the item text, not merely from metadata, and satisfy the registered neutral-language contract.",
+    "Collateral prompts are standalone unrelated fact choices, use only the registered fact bank, and must not reuse construct language, probe wording, or downstream task entities."
+  ],
+  "downstream_pool_separation": {
+    "forbidden_prompt_anchors": {
+      "goal_shielding_behavior_v3_pool": [
+        "workshop indigo",
+        "archive indigo",
+        "atlas indigo"
+      ],
+      "goal_shielding_calibration_v3_pool": [
+        "ledger indigo",
+        "workshop indigo",
+        "atlas indigo"
+      ],
+      "goal_shielding_collateral_v3_disjoint_pool": [
+        "ledger indigo",
+        "workshop indigo",
+        "archive indigo"
+      ],
+      "goal_shielding_steering_v3_pool": [
+        "ledger indigo",
+        "archive indigo",
+        "atlas indigo"
+      ]
+    },
+    "no_prompt_id_or_text_overlap_across_downstream_pools": true,
+    "policy": "construct_pure_role_separated_pools",
+    "required_prompt_anchors": {
+      "goal_shielding_behavior_v3_pool": [
+        "ledger indigo"
+      ],
+      "goal_shielding_calibration_v3_pool": [
+        "archive indigo"
+      ],
+      "goal_shielding_collateral_v3_disjoint_pool": [
+        "atlas indigo"
+      ],
+      "goal_shielding_steering_v3_pool": [
+        "workshop indigo"
+      ]
+    }
+  },
+  "forbidden_terms": [
+    "goal_shielding",
+    "shield_focal_goal",
+    "attend_competing_goal",
+    "goal shielding",
+    "attentional priority",
+    "prioritize the focal",
+    "shield the focal goal"
+  ],
+  "generation": {
+    "estimated_input_tokens_per_request": 1400,
+    "estimated_output_tokens_per_record": 300,
+    "max_items_per_request": 20,
+    "max_output_tokens": 30000,
+    "max_tokens": 30000,
+    "retries": 0,
+    "seed": 408,
+    "temperature": 0.7,
+    "timeout": 300
+  },
+  "models": [
+    {
+      "alias": "luna",
+      "model": "gpt-5.6-luna"
+    }
+  ],
+  "pair_quality_checks": {
+    "all_pairs_require_minimal_registered_contrast": true,
+    "condition_edit": "one short present-tense attentional-priority clause naming which objective receives attention at the shared decision point",
+    "normalized_pair_text": {
+      "replace_only": "the attentional-priority clause",
+      "required_identical": true
+    },
+    "pair_diff_audit_required_before_release": true,
+    "reference_frame_contract": null,
+    "reject_if": [
+      "either member contains a condition-specific now/later/after/before/then cue or a future action that is absent or inconsistent in the other member",
+      "the attentional-priority clause implies that one objective is completed, deferred, unavailable, infeasible, abandoned, or handled in a different order",
+      "any text outside the one attentional-priority clause differs, including availability, feasibility, urgency, value, salience, effort, consequences, chronology, or response framing",
+      "the pair is not a closely length-matched minimal contrast",
+      "either prompt is missing the registered wrapper or does not end with the exact terminal suffix `Continue processing the scenario.`"
+    ],
+    "required_shared_properties": [
+      "focal objective",
+      "competing objective",
+      "availability",
+      "feasibility",
+      "urgency",
+      "salience",
+      "effort",
+      "setting",
+      "actors",
+      "value",
+      "consequences",
+      "decision point",
+      "chronology",
+      "sentence order",
+      "response framing",
+      "terminal suffix"
+    ],
+    "timing_neutrality": "Neither member may prescribe now/later/after/before/then ordering, future completion, deferral, or abandonment; both objectives remain available and feasible."
+  },
+  "plan_id": "wave4_goal_shielding_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint",
+  "pool_release": "preflight_and_production_pool_parent; not a model result",
+  "preflight_only": true,
+  "preflight_selection_contract": {
+    "maximum_items": 16,
+    "minimum_items": 8,
+    "position_balance_required": true,
+    "position_fields": [
+      "primary_position"
+    ],
+    "selection_informed_by_outcomes": false,
+    "selection_rule": "Stable-hash rank within each registered position stratum, take an equal number from every stratum, then sort selected prompt IDs; never inspect model outcomes.",
+    "strata": [
+      "construct_id",
+      "split",
+      "primary_position"
+    ],
+    "strategy": "balanced_stratified_hash",
+    "target_items": 16
+  },
+  "provenance": {
+    "count_per_downstream_cell": 32,
+    "final_remainder_batches_only": true,
+    "generated_model": "gpt-5.6-luna",
+    "generation_before_model_outputs": true,
+    "max_items_per_request": 20,
+    "parent_plan_path": "configs/construct_benchmark/generation_plans/wave4_goal_shielding_repaired_v2.json",
+    "parent_plan_sha256": "fb36ca970272a86c0d5c1a3ce18122c254cb0c45c3e229e631b42d99a67cf10c",
+    "parent_spec_path": "configs/construct_benchmark/constructs/goal_shielding_v2.json",
+    "repair_version": "repaired_v3",
+    "spec_sha256": "759b20eeb24de2490ab1a1b7c620269787e86ff8caa776faacd4ed864e722ec2"
+  },
+  "rejection_criteria": [
+    "Reject any prompt_text whose final characters are not exactly `Continue processing the scenario.`.",
+    "Reject any prompt_text that contains the suffix before its final occurrence, or has any character or text after the suffix, including a response request, rationale, timing instruction, future action, notes, or condition label.",
+    "Reject any pair when either member contains a condition-specific now/later/after/before/then cue, future action, deferral, completion order, or abandonment that is absent or inconsistent in the other member.",
+    "Reject any pair when the attentional-priority clause changes availability, feasibility, urgency, value, salience, effort, consequences, chronology, or response framing, or implies that one objective is completed, deferred, unavailable, infeasible, or abandoned.",
+    "Reject any pair whose normalized prompt texts are not identical after replacing only the one short present-tense attentional-priority clause; retain the same decision point, shared skeleton, and terminal suffix.",
+    "Reject any pair that is not a closely length-matched minimal contrast or that omits the complete registered probe wrapper."
+  ],
+  "response_instruction_policy": "runtime_append",
+  "run_modes": {
+    "full": {
+      "count_per_model_per_cell": null,
+      "partial": false,
+      "purpose": "frozen_full_inventory"
+    },
+    "review": {
+      "count_per_model_per_cell": 1,
+      "partial": true,
+      "purpose": "prompt_review"
+    }
+  },
+  "schema_version": "0.1.0",
+  "task_composition": {
+    "behavior_steering_pool_separation": true,
+    "condition_carryover": "state_only",
+    "downstream_context": "independent_behavior_task_only",
+    "probe_context": "paired_probe_only",
+    "prompt_order": "probe_then_downstream",
+    "surface_text_carryover": "none"
+  },
+  "wave": 4
+}

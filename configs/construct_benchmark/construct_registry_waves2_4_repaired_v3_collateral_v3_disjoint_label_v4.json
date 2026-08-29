@@ -1,0 +1,210 @@
+{
+  "entries": [
+    {
+      "construct_id": "realization_account_closure",
+      "family": "decision",
+      "generation_plan_path": "generation_plans/wave1_realization_account_closure_v2.json",
+      "spec_path": "constructs/realization_account_closure_v2.json",
+      "status": "specified",
+      "wave": 1
+    },
+    {
+      "construct_id": "evidence_diagnosticity",
+      "family": "epistemic",
+      "generation_plan_path": "generation_plans/wave1_evidence_diagnosticity_v2.json",
+      "spec_path": "constructs/evidence_diagnosticity_v2.json",
+      "status": "specified",
+      "wave": 1
+    },
+    {
+      "construct_id": "source_reliability",
+      "family": "social",
+      "generation_plan_path": "generation_plans/wave1_source_reliability_v2.json",
+      "spec_path": "constructs/source_reliability_v2.json",
+      "status": "specified",
+      "wave": 1
+    },
+    {
+      "construct_id": "persistence_continuation",
+      "family": "agentic",
+      "generation_plan_path": "generation_plans/wave1_persistence_continuation_v2.json",
+      "spec_path": "constructs/persistence_continuation_v2.json",
+      "status": "specified",
+      "wave": 1
+    },
+    {
+      "construct_id": "reference_frame",
+      "family": "decision",
+      "generation_plan_path": "generation_plans/wave2_reference_frame_prompts_repaired_v3_collateral_v3_disjoint.json",
+      "repair_status": "repaired_v3_collateral_v3_disjoint",
+      "spec_path": "constructs/reference_frame_repaired_v3_collateral_v3_disjoint.json",
+      "status": "specified",
+      "wave": 2
+    },
+    {
+      "construct_id": "prior_weighting",
+      "family": "epistemic",
+      "generation_plan_path": "generation_plans/wave2_prior_weighting_prompts_repaired_v3_collateral_v3_disjoint.json",
+      "repair_status": "repaired_v3_collateral_v3_disjoint",
+      "spec_path": "constructs/prior_weighting_repaired_v3_collateral_v3_disjoint.json",
+      "status": "specified",
+      "wave": 2
+    },
+    {
+      "construct_id": "authority_deference",
+      "family": "social",
+      "generation_plan_path": "generation_plans/wave2_authority_deference_prompts_repaired_v3_collateral_v3_disjoint.json",
+      "repair_status": "repaired_v3_collateral_v3_disjoint",
+      "spec_path": "constructs/authority_deference_repaired_v3_collateral_v3_disjoint.json",
+      "status": "specified",
+      "wave": 2
+    },
+    {
+      "construct_id": "exploration_exploitation",
+      "family": "agentic",
+      "generation_plan_path": "generation_plans/wave2_exploration_exploitation_prompts_repaired_v3_collateral_v3_disjoint.json",
+      "repair_status": "repaired_v3_collateral_v3_disjoint",
+      "spec_path": "constructs/exploration_exploitation_repaired_v3_collateral_v3_disjoint.json",
+      "status": "specified",
+      "wave": 2
+    },
+    {
+      "construct_id": "ambiguity_orientation",
+      "family": "decision",
+      "generation_plan_path": "generation_plans/wave3_ambiguity_orientation_prompts_repaired_v3_collateral_v3_disjoint.json",
+      "repair_status": "repaired_v3_collateral_v3_disjoint",
+      "spec_path": "constructs/ambiguity_orientation_repaired_v3_collateral_v3_disjoint.json",
+      "status": "specified",
+      "wave": 3
+    },
+    {
+      "construct_id": "causal_interpretation",
+      "family": "epistemic",
+      "generation_plan_path": "generation_plans/wave3_causal_interpretation_prompts_repaired_v3_collateral_v3_disjoint_label_v3.json",
+      "repair_status": "repaired_v3_collateral_v3_disjoint_label_v3",
+      "spec_path": "constructs/causal_interpretation_repaired_v3_collateral_v3_disjoint_label_v3.json",
+      "status": "specified",
+      "wave": 3
+    },
+    {
+      "construct_id": "consensus_conformity",
+      "family": "social",
+      "generation_plan_path": "generation_plans/wave3_consensus_conformity_prompts_repaired_v3_collateral_v3_disjoint_label_v4.json",
+      "repair_status": "repaired_v3_collateral_v3_disjoint_label_v4",
+      "spec_path": "constructs/consensus_conformity_repaired_v3_collateral_v3_disjoint_label_v4.json",
+      "status": "specified",
+      "wave": 3
+    },
+    {
+      "construct_id": "plan_replanning",
+      "family": "agentic",
+      "generation_plan_path": "generation_plans/wave3_plan_replanning_prompts_repaired_v3_collateral_v3_disjoint.json",
+      "repair_status": "repaired_v3_collateral_v3_disjoint",
+      "spec_path": "constructs/plan_replanning_repaired_v3_collateral_v3_disjoint.json",
+      "status": "specified",
+      "wave": 3
+    },
+    {
+      "construct_id": "temporal_orientation",
+      "family": "decision",
+      "generation_plan_path": "generation_plans/wave4_temporal_orientation_prompts_repaired_v3_collateral_v3_disjoint.json",
+      "repair_status": "repaired_v3_collateral_v3_disjoint",
+      "spec_path": "constructs/temporal_orientation_repaired_v3_collateral_v3_disjoint.json",
+      "status": "specified",
+      "wave": 4
+    },
+    {
+      "construct_id": "epistemic_uncertainty",
+      "family": "epistemic",
+      "generation_plan_path": "generation_plans/wave4_epistemic_uncertainty_prompts_repaired_v3_collateral_v3_disjoint.json",
+      "repair_status": "repaired_v3_collateral_v3_disjoint",
+      "spec_path": "constructs/epistemic_uncertainty_repaired_v3_collateral_v3_disjoint.json",
+      "status": "specified",
+      "wave": 4
+    },
+    {
+      "construct_id": "reciprocity_obligation",
+      "family": "social",
+      "generation_plan_path": "generation_plans/wave4_reciprocity_obligation_prompts_repaired_v3_collateral_v3_disjoint_label_v3.json",
+      "repair_status": "repaired_v3_collateral_v3_disjoint_label_v3",
+      "spec_path": "constructs/reciprocity_obligation_repaired_v3_collateral_v3_disjoint_label_v3.json",
+      "status": "specified",
+      "wave": 4
+    },
+    {
+      "construct_id": "goal_shielding",
+      "family": "agentic",
+      "generation_plan_path": "generation_plans/wave4_goal_shielding_prompts_repaired_v3_collateral_v3_disjoint.json",
+      "repair_status": "repaired_v3_collateral_v3_disjoint",
+      "spec_path": "constructs/goal_shielding_repaired_v3_collateral_v3_disjoint.json",
+      "status": "specified",
+      "wave": 4
+    }
+  ],
+  "provenance": {
+    "collateral_fact_bank_size": 32,
+    "collateral_fact_bank_version": "unique_32_v2",
+    "construct_count": 12,
+    "construct_disjoint_fact_banks": true,
+    "constructs": [
+      {
+        "construct_id": "consensus_conformity",
+        "plan_path": "configs/construct_benchmark/generation_plans/wave3_consensus_conformity_prompts_repaired_v3_collateral_v3_disjoint_label_v4.json",
+        "plan_sha256": "aa3d55102d4c552933b843eb2a0c54f11a1141e31d2b60f4c8c6a37723c72175",
+        "spec_path": "configs/construct_benchmark/constructs/consensus_conformity_repaired_v3_collateral_v3_disjoint_label_v4.json",
+        "spec_sha256": "54021f2d397dc2aacaa74585e76d5ea02c426014f5233bb9b87183d84a4f7205",
+        "wave": 3
+      }
+    ],
+    "label_contract_version": "fact_id_label_v1",
+    "model_generation_model": "gpt-5.6-luna",
+    "model_generation_provider": "openai",
+    "parent_registry_path": "configs/construct_benchmark/construct_registry_waves2_4_repaired_v3_collateral_v3_disjoint_label_v3.json",
+    "parent_registry_sha256": "9cf778a432a6ef84927539b541eb97fff90ea3a40297d981b443adcb73368310",
+    "schedule_revision": "construct_disjoint_collateral_banks_v1",
+    "scope": "W3 consensus collateral label-only regeneration after the causal/reciprocity repair",
+    "wave3_plans": [
+      {
+        "construct_id": "ambiguity_orientation",
+        "first_review_fact_id": "astronomy_01",
+        "path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/configs/construct_benchmark/generation_plans/wave3_ambiguity_orientation_prompts_repaired_v3_collateral_v2_wave3_r2.json",
+        "plan_id": "wave3_ambiguity_orientation_prompts_repaired_v3_r5_collateral_v2_wave3_r2",
+        "rotation_offset": 0,
+        "sha256": "f64e5ad67a485436bf7ad42f6aca132e83609e57240ae17f83cdaf4eecd909dc"
+      },
+      {
+        "construct_id": "causal_interpretation",
+        "first_review_fact_id": "biology_01",
+        "path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/configs/construct_benchmark/generation_plans/wave3_causal_interpretation_prompts_repaired_v3_collateral_v2_wave3_r2.json",
+        "plan_id": "wave3_causal_interpretation_prompts_repaired_v3_r5_collateral_v2_wave3_r2",
+        "rotation_offset": 4,
+        "sha256": "e00f30d6819897963825a4891b0bc2e84c2a40ebe880c753533e3a2a9cfb708d"
+      },
+      {
+        "construct_id": "consensus_conformity",
+        "first_review_fact_id": "botany_01",
+        "path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/configs/construct_benchmark/generation_plans/wave3_consensus_conformity_prompts_repaired_v3_collateral_v2_wave3_r2.json",
+        "plan_id": "wave3_consensus_conformity_prompts_repaired_v3_r5_collateral_v2_wave3_r2",
+        "rotation_offset": 10,
+        "sha256": "9dd4fca9420cf2b17bd4a4898b51c063d2045ac45374323d68b52ddb69d4ce7b"
+      },
+      {
+        "construct_id": "plan_replanning",
+        "first_review_fact_id": "geography_01",
+        "path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/configs/construct_benchmark/generation_plans/wave3_plan_replanning_prompts_repaired_v3_collateral_v2_wave3_r2.json",
+        "plan_id": "wave3_plan_replanning_prompts_repaired_v3_r5_collateral_v2_wave3_r2",
+        "rotation_offset": 14,
+        "sha256": "eebee0da69a5b0372f113ba20646c06ea715be154622ab77de4be066e6220455"
+      }
+    ],
+    "wave3_review_first_fact_ids": {
+      "ambiguity_orientation": "astronomy_01",
+      "causal_interpretation": "biology_01",
+      "consensus_conformity": "botany_01",
+      "plan_replanning": "geography_01"
+    }
+  },
+  "registry_id": "rsc_construct_bank_waves2_4_repaired_v3_collateral_v3_disjoint_label_v4",
+  "schema_version": "0.1.0",
+  "version": "repaired_v3_collateral_v3_disjoint_label_v4"
+}

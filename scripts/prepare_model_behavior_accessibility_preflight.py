@@ -15,7 +15,10 @@ if str(SRC) not in sys.path:
 
 from construct_benchmark.config import load_construct_specs  # noqa: E402
 from construct_benchmark.manifests import canonical_hash, file_sha256  # noqa: E402
-from construct_benchmark.model_preflight import prepare_selection_manifest  # noqa: E402
+from construct_benchmark.model_preflight import (  # noqa: E402
+    prepare_selection_manifest,
+    repository_relative_path,
+)
 from construct_benchmark.model_preflight import load_preflight_gate_config  # noqa: E402
 from construct_benchmark.prompts import load_prompt_records, validate_prompt_records  # noqa: E402
 
@@ -91,8 +94,9 @@ def main(argv: list[str] | None = None) -> int:
         maximum_items=int(bounds["maximum"]),
         gate_config=gate_config,
         gate_config_sha256=file_sha256(args.gate_config),
+        repository_root=ROOT,
     )
-    manifest["output"] = str(args.output.resolve())
+    manifest["output"] = repository_relative_path(args.output, repository_root=ROOT)
     manifest["selection_sha256"] = canonical_hash(
         {key: value for key, value in manifest.items() if key != "selection_sha256"}
     )

@@ -1,0 +1,63 @@
+{
+  "base_plan_path": "wave1_persistence_continuation_v2.json",
+  "plan_id": "wave1_persistence_continuation_behavioral_repair_v4",
+  "response_instruction_policy": "runtime_append",
+  "construct_spec_path": "../constructs/persistence_continuation_v4.json",
+  "generation": {"temperature": 0.7, "max_tokens": 30000, "max_output_tokens": 30000, "seed": 261, "timeout": 300, "retries": 0, "max_items_per_request": 20, "estimated_input_tokens_per_request": 2400, "estimated_output_tokens_per_record": 440},
+  "design_rules": [
+    "Instantiate a fresh independent goal-renewal allocation task after a shortfall; do not refer to a probe or to the construct.",
+    "Option A always means the established goal. Narrative option order is crossed independently and never changes the response semantics.",
+    "State repairability, setback severity, switching cost, and transparent diminishing marginal returns for both options across three allocation tranches.",
+    "Use the registered return-advantage bins around genuine indifference. Both options must be plausible and neither may strictly dominate.",
+    "Do not use proportional linear endpoint returns, seed a target allocation, or include continuation/persistence labels. Return only the concise task body; the runtime appends the registered response sentence exactly once."
+  ],
+  "forbidden_terms": ["persistence_continuation", "persistence", "continuation state", "abandonment", "continue the goal", "probe state", "target allocation", "policy gain", "construct"],
+  "content_pools": {
+    "persistence_behavior_repair_v4": {"role": "behavior", "domains": ["orchard_recovery_goal_v4", "river_station_rebuild_v4"]},
+    "persistence_steering_repair_v4": {"role": "steering", "domains": ["ceramic_studio_recovery_v4", "trail_mapping_project_v4"]},
+    "persistence_calibration_repair_v4": {"role": "calibration", "domains": ["abstract_tranche_goal_v4", "index_recovery_goal_v4"]},
+    "persistence_collateral_repair_v4": {"role": "collateral", "domains": ["grammar", "vocabulary", "arithmetic", "geometry"]}
+  },
+  "downstream_pool_separation": {
+    "required_prompt_anchors": {"persistence_behavior_repair_v4": ["orchard", "river"], "persistence_steering_repair_v4": ["studio", "trail", "mapping"], "persistence_calibration_repair_v4": ["abstract", "index", "tranche"]},
+    "forbidden_prompt_anchors": {"persistence_behavior_repair_v4": ["studio", "trail", "mapping", "abstract", "index"], "persistence_steering_repair_v4": ["orchard", "river", "abstract", "index"], "persistence_calibration_repair_v4": ["orchard", "river", "studio", "trail", "mapping"]}
+  },
+  "behavioral_schedule_contract": {
+    "required_fields": ["option_order", "established_option", "option_a_semantics", "return_advantage_bin", "repairability", "setback_severity", "switching_cost_bin", "tranche_profile", "dominance_status", "allocation_region", "calibration_variant", "return_advantage_units", "alternative_return_advantage_units", "established_tranche_1", "established_tranche_2", "established_tranche_3", "alternative_tranche_1", "alternative_tranche_2", "alternative_tranche_3", "repair_credit_units", "setback_penalty_units", "switching_cost_units"],
+    "factors": {"return_advantage_bin": ["alternative_disadvantage", "near_indifference", "alternative_advantage"], "repairability": ["repairable", "difficult"], "setback_severity": ["moderate", "severe"], "switching_cost_bin": ["none", "high"], "option_order": ["established_first", "alternative_first"]},
+    "factor_order": ["return_advantage_bin", "repairability", "setback_severity", "switching_cost_bin", "option_order"],
+    "full_factorial": true,
+    "required_values": {"return_advantage_bin": ["alternative_disadvantage", "near_indifference", "alternative_advantage"], "option_order": ["established_first", "alternative_first"]},
+    "balanced_fields": ["return_advantage_bin", "repairability", "setback_severity", "switching_cost_bin", "option_order"],
+    "calibration_neutral_fields": {"established_option": "not_applicable", "option_a_semantics": "abstract_option", "return_advantage_bin": "near_indifference", "repairability": "not_applicable", "setback_severity": "not_applicable", "tranche_profile": "neutral_calibration", "dominance_status": "not_applicable", "allocation_region": "not_applicable"}
+  },
+  "calibration_factor_schedule": {"purpose": "neutral_tranche_allocation_variance", "nuisance_fields": ["switching_cost_bin", "option_order", "calibration_variant"], "neutral_fields": {"established_option": "not_applicable", "option_a_semantics": "abstract_option", "return_advantage_bin": "near_indifference", "repairability": "not_applicable", "setback_severity": "not_applicable", "tranche_profile": "neutral_calibration", "dominance_status": "not_applicable", "allocation_region": "not_applicable"}, "forbidden_terms": ["persistence", "continuation", "abandonment", "goal", "setback", "repairability", "probe", "construct"], "required_response_format": "single_integer_allocation_0_to_100"},
+  "factorial_schedules": {
+    "persistence_behavior_full": {
+      "factors": {"return_advantage_bin": ["alternative_disadvantage", "near_indifference", "alternative_advantage"], "repairability": ["repairable", "difficult"], "setback_severity": ["moderate", "severe"], "switching_cost_bin": ["none", "high"], "option_order": ["established_first", "alternative_first"]},
+      "factor_order": ["return_advantage_bin", "repairability", "setback_severity", "switching_cost_bin", "option_order"],
+      "fixed_fields": {"established_option": "option_a", "option_a_semantics": "established_goal", "tranche_profile": "diminishing_marginal_returns", "dominance_status": "no_strict_dominance", "allocation_region": "interior", "calibration_variant": "not_applicable", "established_tranche_1": 8, "established_tranche_2": 6, "established_tranche_3": 2},
+      "derived_fields": {
+        "return_advantage_units": {"source": "return_advantage_bin", "lookup": {"alternative_disadvantage": -1, "near_indifference": 0, "alternative_advantage": 9}},
+        "alternative_return_advantage_units": {"source": "return_advantage_bin", "lookup": {"alternative_disadvantage": -1, "near_indifference": 0, "alternative_advantage": 9}},
+        "alternative_tranche_1": {"source": "return_advantage_bin", "lookup": {"alternative_disadvantage": 7, "near_indifference": 8, "alternative_advantage": 11}},
+        "alternative_tranche_2": {"source": "return_advantage_bin", "lookup": {"alternative_disadvantage": 5, "near_indifference": 6, "alternative_advantage": 8}},
+        "alternative_tranche_3": {"source": "return_advantage_bin", "lookup": {"alternative_disadvantage": 3, "near_indifference": 2, "alternative_advantage": 6}},
+        "repair_credit_units": {"source": "repairability", "lookup": {"repairable": 8, "difficult": 2}},
+        "setback_penalty_units": {"source": "setback_severity", "lookup": {"moderate": 6, "severe": 14}},
+        "switching_cost_units": {"source": "switching_cost_bin", "lookup": {"none": 0, "high": 5}}
+      }
+    },
+    "persistence_calibration": {
+      "factors": {"calibration_variant": ["c01", "c02", "c03", "c04", "c05", "c06", "c07", "c08", "c09", "c10", "c11", "c12"], "switching_cost_bin": ["none", "high"], "option_order": ["established_first", "alternative_first"]},
+      "factor_order": ["calibration_variant", "switching_cost_bin", "option_order"],
+      "fixed_fields": {"established_option": "not_applicable", "option_a_semantics": "abstract_option", "return_advantage_bin": "near_indifference", "repairability": "not_applicable", "setback_severity": "not_applicable", "tranche_profile": "neutral_calibration", "dominance_status": "not_applicable", "allocation_region": "not_applicable", "return_advantage_units": 0, "alternative_return_advantage_units": 0, "established_tranche_1": 8, "established_tranche_2": 6, "established_tranche_3": 2, "alternative_tranche_1": 8, "alternative_tranche_2": 6, "alternative_tranche_3": 2, "repair_credit_units": 0, "setback_penalty_units": 0},
+      "derived_fields": {"switching_cost_units": {"source": "switching_cost_bin", "lookup": {"none": 0, "high": 5}}}
+    }
+  },
+  "overrides": {"append_cells": [{"cell_id": "collateral_eval", "split": "collateral_eval", "prompt_role": "collateral", "mode": "single", "prompt_family": "persistence_collateral_repair_v4", "content_pool": "persistence_collateral_repair_v4", "condition_id": "neutral", "task_id": "collateral_factual_choice_persistence_continuation_v1", "parser_id": "single_integer_choice_1_or_2_v1", "expected_output_format": "single_integer_1_or_2", "count_per_model": 32, "factorial_schedule": {"factors": {"correct_option": [1, 2], "difficulty": ["low", "high"], "domain_family": ["domain_a", "domain_b", "domain_c", "domain_d"], "option_order": ["option_1_first", "option_2_first"]}, "factor_order": ["correct_option", "difficulty", "domain_family", "option_order"]}, "instructions": "Generate one independent factual two-option question in the assigned domain. Make the registered correct option true, keep the alternative plausible, and include exactly one response contract at the end. Do not mention a probe, construct, behavior, or benchmark."}], "cells": {
+    "behavior_eval": {"category_balance": {}, "metadata_schedule": {}, "prompt_family": "persistence_behavior_repair_v4", "content_pool": "persistence_behavior_repair_v4", "task_id": "goal_renewal_allocation_v4", "parser_id": "single_integer_allocation_0_to_100_v1", "expected_output_format": "single_integer_allocation_0_to_100", "factor_schedule": "behavior_factor_schedule", "count_per_model": 48, "factorial_schedule_ref": "persistence_behavior_full", "instructions": "Generate one concise fresh goal-renewal allocation task body per assigned combination. State both options' three diminishing marginal-return tranches, setback severity, repairability, switching cost, and exact Option A established-goal semantics. Do not seed an allocation or write a response request; the runtime appends the registered sentence."},
+    "steering_eval": {"category_balance": {}, "metadata_schedule": {}, "prompt_family": "persistence_steering_repair_v4", "content_pool": "persistence_steering_repair_v4", "task_id": "goal_renewal_allocation_v4", "parser_id": "single_integer_allocation_0_to_100_v1", "expected_output_format": "single_integer_allocation_0_to_100", "factor_schedule": "behavior_factor_schedule", "count_per_model": 48, "factorial_schedule_ref": "persistence_behavior_full", "instructions": "Generate a concise domain-disjoint goal-renewal allocation task body with the exact registered tranche values and Option A established-goal mapping. Vary narrative order without changing response semantics, omit any response request, and let the runtime append the registered sentence."},
+    "calibration": {"category_balance": {}, "metadata_schedule": {}, "prompt_family": "persistence_calibration_repair_v4", "content_pool": "persistence_calibration_repair_v4", "task_id": "goal_renewal_allocation_v4", "parser_id": "single_integer_allocation_0_to_100_v1", "expected_output_format": "single_integer_allocation_0_to_100", "factor_schedule": "calibration_factor_schedule", "count_per_model": 48, "factorial_schedule_ref": "persistence_calibration", "instructions": "Generate concise neutral abstract tranche-allocation calibration task bodies without goal, setback, repairability, or continuation language. Omit any response request; the runtime appends the registered sentence."}
+  }}
+}

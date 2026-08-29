@@ -1,0 +1,634 @@
+{
+  "collateral_behavior_task": {
+    "fact_bank": [
+      {
+        "correct_option": 1,
+        "fact_domain": "chemistry",
+        "fact_id": "epistemic_01",
+        "statement_1": "The chemical symbol for gold is Au.",
+        "statement_2": "The chemical symbol for gold is Ag."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "chemistry",
+        "fact_id": "epistemic_02",
+        "statement_1": "Oxygen has atomic number 6.",
+        "statement_2": "Oxygen has atomic number 8."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "chemistry",
+        "fact_id": "epistemic_03",
+        "statement_1": "Water has the chemical formula H2O.",
+        "statement_2": "Water has the chemical formula CO2."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "biology",
+        "fact_id": "epistemic_04",
+        "statement_1": "DNA is a type of audible sound wave.",
+        "statement_2": "DNA carries hereditary genetic information."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "biology",
+        "fact_id": "epistemic_05",
+        "statement_1": "A bacterium is a single-celled organism.",
+        "statement_2": "A bacterium is always a multicellular organism."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "biology",
+        "fact_id": "epistemic_06",
+        "statement_1": "Mammals never produce milk for their young.",
+        "statement_2": "Mammals produce milk for their young."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "biology",
+        "fact_id": "epistemic_07",
+        "statement_1": "Spiders have eight legs.",
+        "statement_2": "Spiders have six legs."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "biology",
+        "fact_id": "epistemic_08",
+        "statement_1": "Insects have eight legs.",
+        "statement_2": "Insects have six legs."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "biology",
+        "fact_id": "epistemic_09",
+        "statement_1": "Birds have feathers.",
+        "statement_2": "Birds have mammalian fur instead of feathers."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "biology",
+        "fact_id": "epistemic_10",
+        "statement_1": "Frogs are reptiles.",
+        "statement_2": "Frogs are amphibians."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "biology",
+        "fact_id": "epistemic_11",
+        "statement_1": "Plants use photosynthesis to make sugars from light energy.",
+        "statement_2": "No plant uses photosynthesis to make sugars."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "biology",
+        "fact_id": "epistemic_12",
+        "statement_1": "All fungi are classified as plants.",
+        "statement_2": "Fungi are classified separately from plants."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "physics",
+        "fact_id": "epistemic_13",
+        "statement_1": "Electrons have negative electric charge.",
+        "statement_2": "Electrons have positive electric charge."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "physics",
+        "fact_id": "epistemic_14",
+        "statement_1": "Protons have negative electric charge.",
+        "statement_2": "Protons have positive electric charge."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "physics",
+        "fact_id": "epistemic_15",
+        "statement_1": "Neutrons have no net electric charge.",
+        "statement_2": "Neutrons have positive electric charge."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "physics",
+        "fact_id": "epistemic_16",
+        "statement_1": "Atoms never contain a nucleus.",
+        "statement_2": "Atoms contain a nucleus."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "physics",
+        "fact_id": "epistemic_17",
+        "statement_1": "Sound requires a medium to propagate.",
+        "statement_2": "Sound propagates through a perfect vacuum without a medium."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "physics",
+        "fact_id": "epistemic_18",
+        "statement_1": "A prism cannot separate white light into colors.",
+        "statement_2": "A prism can separate white light into colors."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "physics",
+        "fact_id": "epistemic_19",
+        "statement_1": "A conventional magnet has north and south poles.",
+        "statement_2": "A conventional magnet has only one pole."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "measurement",
+        "fact_id": "epistemic_20",
+        "statement_1": "Water boils at 0 degrees Celsius at sea-level pressure.",
+        "statement_2": "Water boils at 100 degrees Celsius at sea-level pressure."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "measurement",
+        "fact_id": "epistemic_21",
+        "statement_1": "One kilogram contains 1,000 grams.",
+        "statement_2": "One kilogram contains 100 grams."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "measurement",
+        "fact_id": "epistemic_22",
+        "statement_1": "A dozen contains 10 items.",
+        "statement_2": "A dozen contains 12 items."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "mathematics",
+        "fact_id": "epistemic_23",
+        "statement_1": "A triangle has three sides.",
+        "statement_2": "A triangle has four sides."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "mathematics",
+        "fact_id": "epistemic_24",
+        "statement_1": "A prime number has exactly three positive divisors.",
+        "statement_2": "A prime number has exactly two positive divisors."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "mathematics",
+        "fact_id": "epistemic_25",
+        "statement_1": "A square has four equal sides.",
+        "statement_2": "A square has three equal sides."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "mathematics",
+        "fact_id": "epistemic_26",
+        "statement_1": "A right angle measures 45 degrees.",
+        "statement_2": "A right angle measures 90 degrees."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "mathematics",
+        "fact_id": "epistemic_27",
+        "statement_1": "Binary notation uses the digits 0 and 1.",
+        "statement_2": "Binary notation uses the digits 1 and 2."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "biology",
+        "fact_id": "epistemic_28",
+        "statement_1": "The human heart pumps air instead of blood.",
+        "statement_2": "The human heart pumps blood."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "physics",
+        "fact_id": "epistemic_29",
+        "statement_1": "A light-year is a unit of distance.",
+        "statement_2": "A light-year is a unit of temperature."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "biology",
+        "fact_id": "epistemic_30",
+        "statement_1": "Photosynthesis uses only oxygen as a carbon source.",
+        "statement_2": "Photosynthesis uses carbon dioxide as a carbon source."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "biology",
+        "fact_id": "epistemic_31",
+        "statement_1": "Red blood cells carry oxygen in the bloodstream.",
+        "statement_2": "Red blood cells carry only bone tissue in the bloodstream."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "physics",
+        "fact_id": "epistemic_32",
+        "statement_1": "Near Earth's surface, gravity accelerates objects upward.",
+        "statement_2": "Near Earth's surface, gravity accelerates objects downward."
+      }
+    ],
+    "fact_bank_version": "unique_32_wave4_epistemic_v3",
+    "item_metadata_schema": {
+      "properties": {
+        "correct_option": {
+          "enum": [
+            1,
+            2
+          ],
+          "type": "integer"
+        },
+        "fact_domain": {
+          "enum": [
+            "biology",
+            "chemistry",
+            "mathematics",
+            "measurement",
+            "physics"
+          ],
+          "type": "string"
+        },
+        "fact_id": {
+          "enum": [
+            "epistemic_01",
+            "epistemic_02",
+            "epistemic_03",
+            "epistemic_04",
+            "epistemic_05",
+            "epistemic_06",
+            "epistemic_07",
+            "epistemic_08",
+            "epistemic_09",
+            "epistemic_10",
+            "epistemic_11",
+            "epistemic_12",
+            "epistemic_13",
+            "epistemic_14",
+            "epistemic_15",
+            "epistemic_16",
+            "epistemic_17",
+            "epistemic_18",
+            "epistemic_19",
+            "epistemic_20",
+            "epistemic_21",
+            "epistemic_22",
+            "epistemic_23",
+            "epistemic_24",
+            "epistemic_25",
+            "epistemic_26",
+            "epistemic_27",
+            "epistemic_28",
+            "epistemic_29",
+            "epistemic_30",
+            "epistemic_31",
+            "epistemic_32"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "fact_id",
+        "fact_domain",
+        "correct_option"
+      ]
+    },
+    "primary_outcome": "correct_option",
+    "prompt_template": "In a separate factual item, use the two registered statements for the assigned fact_id. Exactly one statement is correct; do not identify it in the prompt. Return exactly one integer: 1 or 2 for the correct statement.",
+    "response_format": "single_integer_1_or_2",
+    "secondary_outcomes": [
+      "incorrect_option",
+      "compliance"
+    ],
+    "task_family": "unrelated_factual_choice",
+    "task_id": "collateral_fact_choice_v3"
+  },
+  "construct_id": "epistemic_uncertainty",
+  "contrast_conditions": [
+    {
+      "condition_id": "resolved_state",
+      "definition": "The scenario uses a genuinely borderline or equivocal evidence profile, with identical evidence content shared with its matched unresolved member, and one information-status clause records that the decision-maker regards the focal question as settled for this decision. This is an epistemic assessment by the decision-maker, not an objective conclusion mechanically forced by a threshold or calculation; stakes and option desirability remain independently specified.",
+      "label": "Resolved information state"
+    },
+    {
+      "condition_id": "unresolved_state",
+      "definition": "The scenario uses the same genuinely borderline or equivocal evidence profile, with identical evidence content to its matched resolved member, and one information-status clause records that the decision-maker regards the focal question as still open for this decision. This is an epistemic assessment by the decision-maker, not a change in evidence content, valence, quality, or objective availability; stakes and option desirability remain independently specified.",
+      "label": "Unresolved information state"
+    }
+  ],
+  "controls": [
+    "information_value_search_cost_and_stakes_crossing",
+    "resolved_and_unresolved_state_balance",
+    "identical_evidence_content_with_status_only_edit",
+    "no_evidence_valence_or_quality_change_in_unresolved_clause",
+    "new_domain_behavior_task",
+    "lexical_overlap_audit",
+    "neutral_behavior_prompt",
+    "shuffled_pair_labels",
+    "random_direction",
+    "compliance_and_collateral_response_controls",
+    "unrelated_collateral_behavior"
+  ],
+  "description": "Whether a genuinely borderline information state is represented as settled or still open, tested downstream by allocating a fixed budget between one specified check and commitment.",
+  "expected_direction": {
+    "behavior": {
+      "direction_status": "preregister_before_data_collection",
+      "estimand": "represented_information_state_transfer_to_single_check_budget",
+      "expected_by_information_value": {
+        "high": "unresolved_state increases information-seeking allocation",
+        "low": "unresolved_state increases information-seeking allocation modestly"
+      },
+      "outcome": "seek_information_allocation",
+      "warning": "This task contains one fixed binary check and does not use unknown probabilities, lotteries, or an ambiguity label."
+    },
+    "readout": {
+      "estimand": "heldout_projection_margin",
+      "negative_condition": "resolved_state",
+      "positive_condition": "unresolved_state"
+    }
+  },
+  "family": "epistemic",
+  "independent_behavior_task": {
+    "independence_requirements": [
+      "Use new domains, options, actors, and information checks not present in probe prompts.",
+      "Cross information value, search cost, and decision stakes independently.",
+      "Use exactly one fixed binary checking option in every item; do not introduce unknown probabilities, lotteries, or multiple checking options.",
+      "Do not ask the model to label the information state or to report certainty."
+    ],
+    "item_metadata_schema": {
+      "properties": {
+        "check_count": {
+          "enum": [
+            "one",
+            "none"
+          ],
+          "type": "string"
+        },
+        "check_type": {
+          "enum": [
+            "binary",
+            "none"
+          ],
+          "type": "string"
+        },
+        "decision_stakes": {
+          "enum": [
+            "low",
+            "high"
+          ],
+          "type": "string"
+        },
+        "information_value": {
+          "enum": [
+            "low",
+            "high",
+            "neutral"
+          ],
+          "type": "string"
+        },
+        "primary_position": {
+          "enum": [
+            1,
+            2
+          ],
+          "type": "integer"
+        },
+        "search_cost": {
+          "enum": [
+            "low",
+            "high"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "information_value",
+        "search_cost",
+        "decision_stakes",
+        "check_count",
+        "check_type",
+        "primary_position"
+      ]
+    },
+    "primary_outcome": "seek_information_allocation",
+    "prompt_template": "In a new decision, exactly one specified binary check is available before choosing an option. The item states which numbered option is seeking the check and which is committing now. Allocate exactly 100 points in numbered-option order. Return exactly two integers on separate lines; the two integers must sum to 100.",
+    "response_format": "two_integers_sum_100",
+    "secondary_outcomes": [
+      "commit_now_allocation",
+      "compliance"
+    ],
+    "task_family": "single_check_budget_allocation",
+    "task_id": "single_check_budget_v3"
+  },
+  "metadata": {
+    "behavioral_design": {
+      "behavior_factor_fields": [
+        "information_value",
+        "search_cost",
+        "decision_stakes",
+        "check_count",
+        "check_type",
+        "primary_position"
+      ],
+      "behavior_factor_levels": {
+        "check_count": [
+          "one"
+        ],
+        "check_type": [
+          "binary"
+        ],
+        "information_value": [
+          "low",
+          "high"
+        ]
+      },
+      "behavior_fixed_fields": {},
+      "calibration_factor_fields": [
+        "search_cost",
+        "decision_stakes",
+        "primary_position"
+      ],
+      "calibration_fixed_fields": {
+        "check_count": "none",
+        "check_type": "none",
+        "information_value": "neutral"
+      },
+      "calibration_forbidden_terms": [
+        "check",
+        "test",
+        "search",
+        "information value",
+        "commit now",
+        "seek information",
+        "settled",
+        "unresolved",
+        "additional evidence"
+      ],
+      "calibration_neutral_fields": {
+        "check_count": "none",
+        "check_type": "none",
+        "information_value": "neutral"
+      },
+      "calibration_required_patterns": [
+        "\\btwo\\s+matched\\s+options?\\b",
+        "\\bno\\s+additional\\s+step\\b|\\bno\\s+request\\s+for\\s+more\\s+information\\b"
+      ],
+      "collateral_cross_construct_disjoint": true,
+      "collateral_fact_bank_ids": [
+        "epistemic_01",
+        "epistemic_02",
+        "epistemic_03",
+        "epistemic_04",
+        "epistemic_05",
+        "epistemic_06",
+        "epistemic_07",
+        "epistemic_08",
+        "epistemic_09",
+        "epistemic_10",
+        "epistemic_11",
+        "epistemic_12",
+        "epistemic_13",
+        "epistemic_14",
+        "epistemic_15",
+        "epistemic_16",
+        "epistemic_17",
+        "epistemic_18",
+        "epistemic_19",
+        "epistemic_20",
+        "epistemic_21",
+        "epistemic_22",
+        "epistemic_23",
+        "epistemic_24",
+        "epistemic_25",
+        "epistemic_26",
+        "epistemic_27",
+        "epistemic_28",
+        "epistemic_29",
+        "epistemic_30",
+        "epistemic_31",
+        "epistemic_32"
+      ],
+      "collateral_fact_bank_version": "unique_32_wave4_epistemic_v3",
+      "collateral_parser_id": "single_integer_choice_1_or_2_v1",
+      "collateral_repair_version": "repaired_v3_collateral_v3_disjoint",
+      "collateral_required_metadata": [
+        "fact_id",
+        "fact_domain",
+        "correct_option"
+      ],
+      "collateral_response_format": "single_integer_1_or_2",
+      "collateral_task_id": "collateral_fact_choice_v3",
+      "collateral_unique_fact_ids_required": true,
+      "design_kind": "epistemic_balanced_allocation",
+      "forbidden_downstream_terms": [
+        "epistemic_uncertainty",
+        "resolved_state",
+        "unresolved_state"
+      ],
+      "full_factorial_required": true,
+      "pair_contract": null,
+      "parser_id": "two_integers_sum_100_v1",
+      "position_field": "primary_position",
+      "primary_outcome": "seek_information_allocation",
+      "repair_family": "waves2_4_repaired_v3",
+      "required_schedule_fields": [
+        "information_value",
+        "search_cost",
+        "decision_stakes",
+        "check_count",
+        "check_type",
+        "primary_position"
+      ],
+      "required_task_metadata": [
+        "information_value",
+        "search_cost",
+        "decision_stakes",
+        "check_count",
+        "check_type",
+        "primary_position"
+      ],
+      "response_format": "two_integers_sum_100",
+      "secondary_outcomes": [
+        "commit_now_allocation",
+        "compliance"
+      ],
+      "task_id": "single_check_budget_v3"
+    },
+    "collateral_task_independent_of_construct": true,
+    "do_not_tune_from_wave1_outcomes": true,
+    "downstream_independence": "The downstream item is a standalone decision with one specified check and no copied evidence or probe entities.",
+    "not_claimed_as": "generic hesitation or confidence",
+    "option_order_policy": "Every choice/allocation downstream cell registers a balanced target_option or primary_position schedule; parser scoring uses that frozen field.",
+    "paired_probe_contract": {
+      "evidence_profile": {
+        "forbidden": [
+          "A single conclusive measurement, an exact percentage or count that mechanically determines the answer, or evidence that is plainly all one way.",
+          "Regulatory thresholds, legal standards, pass/fail gates, hard cutoffs, or arithmetic comparisons such as above/below a limit.",
+          "Words that make the evidence objectively decisive or objectively indecisive, including proves, conclusive, definitive, determines, impossible to answer, or inconclusive."
+        ],
+        "required": [
+          "Use at least two materially relevant observations or indicators that point in different directions, or one explicitly limited observation whose interpretation has a credible margin; the evidence must be genuinely borderline or equivocal.",
+          "A reasonable decision-maker could regard the same evidence as settled or still open without any change to the evidence, its valence, its quality, or its limitations.",
+          "Keep the focal question interpretive or predictive enough that no single observation mechanically answers it; do not make the status depend on a regulatory rule, hard cutoff, pass/fail gate, or exact calculation."
+        ]
+      },
+      "forbidden_unresolved_semantics": [
+        "the evidence does not or fails to support the claim",
+        "the evidence contradicts, confirms, or favors a claim",
+        "the evidence is weak, insufficient, missing, or lower quality",
+        "the evidence is objectively decisive or objectively indecisive",
+        "the status follows mechanically from a threshold, cutoff, pass/fail rule, or arithmetic comparison"
+      ],
+      "resolved_status_clause": "The decision-maker treats the focal question as settled for this decision, given the report and its stated limitations.",
+      "shared_evidence": "The evidence count, source, report content, valence, limitations, quantities if any, and quality are identical within each pair. The shared evidence must be genuinely borderline or equivocal rather than objectively decisive or objectively indecisive.",
+      "unresolved_status_clause": "The decision-maker treats the focal question as still open for this decision, given the report and its stated limitations."
+    },
+    "parent_spec_path": "configs/construct_benchmark/constructs/epistemic_uncertainty_repaired_v3_collateral_v2.json",
+    "parent_spec_sha256": "11c46528292440079895bba2523531678ab297bcffdb89d6b7f447ee275858e3",
+    "primary_question": "Does an unresolved-information direction transfer to seeking additional information in an independent decision?",
+    "probe_state_is": "represented_epistemic_information_state",
+    "release_note": "Supersedes the v1 downstream wording for future review and generation; v1 artifacts remain historical.",
+    "repair_scope": [
+      "Waves 2-4 collateral task only",
+      "construct-disjoint 32-fact objective bank",
+      "deterministic registered collateral gold answers",
+      "balanced correct-option positions"
+    ],
+    "repair_version": "repaired_v3_collateral_v3_disjoint"
+  },
+  "paired_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout"
+  ],
+  "parsing_rules": {
+    "extra_text_policy": "invalid",
+    "invalid_response_policy": "exclude_from_outcome_denominator_and_report_compliance",
+    "outcome_aliases": {
+      "commit_now_allocation": "commit_now_allocation",
+      "seek_information_allocation": "seek_information_allocation"
+    },
+    "parser_id": "two_integers_sum_100_v1",
+    "sum_constraint": 100,
+    "valid_ranges": {
+      "commit_now_allocation": [
+        0,
+        100
+      ],
+      "seek_information_allocation": [
+        0,
+        100
+      ]
+    }
+  },
+  "probe_prompt_template": "Read the following short information-state scenario. Track whether the decision-maker treats the focal question as settled or still open without answering a later task.\n\nScenario:\n{scenario}\n\nKeep the scenario in working memory without adding a response.",
+  "required_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout",
+    "behavior_eval",
+    "steering_eval",
+    "calibration",
+    "collateral_eval"
+  ],
+  "schema_version": "0.1.0",
+  "title": "Represented information state with clean information budgeting",
+  "version": "repaired_v3_collateral_v3_disjoint"
+}

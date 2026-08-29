@@ -1,0 +1,44 @@
+{
+  "base_plan_path": "wave1_realization_account_closure_behavioral_repair_v4.json",
+  "plan_id": "wave1_realization_account_closure_behavioral_repair_v4_preflight",
+  "generation": {"seed": 1241, "max_items_per_request": 20},
+  "behavioral_schedule_contract": {
+    "required_fields": ["outcome_valence", "stake_level", "risk_probability", "option_order", "ev_bin", "dominance_status", "allocation_region", "curve_profile", "sure_value_units", "risky_high_value_units", "risky_low_value_units", "risk_probability_percent"],
+    "factors": {"outcome_valence": ["gain", "loss"], "stake_level": ["low", "high"], "risk_probability": ["even", "uneven"], "option_order": ["risky_first", "sure_first"], "ev_bin": ["near_indifferent"]},
+    "factor_order": ["outcome_valence", "stake_level", "risk_probability", "option_order", "ev_bin"],
+    "full_factorial": true,
+    "required_values": {"outcome_valence": ["gain", "loss"], "ev_bin": ["near_indifferent"]},
+    "balanced_fields": ["outcome_valence", "stake_level", "risk_probability", "option_order"],
+    "calibration_neutral_fields": {"outcome_valence": "neutral", "dominance_status": "not_applicable", "allocation_region": "not_applicable", "curve_profile": "neutral_calibration"}
+  },
+  "content_pools": {
+    "realization_behavior_preflight_v4": {"role": "behavior", "domains": ["harbor_insurance_preflight_v4", "orchard_reserve_preflight_v4"]},
+    "realization_steering_preflight_v4": {"role": "steering", "domains": ["telescope_portfolio_preflight_v4", "community_grant_preflight_v4"]},
+    "realization_calibration_preflight_v4": {"role": "calibration", "domains": ["abstract_index_preflight_v4", "inventory_units_preflight_v4"]}
+  },
+  "downstream_pool_separation": {
+    "required_prompt_anchors": {"realization_behavior_preflight_v4": ["harbor", "reserve"], "realization_steering_preflight_v4": ["telescope", "observatory", "grant"], "realization_calibration_preflight_v4": ["abstract", "index", "units"]},
+    "forbidden_prompt_anchors": {"realization_behavior_preflight_v4": ["telescope", "observatory", "grant", "abstract", "index"], "realization_steering_preflight_v4": ["harbor", "reserve", "abstract", "index"], "realization_calibration_preflight_v4": ["harbor", "reserve", "telescope", "observatory", "grant"]}
+  },
+  "factorial_schedules": {
+    "realization_behavior_preflight": {
+      "factors": {"outcome_valence": ["gain", "loss"], "stake_level": ["low", "high"], "risk_probability": ["even", "uneven"], "option_order": ["risky_first", "sure_first"]},
+      "factor_order": ["outcome_valence", "stake_level", "risk_probability", "option_order"],
+      "fixed_fields": {"ev_bin": "near_indifferent", "dominance_status": "no_strict_dominance", "allocation_region": "interior", "curve_profile": "diminishing_returns_portfolio"},
+      "derived_fields": {
+        "sure_value_units": {"sources": ["stake_level", "outcome_valence"], "lookup": {"low|gain": 20, "high|gain": 60, "low|loss": -20, "high|loss": -60}},
+        "risk_probability_percent": {"source": "risk_probability", "lookup": {"even": 50, "uneven": 75}},
+        "risky_high_value_units": {"sources": ["stake_level", "outcome_valence", "risk_probability"], "lookup": {"low|gain|even": 40, "low|gain|uneven": 30, "high|gain|even": 80, "high|gain|uneven": 70, "low|loss|even": 0, "low|loss|uneven": -10, "high|loss|even": -40, "high|loss|uneven": -50}},
+        "risky_low_value_units": {"sources": ["stake_level", "outcome_valence", "risk_probability"], "lookup": {"low|gain|even": 0, "low|gain|uneven": -10, "high|gain|even": 40, "high|gain|uneven": 30, "low|loss|even": -40, "low|loss|uneven": -50, "high|loss|even": -80, "high|loss|uneven": -90}}
+      }
+    },
+    "realization_calibration_preflight": {"factors": {"stake_level": ["low", "high"], "risk_probability": ["even", "uneven"], "option_order": ["risky_first", "sure_first"], "ev_bin": ["near_indifferent", "modest_risk_premium"]}, "factor_order": ["stake_level", "risk_probability", "option_order", "ev_bin"], "fixed_fields": {"outcome_valence": "neutral", "dominance_status": "not_applicable", "allocation_region": "not_applicable", "curve_profile": "neutral_calibration", "sure_value_units": 10, "risky_high_value_units": 20, "risky_low_value_units": 0, "risk_probability_percent": 50}}
+  },
+  "overrides": {
+    "cells": {
+      "behavior_eval": {"category_balance": {}, "metadata_schedule": {}, "prompt_family": "realization_behavior_preflight_v4", "content_pool": "realization_behavior_preflight_v4", "count_per_model": 16, "factorial_schedule_ref": "realization_behavior_preflight"},
+      "steering_eval": {"category_balance": {}, "metadata_schedule": {}, "prompt_family": "realization_steering_preflight_v4", "content_pool": "realization_steering_preflight_v4", "count_per_model": 16, "factorial_schedule_ref": "realization_behavior_preflight"},
+      "calibration": {"category_balance": {}, "metadata_schedule": {}, "prompt_family": "realization_calibration_preflight_v4", "content_pool": "realization_calibration_preflight_v4", "count_per_model": 16, "factorial_schedule_ref": "realization_calibration_preflight"}
+    }
+  }
+}

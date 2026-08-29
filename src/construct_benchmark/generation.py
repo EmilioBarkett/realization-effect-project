@@ -17,6 +17,7 @@ import re
 import urllib.error
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
+from itertools import product
 from pathlib import Path
 from typing import Any, Callable, Iterable, Mapping
 
@@ -232,6 +233,176 @@ def _category_balance(
     return validated
 
 
+def _metadata_schedule(
+    value: Any,
+    *,
+    field_name: str,
+    count: int,
+    spec: ConstructSpec,
+    prompt_role: str,
+) -> dict[str, list[Any]]:
+    """Validate deterministic schedules for non-categorical task metadata.
+
+    ``category_balance`` intentionally accepts only registered categorical
+    fields.  Repair specifications also need immutable numeric or structured
+    design metadata, so plans may provide those assignments separately while
+    retaining the same strict task-metadata schema.
+    """
+
+    if value is None:
+        return {}
+    if not isinstance(value, Mapping):
+        raise ValueError(f"{field_name} must be an object mapping metadata fields to schedules.")
+    task = _task_for_prompt_role(spec, prompt_role)
+    properties = dict(task["item_metadata_schema"]["properties"])
+    validated: dict[str, list[Any]] = {}
+    for raw_field, raw_schedule in value.items():
+        field = _identifier(raw_field, field_name=f"{field_name}.field")
+        if field not in properties:
+            raise ValueError(f"{field_name} references unknown task metadata field={field!r}.")
+        if not isinstance(raw_schedule, list) or len(raw_schedule) != count:
+            raise ValueError(f"{field_name}.{field} must contain exactly {count} scheduled values.")
+        property_schema = properties[field]
+        property_type = property_schema.get("type")
+        enum = property_schema.get("enum")
+        for item in raw_schedule:
+            valid_type = {
+                "string": isinstance(item, str),
+                "integer": isinstance(item, int) and not isinstance(item, bool),
+                "number": isinstance(item, (int, float)) and not isinstance(item, bool),
+                "boolean": isinstance(item, bool),
+            }.get(property_type, False)
+            if not valid_type:
+                raise ValueError(f"{field_name}.{field} contains a value with type incompatible with {property_type!r}.")
+            if isinstance(enum, list) and item not in enum:
+                raise ValueError(f"{field_name}.{field} contains a value outside its registered enum.")
+            if "minimum" in property_schema and item < property_schema["minimum"]:
+                raise ValueError(f"{field_name}.{field} contains a value below its registered minimum.")
+            if "maximum" in property_schema and item > property_schema["maximum"]:
+                raise ValueError(f"{field_name}.{field} contains a value above its registered maximum.")
+        validated[field] = list(raw_schedule)
+    return validated
+
+
+def _factorial_schedule(
+    value: Any,
+    *,
+    field_name: str,
+    count: int,
+    spec: ConstructSpec,
+    prompt_role: str,
+) -> tuple[dict[str, list[Any]], dict[str, list[Any]]]:
+    """Expand a compact, pre-registered factorial schedule for one cell.
+
+    A schedule is a mapping with ``factors`` and optional ``fixed_fields``.
+    The Cartesian product is emitted in declared factor order and repeated
+    only when the cell count is an exact multiple of that product.  Review
+    mode later requests one deterministic first assignment from the same
+    frozen effective plan.
+    """
+
+    if value is None:
+        return {}, {}
+    if not isinstance(value, Mapping):
+        raise ValueError(f"{field_name} must be an object.")
+    raw_factors = value.get("factors")
+    if not isinstance(raw_factors, Mapping) or not raw_factors:
+        raise ValueError(f"{field_name}.factors must be a non-empty object.")
+    factors: dict[str, list[Any]] = {}
+    for raw_field, raw_values in raw_factors.items():
+        field = _identifier(raw_field, field_name=f"{field_name}.factors field")
+        if not isinstance(raw_values, list) or not raw_values:
+            raise ValueError(f"{field_name}.factors.{field} must be a non-empty list.")
+        factors[field] = list(raw_values)
+    raw_fixed = value.get("fixed_fields", {})
+    if not isinstance(raw_fixed, Mapping):
+        raise ValueError(f"{field_name}.fixed_fields must be an object.")
+    fixed = dict(raw_fixed)
+    raw_derived = value.get("derived_fields", {})
+    if not isinstance(raw_derived, Mapping):
+        raise ValueError(f"{field_name}.derived_fields must be an object.")
+    derived = dict(raw_derived)
+    overlap = set(factors) & set(fixed)
+    if overlap:
+        raise ValueError(f"{field_name} assigns factor(s) as both varying and fixed: {sorted(overlap)}")
+    derived_overlap = (set(factors) | set(fixed)) & set(derived)
+    if derived_overlap:
+        raise ValueError(f"{field_name} assigns field(s) more than once: {sorted(derived_overlap)}")
+    raw_order = value.get("factor_order", list(factors))
+    if not isinstance(raw_order, list) or set(raw_order) != set(factors) or len(raw_order) != len(factors):
+        raise ValueError(f"{field_name}.factor_order must list each factor exactly once.")
+    combinations = [dict(zip(raw_order, values, strict=True)) for values in product(*(factors[field] for field in raw_order))]
+    if not combinations:
+        raise ValueError(f"{field_name} produced no combinations.")
+    if count == 1:
+        combinations = combinations[:1]
+    elif count % len(combinations) != 0:
+        raise ValueError(
+            f"{field_name} has {len(combinations)} factorial combinations, which do not divide count={count}."
+        )
+    else:
+        combinations = combinations * (count // len(combinations))
+    # Validate fixed fields and all factor values against the task schema,
+    # then return separate schedules so existing category-balance semantics
+    # remain unchanged for older plans.
+    assignments: list[dict[str, Any]] = []
+    for combination in combinations:
+        row = {**fixed, **combination}
+        for raw_field, raw_rule in derived.items():
+            field = _identifier(raw_field, field_name=f"{field_name}.derived_fields field")
+            rule = _mapping(raw_rule, field_name=f"{field_name}.derived_fields.{field}")
+            raw_sources = rule.get("sources", rule.get("source"))
+            if isinstance(raw_sources, str):
+                sources = [raw_sources]
+            elif isinstance(raw_sources, list) and raw_sources and all(isinstance(item, str) for item in raw_sources):
+                sources = list(raw_sources)
+            else:
+                raise ValueError(f"{field_name}.derived_fields.{field} requires source or sources.")
+            lookup = rule.get("lookup")
+            if not isinstance(lookup, Mapping) or not lookup:
+                raise ValueError(f"{field_name}.derived_fields.{field}.lookup must be a non-empty object.")
+            key = "|".join(str(row[source]) for source in sources)
+            if key not in lookup:
+                raise ValueError(
+                    f"{field_name}.derived_fields.{field} has no lookup value for {key!r}."
+                )
+            row[field] = lookup[key]
+        assignments.append(row)
+    combinations = assignments
+    categorical_factors: dict[str, list[Any]] = {}
+    numeric_factors: dict[str, list[Any]] = {}
+    task_properties = dict(_task_for_prompt_role(spec, prompt_role)["item_metadata_schema"]["properties"])
+    for field in {field for row in combinations for field in row}:
+        if field in fixed:
+            continue
+        if field not in task_properties:
+            raise ValueError(f"{field_name} references unknown task metadata field={field!r}.")
+        if isinstance(task_properties[field].get("enum"), list) and task_properties[field].get("enum"):
+            categorical_factors[field] = [row[field] for row in combinations]
+        else:
+            numeric_factors[field] = [row[field] for row in combinations]
+    for field in fixed:
+        if field not in task_properties:
+            raise ValueError(f"{field_name}.fixed_fields references unknown task metadata field={field!r}.")
+    # Fixed fields and derived fields are checked below through the same
+    # schema-aware schedule validators as numeric factors.
+    metadata_schedule = _metadata_schedule(
+        {field: [row[field] for row in combinations] for field in (*fixed, *numeric_factors)},
+        field_name=f"{field_name}.fixed_fields",
+        count=len(combinations),
+        spec=spec,
+        prompt_role=prompt_role,
+    )
+    category_schedule = _category_balance(
+        categorical_factors,
+        field_name=f"{field_name}.factors",
+        count=len(combinations),
+        spec=spec,
+        prompt_role=prompt_role,
+    )
+    return category_schedule, metadata_schedule
+
+
 def _paired_metadata_schema(spec: ConstructSpec) -> dict[str, Any] | None:
     """Return an optional schema for metadata attached to paired prompts.
 
@@ -376,8 +547,18 @@ def _expected_category_assignments(job: ConstructGenerationJob, index: int) -> d
         if not schedule:
             continue
         assignments[str(field)] = schedule[(job.item_offset + index) % len(schedule)]
+    for field, schedule in dict(job.cell.get("metadata_schedule", {})).items():
+        if not schedule:
+            continue
+        assignments[str(field)] = schedule[(job.item_offset + index) % len(schedule)]
     assignments.update(_paired_metadata_assignment(job, index))
     return assignments
+
+
+# Public alias used by the benchmark-facing downstream audit.  Keeping the
+# implementation above private preserves the existing helper name while
+# making the combined category/numeric assignment contract reusable.
+expected_task_metadata_assignments = _expected_category_assignments
 
 
 @dataclass(frozen=True)
@@ -539,7 +720,15 @@ def _deep_merge(base: Any, overlay: Any) -> Any:
     if isinstance(base, dict) and isinstance(overlay, dict):
         merged = copy.deepcopy(base)
         for key, value in overlay.items():
-            merged[key] = _deep_merge(merged[key], value) if key in merged else copy.deepcopy(value)
+            # A calibration factor schedule is a complete, versioned
+            # contract.  Recursively retaining a parent's neutral-field keys
+            # can make a child plan require metadata its task schema removed.
+            # Replace this section atomically; ordinary plan mappings retain
+            # the historical recursive-merge behavior.
+            if key == "calibration_factor_schedule":
+                merged[key] = copy.deepcopy(value)
+            else:
+                merged[key] = _deep_merge(merged[key], value) if key in merged else copy.deepcopy(value)
         return merged
     return copy.deepcopy(overlay)
 
@@ -593,6 +782,11 @@ def load_generation_plan(
         raise ValueError(f"Unsupported generation-plan schema_version={schema_version!r}.")
     plan_id = _identifier(plan.get("plan_id"), field_name="plan_id")
     construct_id = _identifier(plan.get("construct_id"), field_name="construct_id")
+    response_instruction_policy = plan.get("response_instruction_policy", "model_supplied")
+    if response_instruction_policy not in {"model_supplied", "runtime_append"}:
+        raise ValueError(
+            "response_instruction_policy must be 'model_supplied' or 'runtime_append'."
+        )
     if construct_id != spec.construct_id:
         raise ValueError(
             f"Generation plan construct_id={construct_id!r} does not match spec {spec.construct_id!r}."
@@ -688,6 +882,34 @@ def load_generation_plan(
         count = cell.get("count_per_model", plan.get("default_count_per_cell_per_model", 1))
         if not isinstance(count, int) or count < 1:
             raise ValueError(f"cells[{index}].count_per_model must be a positive integer.")
+        factorial_schedule = cell.get("factorial_schedule")
+        schedule_ref = cell.get("factorial_schedule_ref")
+        if factorial_schedule is None and schedule_ref is not None:
+            schedule_definitions = plan.get("factorial_schedules", {})
+            if not isinstance(schedule_definitions, Mapping) or schedule_ref not in schedule_definitions:
+                raise ValueError(
+                    f"cells[{index}].factorial_schedule_ref={schedule_ref!r} is not registered."
+                )
+            factorial_schedule = schedule_definitions[schedule_ref]
+        factorial_category_balance, factorial_metadata_schedule = _factorial_schedule(
+            factorial_schedule,
+            field_name=f"cells[{index}].factorial_schedule",
+            count=count,
+            spec=spec,
+            prompt_role=prompt_role,
+        )
+        if factorial_category_balance:
+            if cell.get("category_balance") not in (None, {}):
+                raise ValueError(
+                    f"cells[{index}] cannot combine factorial_schedule with category_balance."
+                )
+            cell["category_balance"] = factorial_category_balance
+        if factorial_metadata_schedule:
+            if cell.get("metadata_schedule") not in (None, {}):
+                raise ValueError(
+                    f"cells[{index}] cannot combine factorial_schedule with metadata_schedule."
+                )
+            cell["metadata_schedule"] = factorial_metadata_schedule
         cell["category_balance"] = _category_balance(
             cell.get("category_balance"),
             field_name=f"cells[{index}].category_balance",
@@ -695,6 +917,20 @@ def load_generation_plan(
             spec=spec,
             prompt_role=prompt_role,
         )
+        raw_metadata_schedule = cell.get("metadata_schedule")
+        validated_metadata_schedule = _metadata_schedule(
+            raw_metadata_schedule,
+            field_name=f"cells[{index}].metadata_schedule",
+            count=count,
+            spec=spec,
+            prompt_role=prompt_role,
+        )
+        # Keep the effective mapping byte-for-byte compatible with legacy
+        # plans that never declared numeric metadata.  This preserves their
+        # pinned provenance hashes while repaired plans still receive the
+        # normalized schedule produced above.
+        if raw_metadata_schedule is not None or factorial_metadata_schedule:
+            cell["metadata_schedule"] = validated_metadata_schedule
         if mode == "paired":
             cell["paired_metadata_schedule"] = _paired_metadata_schedule(
                 cell.get("paired_metadata_schedule"),
@@ -1002,6 +1238,17 @@ def build_generation_messages(spec: ConstructSpec, plan: Mapping[str, Any], job:
     cell = job.cell
     task = _task_for_prompt_role(spec, job.prompt_role)
     assigned_domains = _assigned_content_domains(plan, job)
+    response_instruction_policy = str(plan.get("response_instruction_policy", "model_supplied"))
+    model_task = task
+    if response_instruction_policy == "runtime_append" and job.prompt_role != "probe":
+        registered_instruction = _registered_response_instruction(
+            task,
+            str(task.get("response_format", job.cell.get("expected_output_format", ""))),
+        )
+        task_template = str(task.get("prompt_template", ""))
+        if task_template.rstrip().endswith(registered_instruction):
+            model_task = dict(task)
+            model_task["prompt_template"] = task_template.rstrip()[: -len(registered_instruction)].rstrip()
     scheduled_pair_requirements = [
         {
             "pair_index": index + 1,
@@ -1029,14 +1276,22 @@ def build_generation_messages(spec: ConstructSpec, plan: Mapping[str, Any], job:
         "of naming the target construct or its conditions."
     )
     if job.prompt_role != "probe":
-        system += (
-            " For downstream single prompts, prompt_text is the final end-user model input, not a description "
-            "of the generation task. Instantiate exactly one concrete task from the registered task specification. "
-            "Do not paste or repeat the registered task template, cell instructions, design rules, content-pool "
-            "names, generation instructions, or benchmark language into prompt_text. Include exactly one concrete "
-            "task setup and exactly one response contract as the final instruction. Never include the probe-only "
-            "sentence 'Continue processing the scenario.' and never refer to an earlier, prior, or probe scenario."
-        )
+        system += " For downstream single prompts, prompt_text is the final end-user model input, not a description "
+        system += "of the generation task. Instantiate exactly one concrete task from the registered task specification. "
+        system += "Do not paste or repeat the registered task template, cell instructions, design rules, content-pool "
+        system += "names, generation instructions, or benchmark language into prompt_text. "
+        if response_instruction_policy == "runtime_append":
+            system += (
+                "Return only the concise task body and do not include any response request; the runtime appends "
+                "the registered exact response sentence once. Never include the probe-only sentence "
+                "'Continue processing the scenario.' and never refer to an earlier, prior, or probe scenario."
+            )
+        else:
+            system += (
+                "Include exactly one concrete task setup and exactly one response contract as the final instruction. "
+                "Never include the probe-only sentence 'Continue processing the scenario.' and never refer to an "
+                "earlier, prior, or probe scenario."
+            )
         if isinstance(plan.get("downstream_pool_separation"), Mapping):
             system += (
                 " The downstream pool contract below is authoritative: every generated prompt must contain "
@@ -1058,10 +1313,11 @@ def build_generation_messages(spec: ConstructSpec, plan: Mapping[str, Any], job:
         "scheduled_pair_requirements": scheduled_pair_requirements,
         "count": job.count,
         "generation_mode": job.mode,
+        "response_instruction_policy": response_instruction_policy,
         "probe_template": spec.probe_prompt_template if job.prompt_role == "probe" else None,
-        "independent_task": task if job.prompt_role != "probe" else None,
+        "independent_task": model_task if job.prompt_role != "probe" else None,
         "registered_downstream_task_template": (
-            task["prompt_template"] if job.prompt_role != "probe" else None
+            model_task["prompt_template"] if job.prompt_role != "probe" else None
         ),
         "item_metadata_schema": task["item_metadata_schema"] if job.prompt_role != "probe" else None,
         "paired_item_metadata_schema": _paired_metadata_schema(spec) if job.mode == "paired" else None,
@@ -1108,9 +1364,14 @@ def build_generation_messages(spec: ConstructSpec, plan: Mapping[str, Any], job:
             "task_metadata that exactly follows item_metadata_schema. "
             "Every prompt_text must be a complete model input, not a summary. For every downstream single prompt, "
             "keep prompt_text at or below 1900 characters so the response instruction has safe truncation headroom. "
-            "The registered_downstream_task_template is normative as a specification: instantiate its task setup "
-            "and include one complete response-format instruction in the final prompt. Do not paste the template "
-            "or any generation-only instruction verbatim, and do not append text after the response contract."
+        "The registered_downstream_task_template is normative as a specification: instantiate its task setup "
+        + (
+            "and stop before a response request; the runtime appends one complete response-format instruction. "
+            "Do not paste the template or any generation-only instruction verbatim."
+            if response_instruction_policy == "runtime_append"
+            else "and include one complete response-format instruction in the final prompt. Do not paste the "
+            "template or any generation-only instruction verbatim, and do not append text after the response contract."
+        )
         ),
     }
     return [

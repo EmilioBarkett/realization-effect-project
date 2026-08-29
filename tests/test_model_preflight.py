@@ -92,6 +92,28 @@ def test_preflight_selection_is_bounded_and_outcome_independent(tmp_path: Path) 
         assert manifest["selected"][spec.construct_id][split]["item_count"] == 16
 
 
+def test_selection_manifest_serializes_repository_paths_relative(tmp_path: Path) -> None:
+    spec = load_construct_spec(SPEC_PATH)
+    repository_root = tmp_path / "repository"
+    inventory = repository_root / "results" / "inventory.csv"
+    inventory.parent.mkdir(parents=True)
+    inventory.write_text("frozen inventory\n", encoding="utf-8")
+
+    manifest = prepare_selection_manifest(
+        _records(spec.construct_id),
+        source_inventory=inventory,
+        model={
+            "model_id": "mistralai/Mistral-Small-24B-Instruct-2501",
+            "revision": "rev",
+        },
+        construct_ids=[spec.construct_id],
+        repository_root=repository_root,
+    )
+
+    assert manifest["source_inventory"] == "results/inventory.csv"
+    assert not Path(manifest["source_inventory"]).is_absolute()
+
+
 def test_preflight_runner_selection_uses_frozen_ids(tmp_path: Path) -> None:
     spec = load_construct_spec(SPEC_PATH)
     inventory = tmp_path / "inventory.csv"

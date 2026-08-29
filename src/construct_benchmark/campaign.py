@@ -30,7 +30,7 @@ from .run_modes import select_prompt_records
 
 
 VECTOR_SPLITS = frozenset({"direction_train", "direction_validation", "direction_heldout"})
-DOWNSTREAM_SPLITS = frozenset({"behavior_eval", "steering_eval", "calibration"})
+DOWNSTREAM_SPLITS = frozenset({"behavior_eval", "steering_eval", "calibration", "collateral_eval"})
 WAVE_VECTOR_COUNTS = {
     "direction_train": 200,
     "direction_validation": 80,

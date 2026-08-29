@@ -1,0 +1,86 @@
+{
+  "base_spec_path": "evidence_diagnosticity_v4.json",
+  "version": "v5",
+  "independent_behavior_task": {
+    "task_id": "diagnostic_test_allocation_v5",
+    "task_family": "numeric_information_selection_with_common_unit_tradeoffs",
+    "prompt_template": "For an independent decision, compare two possible tests. Each test has a diagnostic benefit score, a resource cost in common resource units, and a delay in hours. Both tests concern the same decision and share one stated consequence-stakes value. Weigh all of these facts together; a larger benefit can come with a larger cost or a longer delay. Allocate 0 to 100 points to Option A; the remaining points go to Option B. Use only this item's facts. Return exactly one integer from 0 to 100: the points assigned to Option A.",
+    "primary_outcome": "high_information_test_allocation",
+    "secondary_outcomes": ["other_test_allocation", "compliance"],
+    "response_format": "single_integer_allocation_0_to_100",
+    "item_metadata_schema": {
+      "properties": {
+        "high_information_option": {"type": "string", "enum": ["option_a", "option_b", "matched"]},
+        "diagnostic_benefit_contrast": {"type": "string", "enum": ["option_a_high", "option_b_high", "matched"]},
+        "diagnosticity_strength": {"type": "string", "enum": ["weak", "moderate", "strong", "matched"]},
+        "cost_profile": {"type": "string", "enum": ["high_information_costlier", "matched"]},
+        "cost_contrast": {"type": "string", "enum": ["option_a_high", "option_b_high", "matched"]},
+        "delay_profile": {"type": "string", "enum": ["high_information_slower", "high_information_faster", "matched"]},
+        "delay_contrast": {"type": "string", "enum": ["option_a_long", "option_b_long", "matched"]},
+        "stakes_contrast": {"type": "string", "enum": ["matched"]},
+        "stakes_structure": {"type": "string", "enum": ["shared_single_decision_value", "neutral_calibration"]},
+        "decision_stakes_bin": {"type": "string", "enum": ["low", "high", "matched"]},
+        "option_order": {"type": "string", "enum": ["option_a_first", "option_b_first"]},
+        "nuisance_strength": {"type": "string", "enum": ["weak", "moderate", "strong", "matched"]},
+        "dominance_status": {"type": "string", "enum": ["no_strict_dominance", "not_applicable"]},
+        "allocation_region": {"type": "string", "enum": ["interior", "not_applicable"]},
+        "calibration_variant": {"type": "string", "enum": ["alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta", "theta", "not_applicable"]},
+        "option_a_benefit_units": {"type": "integer", "minimum": 0, "maximum": 100},
+        "option_b_benefit_units": {"type": "integer", "minimum": 0, "maximum": 100},
+        "option_a_cost_units": {"type": "integer", "minimum": 0},
+        "option_b_cost_units": {"type": "integer", "minimum": 0},
+        "option_a_delay_hours": {"type": "integer", "minimum": 0},
+        "option_b_delay_hours": {"type": "integer", "minimum": 0},
+        "decision_stakes_units": {"type": "integer", "minimum": 1}
+      },
+      "required": [
+        "high_information_option", "diagnostic_benefit_contrast", "diagnosticity_strength", "cost_profile",
+        "cost_contrast", "delay_profile", "delay_contrast", "stakes_contrast", "stakes_structure",
+        "decision_stakes_bin", "option_order", "nuisance_strength", "dominance_status", "allocation_region",
+        "calibration_variant", "option_a_benefit_units", "option_b_benefit_units", "option_a_cost_units",
+        "option_b_cost_units", "option_a_delay_hours", "option_b_delay_hours", "decision_stakes_units"
+      ]
+    }
+  },
+  "metadata": {
+    "behavioral_design": {
+      "repair_id": "wave1_evidence_behavioral_repair_v5",
+      "design_kind": "evidence_diagnosticity_tradeoff",
+      "shared_stakes_field": "decision_stakes_bin",
+      "required_task_metadata": [
+        "high_information_option", "diagnostic_benefit_contrast", "diagnosticity_strength", "cost_profile",
+        "cost_contrast", "delay_profile", "delay_contrast", "stakes_contrast", "stakes_structure",
+        "decision_stakes_bin", "option_order", "nuisance_strength", "dominance_status", "allocation_region",
+        "calibration_variant", "option_a_benefit_units", "option_b_benefit_units", "option_a_cost_units",
+        "option_b_cost_units", "option_a_delay_hours", "option_b_delay_hours", "decision_stakes_units"
+      ],
+      "required_schedule_fields": [
+        "high_information_option", "diagnostic_benefit_contrast", "diagnosticity_strength", "cost_profile",
+        "cost_contrast", "delay_profile", "delay_contrast", "stakes_contrast", "stakes_structure",
+        "decision_stakes_bin", "option_order", "nuisance_strength", "dominance_status", "allocation_region",
+        "calibration_variant", "option_a_benefit_units", "option_b_benefit_units", "option_a_cost_units",
+        "option_b_cost_units", "option_a_delay_hours", "option_b_delay_hours", "decision_stakes_units"
+      ],
+      "fixed_metadata": {
+        "cost_profile": "high_information_costlier",
+        "stakes_contrast": "matched",
+        "stakes_structure": "shared_single_decision_value",
+        "dominance_status": "no_strict_dominance",
+        "allocation_region": "interior",
+        "calibration_variant": "not_applicable"
+      },
+      "forbidden_downstream_terms": [
+        "evidence_diagnosticity", "diagnosticity", "high-information", "low-information", "targeted",
+        "routine", "obvious", "irrelevant", "probe state", "construct", "high diagnosticity", "low diagnosticity"
+      ],
+      "tradeoff_rule": "The high-information option is always costlier; delay can favor either option; common-unit stakes are identical for both options.",
+      "non_dominance_rule": "The high-information option has the larger benefit but the larger cost, so neither option is strictly dominant.",
+      "no_separate_stakes_rule": "Each item has one decision_stakes_units value and must not assign distinct stakes scales to the two options."
+    },
+    "wave1_release_v5_candidate": {
+      "purpose": "candidate behavioral repair; not active registry replacement",
+      "source_spec_version": "v4",
+      "collateral_preserved": true
+    }
+  }
+}

@@ -28,11 +28,30 @@ _PROBABILITY_TASK_OUTCOMES = {
 _PROBABILITY_DIRECT_TASK_OUTCOMES = {
     "assigned_selected_prediction_v1": "target_outcome_probability",
     "peer_judgment_probability_v1": "claim_probability",
+    "information_change_forecast_v2": "information_change_probability",
+    "information_change_forecast_v3": "information_change_probability",
+    "mechanism_forecast_v2": "mechanism_outcome_probability",
+    "mechanism_forecast_v3": "mechanism_outcome_probability",
+    "peer_evidence_forecast_v2": "focal_claim_probability",
+    "peer_evidence_forecast_v3": "focal_claim_probability",
 }
 _CHOICE_TASK_OUTCOMES = {
     "sure_risky_choice_v1": ("sure_choice", "risky_choice"),
     "advice_direct_evidence_choice_v1": ("follow_specialist", "use_direct_measurement"),
     "known_new_option_choice_v1": ("known_option_choice", "new_option_choice"),
+}
+_POSITIONED_CHOICE_TASK_OUTCOMES = {
+    "reference_distal_option_choice_v3": ("variable_option_choice", "fixed_option_choice"),
+    "role_guided_procedure_choice_v3": ("recommended_procedure_choice", "direct_measurement_choice"),
+    "operational_schedule_choice_v3": ("untested_schedule_choice", "established_schedule_choice"),
+}
+_POSITIONED_SUM_TASK_OUTCOMES = {
+    "bounded_information_budget_v3": ("interval_plan_allocation", "fixed_plan_allocation"),
+    "constraint_resource_allocation_v3": ("revised_work_allocation", "original_work_allocation"),
+    "dated_resource_allocation_v3": ("six_month_allocation", "one_week_allocation"),
+    "single_check_budget_v3": ("seek_information_allocation", "commit_now_allocation"),
+    "fresh_help_allocation_v3": ("prior_helper_allocation", "other_requester_allocation"),
+    "fresh_attention_budget_v3": ("focal_task_attention", "distractor_attention"),
 }
 _ALLOCATION_TASK_OUTCOMES = {
     "goal_renewal_allocation_v2": "existing_goal_allocation",
@@ -123,7 +142,17 @@ def parse_behavior_output(
             if correct_option not in {1, 2}:
                 return _invalid(parser_id, "correct_option metadata must be 1 or 2")
             values["correct_option"] = float(choice == correct_option)
-        if registered_task_id in _CHOICE_TASK_OUTCOMES:
+        if registered_task_id in _POSITIONED_CHOICE_TASK_OUTCOMES:
+            primary, secondary = _POSITIONED_CHOICE_TASK_OUTCOMES[registered_task_id]
+            try:
+                primary_option = int(metadata["target_option"])
+            except (KeyError, TypeError, ValueError):
+                return _invalid(parser_id, "position-balanced choice requires target_option metadata")
+            if primary_option not in {1, 2}:
+                return _invalid(parser_id, "target_option metadata must be 1 or 2")
+            values[primary] = float(choice == primary_option)
+            values[secondary] = float(choice != primary_option)
+        elif registered_task_id in _CHOICE_TASK_OUTCOMES:
             first, second = _CHOICE_TASK_OUTCOMES[registered_task_id]
             values[first] = float(choice == 1)
             values[second] = float(choice == 2)
@@ -135,21 +164,32 @@ def parse_behavior_output(
         continuing, alternative = integers
         if min(integers) < 0 or max(integers) > 100 or continuing + alternative != 100:
             return _invalid(parser_id, "allocations must be in [0, 100] and sum to 100")
+        values = {
+            "continue_allocation": float(continuing),
+            "alternative_allocation": float(alternative),
+        }
+        if registered_task_id in _POSITIONED_SUM_TASK_OUTCOMES:
+            primary, secondary = _POSITIONED_SUM_TASK_OUTCOMES[registered_task_id]
+            try:
+                primary_position = int(metadata["primary_position"])
+            except (KeyError, TypeError, ValueError):
+                return _invalid(parser_id, "position-balanced allocation requires primary_position metadata")
+            if primary_position not in {1, 2}:
+                return _invalid(parser_id, "primary_position metadata must be 1 or 2")
+            if primary_position == 1:
+                values[primary] = float(continuing)
+                values[secondary] = float(alternative)
+            else:
+                values[primary] = float(alternative)
+                values[secondary] = float(continuing)
+        elif registered_task_id in _SUM_TASK_OUTCOMES:
+            first, second = _SUM_TASK_OUTCOMES[registered_task_id]
+            values[first] = float(continuing)
+            values[second] = float(alternative)
         return ParsedBehavior(
             parser_id,
             True,
-            {
-                "continue_allocation": float(continuing),
-                "alternative_allocation": float(alternative),
-                **(
-                    {
-                        _SUM_TASK_OUTCOMES[registered_task_id][0]: float(continuing),
-                        _SUM_TASK_OUTCOMES[registered_task_id][1]: float(alternative),
-                    }
-                    if registered_task_id in _SUM_TASK_OUTCOMES
-                    else {}
-                ),
-            },
+            values,
         )
 
     if parser_id == "single_integer_probability_v1":

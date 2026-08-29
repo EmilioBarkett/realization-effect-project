@@ -1,0 +1,51 @@
+{
+  "base_plan_path": "wave1_persistence_continuation_behavioral_repair_v4.json",
+  "plan_id": "wave1_persistence_continuation_behavioral_repair_v4_preflight",
+  "generation": {"seed": 1261, "max_items_per_request": 20},
+  "behavioral_schedule_contract": {
+    "required_fields": ["option_order", "established_option", "option_a_semantics", "return_advantage_bin", "repairability", "setback_severity", "switching_cost_bin", "tranche_profile", "dominance_status", "allocation_region", "calibration_variant", "return_advantage_units", "alternative_return_advantage_units", "established_tranche_1", "established_tranche_2", "established_tranche_3", "alternative_tranche_1", "alternative_tranche_2", "alternative_tranche_3", "repair_credit_units", "setback_penalty_units", "switching_cost_units"],
+    "factors": {"return_advantage_bin": ["alternative_disadvantage", "near_indifference"], "repairability": ["repairable", "difficult"], "setback_severity": ["moderate"], "switching_cost_bin": ["none", "high"], "option_order": ["established_first", "alternative_first"]},
+    "factor_order": ["return_advantage_bin", "repairability", "setback_severity", "switching_cost_bin", "option_order"],
+    "full_factorial": true,
+    "required_values": {"return_advantage_bin": ["alternative_disadvantage", "near_indifference"], "repairability": ["repairable", "difficult"], "setback_severity": ["moderate"], "option_order": ["established_first", "alternative_first"]},
+    "balanced_fields": ["return_advantage_bin", "repairability", "switching_cost_bin", "option_order"],
+    "calibration_neutral_fields": {"established_option": "not_applicable", "option_a_semantics": "abstract_option", "return_advantage_bin": "near_indifference", "repairability": "not_applicable", "setback_severity": "not_applicable", "tranche_profile": "neutral_calibration", "dominance_status": "not_applicable", "allocation_region": "not_applicable"}
+  },
+  "content_pools": {
+    "persistence_behavior_preflight_v4": {"role": "behavior", "domains": ["orchard_goal_preflight_v4", "river_repair_preflight_v4"]},
+    "persistence_steering_preflight_v4": {"role": "steering", "domains": ["studio_plan_preflight_v4", "trail_recovery_preflight_v4"]},
+    "persistence_calibration_preflight_v4": {"role": "calibration", "domains": ["abstract_tranche_preflight_v4", "index_curve_preflight_v4"]}
+  },
+  "downstream_pool_separation": {
+    "required_prompt_anchors": {"persistence_behavior_preflight_v4": ["orchard", "goal"], "persistence_steering_preflight_v4": ["studio", "trail", "recovery"], "persistence_calibration_preflight_v4": ["abstract", "index", "tranche"]},
+    "forbidden_prompt_anchors": {"persistence_behavior_preflight_v4": ["studio", "trail", "abstract", "index"], "persistence_steering_preflight_v4": ["orchard", "goal", "abstract", "index"], "persistence_calibration_preflight_v4": ["orchard", "goal", "studio", "trail", "recovery"]}
+  },
+  "factorial_schedules": {
+    "persistence_behavior_preflight": {
+      "factors": {"return_advantage_bin": ["alternative_disadvantage", "near_indifference"], "repairability": ["repairable", "difficult"], "switching_cost_bin": ["none", "high"], "option_order": ["established_first", "alternative_first"]},
+      "factor_order": ["return_advantage_bin", "repairability", "switching_cost_bin", "option_order"],
+      "fixed_fields": {"established_option": "option_a", "option_a_semantics": "established_goal", "setback_severity": "moderate", "tranche_profile": "diminishing_marginal_returns", "dominance_status": "no_strict_dominance", "allocation_region": "interior", "calibration_variant": "not_applicable", "established_tranche_1": 8, "established_tranche_2": 6, "established_tranche_3": 2},
+      "derived_fields": {
+        "return_advantage_units": {"source": "return_advantage_bin", "lookup": {"alternative_disadvantage": -1, "near_indifference": 0}},
+        "alternative_return_advantage_units": {"source": "return_advantage_bin", "lookup": {"alternative_disadvantage": -1, "near_indifference": 0}},
+        "alternative_tranche_1": {"source": "return_advantage_bin", "lookup": {"alternative_disadvantage": 7, "near_indifference": 8}},
+        "alternative_tranche_2": {"source": "return_advantage_bin", "lookup": {"alternative_disadvantage": 5, "near_indifference": 6}},
+        "alternative_tranche_3": {"source": "return_advantage_bin", "lookup": {"alternative_disadvantage": 3, "near_indifference": 2}},
+        "repair_credit_units": {"source": "repairability", "lookup": {"repairable": 8, "difficult": 2}},
+        "setback_penalty_units": {"source": "setback_severity", "lookup": {"moderate": 6}},
+        "switching_cost_units": {"source": "switching_cost_bin", "lookup": {"none": 0, "high": 5}}
+      }
+    },
+    "persistence_calibration_preflight": {
+      "factors": {"calibration_variant": ["c01", "c02", "c03", "c04"], "switching_cost_bin": ["none", "high"], "option_order": ["established_first", "alternative_first"]},
+      "factor_order": ["calibration_variant", "switching_cost_bin", "option_order"],
+      "fixed_fields": {"established_option": "not_applicable", "option_a_semantics": "abstract_option", "return_advantage_bin": "near_indifference", "repairability": "not_applicable", "setback_severity": "not_applicable", "tranche_profile": "neutral_calibration", "dominance_status": "not_applicable", "allocation_region": "not_applicable", "return_advantage_units": 0, "alternative_return_advantage_units": 0, "established_tranche_1": 8, "established_tranche_2": 6, "established_tranche_3": 2, "alternative_tranche_1": 8, "alternative_tranche_2": 6, "alternative_tranche_3": 2, "repair_credit_units": 0, "setback_penalty_units": 0},
+      "derived_fields": {"switching_cost_units": {"source": "switching_cost_bin", "lookup": {"none": 0, "high": 5}}}
+    }
+  },
+  "overrides": {"cells": {
+    "behavior_eval": {"category_balance": {}, "metadata_schedule": {}, "prompt_family": "persistence_behavior_preflight_v4", "content_pool": "persistence_behavior_preflight_v4", "count_per_model": 16, "factorial_schedule_ref": "persistence_behavior_preflight"},
+    "steering_eval": {"category_balance": {}, "metadata_schedule": {}, "prompt_family": "persistence_steering_preflight_v4", "content_pool": "persistence_steering_preflight_v4", "count_per_model": 16, "factorial_schedule_ref": "persistence_behavior_preflight"},
+    "calibration": {"category_balance": {}, "metadata_schedule": {}, "prompt_family": "persistence_calibration_preflight_v4", "content_pool": "persistence_calibration_preflight_v4", "count_per_model": 16, "factorial_schedule_ref": "persistence_calibration_preflight"}
+  }}
+}

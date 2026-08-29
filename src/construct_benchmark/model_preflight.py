@@ -39,6 +39,30 @@ DEFAULT_STEERING_DOSES = {
     "shuffled": (0.0,),
     "random": (0.0,),
 }
+_DEFAULT_REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+
+
+def repository_relative_path(
+    path: str | Path,
+    *,
+    repository_root: str | Path | None = None,
+) -> str:
+    """Serialize repository-contained paths without machine-specific prefixes.
+
+    Paths outside the repository keep their caller-provided spelling so that
+    temporary or externally staged inventories remain usable in tests.  A
+    path that resolves under ``repository_root`` is always emitted with POSIX
+    separators relative to that root, which makes frozen manifests portable
+    and safe for repository-relative artifact validation.
+    """
+
+    raw_path = Path(path)
+    root = Path(repository_root or _DEFAULT_REPOSITORY_ROOT).resolve()
+    resolved = raw_path.resolve()
+    try:
+        return resolved.relative_to(root).as_posix()
+    except ValueError:
+        return raw_path.as_posix() if not raw_path.is_absolute() else str(raw_path)
 
 
 def load_preflight_gate_config(path: str | Path) -> dict[str, Any]:
@@ -94,6 +118,66 @@ def load_preflight_gate_config(path: str | Path) -> dict[str, Any]:
         "maximum": int(bounds["maximum"]),
     }
     config["release_thresholds"] = dict(thresholds)
+    selection = config.get("selection")
+    if selection is not None:
+        if not isinstance(selection, Mapping):
+            raise ValueError("Preflight selection must be an object when provided.")
+        selection = dict(selection)
+        if selection.get("selection_informed_by_outcomes") is not False:
+            raise ValueError("Preflight selection must explicitly be outcome-independent.")
+        if selection.get("position_balance_required") is True:
+            raw_splits = selection.get(
+                "position_balanced_splits",
+                ["behavior_eval", "steering_eval"],
+            )
+            if (
+                not isinstance(raw_splits, list)
+                or not raw_splits
+                or any(str(split) not in PREFLIGHT_SPLITS for split in raw_splits)
+                or len(set(str(split) for split in raw_splits)) != len(raw_splits)
+            ):
+                raise ValueError(
+                    "Position-balanced preflight selection must name unique registered splits."
+                )
+            levels = selection.get("position_levels", [1, 2])
+            if (
+                not isinstance(levels, list)
+                or len(levels) < 2
+                or len(set(levels)) != len(levels)
+            ):
+                raise ValueError("Position-balanced preflight selection requires distinct position_levels.")
+            fields_by_split = selection.get("position_fields_by_split")
+            fields = selection.get("position_fields")
+            if not isinstance(fields_by_split, Mapping) and not isinstance(fields, Mapping):
+                raise ValueError(
+                    "Position-balanced preflight selection requires position field mappings."
+                )
+            for construct_id in construct_ids:
+                for split in raw_splits:
+                    field = None
+                    field_registered = False
+                    if isinstance(fields_by_split, Mapping):
+                        construct_fields = fields_by_split.get(construct_id)
+                        if isinstance(construct_fields, Mapping):
+                            if split in construct_fields:
+                                field_registered = True
+                                field = construct_fields.get(split)
+                    if field is None and isinstance(fields, Mapping):
+                        construct_field = fields.get(construct_id)
+                        if isinstance(construct_field, Mapping):
+                            if split in construct_field:
+                                field_registered = True
+                                field = construct_field.get(split)
+                        elif split in {"behavior_eval", "steering_eval"}:
+                            field_registered = construct_id in fields
+                            field = construct_field
+                    if field_registered and field is None:
+                        continue
+                    if not isinstance(field, str) or not field.strip():
+                        raise ValueError(
+                            f"Position-balanced preflight selection has no field for {construct_id} {split}."
+                        )
+        config["selection"] = selection
     return config
 
 
@@ -122,6 +206,139 @@ def _validate_bounds(minimum_items: int, target_items: int, maximum_items: int) 
         raise ValueError("Require 1 <= minimum_items <= target_items <= maximum_items.")
 
 
+def _position_balance_spec(
+    selection: Mapping[str, Any],
+    *,
+    construct_id: str,
+    split: str,
+) -> tuple[str, tuple[Any, ...]] | None:
+    """Resolve the registered position field and levels for one split.
+
+    The ordinary preflight gate predates position-aware repaired-v3 inputs, so
+    this is opt-in through the gate's selection contract.  Repaired-v3 gates
+    provide a per-split mapping because collateral answers use
+    ``correct_option`` while behavior/steering use the construct's
+    ``target_option`` or ``primary_position`` field.
+    """
+
+    if selection.get("position_balance_required") is not True:
+        return None
+    raw_splits = selection.get("position_balanced_splits", ("behavior_eval", "steering_eval"))
+    if not isinstance(raw_splits, list) or split not in {str(value) for value in raw_splits}:
+        return None
+
+    field: Any = None
+    field_registered = False
+    fields_by_split = selection.get("position_fields_by_split")
+    if isinstance(fields_by_split, Mapping):
+        construct_fields = fields_by_split.get(construct_id)
+        if isinstance(construct_fields, Mapping):
+            if split in construct_fields:
+                field_registered = True
+                field = construct_fields.get(split)
+    if field is None:
+        fields = selection.get("position_fields")
+        if isinstance(fields, Mapping):
+            construct_field = fields.get(construct_id)
+            if isinstance(construct_field, Mapping):
+                if split in construct_field:
+                    field_registered = True
+                    field = construct_field.get(split)
+            elif construct_field is not None:
+                field_registered = True
+                field = construct_field
+            elif construct_id in fields and split in {"behavior_eval", "steering_eval"}:
+                field_registered = True
+    if field_registered and field is None:
+        # Probability forecasts have no positional option to balance.  An
+        # explicit null in the gate mapping keeps those splits on the normal
+        # deterministic selector without allowing a missing mapping to
+        # silently bypass a required position contract.
+        return None
+    if not isinstance(field, str) or not field.strip():
+        raise ValueError(
+            f"Position-balanced preflight selection has no field for {construct_id} {split}."
+        )
+
+    raw_levels = selection.get("position_levels", [1, 2])
+    if (
+        not isinstance(raw_levels, list)
+        or len(raw_levels) < 2
+        or len(set(raw_levels)) != len(raw_levels)
+    ):
+        raise ValueError("Position-balanced preflight selection requires distinct position_levels.")
+    return str(field), tuple(raw_levels)
+
+
+def _record_task_metadata(record: PromptRecord) -> Mapping[str, Any]:
+    raw = record.metadata.get("task_metadata")
+    return raw if isinstance(raw, Mapping) else record.metadata
+
+
+def _select_position_balanced_candidates(
+    candidates: list[PromptRecord],
+    *,
+    seed: int,
+    frozen_model: Mapping[str, Any],
+    construct_id: str,
+    split: str,
+    target_count: int,
+    minimum_items: int,
+    position_spec: tuple[str, tuple[Any, ...]],
+) -> tuple[list[PromptRecord], dict[str, Any]]:
+    """Select equal-sized stable-hash strata for a registered position field."""
+
+    field, levels = position_spec
+    by_level: dict[Any, list[PromptRecord]] = {level: [] for level in levels}
+    for record in candidates:
+        value = _record_task_metadata(record).get(field)
+        if isinstance(value, bool) or value not in by_level:
+            raise ValueError(
+                f"{construct_id} {split} prompt {record.prompt_id} has {field}={value!r}; "
+                f"expected one of {list(levels)!r}."
+            )
+        by_level[value].append(record)
+
+    level_count = len(levels)
+    if target_count % level_count:
+        raise ValueError(
+            f"Position-balanced preflight target for {construct_id} {split} is not divisible "
+            f"by {level_count}: {target_count}."
+        )
+    per_level = min(target_count // level_count, *(len(by_level[level]) for level in levels))
+    selected_count = per_level * level_count
+    if selected_count < minimum_items:
+        counts = {str(level): len(by_level[level]) for level in levels}
+        raise ValueError(
+            f"{construct_id} {split} has insufficient balanced position coverage for the "
+            f"preflight minimum: field={field!r}, candidates_by_position={counts}."
+        )
+
+    selected: list[PromptRecord] = []
+    for level in levels:
+        ranked = sorted(
+            by_level[level],
+            key=lambda record: _stable_rank(
+                seed,
+                str(frozen_model["model_id"]),
+                str(frozen_model["revision"]),
+                construct_id,
+                split,
+                field,
+                str(level),
+                record.prompt_id,
+            ),
+        )
+        selected.extend(ranked[:per_level])
+    selected.sort(key=lambda record: record.prompt_id)
+    return selected, {
+        "field": field,
+        "levels": list(levels),
+        "counts": {str(level): per_level for level in levels},
+        "selected_count": selected_count,
+    }
+
+
 def prepare_selection_manifest(
     records: Iterable[PromptRecord],
     *,
@@ -134,6 +351,7 @@ def prepare_selection_manifest(
     maximum_items: int = DEFAULT_MAXIMUM_ITEMS,
     gate_config: Mapping[str, Any] | None = None,
     gate_config_sha256: str | None = None,
+    repository_root: str | Path | None = None,
 ) -> dict[str, Any]:
     """Freeze an outcome-independent preflight subset for one model."""
 
@@ -164,6 +382,11 @@ def prepare_selection_manifest(
     if not materialized:
         raise ValueError("The prompt inventory is empty.")
 
+    selection_contract = (
+        dict(gate_config.get("selection", {}))
+        if isinstance(gate_config, Mapping) and isinstance(gate_config.get("selection"), Mapping)
+        else {}
+    )
     selected: dict[str, dict[str, Any]] = {}
     for construct_id in construct_ids:
         selected[construct_id] = {}
@@ -179,20 +402,38 @@ def prepare_selection_manifest(
                     f"the preflight requires at least {minimum_items}."
                 )
             count = min(target_items, maximum_items, len(candidates))
-            ranked = sorted(
-                candidates,
-                key=lambda record: _stable_rank(
-                    seed,
-                    frozen_model["model_id"],
-                    str(frozen_model["revision"]),
-                    construct_id,
-                    split,
-                    record.prompt_id,
-                ),
-            )[:count]
-            ranked = sorted(ranked, key=lambda record: record.prompt_id)
+            position_spec = _position_balance_spec(
+                selection_contract,
+                construct_id=construct_id,
+                split=split,
+            )
+            if position_spec is None:
+                ranked = sorted(
+                    candidates,
+                    key=lambda record: _stable_rank(
+                        seed,
+                        frozen_model["model_id"],
+                        str(frozen_model["revision"]),
+                        construct_id,
+                        split,
+                        record.prompt_id,
+                    ),
+                )[:count]
+                ranked = sorted(ranked, key=lambda record: record.prompt_id)
+                position_balance = None
+            else:
+                ranked, position_balance = _select_position_balanced_candidates(
+                    candidates,
+                    seed=seed,
+                    frozen_model=frozen_model,
+                    construct_id=construct_id,
+                    split=split,
+                    target_count=count,
+                    minimum_items=minimum_items,
+                    position_spec=position_spec,
+                )
             prompt_ids = [record.prompt_id for record in ranked]
-            selected[construct_id][split] = {
+            split_selection: dict[str, Any] = {
                 "prompt_ids": prompt_ids,
                 "item_count": len(prompt_ids),
                 "source_item_count": len(candidates),
@@ -200,6 +441,20 @@ def prepare_selection_manifest(
                 "target_items": target_items,
                 "maximum_items": maximum_items,
             }
+            if position_balance is not None:
+                split_selection["position_balance"] = position_balance
+            selected[construct_id][split] = split_selection
+
+    position_balanced_splits = selection_contract.get("position_balanced_splits", [])
+    if not isinstance(position_balanced_splits, list):
+        position_balanced_splits = []
+    selection_summary = {
+        "strategy": str(selection_contract.get("strategy", "stable_hash")),
+        "position_balance_required": selection_contract.get("position_balance_required") is True,
+        "position_balanced_splits": [str(value) for value in position_balanced_splits],
+    }
+    if selection_summary["position_balance_required"]:
+        selection_summary["position_levels"] = list(selection_contract.get("position_levels", [1, 2]))
 
     manifest: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
@@ -210,7 +465,10 @@ def prepare_selection_manifest(
         "purpose": "release_gate_before_any_further_large_model_execution",
         "confirmatory": False,
         "selection_informed_by_outcomes": False,
-        "source_inventory": str(Path(source_inventory)),
+        "source_inventory": repository_relative_path(
+            source_inventory,
+            repository_root=repository_root,
+        ),
         "source_inventory_sha256": file_sha256(source_inventory),
         "model": frozen_model,
         "construct_ids": construct_ids,
@@ -220,6 +478,7 @@ def prepare_selection_manifest(
             "target": target_items,
             "maximum": maximum_items,
         },
+        "selection_contract": selection_summary,
         "selected": selected,
         "steering_requirements": {
             "required_direction_kinds": list(
@@ -249,7 +508,11 @@ def prepare_selection_manifest(
             },
         },
         "selection_rule": (
-            "For each model, construct, and split, rank registered prompt IDs by a frozen "
+            "For each model, construct, split, and registered position stratum, rank prompt IDs "
+            "by a frozen SHA-256 schedule, retain equal counts from every stratum, and inspect no "
+            "outcomes during selection."
+            if selection_summary["position_balance_required"]
+            else "For each model, construct, and split, rank registered prompt IDs by a frozen "
             "SHA-256 schedule and retain the first target_items; inspect no outcomes during selection."
         ),
     }
@@ -996,5 +1259,6 @@ __all__ = [
     "PREFLIGHT_REPORT_TYPE",
     "PREFLIGHT_SPLITS",
     "prepare_selection_manifest",
+    "repository_relative_path",
     "validate_preflight",
 ]

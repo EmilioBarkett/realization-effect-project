@@ -1,0 +1,48 @@
+{
+  "base_plan_path": "wave1_evidence_diagnosticity_behavioral_repair_v5.json",
+  "plan_id": "wave1_evidence_diagnosticity_behavioral_repair_v5_preflight",
+  "generation": {"seed": 1251, "max_items_per_request": 20},
+  "behavioral_schedule_contract": {
+    "required_fields": ["high_information_option", "diagnostic_benefit_contrast", "diagnosticity_strength", "cost_profile", "cost_contrast", "delay_profile", "delay_contrast", "stakes_contrast", "stakes_structure", "decision_stakes_bin", "option_order", "nuisance_strength", "dominance_status", "allocation_region", "calibration_variant", "option_a_benefit_units", "option_b_benefit_units", "option_a_cost_units", "option_b_cost_units", "option_a_delay_hours", "option_b_delay_hours", "decision_stakes_units"],
+    "factors": {"high_information_option": ["option_a", "option_b"], "diagnosticity_strength": ["weak", "moderate"], "nuisance_strength": ["moderate"], "delay_profile": ["high_information_slower", "high_information_faster"], "decision_stakes_bin": ["low"], "option_order": ["option_a_first", "option_b_first"]},
+    "factor_order": ["high_information_option", "diagnosticity_strength", "nuisance_strength", "delay_profile", "decision_stakes_bin", "option_order"],
+    "full_factorial": true,
+    "required_values": {"high_information_option": ["option_a", "option_b"], "diagnosticity_strength": ["weak", "moderate"], "nuisance_strength": ["moderate"]},
+    "balanced_fields": ["high_information_option", "diagnosticity_strength", "delay_profile", "option_order"],
+    "calibration_neutral_fields": {"high_information_option": "matched", "diagnostic_benefit_contrast": "matched", "diagnosticity_strength": "matched", "cost_profile": "matched", "cost_contrast": "matched", "delay_profile": "matched", "delay_contrast": "matched", "stakes_contrast": "matched", "stakes_structure": "neutral_calibration", "dominance_status": "not_applicable", "allocation_region": "not_applicable"}
+  },
+  "content_pools": {
+    "evidence_behavior_preflight_v5": {"role": "behavior", "domains": ["wetland_sampling_preflight_v5", "kiln_quality_preflight_v5"]},
+    "evidence_steering_preflight_v5": {"role": "steering", "domains": ["mountain_sensor_preflight_v5", "canal_inspection_preflight_v5"]},
+    "evidence_calibration_preflight_v5": {"role": "calibration", "domains": ["abstract_measurement_preflight_v5", "index_sampling_preflight_v5"]}
+  },
+  "downstream_pool_separation": {
+    "required_prompt_anchors": {"evidence_behavior_preflight_v5": ["wetland", "kiln"], "evidence_steering_preflight_v5": ["mountain", "canal", "sensor"], "evidence_calibration_preflight_v5": ["abstract", "index", "measurement"]},
+    "forbidden_prompt_anchors": {"evidence_behavior_preflight_v5": ["mountain", "canal", "sensor", "abstract", "index"], "evidence_steering_preflight_v5": ["wetland", "kiln", "abstract", "index"], "evidence_calibration_preflight_v5": ["wetland", "kiln", "mountain", "canal", "sensor"]}
+  },
+  "factorial_schedules": {
+    "evidence_behavior_preflight": {
+      "factors": {"high_information_option": ["option_a", "option_b"], "diagnosticity_strength": ["weak", "moderate"], "delay_profile": ["high_information_slower", "high_information_faster"], "option_order": ["option_a_first", "option_b_first"]},
+      "factor_order": ["high_information_option", "diagnosticity_strength", "delay_profile", "option_order"],
+      "fixed_fields": {"nuisance_strength": "moderate", "decision_stakes_bin": "low", "cost_profile": "high_information_costlier", "stakes_contrast": "matched", "stakes_structure": "shared_single_decision_value", "dominance_status": "no_strict_dominance", "allocation_region": "interior", "calibration_variant": "not_applicable"},
+      "derived_fields": {
+        "diagnostic_benefit_contrast": {"source": "high_information_option", "lookup": {"option_a": "option_a_high", "option_b": "option_b_high"}},
+        "cost_contrast": {"source": "high_information_option", "lookup": {"option_a": "option_a_high", "option_b": "option_b_high"}},
+        "delay_contrast": {"sources": ["high_information_option", "delay_profile"], "lookup": {"option_a|high_information_slower": "option_a_long", "option_a|high_information_faster": "option_b_long", "option_b|high_information_slower": "option_b_long", "option_b|high_information_faster": "option_a_long"}},
+        "option_a_benefit_units": {"sources": ["high_information_option", "diagnosticity_strength"], "lookup": {"option_a|weak": 60, "option_a|moderate": 70, "option_b|weak": 50, "option_b|moderate": 50}},
+        "option_b_benefit_units": {"sources": ["high_information_option", "diagnosticity_strength"], "lookup": {"option_a|weak": 50, "option_a|moderate": 50, "option_b|weak": 60, "option_b|moderate": 70}},
+        "option_a_cost_units": {"source": "high_information_option", "lookup": {"option_a": 35, "option_b": 20}},
+        "option_b_cost_units": {"source": "high_information_option", "lookup": {"option_a": 20, "option_b": 35}},
+        "option_a_delay_hours": {"sources": ["high_information_option", "delay_profile"], "lookup": {"option_a|high_information_slower": 10, "option_a|high_information_faster": 4, "option_b|high_information_slower": 4, "option_b|high_information_faster": 10}},
+        "option_b_delay_hours": {"sources": ["high_information_option", "delay_profile"], "lookup": {"option_a|high_information_slower": 4, "option_a|high_information_faster": 10, "option_b|high_information_slower": 10, "option_b|high_information_faster": 4}},
+        "decision_stakes_units": {"source": "decision_stakes_bin", "lookup": {"low": 40}}
+      }
+    },
+    "evidence_calibration_preflight": {"factors": {"calibration_variant": ["alpha", "beta", "gamma", "delta"], "decision_stakes_bin": ["low", "high"], "option_order": ["option_a_first", "option_b_first"]}, "factor_order": ["calibration_variant", "decision_stakes_bin", "option_order"], "fixed_fields": {"high_information_option": "matched", "diagnostic_benefit_contrast": "matched", "diagnosticity_strength": "matched", "cost_profile": "matched", "cost_contrast": "matched", "delay_profile": "matched", "delay_contrast": "matched", "stakes_contrast": "matched", "stakes_structure": "neutral_calibration", "nuisance_strength": "matched", "dominance_status": "not_applicable", "allocation_region": "not_applicable", "option_a_benefit_units": 60, "option_b_benefit_units": 60, "option_a_cost_units": 20, "option_b_cost_units": 20, "option_a_delay_hours": 4, "option_b_delay_hours": 4, "decision_stakes_units": 50}}
+  },
+  "overrides": {"cells": {
+    "behavior_eval": {"category_balance": {}, "metadata_schedule": {}, "prompt_family": "evidence_behavior_preflight_v5", "content_pool": "evidence_behavior_preflight_v5", "count_per_model": 16, "factorial_schedule_ref": "evidence_behavior_preflight"},
+    "steering_eval": {"category_balance": {}, "metadata_schedule": {}, "prompt_family": "evidence_steering_preflight_v5", "content_pool": "evidence_steering_preflight_v5", "count_per_model": 16, "factorial_schedule_ref": "evidence_behavior_preflight"},
+    "calibration": {"category_balance": {}, "metadata_schedule": {}, "prompt_family": "evidence_calibration_preflight_v5", "content_pool": "evidence_calibration_preflight_v5", "count_per_model": 16, "factorial_schedule_ref": "evidence_calibration_preflight"}
+  }}
+}

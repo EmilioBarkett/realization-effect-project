@@ -1,0 +1,573 @@
+{
+  "collateral_behavior_task": {
+    "fact_bank": [
+      {
+        "correct_option": 1,
+        "fact_domain": "chemistry",
+        "fact_id": "neutral_card_a_01",
+        "statement_1": "Ordinary candle combustion requires oxygen.",
+        "statement_2": "Ordinary candle combustion requires a vacuum."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "chemistry",
+        "fact_id": "neutral_card_a_02",
+        "statement_1": "Rusting of iron generally requires helium alone.",
+        "statement_2": "Rusting of iron generally involves oxygen and water."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "chemistry",
+        "fact_id": "neutral_card_a_03",
+        "statement_1": "Acid-base neutralization can form salt and water.",
+        "statement_2": "Acid-base neutralization turns all matter into gold."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "chemistry",
+        "fact_id": "neutral_card_a_04",
+        "statement_1": "A catalyst must be consumed as the reaction's fuel.",
+        "statement_2": "A catalyst can speed a reaction without being consumed overall."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "chemistry",
+        "fact_id": "neutral_card_a_05",
+        "statement_1": "A balanced chemical equation conserves each type of atom.",
+        "statement_2": "A balanced chemical equation creates atoms from nothing."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "chemistry",
+        "fact_id": "neutral_card_a_06",
+        "statement_1": "Oxidation is always gain of electrons.",
+        "statement_2": "Oxidation is often described as loss of electrons."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "chemistry",
+        "fact_id": "neutral_card_a_07",
+        "statement_1": "Reduction is often described as gain of electrons.",
+        "statement_2": "Reduction is always loss of electrons."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "chemistry",
+        "fact_id": "neutral_card_a_08",
+        "statement_1": "At fixed temperature, increasing gas pressure tends to increase its volume.",
+        "statement_2": "At fixed temperature, increasing gas pressure tends to reduce its volume."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "chemistry",
+        "fact_id": "neutral_card_a_09",
+        "statement_1": "At fixed pressure, heating a gas tends to increase its volume.",
+        "statement_2": "At fixed pressure, heating a gas tends to reduce its volume."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "physics",
+        "fact_id": "neutral_card_a_10",
+        "statement_1": "Evaporation cools a liquid by adding no energy and no molecules.",
+        "statement_2": "Evaporation can cool a liquid by removing higher-energy molecules."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "physics",
+        "fact_id": "neutral_card_a_11",
+        "statement_1": "Condensation changes a gas into a liquid.",
+        "statement_2": "Condensation changes a gas into a solid metal."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "physics",
+        "fact_id": "neutral_card_a_12",
+        "statement_1": "Melting changes a solid into a gas without an intermediate state.",
+        "statement_2": "Melting changes a solid into a liquid."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "physics",
+        "fact_id": "neutral_card_a_13",
+        "statement_1": "Freezing changes a liquid into a solid.",
+        "statement_2": "Freezing changes a liquid into a gas."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "physics",
+        "fact_id": "neutral_card_a_14",
+        "statement_1": "Conduction transfers heat only through empty space.",
+        "statement_2": "Conduction transfers heat through direct material contact."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "physics",
+        "fact_id": "neutral_card_a_15",
+        "statement_1": "Convection transfers heat through fluid motion.",
+        "statement_2": "Convection transfers heat only through rigid crystal lattices."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "physics",
+        "fact_id": "neutral_card_a_16",
+        "statement_1": "Thermal radiation requires air between every source and receiver.",
+        "statement_2": "Thermal radiation can transfer energy across a vacuum."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "physics",
+        "fact_id": "neutral_card_a_17",
+        "statement_1": "Friction opposes relative motion between surfaces.",
+        "statement_2": "Friction always accelerates relative motion between surfaces."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "physics",
+        "fact_id": "neutral_card_a_18",
+        "statement_1": "Mass measures the duration of an event.",
+        "statement_2": "Mass measures an object's inertia and amount of matter."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "physics",
+        "fact_id": "neutral_card_a_19",
+        "statement_1": "Density is mass divided by volume.",
+        "statement_2": "Density is distance divided by time."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "physics",
+        "fact_id": "neutral_card_a_20",
+        "statement_1": "A force can change only an object's color.",
+        "statement_2": "A force can change an object's motion."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "physics",
+        "fact_id": "neutral_card_a_21",
+        "statement_1": "Acceleration is a change in velocity over time.",
+        "statement_2": "Acceleration is the amount of matter in an object."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "physics",
+        "fact_id": "neutral_card_a_22",
+        "statement_1": "An object's kinetic energy always decreases with its speed.",
+        "statement_2": "An object's kinetic energy increases with its speed."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "physics",
+        "fact_id": "neutral_card_a_23",
+        "statement_1": "Gravitational potential energy can depend on position.",
+        "statement_2": "Gravitational potential energy depends only on spelling."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "physics",
+        "fact_id": "neutral_card_a_24",
+        "statement_1": "Inertia causes an object to change direction without a force.",
+        "statement_2": "Inertia resists changes in an object's motion."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "physics",
+        "fact_id": "neutral_card_a_25",
+        "statement_1": "Refraction can bend light when its speed changes between media.",
+        "statement_2": "Refraction can bend light only when it remains in one medium."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "physics",
+        "fact_id": "neutral_card_a_26",
+        "statement_1": "Reflection destroys every photon at a surface.",
+        "statement_2": "Reflection redirects light from a surface."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "physics",
+        "fact_id": "neutral_card_a_27",
+        "statement_1": "A magnet can attract iron.",
+        "statement_2": "A magnet can attract dry wood for the same reason."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "physics",
+        "fact_id": "neutral_card_a_28",
+        "statement_1": "Electric current is a flow of objects with no charge.",
+        "statement_2": "Electric current is a flow of electric charge."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "physics",
+        "fact_id": "neutral_card_a_29",
+        "statement_1": "Static charge can attract a nearby neutral object.",
+        "statement_2": "Static charge can never exert an electric force."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "biology",
+        "fact_id": "neutral_card_a_30",
+        "statement_1": "In DNA, adenine pairs only with cytosine.",
+        "statement_2": "In DNA, adenine pairs with thymine."
+      },
+      {
+        "correct_option": 1,
+        "fact_domain": "biology",
+        "fact_id": "neutral_card_a_31",
+        "statement_1": "An enzyme can lower a reaction's activation energy.",
+        "statement_2": "An enzyme must raise every reaction's activation energy."
+      },
+      {
+        "correct_option": 2,
+        "fact_domain": "biology",
+        "fact_id": "neutral_card_a_32",
+        "statement_1": "Chlorophyll is a metal wire that stores sound.",
+        "statement_2": "Chlorophyll absorbs light energy."
+      }
+    ],
+    "fact_bank_version": "unique_32_opaque_label_a_v1",
+    "item_metadata_schema": {
+      "properties": {
+        "correct_option": {
+          "enum": [
+            1,
+            2
+          ],
+          "type": "integer"
+        },
+        "fact_domain": {
+          "enum": [
+            "biology",
+            "chemistry",
+            "physics"
+          ],
+          "type": "string"
+        },
+        "fact_id": {
+          "enum": [
+            "neutral_card_a_01",
+            "neutral_card_a_02",
+            "neutral_card_a_03",
+            "neutral_card_a_04",
+            "neutral_card_a_05",
+            "neutral_card_a_06",
+            "neutral_card_a_07",
+            "neutral_card_a_08",
+            "neutral_card_a_09",
+            "neutral_card_a_10",
+            "neutral_card_a_11",
+            "neutral_card_a_12",
+            "neutral_card_a_13",
+            "neutral_card_a_14",
+            "neutral_card_a_15",
+            "neutral_card_a_16",
+            "neutral_card_a_17",
+            "neutral_card_a_18",
+            "neutral_card_a_19",
+            "neutral_card_a_20",
+            "neutral_card_a_21",
+            "neutral_card_a_22",
+            "neutral_card_a_23",
+            "neutral_card_a_24",
+            "neutral_card_a_25",
+            "neutral_card_a_26",
+            "neutral_card_a_27",
+            "neutral_card_a_28",
+            "neutral_card_a_29",
+            "neutral_card_a_30",
+            "neutral_card_a_31",
+            "neutral_card_a_32"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "fact_id",
+        "fact_domain",
+        "correct_option"
+      ]
+    },
+    "label_contract_version": "fact_id_label_v1",
+    "primary_outcome": "correct_option",
+    "prompt_template": "In a separate factual item, include the assigned neutral label exactly as 'Fact ID: <fact_id>' and use the two registered statements for the assigned fact_id. Exactly one statement is correct; do not identify it in the prompt. Return exactly one integer: 1 or 2 for the correct statement.",
+    "response_format": "single_integer_1_or_2",
+    "secondary_outcomes": [
+      "incorrect_option",
+      "compliance"
+    ],
+    "task_family": "unrelated_factual_choice",
+    "task_id": "collateral_fact_choice_v3"
+  },
+  "construct_id": "causal_interpretation",
+  "contrast_conditions": [
+    {
+      "condition_id": "causal_representation",
+      "definition": "The scenario is represented using a variable value assigned externally before the outcome is measured, so the assigned-versus-outcome relation is tracked.",
+      "label": "Causal representation"
+    },
+    {
+      "condition_id": "correlational_representation",
+      "definition": "The scenario is represented using a variable value selected by the cases before the outcome is measured, so the case-selected relation is tracked without treating it as a consequence of external assignment.",
+      "label": "Correlational representation"
+    }
+  ],
+  "controls": [
+    "external_assignment_and_case_selection_task_modes",
+    "effect_direction_crossing",
+    "association_strength_crossing",
+    "matched_graph_complexity_and_evidence_amount",
+    "new_domain_behavior_task",
+    "lexical_overlap_audit",
+    "neutral_behavior_prompt",
+    "shuffled_pair_labels",
+    "random_direction",
+    "unrelated_collateral_behavior"
+  ],
+  "description": "Whether an observed relationship is represented as causal or merely correlational, tested downstream by forecasting an outcome under a new mechanism-and-context description.",
+  "expected_direction": {
+    "behavior": {
+      "direction_status": "preregister_before_data_collection",
+      "estimand": "causal_state_transfer_to_mechanism_forecast",
+      "expected_by_task_mode": {
+        "case_selection": "causal_representation distinguishes case-selected association from assigned-variable consequences rather than applying a generic mean shift",
+        "external_assignment": "causal_representation follows the item-specific assigned-variable consequence more closely than correlational_representation"
+      },
+      "outcome": "mechanism_outcome_probability",
+      "warning": "This downstream forecast is distinct from the probe's relation-classification question; it is not a causal-effect estimate."
+    },
+    "readout": {
+      "estimand": "heldout_projection_margin",
+      "negative_condition": "correlational_representation",
+      "positive_condition": "causal_representation"
+    }
+  },
+  "family": "epistemic",
+  "independent_behavior_task": {
+    "independence_requirements": [
+      "Use new variables, outcomes, domains, and evidence summaries not present in probe prompts.",
+      "Cross externally assigned versus case-selected variable values with outcome direction and association strength independently.",
+      "Do not ask the model to classify the relation or use causal vocabulary; ask only for the registered probability response."
+    ],
+    "item_metadata_schema": {
+      "properties": {
+        "association_strength": {
+          "enum": [
+            "weak",
+            "strong",
+            "neutral"
+          ],
+          "type": "string"
+        },
+        "effect_direction": {
+          "enum": [
+            "raises_outcome",
+            "lowers_outcome",
+            "neutral"
+          ],
+          "type": "string"
+        },
+        "task_mode": {
+          "enum": [
+            "external_assignment",
+            "case_selection",
+            "neutral"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "task_mode",
+        "effect_direction",
+        "association_strength"
+      ]
+    },
+    "primary_outcome": "mechanism_outcome_probability",
+    "prompt_template": "In a new forecasting task, a feature and an outcome are described in a fresh domain. Report from 0 to 100 the probability that the outcome will occur under the stated mechanism and context. Use only this item's information.",
+    "response_format": "single_integer_0_to_100",
+    "secondary_outcomes": [
+      "compliance"
+    ],
+    "task_family": "mechanism_sensitive_forecast",
+    "task_id": "mechanism_forecast_v3"
+  },
+  "metadata": {
+    "behavioral_design": {
+      "behavior_factor_fields": [
+        "task_mode",
+        "effect_direction",
+        "association_strength"
+      ],
+      "behavior_factor_levels": {
+        "association_strength": [
+          "weak",
+          "strong"
+        ],
+        "effect_direction": [
+          "raises_outcome",
+          "lowers_outcome"
+        ],
+        "task_mode": [
+          "external_assignment",
+          "case_selection"
+        ]
+      },
+      "behavior_fixed_fields": {},
+      "calibration_factor_fields": [],
+      "calibration_fixed_fields": {
+        "association_strength": "neutral",
+        "effect_direction": "neutral",
+        "task_mode": "neutral"
+      },
+      "calibration_forbidden_terms": [
+        "causal",
+        "correlational",
+        "cause",
+        "causes",
+        "effect",
+        "mechanism",
+        "intervention",
+        "association",
+        "raises the outcome",
+        "lowers the outcome"
+      ],
+      "calibration_neutral_fields": {
+        "association_strength": "neutral",
+        "effect_direction": "neutral",
+        "task_mode": "neutral"
+      },
+      "calibration_required_patterns": [
+        "\\bordinary\\s+forecast\\b|\\bdescriptive\\s+forecast\\b",
+        "\\bno\\s+explanatory\\s+pathway\\s+is\\s+specified\\b|\\bno\\s+direction\\s+is\\s+specified\\b"
+      ],
+      "collateral_cross_construct_disjoint": true,
+      "collateral_fact_bank_ids": [
+        "neutral_card_a_01",
+        "neutral_card_a_02",
+        "neutral_card_a_03",
+        "neutral_card_a_04",
+        "neutral_card_a_05",
+        "neutral_card_a_06",
+        "neutral_card_a_07",
+        "neutral_card_a_08",
+        "neutral_card_a_09",
+        "neutral_card_a_10",
+        "neutral_card_a_11",
+        "neutral_card_a_12",
+        "neutral_card_a_13",
+        "neutral_card_a_14",
+        "neutral_card_a_15",
+        "neutral_card_a_16",
+        "neutral_card_a_17",
+        "neutral_card_a_18",
+        "neutral_card_a_19",
+        "neutral_card_a_20",
+        "neutral_card_a_21",
+        "neutral_card_a_22",
+        "neutral_card_a_23",
+        "neutral_card_a_24",
+        "neutral_card_a_25",
+        "neutral_card_a_26",
+        "neutral_card_a_27",
+        "neutral_card_a_28",
+        "neutral_card_a_29",
+        "neutral_card_a_30",
+        "neutral_card_a_31",
+        "neutral_card_a_32"
+      ],
+      "collateral_fact_bank_version": "unique_32_opaque_label_a_v1",
+      "collateral_fact_id_label_required": true,
+      "collateral_label_contract_version": "fact_id_label_v1",
+      "collateral_parser_id": "single_integer_choice_1_or_2_v1",
+      "collateral_repair_version": "repaired_v3_collateral_v3_disjoint_label_v3",
+      "collateral_required_metadata": [
+        "fact_id",
+        "fact_domain",
+        "correct_option"
+      ],
+      "collateral_response_format": "single_integer_1_or_2",
+      "collateral_task_id": "collateral_fact_choice_v3",
+      "collateral_unique_fact_ids_required": true,
+      "design_kind": "causal_balanced_probability",
+      "forbidden_downstream_terms": [
+        "causal_interpretation",
+        "causal_representation",
+        "correlational_representation"
+      ],
+      "full_factorial_required": true,
+      "pair_contract": null,
+      "parser_id": "single_integer_probability_v1",
+      "position_field": null,
+      "primary_outcome": "mechanism_outcome_probability",
+      "repair_family": "waves2_4_repaired_v3",
+      "required_schedule_fields": [
+        "task_mode",
+        "effect_direction",
+        "association_strength"
+      ],
+      "required_task_metadata": [
+        "task_mode",
+        "effect_direction",
+        "association_strength"
+      ],
+      "response_format": "single_integer_0_to_100",
+      "secondary_outcomes": [
+        "compliance"
+      ],
+      "task_id": "mechanism_forecast_v3"
+    },
+    "collateral_task_independent_of_construct": true,
+    "do_not_tune_from_wave1_outcomes": true,
+    "downstream_independence": "The downstream task asks for a forecast in a new mechanism-and-context description rather than classifying the probe relation.",
+    "not_claimed_as": "confidence_or_generic_prediction_accuracy",
+    "option_order_policy": "Every choice/allocation downstream cell registers a balanced target_option or primary_position schedule; parser scoring uses that frozen field.",
+    "parent_spec_path": "configs/construct_benchmark/constructs/causal_interpretation_repaired_v3_collateral_v3_disjoint.json",
+    "parent_spec_sha256": "15a73524f992821380f8f1a473fadf42e73d0c522339de46f36bee4486ff9670",
+    "primary_question": "Is a causal-versus-observational representation decodable, and does it transfer to intervention-versus-observation prediction in a new domain?",
+    "probe_state_is": "causal_interpretation_state",
+    "release_note": "Supersedes the v1 assigned-versus-selected probability wording for future review and generation; v1 artifacts remain historical.",
+    "repair_scope": [
+      "collateral_eval only",
+      "machine-enforced registered Fact ID label",
+      "preserve construct-disjoint fact bank and gold answers"
+    ],
+    "repair_version": "repaired_v3_collateral_v3_disjoint_label_v3"
+  },
+  "paired_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout"
+  ],
+  "parsing_rules": {
+    "extra_text_policy": "invalid",
+    "invalid_response_policy": "exclude_from_outcome_denominator_and_report_compliance",
+    "outcome_aliases": {
+      "compliance": "compliance",
+      "mechanism_outcome_probability": "mechanism_outcome_probability"
+    },
+    "parser_id": "single_integer_probability_v1",
+    "valid_ranges": {
+      "compliance": [
+        0,
+        100
+      ],
+      "mechanism_outcome_probability": [
+        0,
+        100
+      ]
+    }
+  },
+  "probe_prompt_template": "Read the following short evidence scenario. Track whether the relationship is treated as causal or correlational without answering a later task.\n\nScenario:\n{scenario}\n\nKeep the scenario in working memory without adding a response.",
+  "required_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout",
+    "behavior_eval",
+    "steering_eval",
+    "calibration",
+    "collateral_eval"
+  ],
+  "schema_version": "0.1.0",
+  "title": "Causal versus correlational interpretation with mechanism forecasting",
+  "version": "repaired_v3_collateral_v3_disjoint_label_v3"
+}

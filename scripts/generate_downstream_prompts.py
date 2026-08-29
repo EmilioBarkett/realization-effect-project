@@ -2,7 +2,8 @@
 """Generate and freeze the independent downstream prompt inventory.
 
 The vector inventory has a deliberately separate orchestrator.  This module
-does the same for ``behavior_eval``, ``steering_eval``, and ``calibration``:
+does the same for ``behavior_eval``, ``steering_eval``, ``calibration``, and
+the role-specific ``collateral_eval`` control:
 plans remain the authority for counts and categorical schedules, the generic
 construct generator owns response/schema validation, and this entry point owns
 request-level checkpoints, spending guards, cross-pool audits, and immutable
@@ -38,12 +39,18 @@ if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
 from activation_analysis.openai_prompt_generation import call_openai_responses  # noqa: E402
+from construct_benchmark.behavioral_design import (  # noqa: E402
+    behavioral_record_issues,
+    registered_task_for_role,
+    validate_behavioral_design,
+)
 from construct_benchmark.config import load_construct_spec  # noqa: E402
 from construct_benchmark.generation import (  # noqa: E402
     RequestFn,
     SINGLE_INTEGER_CHOICE_PATTERN,
     downstream_prompt_text_issues,
     dry_run_summary,
+    expected_task_metadata_assignments,
     generate_prompt_records,
     iter_generation_request_jobs,
     load_generation_plan,
@@ -80,7 +87,9 @@ except ModuleNotFoundError:  # pragma: no cover - exercised by the direct CLI pa
 
 
 DOWNSTREAM_SPLITS = frozenset({"behavior_eval", "steering_eval", "calibration"})
-DOWNSTREAM_ROLES = frozenset({"behavior", "steering", "calibration"})
+COLLATERAL_SPLITS = frozenset({"collateral_eval"})
+ALL_DOWNSTREAM_SPLITS = DOWNSTREAM_SPLITS | COLLATERAL_SPLITS
+DOWNSTREAM_ROLES = frozenset({"behavior", "steering", "calibration", "collateral"})
 VECTOR_SPLITS = frozenset({"direction_train", "direction_validation", "direction_heldout"})
 DEFAULT_REGISTRY = _ROOT / "configs/construct_benchmark/construct_registry_v1.json"
 DEFAULT_OUTPUT_DIR = _ROOT / "results/benchmark/downstream_prompts_v1"
@@ -129,6 +138,47 @@ def _load_json_object(path: Path, *, label: str) -> dict[str, Any]:
     if not isinstance(payload, dict):
         raise ValueError(f"{label} must contain a JSON object: {path}")
     return payload
+
+
+def _source_plan_for_provenance(plan_path: Path, spec: Any) -> dict[str, Any]:
+    """Load the reviewed parent plan behind a versioned generation overlay.
+
+    Preflight plans inherit a production plan and replace only counts, pools,
+    and seeds.  Their effective hash must remain distinct, while the source
+    hash must identify the reviewed parent plan so the quality gate can pin
+    both execution pools to the same reviewed contract.
+    """
+
+    payload = _load_json_object(plan_path, label="generation plan")
+    base_ref = payload.get("base_plan_path")
+    if (
+        str(payload.get("plan_id", "")).endswith("_preflight")
+        and isinstance(base_ref, str)
+        and base_ref.strip()
+    ):
+        base_path = (plan_path.parent / base_ref).resolve()
+        return _source_plan_for_provenance(base_path, spec)
+    return load_generation_plan(plan_path, spec)
+
+
+def _with_runtime_identity(
+    plan: Mapping[str, Any],
+    *,
+    model: str,
+    batch_size: int,
+    max_output_tokens: int,
+) -> dict[str, Any]:
+    """Apply the runtime identity fields included in plan provenance hashes."""
+
+    effective = copy.deepcopy(dict(plan))
+    generation = effective.setdefault("generation", {})
+    for model_payload in effective.get("models", []):
+        model_payload["alias"] = "luna"
+        model_payload["model"] = model
+    generation["max_items_per_request"] = int(batch_size)
+    generation["max_tokens"] = int(max_output_tokens)
+    generation["max_output_tokens"] = int(max_output_tokens)
+    return effective
 
 
 def _effective_entries(
@@ -186,6 +236,7 @@ def _effective_entries(
         spec_path = (registry_path.parent / registry_entry.spec_path).resolve()
         plan_path = (registry_path.parent / str(reference)).resolve()
         spec = load_construct_spec(spec_path)
+        source_plan = _source_plan_for_provenance(plan_path, spec)
         base_plan = load_generation_plan(plan_path, spec)
         downstream_overlay_path = raw_entry.get("downstream_plan_path")
         if downstream_overlay_path:
@@ -211,23 +262,18 @@ def _effective_entries(
                 f"{registry_entry.construct_id} must retain exactly the three paired vector splits; "
                 f"received {list(spec.paired_splits)}."
             )
-        effective = copy.deepcopy(plan)
-        generation = effective.setdefault("generation", {})
         # The downstream workflow is Luna-only.  The checked-in generation
         # plans retain their historical source model for scientific provenance,
         # but every effective job, prompt metadata field, and manifest must
         # identify the actual Luna model used for this workflow.
         effective_model = str(model or DEFAULT_MODEL)
-        for model_payload in effective.get("models", []):
-            model_payload["alias"] = "luna"
-            model_payload["model"] = effective_model
-        generation["max_items_per_request"] = int(batch_size)
-        generation["max_tokens"] = int(max_output_tokens)
-        # The Responses adapter consumes max_output_tokens.  Keep the legacy
-        # max_tokens field synchronized for generic option accounting, and
-        # include both in the effective identity so a resume cannot mix
-        # differently capped requests.
-        generation["max_output_tokens"] = int(max_output_tokens)
+        effective = _with_runtime_identity(
+            plan,
+            model=effective_model,
+            batch_size=batch_size,
+            max_output_tokens=max_output_tokens,
+        )
+        validate_behavioral_design(spec, effective)
         result.append(
             replace(
                 _PlanEntry(
@@ -237,7 +283,7 @@ def _effective_entries(
                     plan_path=plan_path,
                     spec=spec,
                     plan=effective,
-                    source_plan_sha256=_canonical_sha256(base_plan),
+                    source_plan_sha256=_canonical_sha256(source_plan),
                     spec_sha256=canonical_hash(spec.to_mapping()),
                     plan_sha256=_canonical_sha256(effective),
                 ),
@@ -262,6 +308,15 @@ class _PlanEntry:
     plan_sha256: str
 
 
+def _splits_for_entry(entry: _PlanEntry) -> frozenset[str]:
+    """Return the downstream splits registered by this plan generation family."""
+
+    design = dict(entry.spec.metadata or {}).get("behavioral_design", {})
+    if str(design.get("repair_family", "")) == "waves2_4_repaired_v3":
+        return ALL_DOWNSTREAM_SPLITS
+    return DOWNSTREAM_SPLITS
+
+
 def _mode_count(mode: str) -> int | None:
     if mode == "review":
         return 1
@@ -276,11 +331,12 @@ def _expected_summary(
     mode: str,
     input_price: float | None,
     output_price: float | None,
+    selected_splits: Iterable[str] | None = None,
 ) -> dict[str, Any]:
     return dry_run_summary(
         entry.plan,
         count_per_model_override=_mode_count(mode),
-        splits=set(DOWNSTREAM_SPLITS),
+        splits=set(selected_splits) if selected_splits is not None else set(_splits_for_entry(entry)),
         input_usd_per_million_tokens=input_price,
         output_usd_per_million_tokens=output_price,
     )
@@ -313,11 +369,45 @@ def _allocate_request_workers(
 
 
 def _cells_by_split(entry: _PlanEntry) -> dict[str, dict[str, Any]]:
-    return {str(cell["split"]): dict(cell) for cell in entry.plan["cells"] if str(cell["split"]) in DOWNSTREAM_SPLITS}
+    allowed_splits = _splits_for_entry(entry)
+    return {
+        str(cell["split"]): dict(cell)
+        for cell in entry.plan["cells"]
+        if str(cell["split"]) in allowed_splits
+    }
+
+
+def _role_task_contract(
+    entry: _PlanEntry,
+    cell: Mapping[str, Any],
+) -> tuple[Mapping[str, Any], str, str]:
+    """Resolve task, parser, and output format for one registered role."""
+
+    role = str(cell.get("prompt_role"))
+    task = registered_task_for_role(entry.spec, role)
+    design = dict(entry.spec.metadata or {}).get("behavioral_design", {})
+    if role == "collateral":
+        parser_id = str(
+            design.get("collateral_parser_id")
+            or cell.get("parser_id")
+            or ""
+        )
+    else:
+        parser_id = str(entry.spec.parsing_rules["parser_id"])
+    response_format = str(task["response_format"])
+    return task, parser_id, response_format
 
 
 def _schedule_combinations(cell: Mapping[str, Any]) -> tuple[tuple[Any, ...], ...]:
-    raw = cell.get("category_balance", {})
+    raw: dict[str, Any] = {}
+    for schedule_name in ("category_balance", "metadata_schedule"):
+        schedule = cell.get(schedule_name, {})
+        if not isinstance(schedule, Mapping):
+            raise ValueError(f"Cell {cell.get('cell_id')} {schedule_name} must be an object.")
+        overlap = set(raw) & set(schedule)
+        if overlap:
+            raise ValueError(f"Cell {cell.get('cell_id')} schedules field(s) twice: {sorted(overlap)}")
+        raw.update({str(field): values for field, values in schedule.items()})
     if not isinstance(raw, Mapping) or not raw:
         return ()
     fields = list(raw)
@@ -351,12 +441,17 @@ def _parser_instruction_issues(record: PromptRecord) -> tuple[str, ...]:
         )
     if not re.search(r"[.!?][\"')\]]*$", stripped_text):
         issues.append("prompt does not end with terminal punctuation")
-    if re.search(
+    incomplete_phrase = re.search(
         r"\b(?:the|a|an|to|of|for|with|and|or|that|which|because|claim|from|than|as|on|in|at|by)\s*[.!?]?$",
         stripped_text.casefold(),
-    ):
+    )
+    allocation_response_tail = output_format == "single_integer_allocation_0_to_100" and re.search(
+        r"\b(?:points|allocation)\b.{0,160}\boption\s+a\s*[.!?]?$",
+        stripped_text.casefold(),
+    )
+    if incomplete_phrase and not allocation_response_tail:
         issues.append("prompt appears truncated at an incomplete phrase")
-    if not re.search(r"\b(return|report|output|provide|enter)\b", text):
+    if not re.search(r"\b(return|report|output|provide|enter|reply|answer)\b", text):
         issues.append("missing response directive")
     if output_format == "two_integers_on_separate_lines":
         if not re.search(r"\btwo\s+integers?\b", text):
@@ -543,8 +638,9 @@ def _validate_downstream_job_records(entry: _PlanEntry, job: Any, records: Itera
             raise ValueError(f"{record.prompt_id} has an unexpected content_pool.")
         if record.condition_id not in (None, "", "neutral"):
             raise ValueError(f"Downstream prompt {record.prompt_id} must have neutral condition_id.")
-        expected_parser = str(entry.spec.parsing_rules["parser_id"])
-        expected_format = str(entry.spec.independent_behavior_task["response_format"])
+        expected_task, expected_parser, expected_format = _role_task_contract(entry, cell)
+        if record.task_id != str(expected_task["task_id"]):
+            raise ValueError(f"{record.prompt_id} has an incompatible task_id for its prompt role.")
         if record.parser_id != str(cell.get("parser_id", expected_parser)) or record.parser_id != expected_parser:
             raise ValueError(f"{record.prompt_id} has an incompatible parser_id.")
         if record.expected_output_format != str(cell.get("expected_output_format", expected_format)) or record.expected_output_format != expected_format:
@@ -562,16 +658,67 @@ def _validate_downstream_job_records(entry: _PlanEntry, job: Any, records: Itera
         pool_issues = _downstream_pool_text_issues(entry, record)
         if pool_issues:
             raise ValueError(f"{record.prompt_id} violates downstream pool separation: {'; '.join(pool_issues)}.")
-        categories = dict(cell.get("category_balance", {}))
+        behavioral_issues = behavioral_record_issues(entry.spec, entry.plan, record)
+        if behavioral_issues:
+            raise ValueError(
+                f"{record.prompt_id} violates its registered behavioral repair contract: "
+                + "; ".join(behavioral_issues)
+                + "."
+            )
         metadata = record.metadata.get("task_metadata")
         metadata = dict(metadata) if isinstance(metadata, Mapping) else record.metadata
-        for field, schedule in categories.items():
-            expected_value = schedule[(int(job.item_offset) + index) % len(schedule)]
+        expected_assignments = expected_task_metadata_assignments(job, index)
+        for field, expected_value in expected_assignments.items():
             if metadata.get(field) != expected_value:
                 raise ValueError(
                     f"{record.prompt_id} has {field}={metadata.get(field)!r}; expected "
                     f"registered schedule value {expected_value!r}."
-                )
+            )
+
+
+_COLLATERAL_LABEL_EXCEPTION_MARKER = "COLLATERAL_FACT_ID_LABEL_EXCEPTION_V1"
+
+
+def _request_fn_with_collateral_label_exception(
+    request_fn: RequestFn,
+    entry: _PlanEntry,
+) -> RequestFn:
+    """Resolve the generic no-label rule for an explicit opaque-card contract.
+
+    The shared generation core quite properly bans benchmark labels by
+    default.  Versioned collateral repairs are the one registered exception:
+    an opaque ``Fact ID`` is required so the exact fact card can be audited.
+    Keep this exception in the downstream adapter rather than weakening the
+    shared probe-generation policy.
+    """
+
+    task = entry.spec.collateral_behavior_task
+    requires_opaque_label = bool(
+        task is not None
+        and str(task.get("fact_bank_version", "v1")) != "v1"
+        and task.get("label_contract_version")
+    )
+    if not requires_opaque_label:
+        return request_fn
+
+    def wrapped(model_id: str, messages: list[dict[str, str]], options: dict[str, Any]) -> dict[str, Any]:
+        adjusted = [dict(message) for message in messages]
+        exception = (
+            f" {_COLLATERAL_LABEL_EXCEPTION_MARKER}: This registered collateral task explicitly "
+            "requires one opaque neutral factual-card label in the exact form 'Fact ID: <fact_id>'. "
+            "This is an allowed task-specific exception to the generic benchmark-label ban; the "
+            "identifier is not a construct name or condition label. Include the assigned label exactly "
+            "once and do not replace it with a construct-specific name."
+        )
+        for index, message in enumerate(adjusted):
+            if message.get("role") == "system":
+                content = str(message.get("content", ""))
+                if _COLLATERAL_LABEL_EXCEPTION_MARKER not in content:
+                    adjusted[index] = {**message, "content": content + exception}
+                break
+        return request_fn(model_id, adjusted, options)
+
+    return wrapped
 
 
 def _validate_calibration_plan(entry: _PlanEntry) -> None:
@@ -579,6 +726,18 @@ def _validate_calibration_plan(entry: _PlanEntry) -> None:
 
     contract = _calibration_contract(entry)
     cells = _cells_by_split(entry)
+    required_splits = _splits_for_entry(entry)
+    for split in required_splits:
+        cell = cells.get(split)
+        if cell is None:
+            raise ValueError(f"{entry.construct_id} is missing the {split} downstream cell.")
+        task, expected_parser, expected_format = _role_task_contract(entry, cell)
+        if str(cell.get("task_id")) != str(task["task_id"]):
+            raise ValueError(f"{entry.construct_id} {split} task_id does not match its role task.")
+        if str(cell.get("parser_id")) != expected_parser:
+            raise ValueError(f"{entry.construct_id} {split} parser_id does not match its role parser.")
+        if str(cell.get("expected_output_format")) != expected_format:
+            raise ValueError(f"{entry.construct_id} {split} response format does not match its role task.")
     behavior_schedule_id = str(cells["behavior_eval"].get("factor_schedule", "behavior_factor_schedule"))
     steering_schedule_id = str(cells["steering_eval"].get("factor_schedule", "behavior_factor_schedule"))
     calibration_schedule_id = str(cells["calibration"].get("factor_schedule", ""))
@@ -591,9 +750,10 @@ def _validate_calibration_plan(entry: _PlanEntry) -> None:
         )
     if str(contract.get("required_response_format")) != str(cells["calibration"].get("expected_output_format")):
         raise ValueError(f"{entry.construct_id} calibration response format does not match its contract.")
-    calibration_categories = cells["calibration"].get("category_balance", {})
-    if not isinstance(calibration_categories, Mapping):
-        raise ValueError(f"{entry.construct_id} calibration category_balance must be an object.")
+    calibration_categories = {
+        **dict(cells["calibration"].get("category_balance", {})),
+        **dict(cells["calibration"].get("metadata_schedule", {})),
+    }
     for field, expected_value in dict(contract.get("neutral_fields", {})).items():
         values = calibration_categories.get(field)
         if not isinstance(values, list) or not values or any(value != expected_value for value in values):
@@ -650,23 +810,56 @@ def _validate_downstream_records(
     mode: str,
     input_price: float | None = None,
     output_price: float | None = None,
+    selected_splits: Iterable[str] | None = None,
+    allowed_plan_hashes_by_split: Mapping[str, Iterable[str]] | None = None,
+    allowed_plan_ids_by_split: Mapping[str, Iterable[str]] | None = None,
 ) -> dict[str, Any]:
     materialized = tuple(records)
     if not materialized:
         raise ValueError(f"Generated downstream output for {entry.construct_id} is empty.")
     validate_prompt_records(materialized, {entry.construct_id: entry.spec}, require_all_splits=False)
-    if any(record.split not in DOWNSTREAM_SPLITS for record in materialized):
+    required_splits = frozenset(selected_splits) if selected_splits is not None else _splits_for_entry(entry)
+    registered_splits = _splits_for_entry(entry)
+    if not required_splits or not required_splits.issubset(registered_splits):
+        raise ValueError(
+            f"{entry.construct_id} selected downstream splits {sorted(required_splits)} "
+            f"are not a subset of {sorted(registered_splits)}."
+        )
+    allowed_hashes = {
+        str(split): {str(value) for value in values}
+        for split, values in (allowed_plan_hashes_by_split or {}).items()
+    }
+    allowed_ids = {
+        str(split): {str(value) for value in values}
+        for split, values in (allowed_plan_ids_by_split or {}).items()
+    }
+    if any(not values for values in allowed_hashes.values()):
+        raise ValueError("allowed_plan_hashes_by_split cannot contain an empty allowance.")
+    if any(not values for values in allowed_ids.values()):
+        raise ValueError("allowed_plan_ids_by_split cannot contain an empty allowance.")
+    unknown_hash_splits = set(allowed_hashes) - set(registered_splits)
+    unknown_id_splits = set(allowed_ids) - set(registered_splits)
+    if unknown_hash_splits or unknown_id_splits:
+        raise ValueError(
+            f"Plan provenance allowances contain unknown splits: "
+            f"hashes={sorted(unknown_hash_splits)}, ids={sorted(unknown_id_splits)}."
+        )
+    if any(record.split not in required_splits for record in materialized):
         raise ValueError(f"{entry.construct_id} downstream output contains vector/non-downstream records.")
-    expected = _expected_summary(entry, mode=mode, input_price=input_price, output_price=output_price)
+    expected = _expected_summary(
+        entry,
+        mode=mode,
+        input_price=input_price,
+        output_price=output_price,
+        selected_splits=required_splits,
+    )
     split_counts: dict[str, int] = {}
     cells = _cells_by_split(entry)
-    if set(cells) != DOWNSTREAM_SPLITS:
-        raise ValueError(f"{entry.construct_id} plan does not expose exactly the downstream cells.")
+    if not required_splits.issubset(set(cells)):
+        raise ValueError(f"{entry.construct_id} plan does not expose the selected downstream cells.")
     _validate_calibration_plan(entry)
     observed_schedules: dict[str, tuple[tuple[Any, ...], ...]] = {}
     seen_ids: set[str] = set()
-    expected_parser = str(entry.spec.parsing_rules["parser_id"])
-    expected_format = str(entry.spec.independent_behavior_task["response_format"])
     for record in materialized:
         if record.prompt_id in seen_ids:
             raise ValueError(f"Duplicate prompt_id in {entry.construct_id}: {record.prompt_id}")
@@ -681,7 +874,8 @@ def _validate_downstream_records(
             raise ValueError(f"{record.prompt_id} has an unexpected content_pool.")
         if record.condition_id not in (None, "", "neutral"):
             raise ValueError(f"Downstream prompt {record.prompt_id} must have neutral condition_id.")
-        if record.task_id != str(cell.get("task_id", entry.spec.independent_behavior_task["task_id"])):
+        expected_task, expected_parser, expected_format = _role_task_contract(entry, cell)
+        if record.task_id != str(cell.get("task_id", expected_task["task_id"])) or record.task_id != str(expected_task["task_id"]):
             raise ValueError(f"{record.prompt_id} has an incompatible task_id.")
         if record.parser_id != str(cell.get("parser_id", expected_parser)) or record.parser_id != expected_parser:
             raise ValueError(f"{record.prompt_id} has an incompatible parser_id.")
@@ -707,51 +901,76 @@ def _validate_downstream_records(
         pool_issues = _downstream_pool_text_issues(entry, record)
         if pool_issues:
             raise ValueError(f"{record.prompt_id} violates downstream pool separation: {'; '.join(pool_issues)}.")
+        behavioral_issues = behavioral_record_issues(entry.spec, entry.plan, record)
+        if behavioral_issues:
+            raise ValueError(
+                f"{record.prompt_id} violates its registered behavioral repair contract: "
+                + "; ".join(behavioral_issues)
+                + "."
+            )
         categories = dict(cell.get("category_balance", {}))
+        metadata_schedule = dict(cell.get("metadata_schedule", {}))
         metadata = record.metadata.get("task_metadata")
         metadata = dict(metadata) if isinstance(metadata, Mapping) else record.metadata
-        missing = [field for field in categories if field not in metadata]
+        missing = [field for field in (*categories, *metadata_schedule) if field not in metadata]
         if missing:
             raise ValueError(f"{record.prompt_id} is missing scheduled task metadata: {missing}.")
         # The generic parser checks the request-local assignment.  Re-check
         # the final CSV against its exact global schedule to catch accidental
         # concatenation or hand-edits after a checkpoint.
         index = split_counts[record.split] - 1
-        for field, schedule in categories.items():
-            expected_value = schedule[index]
+        expected_assignments = {
+            **{field: schedule[index] for field, schedule in categories.items()},
+            **{field: schedule[index] for field, schedule in metadata_schedule.items()},
+        }
+        for field, expected_value in expected_assignments.items():
             if metadata[field] != expected_value:
                 raise ValueError(
                     f"{record.prompt_id} has {field}={metadata[field]!r}; expected registered "
                     f"schedule value {expected_value!r} at index {index}."
                 )
-    for split in DOWNSTREAM_SPLITS:
+    for split in required_splits:
         observed_schedules[split] = _schedule_combinations(cells[split])
         if split_counts.get(split, 0) != expected["records_by_split"].get(split, 0):
             raise ValueError(
                 f"{entry.construct_id} {split} count={split_counts.get(split, 0)}; "
                 f"expected {expected['records_by_split'].get(split, 0)}."
             )
-    if observed_schedules["behavior_eval"] != observed_schedules["steering_eval"]:
+    if (
+        "behavior_eval" in observed_schedules
+        and "steering_eval" in observed_schedules
+        and observed_schedules["behavior_eval"] != observed_schedules["steering_eval"]
+    ):
         raise ValueError(f"{entry.construct_id} behavior_eval and steering_eval do not share an identical factor schedule.")
-    plan_hashes = {record.metadata.get("generation_plan_sha256") for record in materialized}
-    if plan_hashes != {entry.plan_sha256}:
-        raise ValueError(f"{entry.construct_id} downstream output has a stale or missing plan hash.")
-    plan_ids = {record.metadata.get("generation_plan_id") for record in materialized}
-    if plan_ids != {entry.plan["plan_id"]}:
-        raise ValueError(f"{entry.construct_id} downstream output has a stale or missing plan ID.")
+    for record in materialized:
+        permitted_hashes = allowed_hashes.get(record.split, {entry.plan_sha256})
+        observed_hash = record.metadata.get("generation_plan_sha256")
+        if observed_hash not in permitted_hashes:
+            raise ValueError(
+                f"{record.prompt_id} has plan hash {observed_hash!r}; expected one of "
+                f"{sorted(permitted_hashes)} for split {record.split}."
+            )
+        permitted_ids = allowed_ids.get(record.split, {str(entry.plan["plan_id"])})
+        observed_id = record.metadata.get("generation_plan_id")
+        if observed_id not in permitted_ids:
+            raise ValueError(
+                f"{record.prompt_id} has plan ID {observed_id!r}; expected one of "
+                f"{sorted(permitted_ids)} for split {record.split}."
+            )
     expected_aliases = {str(model["alias"]) for model in entry.plan["models"]}
     aliases = {str(record.metadata.get("source_model_alias")) for record in materialized}
     if aliases != expected_aliases:
         raise ValueError(f"{entry.construct_id} downstream output has model aliases {sorted(aliases)}; expected {sorted(expected_aliases)}.")
-    pools = [
-        str(cells[split]["content_pool"])
-        for split in ("behavior_eval", "steering_eval", "calibration")
-    ]
-    if len(set(pools)) != 3:
-        raise ValueError(f"{entry.construct_id} must use three distinct downstream content pools.")
-    families = [str(cells[split]["prompt_family"]) for split in ("behavior_eval", "steering_eval", "calibration")]
-    if len(set(families)) != 3:
-        raise ValueError(f"{entry.construct_id} must use three distinct downstream prompt families.")
+    pools = [str(cells[split]["content_pool"]) for split in sorted(required_splits)]
+    if len(set(pools)) != len(required_splits):
+        raise ValueError(
+            f"{entry.construct_id} must use one distinct downstream content pool per role."
+        )
+    families = [str(cells[split]["prompt_family"]) for split in sorted(required_splits)]
+    if len(set(families)) != len(required_splits):
+        raise ValueError(
+            f"{entry.construct_id} must use one distinct downstream prompt family per role."
+        )
     _downstream_pool_separation(entry)
     # Every downstream pool must be domain-disjoint from the probe pools and
     # from the other downstream pools.  This is a plan-level guard; text-level
@@ -823,8 +1042,9 @@ def _prompt_signature(record: PromptRecord, template_tokens: set[str]) -> dict[s
     }
 
 
-def _template_tokens(entry: _PlanEntry) -> set[str]:
-    task_template = str(entry.spec.independent_behavior_task.get("prompt_template", ""))
+def _template_tokens(entry: _PlanEntry, prompt_role: str | None = None) -> set[str]:
+    task = registered_task_for_role(entry.spec, prompt_role) if prompt_role else entry.spec.independent_behavior_task
+    task_template = str(task.get("prompt_template", ""))
     return set(_WORD_PATTERN.findall(task_template.casefold()))
 
 
@@ -912,7 +1132,16 @@ def audit_downstream_inventory(
                 "content_pool": record.metadata.get("content_pool"),
                 "issues": list(pool_text_issues),
             })
-        signature = _prompt_signature(record, _template_tokens(entry))
+        behavioral_issues = behavioral_record_issues(entry.spec, entry.plan, record)
+        if behavioral_issues:
+            flags.append({
+                "severity": "severe",
+                "flag_type": "behavioral_contract_violation",
+                "candidate_prompt_id": record.prompt_id,
+                "candidate_role": record.prompt_role,
+                "issues": list(behavioral_issues),
+            })
+        signature = _prompt_signature(record, _template_tokens(entry, record.prompt_role))
         signatures[record.prompt_id] = signature
         previous = normalized_index.get(signature["normalized"])
         if previous is not None and previous != record.prompt_id:
@@ -1111,6 +1340,7 @@ def _load_checkpoint(
     entry: _PlanEntry,
     identity: Mapping[str, Any],
     mode: str,
+    selected_splits: Iterable[str] | None = None,
 ) -> tuple[dict[str, tuple[PromptRecord, ...]], dict[str, dict[str, Any]], dict[str, Any]]:
     payload = _load_json_object(path, label="downstream prompt checkpoint")
     checksum = payload.get("checksum_sha256")
@@ -1123,7 +1353,7 @@ def _load_checkpoint(
     expected_jobs = {job.job_id for job in iter_generation_request_jobs(
         entry.plan,
         count_per_model_override=_mode_count(mode),
-        splits=set(DOWNSTREAM_SPLITS),
+        splits=set(selected_splits) if selected_splits is not None else set(_splits_for_entry(entry)),
     )}
     records_by_job: dict[str, tuple[PromptRecord, ...]] = {}
     metadata_by_job: dict[str, dict[str, Any]] = {}
@@ -1573,7 +1803,9 @@ def _construct_manifest(
     model: str | None,
     reasoning_effort: str | None,
     runtime_settings: Mapping[str, Any],
+    selected_splits: Iterable[str] | None = None,
 ) -> dict[str, Any]:
+    scope_splits = frozenset(selected_splits) if selected_splits is not None else ALL_DOWNSTREAM_SPLITS
     return {
         "construct_id": entry.construct_id,
         "wave": entry.wave,
@@ -1591,7 +1823,8 @@ def _construct_manifest(
         "partial": mode == "review",
         "confirmatory": False,
         "scope": "downstream",
-        "scope_partial": mode == "review",
+        "scope_splits": sorted(scope_splits),
+        "scope_partial": mode == "review" or scope_splits != ALL_DOWNSTREAM_SPLITS,
         "dry_run": dry_run,
         "record_count": int(details.get("record_count", 0)),
         "split_counts": dict(details.get("split_counts", {})),
@@ -1626,6 +1859,7 @@ def orchestrate_downstream_prompts(
     construct_ids: Iterable[str] | None = None,
     output_dir: str | Path = DEFAULT_OUTPUT_DIR,
     mode: str = "full",
+    selected_splits: Iterable[str] | None = None,
     workers: int = 4,
     batch_size: int = DEFAULT_BATCH_SIZE,
     max_output_tokens: int = DEFAULT_MAX_OUTPUT_TOKENS,
@@ -1656,6 +1890,16 @@ def orchestrate_downstream_prompts(
             f"full generation requires batch_size >= {MIN_FULL_BATCH_SIZE}; "
             "the final scheduled remainder of a cell may be smaller."
         )
+    active_splits = None
+    if selected_splits is not None:
+        active_splits = frozenset(str(split).strip() for split in selected_splits if str(split).strip())
+        if not active_splits or not active_splits.issubset(ALL_DOWNSTREAM_SPLITS):
+            raise ValueError(
+                f"selected_splits must be a non-empty subset of {sorted(ALL_DOWNSTREAM_SPLITS)}."
+            )
+
+    def entry_splits(entry: _PlanEntry) -> frozenset[str]:
+        return active_splits if active_splits is not None else _splits_for_entry(entry)
     provider = str(provider).strip().lower()
     if provider != "openai":
         raise ValueError("The downstream prompt workflow is Luna-only: provider must be 'openai'.")
@@ -1710,6 +1954,7 @@ def orchestrate_downstream_prompts(
         "model": model,
         "reasoning_effort": reasoning_effort,
         "scope": "downstream",
+        "scope_splits": sorted(active_splits) if active_splits is not None else None,
         "runtime_settings": {
             "batch_size": batch_size,
             "max_output_tokens": max_output_tokens,
@@ -1726,6 +1971,7 @@ def orchestrate_downstream_prompts(
             mode=mode,
             input_price=input_usd_per_million_tokens,
             output_price=output_usd_per_million_tokens,
+            selected_splits=entry_splits(entry),
         )
         for entry in entries
     }
@@ -1768,6 +2014,7 @@ def orchestrate_downstream_prompts(
             construct_manifests.append(_construct_manifest(
                 entry, output_paths[entry.construct_id], details, mode=mode, dry_run=True,
                 provider=provider, model=model, reasoning_effort=reasoning_effort, runtime_settings=runtime_settings,
+                selected_splits=entry_splits(entry),
             ))
             for split, count in summary["records_by_split"].items():
                 split_counts[split] = split_counts.get(split, 0) + int(count)
@@ -1783,7 +2030,8 @@ def orchestrate_downstream_prompts(
             "waves": sorted({entry.wave for entry in entries}),
             "construct_ids": [entry.construct_id for entry in entries],
             "scope": "downstream",
-            "scope_partial": mode == "review",
+            "scope_splits": sorted(active_splits) if active_splits is not None else None,
+            "scope_partial": mode == "review" or (active_splits is not None and active_splits != ALL_DOWNSTREAM_SPLITS),
             "run_mode": mode,
             "partial": mode == "review",
             "frozen": False,
@@ -1854,6 +2102,7 @@ def orchestrate_downstream_prompts(
                 entry=entry,
                 identity=checkpoint_identities[entry.construct_id],
                 mode=mode,
+                selected_splits=entry_splits(entry),
             )
             completed_by_construct[entry.construct_id] = recovered
             completed_metadata_by_construct[entry.construct_id] = recovered_metadata
@@ -1883,7 +2132,7 @@ def orchestrate_downstream_prompts(
             for job in iter_generation_request_jobs(
                 entry.plan,
                 count_per_model_override=_mode_count(mode),
-                splits=set(DOWNSTREAM_SPLITS),
+                splits=set(entry_splits(entry)),
             )
         }
         prior_entry_attempts = {
@@ -1902,7 +2151,14 @@ def orchestrate_downstream_prompts(
             if not resume:
                 raise FileExistsError(f"Output already exists: {output_path}")
             records = tuple(load_prompt_records(output_path))
-            details = _validate_downstream_records(entry, records, mode=mode, input_price=input_usd_per_million_tokens, output_price=output_usd_per_million_tokens)
+            details = _validate_downstream_records(
+                entry,
+                records,
+                mode=mode,
+                input_price=input_usd_per_million_tokens,
+                output_price=output_usd_per_million_tokens,
+                selected_splits=entry_splits(entry),
+            )
             details["actual_cost_usd"] = _reconstruct_spend(records)
             details["actual_request_count"] = len({record.metadata.get("generation_job_id") for record in records})
             details["resumed"] = True
@@ -2155,10 +2411,10 @@ def orchestrate_downstream_prompts(
             entry.plan,
             entry.spec,
             api_key=api_key,
-            request_fn=runtime_request_fn,
+            request_fn=_request_fn_with_collateral_label_exception(runtime_request_fn, entry),
             workers=request_workers_by_construct[entry.construct_id],
             count_per_model_override=_mode_count(mode),
-            splits=set(DOWNSTREAM_SPLITS),
+            splits=set(entry_splits(entry)),
             completed_job_records=completed_by_construct.get(entry.construct_id),
             completed_job_metadata=completed_metadata_by_construct.get(entry.construct_id),
             on_job_complete=on_job_complete,
@@ -2179,7 +2435,14 @@ def orchestrate_downstream_prompts(
             ),
         )
         records = tuple(result.records)
-        details = _validate_downstream_records(entry, records, mode=mode, input_price=input_usd_per_million_tokens, output_price=output_usd_per_million_tokens)
+        details = _validate_downstream_records(
+            entry,
+            records,
+            mode=mode,
+            input_price=input_usd_per_million_tokens,
+            output_price=output_usd_per_million_tokens,
+            selected_splits=entry_splits(entry),
+        )
         summary = result.summary()
         details.update({
             "actual_input_tokens": summary.get("actual_input_tokens", 0),
@@ -2288,6 +2551,7 @@ def orchestrate_downstream_prompts(
         construct_manifests.append(_construct_manifest(
             entry, output_path, details, mode=mode, dry_run=False,
             provider=provider, model=model, reasoning_effort=reasoning_effort, runtime_settings=runtime_settings,
+            selected_splits=entry_splits(entry),
         ))
     validate_prompt_records(combined_records, all_specs, require_all_splits=False)
     _atomic_write_records(combined_records, combined_path)
@@ -2314,6 +2578,8 @@ def orchestrate_downstream_prompts(
             "frozen": False,
             "dry_run": False,
             "construct_ids": [entry.construct_id for entry in entries],
+            "scope_splits": sorted(active_splits) if active_splits is not None else None,
+            "scope_partial": mode == "review" or (active_splits is not None and active_splits != ALL_DOWNSTREAM_SPLITS),
             "constructs": construct_manifests,
             "audit": {key: value for key, value in audit.items() if key != "flags"},
             "audit_summary_path": str(audit_summary_path),
@@ -2365,7 +2631,8 @@ def orchestrate_downstream_prompts(
         "waves": sorted({entry.wave for entry in entries}),
         "construct_ids": [entry.construct_id for entry in entries],
         "scope": "downstream",
-        "scope_partial": mode == "review",
+        "scope_splits": sorted(active_splits) if active_splits is not None else None,
+        "scope_partial": mode == "review" or (active_splits is not None and active_splits != ALL_DOWNSTREAM_SPLITS),
         "run_mode": mode,
         "partial": mode == "review",
         "frozen": mode == "full",
@@ -2409,7 +2676,7 @@ def orchestrate_downstream_prompts(
         "counts": {
             "split_counts": dict(sorted({
                 split: sum(1 for record in combined_records if record.split == split)
-                for split in DOWNSTREAM_SPLITS
+                for split in sorted({record.split for record in combined_records})
             }.items())),
             "record_count": len(combined_records),
             "request_count": sum(item["request_count"] for item in construct_manifests),
@@ -2473,6 +2740,13 @@ def main() -> None:
     parser.add_argument("--waves", nargs="+", default=["all"])
     parser.add_argument("--constructs", nargs="+", default=None)
     parser.add_argument("--mode", choices=("review", "full"), default="full")
+    parser.add_argument(
+        "--selected-splits",
+        nargs="+",
+        choices=sorted(ALL_DOWNSTREAM_SPLITS),
+        default=None,
+        help="Generate only these registered downstream partitions; use for versioned component repairs.",
+    )
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--batch-size", type=int, default=DEFAULT_BATCH_SIZE)
@@ -2505,6 +2779,7 @@ def main() -> None:
         construct_ids=args.constructs,
         output_dir=args.output_dir,
         mode=args.mode,
+        selected_splits=args.selected_splits,
         workers=args.workers,
         batch_size=args.batch_size,
         max_output_tokens=args.max_output_tokens,

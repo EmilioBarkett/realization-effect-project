@@ -1,0 +1,564 @@
+{
+  "confirmatory": false,
+  "construct_ids": [
+    "temporal_orientation",
+    "epistemic_uncertainty",
+    "reciprocity_obligation",
+    "goal_shielding"
+  ],
+  "counts_by_construct_split": {
+    "epistemic_uncertainty": {
+      "behavior_eval": 32,
+      "calibration": 32,
+      "collateral_eval": 32,
+      "direction_heldout": 80,
+      "direction_train": 200,
+      "direction_validation": 80,
+      "steering_eval": 32
+    },
+    "goal_shielding": {
+      "behavior_eval": 32,
+      "calibration": 32,
+      "collateral_eval": 32,
+      "direction_heldout": 80,
+      "direction_train": 200,
+      "direction_validation": 80,
+      "steering_eval": 32
+    },
+    "reciprocity_obligation": {
+      "behavior_eval": 32,
+      "calibration": 32,
+      "collateral_eval": 32,
+      "direction_heldout": 80,
+      "direction_train": 200,
+      "direction_validation": 80,
+      "steering_eval": 32
+    },
+    "temporal_orientation": {
+      "behavior_eval": 32,
+      "calibration": 32,
+      "collateral_eval": 32,
+      "direction_heldout": 80,
+      "direction_train": 200,
+      "direction_validation": 80,
+      "steering_eval": 32
+    }
+  },
+  "downstream_record_count": 512,
+  "frozen": true,
+  "manifest_type": "wave_execution_prompt_inventory",
+  "output_path": "combined.csv",
+  "output_sha256": "a7215df7f24131f33ffa2475febaf6c1123137a81f4d6850b3972e1559f224e7",
+  "prompt_audit": {
+    "audit_version": "2",
+    "downstream": {
+      "flag_count": 1,
+      "passed": true,
+      "record_count": 384,
+      "severe_flag_count": 0,
+      "warning_flag_count": 1
+    },
+    "inventory_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/prompt_inventories/wave4_four_construct_repaired_v3_luna_label_v4_v2vector_r1/combined.csv",
+    "passed": true,
+    "per_construct": {
+      "epistemic_uncertainty": {
+        "expected_counts": {
+          "behavior_eval": 32,
+          "calibration": 32,
+          "collateral_eval": 32,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 32
+        },
+        "observed_counts": {
+          "behavior_eval": 32,
+          "calibration": 32,
+          "collateral_eval": 32,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 32
+        },
+        "task_family": "single_check_budget_allocation",
+        "task_id": "single_check_budget_v3"
+      },
+      "goal_shielding": {
+        "expected_counts": {
+          "behavior_eval": 32,
+          "calibration": 32,
+          "collateral_eval": 32,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 32
+        },
+        "observed_counts": {
+          "behavior_eval": 32,
+          "calibration": 32,
+          "collateral_eval": 32,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 32
+        },
+        "task_family": "fresh_task_competition_allocation",
+        "task_id": "fresh_attention_budget_v3"
+      },
+      "reciprocity_obligation": {
+        "expected_counts": {
+          "behavior_eval": 32,
+          "calibration": 32,
+          "collateral_eval": 32,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 32
+        },
+        "observed_counts": {
+          "behavior_eval": 32,
+          "calibration": 32,
+          "collateral_eval": 32,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 32
+        },
+        "task_family": "fresh_return_help_allocation",
+        "task_id": "fresh_help_allocation_v3"
+      },
+      "temporal_orientation": {
+        "expected_counts": {
+          "behavior_eval": 32,
+          "calibration": 32,
+          "collateral_eval": 32,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 32
+        },
+        "observed_counts": {
+          "behavior_eval": 32,
+          "calibration": 32,
+          "collateral_eval": 32,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 32
+        },
+        "task_family": "dated_resource_allocation",
+        "task_id": "dated_resource_allocation_v3"
+      }
+    },
+    "record_count": 1952,
+    "registry_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/configs/construct_benchmark/construct_registry_waves2_4_repaired_v3_collateral_v3_disjoint_label_v4.json",
+    "severe_flag_count": 0,
+    "vector": {
+      "cross_split_normalized_duplicate_count": 0,
+      "malformed_pair_count": 0,
+      "malformed_pair_examples": [],
+      "normalized_duplicate_count": 0,
+      "pair_group_count": 720,
+      "record_count": 1440,
+      "split_counts": {
+        "direction_heldout": 320,
+        "direction_train": 800,
+        "direction_validation": 320
+      }
+    },
+    "warning_count": 1,
+    "wave": 4
+  },
+  "record_count": 1952,
+  "schema_version": "0.1.0",
+  "scope": "vector_probe_plus_downstream",
+  "sources": {
+    "downstream": {
+      "combined_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/wave4_repaired_v3_full_pool_luna_collateral_v3_disjoint_label_v4_r2/combined.csv",
+      "combined_sha256": "a0a8c25d279e43a155cd4d466ea114da4712a69ae58b93f8cd60009c9e906c2e",
+      "confirmatory": false,
+      "construct_ids": [
+        "epistemic_uncertainty",
+        "goal_shielding",
+        "reciprocity_obligation",
+        "temporal_orientation"
+      ],
+      "frozen": true,
+      "manifest_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/wave4_repaired_v3_full_pool_luna_collateral_v3_disjoint_label_v4_r2/final_inventory_manifest.json",
+      "manifest_sha256": "601b136f4d0a2c66d1b8b982801a4d022378e7a6a08fd559919c09859462726d",
+      "record_count": 512,
+      "status": "frozen"
+    },
+    "downstream_quality_gate": {
+      "approved": true,
+      "construct_ids": [
+        "ambiguity_orientation",
+        "authority_deference",
+        "causal_interpretation",
+        "consensus_conformity",
+        "epistemic_uncertainty",
+        "exploration_exploitation",
+        "goal_shielding",
+        "plan_replanning",
+        "prior_weighting",
+        "reciprocity_obligation",
+        "reference_frame",
+        "temporal_orientation"
+      ],
+      "path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/configs/construct_benchmark/quality_gates/waves2_4_downstream_luna_v1.json",
+      "reviewer": "codex_downstream_prompt_orchestrator",
+      "scope": "waves2_4_downstream",
+      "sha256": "245ee91686f59e38d660bd375ef1834da76b421f2035bb40c6ba7cc40a408024",
+      "status": "approved"
+    },
+    "vector": {
+      "combined_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/waves2_4_repaired_v2_vector_full_openai_luna/combined.csv",
+      "combined_sha256": "d01b53f88003305787a0906a0e8bfc34c7ede2ee02d5687241f1792363991c5d",
+      "confirmatory": false,
+      "construct_ids": [
+        "ambiguity_orientation",
+        "authority_deference",
+        "causal_interpretation",
+        "consensus_conformity",
+        "epistemic_uncertainty",
+        "exploration_exploitation",
+        "goal_shielding",
+        "plan_replanning",
+        "prior_weighting",
+        "reciprocity_obligation",
+        "reference_frame",
+        "temporal_orientation"
+      ],
+      "frozen": null,
+      "manifest_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/waves2_4_repaired_v2_vector_full_openai_luna/vector_prompt_manifest.json",
+      "manifest_sha256": "e713a07c0db78942cabb303a02dbee0774593eab456af726b1f8ab3041387f24",
+      "record_count": 4320,
+      "status": null
+    }
+  },
+  "status": "frozen",
+  "validation": {
+    "combined": {
+      "construct_ids": [
+        "epistemic_uncertainty",
+        "goal_shielding",
+        "reciprocity_obligation",
+        "temporal_orientation"
+      ],
+      "counts_by_construct": {
+        "epistemic_uncertainty": 488,
+        "goal_shielding": 488,
+        "reciprocity_obligation": 488,
+        "temporal_orientation": 488
+      },
+      "counts_by_construct_split": {
+        "epistemic_uncertainty": {
+          "behavior_eval": 32,
+          "calibration": 32,
+          "collateral_eval": 32,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 32
+        },
+        "goal_shielding": {
+          "behavior_eval": 32,
+          "calibration": 32,
+          "collateral_eval": 32,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 32
+        },
+        "reciprocity_obligation": {
+          "behavior_eval": 32,
+          "calibration": 32,
+          "collateral_eval": 32,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 32
+        },
+        "temporal_orientation": {
+          "behavior_eval": 32,
+          "calibration": 32,
+          "collateral_eval": 32,
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80,
+          "steering_eval": 32
+        }
+      },
+      "pair_count": 720,
+      "prompt_families_by_construct_role": {
+        "epistemic_uncertainty": {
+          "behavior": [
+            "epistemic_uncertainty_behavior_v3"
+          ],
+          "calibration": [
+            "epistemic_uncertainty_calibration_v3"
+          ],
+          "collateral": [
+            "epistemic_uncertainty_collateral_v3_disjoint"
+          ],
+          "probe": [
+            "uncertainty_probe_heldout",
+            "uncertainty_probe_train",
+            "uncertainty_probe_validation"
+          ],
+          "steering": [
+            "epistemic_uncertainty_steering_v3"
+          ]
+        },
+        "goal_shielding": {
+          "behavior": [
+            "goal_shielding_behavior_v3"
+          ],
+          "calibration": [
+            "goal_shielding_calibration_v3"
+          ],
+          "collateral": [
+            "goal_shielding_collateral_v3_disjoint"
+          ],
+          "probe": [
+            "shielding_probe_heldout",
+            "shielding_probe_train",
+            "shielding_probe_validation"
+          ],
+          "steering": [
+            "goal_shielding_steering_v3"
+          ]
+        },
+        "reciprocity_obligation": {
+          "behavior": [
+            "reciprocity_obligation_behavior_v3"
+          ],
+          "calibration": [
+            "reciprocity_obligation_calibration_v3"
+          ],
+          "collateral": [
+            "reciprocity_obligation_collateral_v3_disjoint_label_v1"
+          ],
+          "probe": [
+            "reciprocity_probe_heldout",
+            "reciprocity_probe_train",
+            "reciprocity_probe_validation"
+          ],
+          "steering": [
+            "reciprocity_obligation_steering_v3"
+          ]
+        },
+        "temporal_orientation": {
+          "behavior": [
+            "temporal_orientation_behavior_v3"
+          ],
+          "calibration": [
+            "temporal_orientation_calibration_v3"
+          ],
+          "collateral": [
+            "temporal_orientation_collateral_v3_disjoint"
+          ],
+          "probe": [
+            "temporal_probe_heldout",
+            "temporal_probe_train",
+            "temporal_probe_validation"
+          ],
+          "steering": [
+            "temporal_orientation_steering_v3"
+          ]
+        }
+      },
+      "total_prompts": 1952
+    },
+    "downstream": {
+      "construct_ids": [
+        "epistemic_uncertainty",
+        "goal_shielding",
+        "reciprocity_obligation",
+        "temporal_orientation"
+      ],
+      "counts_by_construct": {
+        "epistemic_uncertainty": 128,
+        "goal_shielding": 128,
+        "reciprocity_obligation": 128,
+        "temporal_orientation": 128
+      },
+      "counts_by_construct_split": {
+        "epistemic_uncertainty": {
+          "behavior_eval": 32,
+          "calibration": 32,
+          "collateral_eval": 32,
+          "steering_eval": 32
+        },
+        "goal_shielding": {
+          "behavior_eval": 32,
+          "calibration": 32,
+          "collateral_eval": 32,
+          "steering_eval": 32
+        },
+        "reciprocity_obligation": {
+          "behavior_eval": 32,
+          "calibration": 32,
+          "collateral_eval": 32,
+          "steering_eval": 32
+        },
+        "temporal_orientation": {
+          "behavior_eval": 32,
+          "calibration": 32,
+          "collateral_eval": 32,
+          "steering_eval": 32
+        }
+      },
+      "pair_count": 0,
+      "prompt_families_by_construct_role": {
+        "epistemic_uncertainty": {
+          "behavior": [
+            "epistemic_uncertainty_behavior_v3"
+          ],
+          "calibration": [
+            "epistemic_uncertainty_calibration_v3"
+          ],
+          "collateral": [
+            "epistemic_uncertainty_collateral_v3_disjoint"
+          ],
+          "probe": [],
+          "steering": [
+            "epistemic_uncertainty_steering_v3"
+          ]
+        },
+        "goal_shielding": {
+          "behavior": [
+            "goal_shielding_behavior_v3"
+          ],
+          "calibration": [
+            "goal_shielding_calibration_v3"
+          ],
+          "collateral": [
+            "goal_shielding_collateral_v3_disjoint"
+          ],
+          "probe": [],
+          "steering": [
+            "goal_shielding_steering_v3"
+          ]
+        },
+        "reciprocity_obligation": {
+          "behavior": [
+            "reciprocity_obligation_behavior_v3"
+          ],
+          "calibration": [
+            "reciprocity_obligation_calibration_v3"
+          ],
+          "collateral": [
+            "reciprocity_obligation_collateral_v3_disjoint_label_v1"
+          ],
+          "probe": [],
+          "steering": [
+            "reciprocity_obligation_steering_v3"
+          ]
+        },
+        "temporal_orientation": {
+          "behavior": [
+            "temporal_orientation_behavior_v3"
+          ],
+          "calibration": [
+            "temporal_orientation_calibration_v3"
+          ],
+          "collateral": [
+            "temporal_orientation_collateral_v3_disjoint"
+          ],
+          "probe": [],
+          "steering": [
+            "temporal_orientation_steering_v3"
+          ]
+        }
+      },
+      "total_prompts": 512
+    },
+    "vector": {
+      "construct_ids": [
+        "epistemic_uncertainty",
+        "goal_shielding",
+        "reciprocity_obligation",
+        "temporal_orientation"
+      ],
+      "counts_by_construct": {
+        "epistemic_uncertainty": 360,
+        "goal_shielding": 360,
+        "reciprocity_obligation": 360,
+        "temporal_orientation": 360
+      },
+      "counts_by_construct_split": {
+        "epistemic_uncertainty": {
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80
+        },
+        "goal_shielding": {
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80
+        },
+        "reciprocity_obligation": {
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80
+        },
+        "temporal_orientation": {
+          "direction_heldout": 80,
+          "direction_train": 200,
+          "direction_validation": 80
+        }
+      },
+      "pair_count": 720,
+      "prompt_families_by_construct_role": {
+        "epistemic_uncertainty": {
+          "behavior": [],
+          "calibration": [],
+          "collateral": [],
+          "probe": [
+            "uncertainty_probe_heldout",
+            "uncertainty_probe_train",
+            "uncertainty_probe_validation"
+          ],
+          "steering": []
+        },
+        "goal_shielding": {
+          "behavior": [],
+          "calibration": [],
+          "collateral": [],
+          "probe": [
+            "shielding_probe_heldout",
+            "shielding_probe_train",
+            "shielding_probe_validation"
+          ],
+          "steering": []
+        },
+        "reciprocity_obligation": {
+          "behavior": [],
+          "calibration": [],
+          "collateral": [],
+          "probe": [
+            "reciprocity_probe_heldout",
+            "reciprocity_probe_train",
+            "reciprocity_probe_validation"
+          ],
+          "steering": []
+        },
+        "temporal_orientation": {
+          "behavior": [],
+          "calibration": [],
+          "collateral": [],
+          "probe": [
+            "temporal_probe_heldout",
+            "temporal_probe_train",
+            "temporal_probe_validation"
+          ],
+          "steering": []
+        }
+      },
+      "total_prompts": 1440
+    }
+  },
+  "vector_probe_record_count": 1440,
+  "wave": 4
+}

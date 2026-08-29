@@ -1,0 +1,123 @@
+{
+  "activation": {
+    "activation_site": "resid_post",
+    "batch_size": 4,
+    "include_token_regions": [
+      "scenario",
+      "task"
+    ],
+    "layer_selection": "validation_max_margin",
+    "layers": [
+      10,
+      20,
+      30
+    ],
+    "max_length": 1024,
+    "storage_dtype": "float16",
+    "token_mode": "nonpad",
+    "token_region_strategy": "auto"
+  },
+  "analysis_spec_id": "rsc_benchmark_core_v1",
+  "confirmatory": false,
+  "construct_ids": [
+    "ambiguity_orientation",
+    "causal_interpretation",
+    "consensus_conformity",
+    "plan_replanning"
+  ],
+  "execution": {
+    "allowed_run_modes": [
+      "test"
+    ],
+    "construct_namespace_required": true,
+    "default_run_mode": "test",
+    "forbidden_run_modes": [
+      "full",
+      "confirmatory",
+      "production"
+    ],
+    "max_constructs_per_run": 4,
+    "mode": "shared_activation_then_construct_fanout",
+    "parallel_construct_analysis": true,
+    "preflight_only": true,
+    "run_modes": {
+      "full": {
+        "blocked": true,
+        "blocked_reason": "This versioned run config is a preflight-only artifact; use a separately released confirmatory run config after all gates pass.",
+        "confirmatory": false,
+        "engineering_only": true,
+        "max_runtime_minutes": null,
+        "preflight_only": true,
+        "prompt_selection": {
+          "strategy": "all"
+        },
+        "purpose": "full_coverage_engineering"
+      },
+      "test": {
+        "confirmatory": false,
+        "max_runtime_minutes": 120,
+        "prompt_selection": {
+          "max_items_per_single_split": 16,
+          "max_pairs_per_paired_split": 8,
+          "strategy": "balanced_pair_preserving"
+        },
+        "purpose": "model_behavior_accessibility_preflight"
+      }
+    },
+    "shared_activation_pass": true,
+    "shared_model_load": true
+  },
+  "model": {
+    "model_id": "mistralai/Mistral-Small-24B-Instruct-2501",
+    "revision": "9527884be6e5616bdd54de542f9ae13384489724",
+    "tokenizer_id": "mistralai/Mistral-Small-24B-Instruct-2501"
+  },
+  "output_root": "results/benchmark",
+  "preflight": {
+    "allowed_run_modes": [
+      "test"
+    ],
+    "confirmatory": false,
+    "forbidden_run_modes": [
+      "full",
+      "confirmatory",
+      "production"
+    ],
+    "gate_id": "model_behavior_accessibility_wave3_repaired_v3",
+    "max_runtime_minutes": 120,
+    "max_spend_usd": 20.0,
+    "no_full_production": true,
+    "no_representation_logging": true,
+    "preflight_id": "model_behavior_accessibility_v2",
+    "preflight_only": true
+  },
+  "run_id": "wave3_four_construct_mistral_model_preflight_repaired_v3",
+  "run_kind": "preflight_only",
+  "schema_version": "0.1.0",
+  "seed": 1732,
+  "steering": {
+    "calibration": "neutral",
+    "direction_source": "direction_train_only",
+    "intervention_timing": "prefill_only",
+    "position_mode": "last",
+    "random_direction_count": 3,
+    "required_direction_kinds": [
+      "target",
+      "shuffled",
+      "random"
+    ],
+    "scales": [
+      -1.0,
+      0.0,
+      1.0
+    ]
+  },
+  "storage": {
+    "archive_uri_env": "RSC_BENCH_ARCHIVE_URI",
+    "keep_local_copy": true,
+    "sync_endpoint_env": "RSC_BENCH_S3_ENDPOINT_URL",
+    "sync_on_finalize": true,
+    "sync_tool": "aws",
+    "workspace_root_env": "RSC_BENCH_WORKSPACE_ROOT"
+  }
+}

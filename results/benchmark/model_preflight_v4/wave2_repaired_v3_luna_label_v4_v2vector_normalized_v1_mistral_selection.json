@@ -1,0 +1,495 @@
+{
+  "confirmatory": false,
+  "construct_ids": [
+    "reference_frame",
+    "prior_weighting",
+    "authority_deference",
+    "exploration_exploitation"
+  ],
+  "gate_config_sha256": "3bf6f8ad86aeb63cfe2e1f37c93e18864c1c90ceb3470e924ac14712d00ec4d4",
+  "gate_id": "model_behavior_accessibility_wave2_repaired_v3",
+  "item_bounds": {
+    "maximum": 16,
+    "minimum": 8,
+    "target": 16
+  },
+  "manifest_type": "model_behavior_accessibility_preflight_selection",
+  "model": {
+    "model_id": "mistralai/Mistral-Small-24B-Instruct-2501",
+    "revision": "9527884be6e5616bdd54de542f9ae13384489724",
+    "tokenizer_id": "mistralai/Mistral-Small-24B-Instruct-2501"
+  },
+  "output": "results/benchmark/model_preflight_v4/wave2_repaired_v3_luna_label_v4_v2vector_normalized_v1_mistral_selection.json",
+  "preflight_id": "model_behavior_accessibility_v2",
+  "purpose": "release_gate_before_any_further_large_model_execution",
+  "schema_version": "0.1.0",
+  "seed": 1729,
+  "selected": {
+    "authority_deference": {
+      "behavior_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "position_balance": {
+          "counts": {
+            "1": 8,
+            "2": 8
+          },
+          "field": "target_option",
+          "levels": [
+            1,
+            2
+          ],
+          "selected_count": 16
+        },
+        "prompt_ids": [
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__behavior_eval__part_001__1",
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__behavior_eval__part_001__10",
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__behavior_eval__part_001__12",
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__behavior_eval__part_001__13",
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__behavior_eval__part_001__15",
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__behavior_eval__part_001__16",
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__behavior_eval__part_001__17",
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__behavior_eval__part_001__20",
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__behavior_eval__part_001__4",
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__behavior_eval__part_001__6",
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__behavior_eval__part_001__7",
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__behavior_eval__part_002__v02",
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__behavior_eval__part_002__v03",
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__behavior_eval__part_002__v04",
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__behavior_eval__part_002__v05",
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__behavior_eval__part_002__v09"
+        ],
+        "source_item_count": 32,
+        "target_items": 16
+      },
+      "collateral_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "position_balance": {
+          "counts": {
+            "1": 8,
+            "2": 8
+          },
+          "field": "correct_option",
+          "levels": [
+            1,
+            2
+          ],
+          "selected_count": 16
+        },
+        "prompt_ids": [
+          "wave2_authority_deference_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__authority_deference__luna__collateral_eval__part_001__variant_03",
+          "wave2_authority_deference_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__authority_deference__luna__collateral_eval__part_001__variant_05",
+          "wave2_authority_deference_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__authority_deference__luna__collateral_eval__part_001__variant_07",
+          "wave2_authority_deference_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__authority_deference__luna__collateral_eval__part_001__variant_10",
+          "wave2_authority_deference_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__authority_deference__luna__collateral_eval__part_001__variant_13",
+          "wave2_authority_deference_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__authority_deference__luna__collateral_eval__part_001__variant_14",
+          "wave2_authority_deference_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__authority_deference__luna__collateral_eval__part_001__variant_17",
+          "wave2_authority_deference_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__authority_deference__luna__collateral_eval__part_001__variant_18",
+          "wave2_authority_deference_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__authority_deference__luna__collateral_eval__part_001__variant_19",
+          "wave2_authority_deference_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__authority_deference__luna__collateral_eval__part_001__variant_20",
+          "wave2_authority_deference_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__authority_deference__luna__collateral_eval__part_002__02",
+          "wave2_authority_deference_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__authority_deference__luna__collateral_eval__part_002__03",
+          "wave2_authority_deference_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__authority_deference__luna__collateral_eval__part_002__04",
+          "wave2_authority_deference_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__authority_deference__luna__collateral_eval__part_002__06",
+          "wave2_authority_deference_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__authority_deference__luna__collateral_eval__part_002__10",
+          "wave2_authority_deference_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__authority_deference__luna__collateral_eval__part_002__11"
+        ],
+        "source_item_count": 32,
+        "target_items": 16
+      },
+      "steering_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "position_balance": {
+          "counts": {
+            "1": 8,
+            "2": 8
+          },
+          "field": "target_option",
+          "levels": [
+            1,
+            2
+          ],
+          "selected_count": 16
+        },
+        "prompt_ids": [
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__steering_eval__part_001__steering_01",
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__steering_eval__part_001__steering_03",
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__steering_eval__part_001__steering_08",
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__steering_eval__part_001__steering_12",
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__steering_eval__part_001__steering_16",
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__steering_eval__part_001__steering_17",
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__steering_eval__part_001__steering_19",
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__steering_eval__part_002__10",
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__steering_eval__part_002__11",
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__steering_eval__part_002__12",
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__steering_eval__part_002__3",
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__steering_eval__part_002__4",
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__steering_eval__part_002__5",
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__steering_eval__part_002__6",
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__steering_eval__part_002__7",
+          "wave2_authority_deference_prompts_repaired_v3_r5__authority_deference__luna__steering_eval__part_002__8"
+        ],
+        "source_item_count": 32,
+        "target_items": 16
+      }
+    },
+    "exploration_exploitation": {
+      "behavior_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "position_balance": {
+          "counts": {
+            "1": 8,
+            "2": 8
+          },
+          "field": "target_option",
+          "levels": [
+            1,
+            2
+          ],
+          "selected_count": 16
+        },
+        "prompt_ids": [
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__behavior_eval__part_001__03",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__behavior_eval__part_001__04",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__behavior_eval__part_001__06",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__behavior_eval__part_001__07",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__behavior_eval__part_001__08",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__behavior_eval__part_001__09",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__behavior_eval__part_001__10",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__behavior_eval__part_001__13",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__behavior_eval__part_001__15",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__behavior_eval__part_001__18",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__behavior_eval__part_002__v01",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__behavior_eval__part_002__v06",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__behavior_eval__part_002__v07",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__behavior_eval__part_002__v08",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__behavior_eval__part_002__v11",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__behavior_eval__part_002__v12"
+        ],
+        "source_item_count": 32,
+        "target_items": 16
+      },
+      "collateral_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "position_balance": {
+          "counts": {
+            "1": 8,
+            "2": 8
+          },
+          "field": "correct_option",
+          "levels": [
+            1,
+            2
+          ],
+          "selected_count": 16
+        },
+        "prompt_ids": [
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__exploration_exploitation__luna__collateral_eval__part_001__atlas_saffron_01",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__exploration_exploitation__luna__collateral_eval__part_001__atlas_saffron_02",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__exploration_exploitation__luna__collateral_eval__part_001__atlas_saffron_03",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__exploration_exploitation__luna__collateral_eval__part_001__atlas_saffron_05",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__exploration_exploitation__luna__collateral_eval__part_001__atlas_saffron_06",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__exploration_exploitation__luna__collateral_eval__part_001__atlas_saffron_07",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__exploration_exploitation__luna__collateral_eval__part_001__atlas_saffron_08",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__exploration_exploitation__luna__collateral_eval__part_001__atlas_saffron_10",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__exploration_exploitation__luna__collateral_eval__part_001__atlas_saffron_15",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__exploration_exploitation__luna__collateral_eval__part_001__atlas_saffron_19",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__exploration_exploitation__luna__collateral_eval__part_002__item_04",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__exploration_exploitation__luna__collateral_eval__part_002__item_05",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__exploration_exploitation__luna__collateral_eval__part_002__item_06",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__exploration_exploitation__luna__collateral_eval__part_002__item_10",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__exploration_exploitation__luna__collateral_eval__part_002__item_11",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__exploration_exploitation__luna__collateral_eval__part_002__item_12"
+        ],
+        "source_item_count": 32,
+        "target_items": 16
+      },
+      "steering_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "position_balance": {
+          "counts": {
+            "1": 8,
+            "2": 8
+          },
+          "field": "target_option",
+          "levels": [
+            1,
+            2
+          ],
+          "selected_count": 16
+        },
+        "prompt_ids": [
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__steering_eval__part_001__v03",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__steering_eval__part_001__v04",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__steering_eval__part_001__v05",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__steering_eval__part_001__v06",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__steering_eval__part_001__v12",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__steering_eval__part_001__v13",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__steering_eval__part_001__v17",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__steering_eval__part_001__v18",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__steering_eval__part_001__v19",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__steering_eval__part_002__01",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__steering_eval__part_002__02",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__steering_eval__part_002__06",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__steering_eval__part_002__07",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__steering_eval__part_002__10",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__steering_eval__part_002__11",
+          "wave2_exploration_exploitation_prompts_repaired_v3_r5__exploration_exploitation__luna__steering_eval__part_002__12"
+        ],
+        "source_item_count": 32,
+        "target_items": 16
+      }
+    },
+    "prior_weighting": {
+      "behavior_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "prompt_ids": [
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__behavior_eval__part_001__lw_02",
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__behavior_eval__part_001__lw_03",
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__behavior_eval__part_001__lw_06",
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__behavior_eval__part_001__lw_07",
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__behavior_eval__part_001__lw_09",
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__behavior_eval__part_001__lw_11",
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__behavior_eval__part_001__lw_14",
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__behavior_eval__part_001__lw_17",
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__behavior_eval__part_001__lw_19",
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__behavior_eval__part_002__item_02",
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__behavior_eval__part_002__item_05",
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__behavior_eval__part_002__item_06",
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__behavior_eval__part_002__item_07",
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__behavior_eval__part_002__item_08",
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__behavior_eval__part_002__item_11",
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__behavior_eval__part_002__item_12"
+        ],
+        "source_item_count": 32,
+        "target_items": 16
+      },
+      "collateral_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "position_balance": {
+          "counts": {
+            "1": 8,
+            "2": 8
+          },
+          "field": "correct_option",
+          "levels": [
+            1,
+            2
+          ],
+          "selected_count": 16
+        },
+        "prompt_ids": [
+          "wave2_prior_weighting_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__prior_weighting__luna__collateral_eval__part_001__prompt_01",
+          "wave2_prior_weighting_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__prior_weighting__luna__collateral_eval__part_001__prompt_02",
+          "wave2_prior_weighting_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__prior_weighting__luna__collateral_eval__part_001__prompt_05",
+          "wave2_prior_weighting_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__prior_weighting__luna__collateral_eval__part_001__prompt_06",
+          "wave2_prior_weighting_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__prior_weighting__luna__collateral_eval__part_001__prompt_10",
+          "wave2_prior_weighting_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__prior_weighting__luna__collateral_eval__part_001__prompt_11",
+          "wave2_prior_weighting_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__prior_weighting__luna__collateral_eval__part_001__prompt_14",
+          "wave2_prior_weighting_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__prior_weighting__luna__collateral_eval__part_001__prompt_15",
+          "wave2_prior_weighting_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__prior_weighting__luna__collateral_eval__part_001__prompt_16",
+          "wave2_prior_weighting_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__prior_weighting__luna__collateral_eval__part_001__prompt_19",
+          "wave2_prior_weighting_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__prior_weighting__luna__collateral_eval__part_001__prompt_20",
+          "wave2_prior_weighting_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__prior_weighting__luna__collateral_eval__part_002__variant_01",
+          "wave2_prior_weighting_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__prior_weighting__luna__collateral_eval__part_002__variant_02",
+          "wave2_prior_weighting_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__prior_weighting__luna__collateral_eval__part_002__variant_05",
+          "wave2_prior_weighting_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__prior_weighting__luna__collateral_eval__part_002__variant_08",
+          "wave2_prior_weighting_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__prior_weighting__luna__collateral_eval__part_002__variant_11"
+        ],
+        "source_item_count": 32,
+        "target_items": 16
+      },
+      "steering_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "prompt_ids": [
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__steering_eval__part_001__item_02",
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__steering_eval__part_001__item_03",
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__steering_eval__part_001__item_05",
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__steering_eval__part_001__item_06",
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__steering_eval__part_001__item_07",
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__steering_eval__part_001__item_08",
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__steering_eval__part_001__item_09",
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__steering_eval__part_001__item_11",
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__steering_eval__part_001__item_13",
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__steering_eval__part_001__item_14",
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__steering_eval__part_001__item_15",
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__steering_eval__part_001__item_20",
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__steering_eval__part_002__1",
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__steering_eval__part_002__10",
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__steering_eval__part_002__5",
+          "wave2_prior_weighting_prompts_repaired_v3_r5__prior_weighting__luna__steering_eval__part_002__6"
+        ],
+        "source_item_count": 32,
+        "target_items": 16
+      }
+    },
+    "reference_frame": {
+      "behavior_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "position_balance": {
+          "counts": {
+            "1": 8,
+            "2": 8
+          },
+          "field": "target_option",
+          "levels": [
+            1,
+            2
+          ],
+          "selected_count": 16
+        },
+        "prompt_ids": [
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__behavior_eval__part_001__v01",
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__behavior_eval__part_001__v03",
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__behavior_eval__part_001__v05",
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__behavior_eval__part_001__v06",
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__behavior_eval__part_001__v08",
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__behavior_eval__part_001__v09",
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__behavior_eval__part_001__v14",
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__behavior_eval__part_001__v15",
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__behavior_eval__part_001__v16",
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__behavior_eval__part_001__v18",
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__behavior_eval__part_001__v19",
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__behavior_eval__part_001__v20",
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__behavior_eval__part_002__behavior_04",
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__behavior_eval__part_002__behavior_05",
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__behavior_eval__part_002__behavior_07",
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__behavior_eval__part_002__behavior_12"
+        ],
+        "source_item_count": 32,
+        "target_items": 16
+      },
+      "collateral_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "position_balance": {
+          "counts": {
+            "1": 8,
+            "2": 8
+          },
+          "field": "correct_option",
+          "levels": [
+            1,
+            2
+          ],
+          "selected_count": 16
+        },
+        "prompt_ids": [
+          "wave2_reference_frame_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__reference_frame__luna__collateral_eval__part_001__variant_02",
+          "wave2_reference_frame_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__reference_frame__luna__collateral_eval__part_001__variant_04",
+          "wave2_reference_frame_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__reference_frame__luna__collateral_eval__part_001__variant_05",
+          "wave2_reference_frame_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__reference_frame__luna__collateral_eval__part_001__variant_08",
+          "wave2_reference_frame_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__reference_frame__luna__collateral_eval__part_001__variant_13",
+          "wave2_reference_frame_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__reference_frame__luna__collateral_eval__part_001__variant_14",
+          "wave2_reference_frame_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__reference_frame__luna__collateral_eval__part_001__variant_15",
+          "wave2_reference_frame_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__reference_frame__luna__collateral_eval__part_001__variant_18",
+          "wave2_reference_frame_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__reference_frame__luna__collateral_eval__part_002__01",
+          "wave2_reference_frame_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__reference_frame__luna__collateral_eval__part_002__03",
+          "wave2_reference_frame_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__reference_frame__luna__collateral_eval__part_002__04",
+          "wave2_reference_frame_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__reference_frame__luna__collateral_eval__part_002__05",
+          "wave2_reference_frame_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__reference_frame__luna__collateral_eval__part_002__07",
+          "wave2_reference_frame_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__reference_frame__luna__collateral_eval__part_002__10",
+          "wave2_reference_frame_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__reference_frame__luna__collateral_eval__part_002__11",
+          "wave2_reference_frame_prompts_repaired_v3_r5_collateral_v2_collateral_v3_disjoint__reference_frame__luna__collateral_eval__part_002__12"
+        ],
+        "source_item_count": 32,
+        "target_items": 16
+      },
+      "steering_eval": {
+        "item_count": 16,
+        "maximum_items": 16,
+        "minimum_items": 8,
+        "position_balance": {
+          "counts": {
+            "1": 8,
+            "2": 8
+          },
+          "field": "target_option",
+          "levels": [
+            1,
+            2
+          ],
+          "selected_count": 16
+        },
+        "prompt_ids": [
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__steering_eval__part_001__steering_002",
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__steering_eval__part_001__steering_003",
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__steering_eval__part_001__steering_005",
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__steering_eval__part_001__steering_006",
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__steering_eval__part_001__steering_007",
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__steering_eval__part_001__steering_009",
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__steering_eval__part_001__steering_010",
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__steering_eval__part_001__steering_011",
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__steering_eval__part_001__steering_012",
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__steering_eval__part_001__steering_013",
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__steering_eval__part_001__steering_017",
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__steering_eval__part_001__steering_018",
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__steering_eval__part_002__steering_08",
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__steering_eval__part_002__steering_10",
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__steering_eval__part_002__steering_11",
+          "wave2_reference_frame_prompts_repaired_v3_r5__reference_frame__luna__steering_eval__part_002__steering_12"
+        ],
+        "source_item_count": 32,
+        "target_items": 16
+      }
+    }
+  },
+  "selection_contract": {
+    "position_balance_required": true,
+    "position_balanced_splits": [
+      "behavior_eval",
+      "steering_eval",
+      "collateral_eval"
+    ],
+    "position_levels": [
+      1,
+      2
+    ],
+    "strategy": "balanced_stratified_hash"
+  },
+  "selection_informed_by_outcomes": false,
+  "selection_rule": "For each model, construct, split, and registered position stratum, rank prompt IDs by a frozen SHA-256 schedule, retain equal counts from every stratum, and inspect no outcomes during selection.",
+  "selection_sha256": "dbc945a42d40f28805095ca61c1d9d3a3903883e7a3582565cd7adecf7f1db1c",
+  "source_inventory": "results/benchmark/prompt_inventories/wave2_four_construct_repaired_v3_luna_label_v4_v2vector_r1/combined.csv",
+  "source_inventory_sha256": "05bfa54213c575b3cc3b901e2744678993943fffd00cd48e2b3152818cfed3e0",
+  "steering_requirements": {
+    "required_direction_kinds": [
+      "target",
+      "shuffled",
+      "random"
+    ],
+    "required_doses_by_direction_kind": {
+      "random": [
+        0.0
+      ],
+      "shuffled": [
+        0.0
+      ],
+      "target": [
+        -1.0,
+        0.0,
+        1.0
+      ]
+    }
+  }
+}

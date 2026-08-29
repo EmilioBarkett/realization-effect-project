@@ -1,0 +1,86 @@
+{
+  "base_spec_path": "persistence_continuation_v3.json",
+  "version": "v4",
+  "independent_behavior_task": {
+    "task_id": "goal_renewal_allocation_v4",
+    "task_family": "diminishing_return_goal_renewal_allocation",
+    "prompt_template": "For an independent allocation problem, Option A is the established goal and Option B is a new alternative. The item describes a recent setback, whether the established implementation can be repaired, the switching cost, and diminishing expected net-benefit returns for each option across allocation tranches. Allocate 0 to 100 points to Option A; the remaining points go to Option B. Option A always means the established goal even if the narrative introduces the alternative first. Use only the stated facts. Return exactly one integer from 0 to 100: the points assigned to Option A.",
+    "primary_outcome": "established_goal_allocation",
+    "secondary_outcomes": ["alternative_goal_allocation", "compliance"],
+    "response_format": "single_integer_allocation_0_to_100",
+    "item_metadata_schema": {
+      "properties": {
+        "option_order": {"type": "string", "enum": ["established_first", "alternative_first"]},
+        "established_option": {"type": "string", "enum": ["option_a", "not_applicable"]},
+        "option_a_semantics": {"type": "string", "enum": ["established_goal", "abstract_option"]},
+        "return_advantage_bin": {"type": "string", "enum": ["alternative_disadvantage", "near_indifference", "alternative_advantage"]},
+        "repairability": {"type": "string", "enum": ["repairable", "difficult", "not_applicable"]},
+        "setback_severity": {"type": "string", "enum": ["moderate", "severe", "not_applicable"]},
+        "switching_cost_bin": {"type": "string", "enum": ["none", "high", "not_applicable"]},
+        "tranche_profile": {"type": "string", "enum": ["diminishing_marginal_returns", "neutral_calibration"]},
+        "dominance_status": {"type": "string", "enum": ["no_strict_dominance", "not_applicable"]},
+        "allocation_region": {"type": "string", "enum": ["interior", "not_applicable"]},
+        "calibration_variant": {"type": "string", "enum": ["c01", "c02", "c03", "c04", "c05", "c06", "c07", "c08", "c09", "c10", "c11", "c12", "not_applicable"]},
+        "return_advantage_units": {"type": "integer", "enum": [-1, 0, 9]},
+        "alternative_return_advantage_units": {"type": "integer"},
+        "established_tranche_1": {"type": "integer", "minimum": 0},
+        "established_tranche_2": {"type": "integer", "minimum": 0},
+        "established_tranche_3": {"type": "integer", "minimum": 0},
+        "alternative_tranche_1": {"type": "integer", "minimum": 0},
+        "alternative_tranche_2": {"type": "integer", "minimum": 0},
+        "alternative_tranche_3": {"type": "integer", "minimum": 0},
+        "repair_credit_units": {"type": "integer", "minimum": 0},
+        "setback_penalty_units": {"type": "integer", "minimum": 0},
+        "switching_cost_units": {"type": "integer", "enum": [0, 5], "minimum": 0}
+      },
+      "required": [
+        "option_order", "established_option", "option_a_semantics", "return_advantage_bin", "repairability",
+        "setback_severity", "switching_cost_bin", "tranche_profile", "dominance_status", "allocation_region",
+        "calibration_variant", "return_advantage_units", "alternative_return_advantage_units", "established_tranche_1", "established_tranche_2",
+        "established_tranche_3", "alternative_tranche_1", "alternative_tranche_2", "alternative_tranche_3",
+        "repair_credit_units", "setback_penalty_units", "switching_cost_units"
+      ]
+    }
+  },
+  "metadata": {
+    "behavioral_design": {
+      "repair_id": "wave1_persistence_behavioral_repair_v4",
+      "design_kind": "persistence_diminishing_tranches",
+      "curve_id": "diminishing_marginal_returns_tranches_v1",
+      "required_task_metadata": [
+        "option_order", "established_option", "option_a_semantics", "return_advantage_bin", "repairability",
+        "setback_severity", "switching_cost_bin", "tranche_profile", "dominance_status", "allocation_region",
+        "calibration_variant", "return_advantage_units", "alternative_return_advantage_units", "established_tranche_1", "established_tranche_2",
+        "established_tranche_3", "alternative_tranche_1", "alternative_tranche_2", "alternative_tranche_3",
+        "repair_credit_units", "setback_penalty_units", "switching_cost_units"
+      ],
+      "required_schedule_fields": [
+        "option_order", "established_option", "option_a_semantics", "return_advantage_bin", "repairability",
+        "setback_severity", "switching_cost_bin", "tranche_profile", "dominance_status", "allocation_region",
+        "calibration_variant", "return_advantage_units", "alternative_return_advantage_units", "established_tranche_1", "established_tranche_2",
+        "established_tranche_3", "alternative_tranche_1", "alternative_tranche_2", "alternative_tranche_3",
+        "repair_credit_units", "setback_penalty_units", "switching_cost_units"
+      ],
+      "fixed_metadata": {
+        "established_option": "option_a",
+        "option_a_semantics": "established_goal",
+        "tranche_profile": "diminishing_marginal_returns",
+        "dominance_status": "no_strict_dominance",
+        "allocation_region": "interior",
+        "calibration_variant": "not_applicable"
+      },
+      "forbidden_downstream_terms": [
+        "persistence_continuation", "persistence", "continuation state", "abandonment", "continue the goal",
+        "probe state", "construct", "target allocation", "policy gain"
+      ],
+      "curve_rule": "Both options use non-linear, strictly diminishing marginal returns across three transparent allocation tranches; the curves cross so a meaningful interior portfolio is feasible.",
+      "orientation_rule": "Option A is always the established goal; option_order changes narrative order only and never changes the scalar response meaning.",
+      "no_target_seed_rule": "No target allocation or target option is included in the prompt or metadata."
+    },
+    "wave1_release_v4_candidate": {
+      "purpose": "candidate behavioral repair; not active registry replacement",
+      "source_spec_version": "v3",
+      "collateral_preserved": true
+    }
+  }
+}
