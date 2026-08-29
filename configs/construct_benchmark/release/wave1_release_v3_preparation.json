@@ -1,0 +1,49 @@
+{
+  "constructs": {
+    "evidence_diagnosticity": {
+      "collateral_plan": "configs/construct_benchmark/generation_plans/wave1_evidence_diagnosticity_collateral_v1.json",
+      "collateral_plan_sha256": "caab7529306e2a684b1772142d42a99e8c428b87adb3478c5f6fbcd6d3d95244",
+      "source_spec": "configs/construct_benchmark/constructs/evidence_diagnosticity_v2.json",
+      "source_spec_sha256": "48c60b715153a7d7b513d8e9fb596a714183063743d88d2ca435d528ecf6a107",
+      "supplement_plan": "configs/construct_benchmark/generation_plans/wave1_evidence_diagnosticity_supplement_v1.json",
+      "supplement_plan_sha256": "87d090868c384dcb1261a9a459e35b66d4f6c0e814024054ac568b21ea0ae86d",
+      "v3_spec": "configs/construct_benchmark/constructs/evidence_diagnosticity_v3.json",
+      "v3_spec_sha256": "d950c8f87e1afb25938f61a8cd20cbaf451c867caa34b86f95dbe31cfe4d2879"
+    },
+    "persistence_continuation": {
+      "collateral_plan": "configs/construct_benchmark/generation_plans/wave1_persistence_continuation_collateral_v1.json",
+      "collateral_plan_sha256": "b77de2f3d108a9b6e5de8c7d9c85055d229262c4ea8206f232f6e87b806517d8",
+      "source_spec": "configs/construct_benchmark/constructs/persistence_continuation_v2.json",
+      "source_spec_sha256": "28e6122f092d8ce73abc7d4b9adc4d50839e8687c0723ac1d537771e682dc631",
+      "v3_spec": "configs/construct_benchmark/constructs/persistence_continuation_v3.json",
+      "v3_spec_sha256": "db4b620b838a54895c04508e0645782143be597c58fb7d589430f4a28163096a"
+    },
+    "realization_account_closure": {
+      "collateral_plan": "configs/construct_benchmark/generation_plans/wave1_realization_account_closure_collateral_v1.json",
+      "collateral_plan_sha256": "0386358570430dd58ce9628375876f3d7c18411e86b7a6bc4a7e519d12b20d10",
+      "source_spec": "configs/construct_benchmark/constructs/realization_account_closure_v2.json",
+      "source_spec_sha256": "30abeb1a7212757bbc2367c363a0182be63bbb9958f0cea6d527cc7d9365ed2b",
+      "supplement_plan": "configs/construct_benchmark/generation_plans/wave1_realization_account_closure_supplement_v1.json",
+      "supplement_plan_sha256": "72262f168160d9a9a3082b8a916e06a3475b4b1c72505c56cbdba8deb3b106ae",
+      "v3_spec": "configs/construct_benchmark/constructs/realization_account_closure_v3.json",
+      "v3_spec_sha256": "c482bab458e2292f7de97c2aa922ce36e3f089e56e37f85531288b58c0dd29b6"
+    },
+    "source_reliability": {
+      "collateral_plan": "configs/construct_benchmark/generation_plans/wave1_source_reliability_collateral_v1.json",
+      "collateral_plan_sha256": "abc6e3e25a118a4af23f5c3530a9db4bcb1cb321df188930e18946f3d8ed4027",
+      "source_spec": "configs/construct_benchmark/constructs/source_reliability_v2.json",
+      "source_spec_sha256": "d01821dae50fc5f5dc3597dba0d7851210173bed1827da2537370b98f0fa7e02",
+      "supplement_plan": "configs/construct_benchmark/generation_plans/wave1_source_reliability_supplement_v1.json",
+      "supplement_plan_sha256": "9562bd602ec608870bc00f3c3f62d958de89822cb5c1efec90d26b1e770da1a6",
+      "v3_spec": "configs/construct_benchmark/constructs/source_reliability_v3.json",
+      "v3_spec_sha256": "f59380401b00d9f41577a721c6f45cf6a57067290ff88a99e2f2368ba46be82e"
+    }
+  },
+  "manifest_type": "wave1_release_v3_preparation",
+  "source": "immutable v2 specs/plans",
+  "supplement_constructs": [
+    "evidence_diagnosticity",
+    "realization_account_closure",
+    "source_reliability"
+  ]
+}

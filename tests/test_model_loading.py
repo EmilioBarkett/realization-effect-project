@@ -27,7 +27,7 @@ class _Loader:
         return self.value
 
 
-def test_qwen_prefers_processor_and_uses_nested_tokenizer_for_padding() -> None:
+def test_processor_fallback_returns_nested_text_tokenizer() -> None:
     nested = SimpleNamespace(
         pad_token_id=None,
         eos_token_id=9,
@@ -36,7 +36,7 @@ def test_qwen_prefers_processor_and_uses_nested_tokenizer_for_padding() -> None:
     )
     processor = SimpleNamespace(tokenizer=nested)
     processor_loader = _Loader(processor)
-    tokenizer_loader = _Loader(SimpleNamespace())
+    tokenizer_loader = _Loader(error=RuntimeError("text tokenizer unavailable"))
     transformers = SimpleNamespace(
         AutoProcessor=processor_loader,
         AutoTokenizer=tokenizer_loader,
@@ -50,10 +50,10 @@ def test_qwen_prefers_processor_and_uses_nested_tokenizer_for_padding() -> None:
         trust_remote_code=False,
     )
 
-    assert loaded is processor
-    assert loader_name == "AutoProcessor"
+    assert loaded is nested
+    assert loader_name == "AutoProcessor.tokenizer"
     assert processor_loader.calls == ["Qwen/Qwen3.8-27B"]
-    assert tokenizer_loader.calls == []
+    assert tokenizer_loader.calls == ["Qwen/Qwen3.8-27B"]
     assert component_attribute(loaded, "pad_token_id") == 9
     assert nested.pad_token == "<eos>"
     assert decode_tokens(loaded, [1, 2]) == "[1, 2]:True"

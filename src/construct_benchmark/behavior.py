@@ -38,6 +38,7 @@ _ALLOCATION_TASK_OUTCOMES = {
     "goal_renewal_allocation_v2": "existing_goal_allocation",
     "realization_risk_allocation_v2": "risky_allocation",
     "diagnostic_test_allocation_v2": "high_information_test_allocation",
+    "diagnostic_test_allocation_v4": "high_information_test_allocation",
     "source_evidence_allocation_v2": "source_weight_allocation",
 }
 
@@ -113,6 +114,15 @@ def parse_behavior_output(
             return _invalid(parser_id, "expected one integer choice in {1, 2}")
         choice = integers[0]
         values = {"choice": float(choice)}
+        correct_option = metadata.get("correct_option")
+        if correct_option is not None:
+            try:
+                correct_option = int(correct_option)
+            except (TypeError, ValueError):
+                return _invalid(parser_id, "correct_option metadata is not an integer")
+            if correct_option not in {1, 2}:
+                return _invalid(parser_id, "correct_option metadata must be 1 or 2")
+            values["correct_option"] = float(choice == correct_option)
         if registered_task_id in _CHOICE_TASK_OUTCOMES:
             first, second = _CHOICE_TASK_OUTCOMES[registered_task_id]
             values[first] = float(choice == 1)
@@ -262,6 +272,15 @@ def orient_primary_outcome(
         "reciprocity_obligation",
         "goal_shielding",
     }:
+        if construct_id == "evidence_diagnosticity":
+            high_information_option = item_metadata.get("high_information_option")
+            if high_information_option == "option_b":
+                return 100.0 - float(outcome)
+            if high_information_option == "matched":
+                return None
+            # v1-v3 inventories kept the high-information test in option A;
+            # retain that compatibility fallback while v4 records the option
+            # identity explicitly and counterbalances it.
         return float(outcome)
     raise ValueError(f"No outcome orientation adapter for construct_id={construct_id!r}.")
 

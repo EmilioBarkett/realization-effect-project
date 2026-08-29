@@ -1,0 +1,14 @@
+{
+  "schema_version": "0.1.0",
+  "simulation_id": "wave1_downstream_item_precision_v1",
+  "seed": 17,
+  "resamples": 10000,
+  "alpha": 0.05,
+  "target_standardized_effect": 0.5,
+  "target_power": 0.8,
+  "target_ci_half_width": 0.25,
+  "effect_grid": [0.25, 0.5, 0.75],
+  "item_counts": [16, 24, 32, 40, 48, 64, 80, 96, 128],
+  "decision_note": "Planning-only rule for the paired directed state-transfer estimand. It is fixed before inspecting observed steering effects and does not authorize a policy or mechanistic claim.",
+  "item_definition": "independent downstream behavior items per construct and per steering condition; positive and negative doses are paired on the same item set"
+}

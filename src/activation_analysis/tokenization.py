@@ -73,6 +73,7 @@ def format_model_prompt(
     *,
     prompt_format: str,
     system_prompt: str = "",
+    enable_thinking: bool | None = None,
 ) -> str:
     """Apply the same completion/chat formatting used by model execution."""
 
@@ -83,14 +84,23 @@ def format_model_prompt(
             raise ValueError(
                 "Tokenizer does not support apply_chat_template; use prompt_format='completion'."
             )
-        return tokenizer.apply_chat_template(
-            [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": prompt},
-            ],
-            tokenize=False,
-            add_generation_prompt=True,
-        )
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": prompt},
+        ]
+        kwargs = {"tokenize": False, "add_generation_prompt": True}
+        if enable_thinking is not None:
+            kwargs["enable_thinking"] = enable_thinking
+        try:
+            return tokenizer.apply_chat_template(messages, **kwargs)
+        except TypeError:
+            if enable_thinking is None:
+                raise
+            # Older chat templates do not expose a thinking switch. Preserve
+            # compatibility for them while allowing Qwen-style templates to
+            # disable hidden reasoning when a strict parser is registered.
+            kwargs.pop("enable_thinking", None)
+            return tokenizer.apply_chat_template(messages, **kwargs)
     raise ValueError("prompt_format must be 'completion' or 'chat'.")
 
 

@@ -5,6 +5,9 @@ model through ``AutoProcessor`` and ``AutoModelForMultimodalLM``. Keeping the
 fallbacks here makes tokenizer preflight, residual logging, and steering use
 the same component and avoids changing the tokenization contract between
 stages.
+When a processor wraps a text tokenizer, text-only runs deliberately use that
+nested tokenizer so a processor cannot reinterpret ordinary prompt strings as
+multimodal content.
 """
 
 from __future__ import annotations
@@ -61,10 +64,12 @@ def load_tokenizer_or_processor(
 ) -> tuple[Any, str]:
     """Load the exact text-processing component used by model execution.
 
-    Qwen3.8 is intentionally processor-first because its official model
-    metadata advertises ``AutoProcessor``. Other models retain the historical
-    tokenizer-first behavior, with a processor fallback for multimodal model
-    repositories.
+    Qwen3.8 is processor-capable, but this benchmark's frozen prompts are
+    text-only. Prefer a plain tokenizer when the repository provides one, and
+    retain a processor fallback for repositories that expose only a processor.
+    If that fallback exposes a nested text tokenizer, return the nested
+    tokenizer rather than the multimodal wrapper. This keeps chat formatting,
+    token-length checks, model inputs, and decoding on one text-only contract.
     """
 
     kwargs = {
@@ -77,10 +82,7 @@ def load_tokenizer_or_processor(
     # agree with the corrected reference implementation.
     if "mistral" in identifier.lower():
         kwargs["fix_mistral_regex"] = True
-    prefer_processor = "qwen3.8" in identifier.lower()
-    loader_names = (
-        ("AutoProcessor", "AutoTokenizer") if prefer_processor else ("AutoTokenizer", "AutoProcessor")
-    )
+    loader_names = ("AutoTokenizer", "AutoProcessor")
     errors: list[Exception] = []
     for loader_name in loader_names:
         loader = getattr(transformers, loader_name, None)
@@ -88,6 +90,11 @@ def load_tokenizer_or_processor(
             continue
         try:
             component = loader.from_pretrained(identifier, **kwargs)
+            if loader_name == "AutoProcessor":
+                nested = _nested_component(component)
+                if nested is not None:
+                    component = nested
+                    loader_name = "AutoProcessor.tokenizer"
             ensure_padding_token(component)
             return component, loader_name
         except Exception as exc:

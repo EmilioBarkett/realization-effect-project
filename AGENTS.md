@@ -80,8 +80,9 @@ controls, timing-aware injection, validation-only layer selection,
 independent prompt-role/family checks, pre-registered category schedules,
 bootstrap interval primitives, readout/steering planning CLIs, named
 prompt-generation review/full modes, pair-preserving model-side test/full
-selection, and an optional activation wall-clock guard. These are implemented
-code, not empirical results. PyTorch, Transformers, a concrete
+selection, an optional activation wall-clock guard, and an outcome-independent
+8--16-item model-side behavioral/accessibility preflight selector and
+validator. These are implemented code, not empirical results. PyTorch, Transformers, a concrete
 Model weights and raw activation tensors remain absent from the base
 development environment. The tracked realization decode pilot and all-16
 vector/probe inventory are not substitutes for a validated benchmark run.
@@ -141,6 +142,11 @@ construct-specific paired prompts.
   variation gating.
 - `scripts/preflight_tokenizer.py`: exact no-truncation tokenizer preflight.
 - `scripts/validate_construct_registry.py`: registry/spec agreement check.
+- `scripts/prepare_model_behavior_accessibility_preflight.py` and
+  `scripts/validate_model_behavior_accessibility_preflight.py`: frozen
+  per-model/construct release-gate selection and manifest-backed validation.
+- `scripts/build_wave1_failure_report.py`: small checksummed aggregation of
+  model-side Wave 1 engineering failures and continuation state.
 - `configs/activation_analysis/`: active prompt-generation and probe configs.
 - `experiments/activation_analysis/`: reviewable prompt CSVs.
 - `tests/`: active tests for activation and prompt-generation behavior.

@@ -354,6 +354,7 @@ class MatchedEpisodeResidualPatcher:
         model_id: str = "",
         tokenizer_id: str = "",
         revision: str | None = None,
+        enable_thinking: bool | None = None,
     ) -> None:
         try:
             import torch
@@ -368,6 +369,7 @@ class MatchedEpisodeResidualPatcher:
         self.model_id = str(model_id)
         self.tokenizer_id = str(tokenizer_id)
         self.revision = revision
+        self.enable_thinking = enable_thinking
         self.block_path = block_path
         self.resolved_block_path: str | None = None
         self.device = self._resolve_device(device)
@@ -454,6 +456,7 @@ class MatchedEpisodeResidualPatcher:
             episode_text,
             prompt_format=episode.prompt_format,
             system_prompt=episode.system_prompt,
+            enable_thinking=self.enable_thinking,
         )
         if not isinstance(formatted, str) or not formatted:
             raise ValueError("Tokenizer chat formatting must return a non-empty string.")

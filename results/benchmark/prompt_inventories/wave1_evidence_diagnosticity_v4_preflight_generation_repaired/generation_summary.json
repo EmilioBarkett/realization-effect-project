@@ -1,0 +1,49 @@
+{
+  "generation_scope": "all",
+  "plans": [
+    {
+      "actual_cost_usd": 0.0,
+      "actual_input_tokens": 30447,
+      "actual_output_tokens": 72354,
+      "actual_total_tokens": 102801,
+      "attempt_count": 6,
+      "complete": false,
+      "construct_ids": [
+        "evidence_diagnosticity"
+      ],
+      "generation_scope": "all",
+      "job_count": 4,
+      "output": "results/benchmark/prompt_inventories/wave1_evidence_diagnosticity_v4_preflight_generation_repaired/evidence_diagnosticity.csv",
+      "record_count": 96,
+      "records_by_condition": {
+        "neutral": 96
+      },
+      "records_by_model": {
+        "luna": 96
+      },
+      "records_by_split": {
+        "behavior_eval": 32,
+        "calibration": 16,
+        "collateral_eval": 16,
+        "steering_eval": 32
+      },
+      "rejected_attempt_count": 0,
+      "request_count": 6,
+      "run_mode": "full",
+      "run_mode_purpose": "frozen_full_inventory",
+      "selected_splits": [
+        "behavior_eval",
+        "calibration",
+        "collateral_eval",
+        "steering_eval"
+      ]
+    }
+  ],
+  "run_mode": "full",
+  "selected_splits": [
+    "behavior_eval",
+    "calibration",
+    "collateral_eval",
+    "steering_eval"
+  ]
+}

@@ -28,6 +28,7 @@ from construct_benchmark.behavior_baseline import (  # noqa: E402
     output_manifest_path,
     read_behavior_output,
     select_behavior_records,
+    select_preflight_behavior_records,
     validate_behavior_output_manifest,
 )
 from construct_benchmark.config import (  # noqa: E402
@@ -73,6 +74,7 @@ def execute_prompt_only_behavior(
     mode: str | None = None,
     prompt_format: str = "chat",
     system_prompt: str = "",
+    enable_thinking: bool | None = None,
     max_new_tokens: int = 32,
     min_new_tokens: int = 1,
     max_length: int | None = None,
@@ -84,6 +86,9 @@ def execute_prompt_only_behavior(
     trust_remote_code: bool = False,
     max_runtime_minutes: float | None = None,
     resume: bool = False,
+    prompt_split: str = "behavior_eval",
+    constrained_numeric_generation: bool = True,
+    preflight_selection: Mapping[str, Any] | None = None,
     generator_factory: Callable[..., Any] = ResidualSteeringGenerator,
 ) -> dict[str, Any]:
     """Execute or resume a prompt-only behavior run."""
@@ -91,14 +96,24 @@ def execute_prompt_only_behavior(
     validate_run_constructs(run_config, dict(construct_specs))
     records = load_prompt_records(prompt_inventory)
     validate_prompt_records(records, construct_specs)
-    selected, selection_manifest = select_behavior_records(
-        records,
-        run_config=run_config,
-        construct_specs=construct_specs,
-        split="behavior_eval",
-        mode=mode,
-    )
-    resolved_mode, mode_config = resolve_run_mode(run_config, mode)
+    effective_mode = "test" if preflight_selection is not None and mode is None else mode
+    if preflight_selection is None:
+        selected, selection_manifest = select_behavior_records(
+            records,
+            run_config=run_config,
+            construct_specs=construct_specs,
+            split=prompt_split,
+            mode=effective_mode,
+        )
+    else:
+        selected, selection_manifest = select_preflight_behavior_records(
+            records,
+            run_config=run_config,
+            construct_specs=construct_specs,
+            preflight_selection=preflight_selection,
+            split=prompt_split,
+        )
+    resolved_mode, mode_config = resolve_run_mode(run_config, effective_mode)
     resolved_max_length = int(max_length or run_config.activation["max_length"])
     if resolved_max_length < 1:
         raise ValueError("max_length must be positive.")
@@ -116,6 +131,7 @@ def execute_prompt_only_behavior(
         prompt_inventory_sha256=file_sha256(prompt_inventory),
         selection_manifest=selection_manifest,
         prompt_format=prompt_format,
+        enable_thinking=enable_thinking,
         system_prompt_sha256=_sha256_text(system_prompt),
         max_new_tokens=max_new_tokens,
         min_new_tokens=min_new_tokens,
@@ -132,6 +148,7 @@ def execute_prompt_only_behavior(
             "confirmatory": bool(mode_config["confirmatory"]),
             "max_runtime_minutes": runtime_limit,
             "run_config_hash": canonical_hash(run_config.to_mapping()),
+            "constrained_numeric_generation": bool(constrained_numeric_generation),
         }
     )
     manifest_path = output_manifest_path(output)
@@ -159,6 +176,7 @@ def execute_prompt_only_behavior(
             "confirmatory",
             "max_runtime_minutes",
             "prompt_format",
+            "enable_thinking",
             "system_prompt_sha256",
             "max_new_tokens",
             "min_new_tokens",
@@ -167,6 +185,7 @@ def execute_prompt_only_behavior(
             "device",
             "device_map",
             "block_path",
+            "constrained_numeric_generation",
         )
         for field in expected_fields:
             if existing_manifest.get(field) != manifest.get(field):
@@ -206,6 +225,7 @@ def execute_prompt_only_behavior(
         dtype=dtype,
         device_map=device_map,
         block_path=block_path,
+        constrained_numeric_generation=constrained_numeric_generation,
     )
     selected_by_id = {record.prompt_id: record for record in selected}
     started = time.monotonic()
@@ -225,6 +245,9 @@ def execute_prompt_only_behavior(
                 record.prompt_text,
                 prompt_format=prompt_format,
                 system_prompt=system_prompt,
+                enable_thinking=enable_thinking,
+                parser_id=record.parser_id,
+                constrained_numeric=constrained_numeric_generation,
                 steering_config=None,
                 max_new_tokens=max_new_tokens,
                 min_new_tokens=min_new_tokens,
@@ -289,7 +312,19 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--construct-spec", action="append", type=Path, required=True)
     parser.add_argument("--prompt-inventory", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument(
+        "--preflight-selection-manifest",
+        type=Path,
+        default=None,
+        help="Use the exact outcome-independent IDs from a v2 preflight selection.",
+    )
     parser.add_argument("--mode", choices=("test", "full"), default=None)
+    parser.add_argument(
+        "--split",
+        dest="prompt_split",
+        choices=("behavior_eval", "steering_eval", "calibration", "collateral_eval"),
+        default="behavior_eval",
+    )
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--device", default="auto")
     parser.add_argument("--device-map", default=None)
@@ -299,10 +334,24 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--block-path", default=None)
     parser.add_argument("--prompt-format", choices=("completion", "chat"), default="chat")
     parser.add_argument("--system-prompt", default="")
+    parser.add_argument(
+        "--disable-thinking",
+        action="store_false",
+        dest="enable_thinking",
+        default=None,
+        help="Request a text-only response without hidden reasoning when the chat template supports it.",
+    )
     parser.add_argument("--max-new-tokens", type=int, default=32)
     parser.add_argument("--min-new-tokens", type=int, default=1)
     parser.add_argument("--max-length", type=int, default=None)
     parser.add_argument("--max-runtime-minutes", type=float, default=None)
+    parser.add_argument(
+        "--disable-constrained-numeric-generation",
+        action="store_false",
+        dest="constrained_numeric_generation",
+        default=True,
+        help="Disable the shared tokenizer-aware numeric constraint (diagnostic use only).",
+    )
     return parser
 
 
@@ -312,6 +361,18 @@ def main() -> None:
         raise SystemExit("Require 1 <= --min-new-tokens <= --max-new-tokens.")
     run_config = load_run_config(args.run_config)
     construct_specs = load_construct_specs(args.construct_spec)
+    preflight_selection = None
+    if args.preflight_selection_manifest is not None:
+        try:
+            preflight_selection = json.loads(
+                args.preflight_selection_manifest.read_text(encoding="utf-8")
+            )
+        except json.JSONDecodeError as exc:
+            raise SystemExit(
+                f"{args.preflight_selection_manifest} is not valid JSON."
+            ) from exc
+        if not isinstance(preflight_selection, dict):
+            raise SystemExit("--preflight-selection-manifest must contain a JSON object.")
     result = execute_prompt_only_behavior(
         run_config=run_config,
         construct_specs=construct_specs,
@@ -320,6 +381,7 @@ def main() -> None:
         mode=args.mode,
         prompt_format=args.prompt_format,
         system_prompt=args.system_prompt,
+        enable_thinking=args.enable_thinking,
         max_new_tokens=args.max_new_tokens,
         min_new_tokens=args.min_new_tokens,
         max_length=args.max_length,
@@ -331,6 +393,9 @@ def main() -> None:
         trust_remote_code=args.trust_remote_code,
         max_runtime_minutes=args.max_runtime_minutes,
         resume=args.resume,
+        prompt_split=args.prompt_split,
+        constrained_numeric_generation=args.constrained_numeric_generation,
+        preflight_selection=preflight_selection,
     )
     print(json.dumps(result, indent=2, sort_keys=True))
 

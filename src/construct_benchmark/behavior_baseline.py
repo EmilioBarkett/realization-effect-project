@@ -21,7 +21,7 @@ from .run_modes import resolve_run_mode
 from .schemas import ConstructSpec, RunConfig
 
 
-BEHAVIOR_SPLITS = frozenset({"behavior_eval", "steering_eval", "calibration"})
+BEHAVIOR_SPLITS = frozenset({"behavior_eval", "steering_eval", "calibration", "collateral_eval"})
 BASELINE_MANIFEST_TYPE = "construct_behavior_output"
 
 
@@ -102,6 +102,89 @@ def select_behavior_records(
     return selected, selection_manifest
 
 
+def select_preflight_behavior_records(
+    records: Iterable[PromptRecord],
+    *,
+    run_config: RunConfig,
+    construct_specs: Mapping[str, ConstructSpec],
+    preflight_selection: Mapping[str, Any],
+    split: str,
+) -> tuple[list[PromptRecord], dict[str, Any]]:
+    """Select exactly the frozen IDs from a model-side preflight manifest.
+
+    The preflight selector is intentionally separate from the ordinary
+    ``test``/``full`` run modes.  It prevents a runner from silently replacing
+    the registered 16-item gate subset with a different hash schedule.
+    """
+
+    if split not in BEHAVIOR_SPLITS:
+        raise ValueError(f"split must be one of: {sorted(BEHAVIOR_SPLITS)}")
+    if preflight_selection.get("manifest_type") != (
+        "model_behavior_accessibility_preflight_selection"
+    ):
+        raise ValueError("Unexpected model-side preflight selection manifest type.")
+    if preflight_selection.get("selection_informed_by_outcomes") is not False:
+        raise ValueError("Preflight selection must explicitly be outcome-independent.")
+    if preflight_selection.get("model") != dict(run_config.model):
+        raise ValueError("Preflight selection model metadata differs from the run config.")
+    selected_by_construct = preflight_selection.get("selected")
+    if not isinstance(selected_by_construct, Mapping):
+        raise ValueError("Preflight selection is missing its selected construct map.")
+    configured_constructs = list(run_config.construct_ids)
+    if list(preflight_selection.get("construct_ids", [])) != configured_constructs:
+        raise ValueError("Preflight selection construct IDs differ from the run config.")
+
+    materialized = list(records)
+    validate_run_constructs(run_config, dict(construct_specs))
+    validate_prompt_records(materialized, construct_specs, require_all_splits=False)
+    candidates = [record for record in materialized if record.split == split]
+    selected_ids: set[str] = set()
+    selected_counts: dict[str, int] = {}
+    for construct_id in configured_constructs:
+        construct_selection = selected_by_construct.get(construct_id)
+        if not isinstance(construct_selection, Mapping):
+            raise ValueError(f"Preflight selection has no entry for {construct_id}.")
+        split_selection = construct_selection.get(split)
+        if not isinstance(split_selection, Mapping):
+            raise ValueError(f"Preflight selection has no {split} entry for {construct_id}.")
+        prompt_ids = split_selection.get("prompt_ids")
+        if not isinstance(prompt_ids, list) or not prompt_ids or len(set(prompt_ids)) != len(prompt_ids):
+            raise ValueError(f"Preflight selection has invalid {split} prompt IDs for {construct_id}.")
+        selected_counts[construct_id] = len(prompt_ids)
+        selected_ids.update(str(prompt_id) for prompt_id in prompt_ids)
+
+    candidate_ids = {record.prompt_id for record in candidates}
+    missing = sorted(selected_ids - candidate_ids)
+    if missing:
+        raise ValueError(f"Preflight selection references missing {split} prompts: {missing[:3]}")
+    selected = [record for record in candidates if record.prompt_id in selected_ids]
+    selected_specs = {construct_id: construct_specs[construct_id] for construct_id in configured_constructs}
+    validate_prompt_records(selected, selected_specs, require_all_splits=False)
+    if any(sum(record.construct_id == construct_id for record in selected) != count for construct_id, count in selected_counts.items()):
+        raise ValueError("Preflight selection has inconsistent construct counts.")
+    selection_manifest = {
+        "schema_version": run_config.schema_version,
+        "manifest_type": "behavior_prompt_selection",
+        "preflight_id": preflight_selection.get("preflight_id"),
+        "gate_id": preflight_selection.get("gate_id"),
+        "run_id": run_config.run_id,
+        "mode": "model_behavior_accessibility_v2",
+        "purpose": "outcome_independent_model_side_preflight",
+        "confirmatory": False,
+        "split": split,
+        "source_inventory": preflight_selection.get("source_inventory"),
+        "source_inventory_sha256": preflight_selection.get("source_inventory_sha256"),
+        "preflight_selection_sha256": preflight_selection.get("selection_sha256"),
+        "source_prompt_count": len(materialized),
+        "source_split_count": len(candidates),
+        "selected_prompt_count": len(selected),
+        "selected_counts_by_construct": selected_counts,
+        "selected_prompt_ids": [record.prompt_id for record in selected],
+    }
+    selection_manifest["selection_sha256"] = canonical_hash(selection_manifest)
+    return selected, selection_manifest
+
+
 def output_manifest_path(raw_output: str | Path) -> Path:
     return Path(raw_output).with_suffix(Path(raw_output).suffix + ".manifest.json")
 
@@ -114,6 +197,7 @@ def build_behavior_output_manifest(
     prompt_inventory_sha256: str,
     selection_manifest: Mapping[str, Any],
     prompt_format: str,
+    enable_thinking: bool | None,
     system_prompt_sha256: str,
     max_new_tokens: int,
     min_new_tokens: int,
@@ -122,6 +206,7 @@ def build_behavior_output_manifest(
     device: str,
     device_map: str | None,
     block_path: str | None,
+    constrained_numeric_generation: bool = True,
 ) -> dict[str, Any]:
     """Build the manifest used by the prompt-only runner and scorer."""
 
@@ -142,6 +227,7 @@ def build_behavior_output_manifest(
         "run_config_hash": canonical_hash(run_config.to_mapping()),
         "model": dict(run_config.model),
         "prompt_format": prompt_format,
+        "enable_thinking": enable_thinking,
         "system_prompt_sha256": system_prompt_sha256,
         "max_new_tokens": max_new_tokens,
         "min_new_tokens": min_new_tokens,
@@ -150,6 +236,7 @@ def build_behavior_output_manifest(
         "device": device,
         "device_map": device_map,
         "block_path": block_path,
+        "constrained_numeric_generation": bool(constrained_numeric_generation),
         "selection": dict(selection_manifest),
         "expected_prompt_ids": prompt_ids,
         "expected_record_ids": [f"{prompt_id}__prompt_only" for prompt_id in prompt_ids],
@@ -324,8 +411,12 @@ def score_behavior_rows(
         spec = construct_specs[construct_id]
         total[construct_id] += 1
         metadata = dict(raw.get("task_metadata") or {})
+        is_collateral = raw.get("split") == "collateral_eval" or raw.get("prompt_role") == "collateral"
+        task = spec.collateral_behavior_task if is_collateral else spec.independent_behavior_task
+        if task is None:
+            raise ValueError(f"{construct_id} has collateral rows but no collateral_behavior_task.")
         parser_id = str(raw.get("parser_id") or spec.parsing_rules["parser_id"])
-        task_id = str(raw.get("task_id") or spec.independent_behavior_task["task_id"])
+        task_id = str(raw.get("task_id") or task["task_id"])
         parsed = parse_behavior_output(
             raw.get("output_text", ""),
             parser_id=parser_id,
@@ -338,8 +429,11 @@ def score_behavior_rows(
         if parsed.valid:
             valid_parser[construct_id] += 1
             try:
-                outcome = primary_outcome(parsed, str(spec.independent_behavior_task["primary_outcome"]))
-                directed = orient_primary_outcome(construct_id, outcome, metadata)
+                outcome = primary_outcome(parsed, str(task["primary_outcome"]))
+                # Collateral correctness is a task-local factual outcome, not
+                # a construct-direction outcome. Never apply the construct's
+                # valence/orientation adapter to it.
+                directed = outcome if is_collateral else orient_primary_outcome(construct_id, outcome, metadata)
                 if directed is not None:
                     valid_primary[construct_id] += 1
                     grouped[construct_id].append(float(directed))
@@ -392,5 +486,6 @@ __all__ = [
     "read_behavior_output",
     "score_behavior_rows",
     "select_behavior_records",
+    "select_preflight_behavior_records",
     "validate_behavior_output_manifest",
 ]

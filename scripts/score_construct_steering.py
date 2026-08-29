@@ -331,14 +331,40 @@ def main() -> None:
     target_doses = sorted({observation.scale for observation in observations})
     if 0.0 not in target_doses:
         raise ValueError("Target-direction rows do not contain a zero-dose condition.")
-    effect, effect_ci = bootstrap_state_transfer_ci(
-        observations,
-        positive_scale=max(target_doses),
-        negative_scale=min(target_doses),
-        zero_scale=0.0,
-        resamples=args.bootstrap_resamples,
-        seed=args.bootstrap_seed,
-    )
+    score_error = None
+    try:
+        effect, effect_ci = bootstrap_state_transfer_ci(
+            observations,
+            positive_scale=max(target_doses),
+            negative_scale=min(target_doses),
+            zero_scale=0.0,
+            resamples=args.bootstrap_resamples,
+            seed=args.bootstrap_seed,
+        )
+        effect_payload = asdict(effect)
+        uncertainty_payload = effect_ci.to_mapping()
+        score_status = "complete"
+    except ValueError as exc:
+        # A complete generation run can still be scientifically unscorable
+        # when a model never emits a parseable positive/negative outcome. Keep
+        # the manifest-backed manipulation and exclusion artifacts instead of
+        # aborting before writing a truthful null estimand report.
+        score_error = str(exc)
+        effect_payload = {
+            "status": "not_estimable",
+            "estimand": "directed_mean_state_transfer",
+            "directed_standardized_effect": None,
+            "error": score_error,
+        }
+        uncertainty_payload = {
+            "status": "not_estimable",
+            "confidence_level": 0.95,
+            "estimate": None,
+            "lower": None,
+            "upper": None,
+            "valid_resamples": 0,
+        }
+        score_status = "not_estimable"
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     parsed_path = args.output_dir / "parsed_generations.csv"
@@ -383,10 +409,17 @@ def main() -> None:
         writer.writeheader()
         writer.writerows(manipulation_records)
     manipulation_summary = summarize_manipulation_records(manipulation_records)
+    # Completion is an execution property, not a scientific-release decision.
+    # Preserve the frozen run manifest's status so a complete engineering run
+    # cannot be promoted merely because all of its rows were written.
     summary = {
         "construct_id": spec.construct_id,
-        "confirmatory": manifest_complete and not args.allow_incomplete_diagnostic,
+        "confirmatory": bool(output_manifest.get("confirmatory", False))
+        and manifest_complete
+        and not args.allow_incomplete_diagnostic,
         "primary_outcome": spec.independent_behavior_task["primary_outcome"],
+        "score_status": score_status,
+        "score_error": score_error,
         "raw_record_count": len(raw_rows),
         "behavior_record_count": len(behavior_rows),
         "tracking_layers": sorted(
@@ -396,8 +429,8 @@ def main() -> None:
                 if row.get("tracking_layer") is not None
             }
         ),
-        "target_direction_effect": asdict(effect),
-        "uncertainty": effect_ci.to_mapping(),
+        "target_direction_effect": effect_payload,
+        "uncertainty": uncertainty_payload,
         "manipulation_checks": manipulation_summary,
         "control_rows": {
             kind: sum(row["direction_kind"] == kind for row in rows)
@@ -420,6 +453,8 @@ def main() -> None:
         encoding="utf-8",
     )
     print(json.dumps(summary, indent=2, sort_keys=True))
+    if score_error is not None:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

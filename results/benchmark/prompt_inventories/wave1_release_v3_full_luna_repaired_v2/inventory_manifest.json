@@ -1,0 +1,211 @@
+{
+  "audit": {
+    "collateral_correct_option_counts": {
+      "1": 64,
+      "2": 64
+    },
+    "counts_by_construct_split": {
+      "evidence_diagnosticity": {
+        "behavior_eval": 32,
+        "calibration": 32,
+        "collateral_eval": 32,
+        "direction_heldout": 80,
+        "direction_train": 200,
+        "direction_validation": 80,
+        "steering_eval": 32
+      },
+      "persistence_continuation": {
+        "behavior_eval": 80,
+        "calibration": 80,
+        "collateral_eval": 32,
+        "direction_heldout": 80,
+        "direction_train": 200,
+        "direction_validation": 80,
+        "steering_eval": 80
+      },
+      "realization_account_closure": {
+        "behavior_eval": 32,
+        "calibration": 32,
+        "collateral_eval": 32,
+        "direction_heldout": 80,
+        "direction_train": 200,
+        "direction_validation": 80,
+        "steering_eval": 32
+      },
+      "source_reliability": {
+        "behavior_eval": 32,
+        "calibration": 32,
+        "collateral_eval": 32,
+        "direction_heldout": 80,
+        "direction_train": 200,
+        "direction_validation": 80,
+        "steering_eval": 32
+      }
+    },
+    "failures": [],
+    "pass": true
+  },
+  "combined_csv_sha256": "b422cf4fe9b3c69ffdfe6c7eefa6a36fa0c087321ff96f4ba0abb7d33cd41c70",
+  "confirmatory_eligibility": "pending_wave1_gates",
+  "construct_spec_sha256": {
+    "evidence_diagnosticity": "d950c8f87e1afb25938f61a8cd20cbaf451c867caa34b86f95dbe31cfe4d2879",
+    "persistence_continuation": "db4b620b838a54895c04508e0645782143be597c58fb7d589430f4a28163096a",
+    "realization_account_closure": "c482bab458e2292f7de97c2aa922ce36e3f089e56e37f85531288b58c0dd29b6",
+    "source_reliability": "f59380401b00d9f41577a721c6f45cf6a57067290ff88a99e2f2368ba46be82e"
+  },
+  "frozen": true,
+  "inventory_version": "wave1_release_v3",
+  "legacy_release_repairs": [
+    {
+      "after_sha256": "d16ca85915f10774199fc311a2be305cd45cf637150ff271d4efe89ef4982504",
+      "before_sha256": "12331111c582864bb74388b072dbfddd56e8a59e4aa9463b89b0e3c974b816e7",
+      "construct_id": "realization_account_closure",
+      "prompt_id": "wave1_realization_account_closure_prompts_v2__realization_account_closure__luna__steering_eval__steering_01",
+      "split": "steering_eval"
+    },
+    {
+      "after_sha256": "5e22cf98f900e2abb3a4a915b6e13d81ce100bbf87a7c0e2376d05bdef150a4b",
+      "before_sha256": "4850788d9b13a257ff662ad1c3e111bff59de7550cb9e30b15e8a4d788074869",
+      "construct_id": "realization_account_closure",
+      "prompt_id": "wave1_realization_account_closure_prompts_v2__realization_account_closure__luna__steering_eval__steering_02",
+      "split": "steering_eval"
+    },
+    {
+      "after_sha256": "f3f4f665cbeed2eed33da3fcaa6d1857a35bf865bcad523ef5db1d0f325a24b3",
+      "before_sha256": "9ed289dbcd154f37f632aa756f2ddb5f5e51d037fefdb98e52eb808c0eaaeda9",
+      "construct_id": "realization_account_closure",
+      "prompt_id": "wave1_realization_account_closure_prompts_v2__realization_account_closure__luna__steering_eval__steering_03",
+      "split": "steering_eval"
+    },
+    {
+      "after_sha256": "628812fc702d8bd20358d6ceaeba91287f407e0c1dece1044504b9120575abc4",
+      "before_sha256": "6b2f83cf7113f6671c1145b2a8df83b24fcabf2b4a0281314f8293db458de0d3",
+      "construct_id": "realization_account_closure",
+      "prompt_id": "wave1_realization_account_closure_prompts_v2__realization_account_closure__luna__steering_eval__steering_04",
+      "split": "steering_eval"
+    },
+    {
+      "after_sha256": "e23a063d6acac9302316607c1ca3aadcb4644830c4d27e9787bbba3170576615",
+      "before_sha256": "17740c83be4b91c89911868dce8e79626817e7a59724a0de70f45821b4a78f68",
+      "construct_id": "realization_account_closure",
+      "prompt_id": "wave1_realization_account_closure_prompts_v2__realization_account_closure__luna__steering_eval__steering_05",
+      "split": "steering_eval"
+    },
+    {
+      "after_sha256": "2650952ef4c48a02343dcf1bc79f5d18de6a9077809187e45cec3c67202a629e",
+      "before_sha256": "3c8f3411dfa2f812e213cc656a6ada6d7f987b2c2b5d212b506717828a0870c8",
+      "construct_id": "realization_account_closure",
+      "prompt_id": "wave1_realization_account_closure_prompts_v2__realization_account_closure__luna__steering_eval__steering_06",
+      "split": "steering_eval"
+    },
+    {
+      "after_sha256": "53dd470eb6fd6291e0454f243df6b5d1a3dd8cd970e6141d5d7f80007295c2f3",
+      "before_sha256": "d8ced4b08482fb1291ce4fca2081506f318a9920aaaf72049a2bf3a654c7752e",
+      "construct_id": "realization_account_closure",
+      "prompt_id": "wave1_realization_account_closure_prompts_v2__realization_account_closure__luna__steering_eval__steering_07",
+      "split": "steering_eval"
+    },
+    {
+      "after_sha256": "2ebb900c2a894b9ce5b3cb3a2225b20a2e1384056e8ab5c2783ee109794025d4",
+      "before_sha256": "2d1b949f844b2476ba639d8dbcc751ff9987b2c21d3547a713cdae051c1c55c9",
+      "construct_id": "realization_account_closure",
+      "prompt_id": "wave1_realization_account_closure_prompts_v2__realization_account_closure__luna__steering_eval__steering_08",
+      "split": "steering_eval"
+    },
+    {
+      "after_sha256": "06fc25cb4861a24f8d9ccc198d4a04bc79d19b1ff830e3ed7bdea777ae941a9d",
+      "before_sha256": "46f41a4fe116fc0a23dbedb4803f058b1f112d124e5e178d1140eb7a520e5a4e",
+      "construct_id": "realization_account_closure",
+      "prompt_id": "wave1_realization_account_closure_prompts_v2__realization_account_closure__luna__steering_eval__steering_09",
+      "split": "steering_eval"
+    },
+    {
+      "after_sha256": "198774d9f07b5e0c297de439962641f184e4954b16081a8fe3955829ab8d1e8e",
+      "before_sha256": "062113cd48807d16eaa3c71d31b3786a2890fc796b9dd113a4f885937754f95b",
+      "construct_id": "realization_account_closure",
+      "prompt_id": "wave1_realization_account_closure_prompts_v2__realization_account_closure__luna__steering_eval__steering_10",
+      "split": "steering_eval"
+    },
+    {
+      "after_sha256": "1e6e0d665bf5677abb42205ea44a4b82bbc5e1d860351599b9f0958211b51c53",
+      "before_sha256": "c898e90320430029a32f57cd14a2252700734b5fc005c31445ebc7283ac2aaba",
+      "construct_id": "realization_account_closure",
+      "prompt_id": "wave1_realization_account_closure_prompts_v2__realization_account_closure__luna__steering_eval__steering_11",
+      "split": "steering_eval"
+    },
+    {
+      "after_sha256": "d08577fb8b63b1f9a22865f2b654f625b661e9b1c91d04853bf2cc7feca8e86e",
+      "before_sha256": "e0ca17883a4783572cecf9af72c14f3376f1021137055117d4010237a67fd443",
+      "construct_id": "realization_account_closure",
+      "prompt_id": "wave1_realization_account_closure_prompts_v2__realization_account_closure__luna__steering_eval__steering_12",
+      "split": "steering_eval"
+    },
+    {
+      "after_sha256": "0836ec137eb6b1f444415beb28a67369d05f7408c8a54d5d1b679ffc1aa17f21",
+      "before_sha256": "56faf3d4f94504311993e4c90a20e4b6587b275bd27d07d2420c24f7e86df3bb",
+      "construct_id": "realization_account_closure",
+      "prompt_id": "wave1_realization_account_closure_prompts_v2__realization_account_closure__luna__steering_eval__steering_13",
+      "split": "steering_eval"
+    },
+    {
+      "after_sha256": "171893dd376d9b0b977b4f5d6c5c607d00fb046500c22361092039419ad2334d",
+      "before_sha256": "6bd915a9b476741c9da763743108d65d027e16f73b5bb6c9fa57a55abe2cbdca",
+      "construct_id": "realization_account_closure",
+      "prompt_id": "wave1_realization_account_closure_prompts_v2__realization_account_closure__luna__steering_eval__steering_14",
+      "split": "steering_eval"
+    },
+    {
+      "after_sha256": "1d5f6610a647ac6e7ed2a3989e04117b42a86aa83f005d92c5221d942ea0c373",
+      "before_sha256": "0c7e9dadf0585ecb384ec8e313eb3be681648a7ad8c238746eb3905ec6e0c624",
+      "construct_id": "realization_account_closure",
+      "prompt_id": "wave1_realization_account_closure_prompts_v2__realization_account_closure__luna__steering_eval__steering_15",
+      "split": "steering_eval"
+    },
+    {
+      "after_sha256": "1343fb79da51d3f0eb6f2366d72a2e1b7428363e7c657c5512583aed76fce81e",
+      "before_sha256": "0764e8f19da2df02c66b752c7efd66c29664abe10365480ca17fddcb9c16094d",
+      "construct_id": "realization_account_closure",
+      "prompt_id": "wave1_realization_account_closure_prompts_v2__realization_account_closure__luna__steering_eval__steering_16",
+      "split": "steering_eval"
+    }
+  ],
+  "manifest_sha256": "3087299c468533ca7883889c7594ad5f5bf8d3e6d732ad8bb581b413fccb9c56",
+  "manifest_type": "wave1_release_v3_frozen_prompt_inventory",
+  "preservation_note": "The original v2 engineering inventory remains unchanged and separately addressable.",
+  "record_count": 2096,
+  "review_audit_path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/prompt_audits/wave1_release_v3_full_audit_v1.json",
+  "review_audit_sha256": "ba28f05d5f78af0350f66e66fff55f35bcd2ac04974518eb3928102d3c0ec6f7",
+  "schema_version": "0.1.0",
+  "source_additions": [
+    {
+      "path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/wave1_release_v3_primary_supplement_full_luna/realization_account_closure.csv",
+      "sha256": "1ee8add044fc8360e065b274f26febc981fe2defbfc1fe9e139ba61993baa856"
+    },
+    {
+      "path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/wave1_release_v3_primary_supplement_full_luna/evidence_diagnosticity.csv",
+      "sha256": "5dba00a736d9cb8c1be653855dc69033e4a36822e3c7dfdcc213ba46cd7a9683"
+    },
+    {
+      "path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/wave1_release_v3_primary_supplement_full_luna/source_reliability.csv",
+      "sha256": "9a4ac8aa5ea90b10124ab1456310ff33fe5b7d52ebed4df67c4edab23f8ba2b7"
+    },
+    {
+      "path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/wave1_release_v3_collateral_full_luna/realization_account_closure.csv",
+      "sha256": "a38687043d4a3fd2ec07091280f7d24c845f6f98332ab8b8d9bcbe1788c94144"
+    },
+    {
+      "path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/wave1_release_v3_collateral_full_luna/evidence_diagnosticity.csv",
+      "sha256": "8c3a3f9ebf7d3a0005121ceafd571a774bb1c920c7535fc5e0628744627892c8"
+    },
+    {
+      "path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/wave1_release_v3_collateral_full_luna/source_reliability.csv",
+      "sha256": "1b6bb9be73b449fa8fc8f5345c6c9b9aaba3dc84b3fb5604ff64a6cb35499ed8"
+    },
+    {
+      "path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/wave1_release_v3_collateral_full_luna/persistence_continuation.csv",
+      "sha256": "a64b10c64d9f0c41b2e7f598c90042106d51dc110a309d47474ba6e545c60593"
+    }
+  ],
+  "source_original_inventory": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/prompt_inventories/wave1_repaired_v2_full_openai_luna_normalized/combined.csv",
+  "source_original_inventory_sha256": "3cf45b088964a2c2c8a679921c5d45ebbb2d5ef7c6fcbff536bfb67e4fd983d0"
+}

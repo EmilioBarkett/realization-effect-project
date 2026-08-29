@@ -25,6 +25,7 @@ from activation_analysis.openai_prompt_generation import call_openai_responses  
 
 
 VECTOR_SPLITS = {"direction_train", "direction_validation", "direction_heldout"}
+GENERATION_SPLITS = VECTOR_SPLITS | {"behavior_eval", "steering_eval", "calibration", "collateral_eval"}
 
 
 def _load_plan_and_spec(plan_path: Path, spec_path: Path | None):
@@ -72,6 +73,13 @@ def main() -> None:
         choices=("all", "vector"),
         default="all",
         help="Generate the complete plan or only paired train/validation/held-out vector prompts.",
+    )
+    parser.add_argument(
+        "--splits",
+        nargs="+",
+        choices=sorted(GENERATION_SPLITS),
+        default=None,
+        help="Explicit split subset for an engineering/review generation run.",
     )
     parser.add_argument("--dry-run", action="store_true", help="Expand plans without making API calls.")
     parser.add_argument("--summary-output", type=Path, default=None)
@@ -138,7 +146,11 @@ def main() -> None:
         plans.append(plan)
         specs.append(spec)
 
-    selected_splits = VECTOR_SPLITS if args.scope == "vector" else None
+    if args.scope == "vector" and args.splits is not None:
+        raise SystemExit("Use either --scope vector or --splits, not both.")
+    selected_splits = set(args.splits) if args.splits is not None else (
+        VECTOR_SPLITS if args.scope == "vector" else None
+    )
 
     if args.dry_run:
         selected_mode = args.mode or "full"
@@ -171,6 +183,7 @@ def main() -> None:
         aggregate = {
             "run_mode": selected_mode,
             "generation_scope": args.scope,
+            "selected_splits": sorted(selected_splits) if selected_splits is not None else None,
             "plan_count": len(summaries),
             "construct_ids": [summary["construct_id"] for summary in summaries],
             "complete_plan": all(summary["complete_plan"] for summary in summaries),
@@ -224,6 +237,7 @@ def main() -> None:
         args.limit_jobs is not None
         or mode_count_override is not None
         or not selection_is_complete
+        or selected_splits is not None
     )
     mode_allows_partial = any(bool(mode_config["partial"]) for mode_config in mode_configs)
     if requested_partial and not (args.allow_partial or mode_allows_partial):
@@ -248,7 +262,7 @@ def main() -> None:
             limit_jobs=args.limit_jobs,
             splits=selected_splits,
         )
-        if not result.complete and args.scope == "all" and not (args.allow_partial or mode_allows_partial):
+        if not result.complete and not (args.allow_partial or mode_allows_partial):
             raise SystemExit(
                 "The requested generation is partial; pass --allow-partial or choose review mode "
                 "to write it explicitly."
@@ -266,11 +280,17 @@ def main() -> None:
                 "run_mode": args.mode,
                 "run_mode_purpose": mode_configs[len(summaries)]["purpose"],
                 "generation_scope": args.scope,
+                "selected_splits": sorted(selected_splits) if selected_splits is not None else None,
                 **result.summary(),
             }
         )
 
-    output = {"run_mode": args.mode, "generation_scope": args.scope, "plans": summaries}
+    output = {
+        "run_mode": args.mode,
+        "generation_scope": args.scope,
+        "selected_splits": sorted(selected_splits) if selected_splits is not None else None,
+        "plans": summaries,
+    }
     print(json.dumps(output, indent=2, sort_keys=True))
     summary_path = _summary_path(args)
     if summary_path is not None:

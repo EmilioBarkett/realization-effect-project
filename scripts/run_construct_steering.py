@@ -181,6 +181,7 @@ def _build_output_manifest(
         "position_mode": str(plan["position_mode"]),
         "intervention_timing": str(plan["intervention_timing"]),
         "prompt_format": args.prompt_format,
+        "enable_thinking": getattr(args, "enable_thinking", None),
         "system_prompt_sha256": file_sha256_from_text(args.system_prompt),
         "max_new_tokens": args.max_new_tokens,
         "min_new_tokens": args.min_new_tokens,
@@ -189,6 +190,9 @@ def _build_output_manifest(
         "device": args.device,
         "device_map": args.device_map,
         "block_path": args.block_path,
+        "constrained_numeric_generation": bool(
+            getattr(args, "constrained_numeric_generation", True)
+        ),
         "execution_scope": str(plan.get("execution_scope", "full_condition_matrix")),
         "source_condition_count": int(plan.get("source_condition_count", len(plan["conditions"]))),
         "selected_condition_count": int(plan.get("selected_condition_count", len(plan["conditions"]))),
@@ -233,6 +237,7 @@ def _validate_output_manifest(path: Path, expected: dict) -> None:
         "position_mode",
         "intervention_timing",
         "prompt_format",
+        "enable_thinking",
         "system_prompt_sha256",
         "max_new_tokens",
         "min_new_tokens",
@@ -241,6 +246,7 @@ def _validate_output_manifest(path: Path, expected: dict) -> None:
         "device",
         "device_map",
         "block_path",
+        "constrained_numeric_generation",
         "execution_scope",
         "source_condition_count",
         "selected_condition_count",
@@ -395,9 +401,23 @@ def main() -> None:
     parser.add_argument("--block-path", default=None)
     parser.add_argument("--prompt-format", choices=("completion", "chat"), default="chat")
     parser.add_argument("--system-prompt", default="")
+    parser.add_argument(
+        "--disable-thinking",
+        action="store_false",
+        dest="enable_thinking",
+        default=None,
+        help="Request a text-only response without hidden reasoning when the chat template supports it.",
+    )
     parser.add_argument("--max-new-tokens", type=int, default=32)
     parser.add_argument("--min-new-tokens", type=int, default=1)
     parser.add_argument("--max-length", type=int, default=1024)
+    parser.add_argument(
+        "--disable-constrained-numeric-generation",
+        action="store_false",
+        dest="constrained_numeric_generation",
+        default=True,
+        help="Disable the shared tokenizer-aware numeric constraint (diagnostic use only).",
+    )
     args = parser.parse_args()
 
     if args.output.exists() and not args.resume:
@@ -537,6 +557,9 @@ def main() -> None:
                 prompt.prompt_text,
                 prompt_format=args.prompt_format,
                 system_prompt=args.system_prompt,
+                enable_thinking=args.enable_thinking,
+                parser_id=prompt.parser_id,
+                constrained_numeric=args.constrained_numeric_generation,
                 steering_config=config,
                 tracking_directions=tracking,
                 max_new_tokens=args.max_new_tokens,

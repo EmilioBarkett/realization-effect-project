@@ -17,6 +17,7 @@ from scripts.run_prompt_only_behavior import execute_prompt_only_behavior
 ROOT = Path(__file__).resolve().parents[1]
 RUN_CONFIG_PATH = ROOT / "configs/construct_benchmark/run_configs/wave1_realization_single_construct_smoke_v1.json"
 SPEC_PATH = ROOT / "configs/construct_benchmark/constructs/realization_account_closure_v1.json"
+COLLATERAL_SPEC_PATH = ROOT / "configs/construct_benchmark/constructs/realization_account_closure_v3.json"
 
 
 def _inventory(path: Path) -> None:
@@ -149,3 +150,27 @@ def test_prompt_only_resume_requires_the_same_frozen_inventory(tmp_path: Path) -
         )
 
     assert len(rows) == 8
+
+
+def test_collateral_rows_use_the_unrelated_task_and_score_correctness() -> None:
+    spec = load_construct_spec(COLLATERAL_SPEC_PATH)
+    rows = [
+        {
+            "record_id": "collateral__prompt_only",
+            "prompt_id": "collateral",
+            "construct_id": spec.construct_id,
+            "split": "collateral_eval",
+            "prompt_role": "collateral",
+            "task_id": spec.collateral_behavior_task["task_id"],
+            "parser_id": "single_integer_choice_1_or_2_v1",
+            "output_text": "1",
+            "task_metadata": {"correct_option": 1},
+        }
+    ]
+
+    parsed_rows, summary = score_behavior_rows(rows, {spec.construct_id: spec})
+
+    assert parsed_rows[0]["primary_valid"] is True
+    assert parsed_rows[0]["directed_outcome"] == pytest.approx(1.0)
+    assert summary["constructs"][spec.construct_id]["valid_primary_rows"] == 1
+    assert summary["constructs"][spec.construct_id]["outcome_mean"] == pytest.approx(1.0)

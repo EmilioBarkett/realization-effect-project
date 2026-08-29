@@ -270,7 +270,7 @@ def validate_prompt_records(
                 f"across roles {previous_role!r} and {record.prompt_role!r}."
             )
         family_roles_by_construct[record.construct_id][record.prompt_family] = record.prompt_role
-        if record.prompt_role in {"behavior", "steering", "calibration"}:
+        if record.prompt_role in {"behavior", "steering", "calibration", "collateral"}:
             missing_fields = [
                 field_name
                 for field_name, value in (

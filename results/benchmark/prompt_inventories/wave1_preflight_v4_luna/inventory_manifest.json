@@ -1,0 +1,109 @@
+{
+  "confirmatory": false,
+  "construct_ids": [
+    "realization_account_closure",
+    "evidence_diagnosticity",
+    "source_reliability",
+    "persistence_continuation"
+  ],
+  "constructs": {
+    "evidence_diagnosticity": {
+      "record_count": 456,
+      "split_counts": {
+        "behavior_eval": 32,
+        "calibration": 16,
+        "collateral_eval": 16,
+        "direction_heldout": 80,
+        "direction_train": 200,
+        "direction_validation": 80,
+        "steering_eval": 32
+      }
+    },
+    "persistence_continuation": {
+      "record_count": 632,
+      "split_counts": {
+        "behavior_eval": 80,
+        "calibration": 80,
+        "collateral_eval": 32,
+        "direction_heldout": 80,
+        "direction_train": 200,
+        "direction_validation": 80,
+        "steering_eval": 80
+      }
+    },
+    "realization_account_closure": {
+      "record_count": 488,
+      "split_counts": {
+        "behavior_eval": 32,
+        "calibration": 32,
+        "collateral_eval": 32,
+        "direction_heldout": 80,
+        "direction_train": 200,
+        "direction_validation": 80,
+        "steering_eval": 32
+      }
+    },
+    "source_reliability": {
+      "record_count": 488,
+      "split_counts": {
+        "behavior_eval": 32,
+        "calibration": 32,
+        "collateral_eval": 32,
+        "direction_heldout": 80,
+        "direction_train": 200,
+        "direction_validation": 80,
+        "steering_eval": 32
+      }
+    }
+  },
+  "frozen": true,
+  "generation_provider": "openai_luna",
+  "inventory_version": "wave1_preflight_v4",
+  "manifest_type": "wave_execution_prompt_inventory",
+  "output_path": "combined.csv",
+  "output_sha256": "58fc36b9bcd61dbd1024c5a4dcde7221ad38a8967ae224a8d3eb32ae2d72013c",
+  "parent_inventory": {
+    "path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/prompt_inventories/wave1_release_v3_full_luna_repaired_v2/combined.csv",
+    "sha256": "b422cf4fe9b3c69ffdfe6c7eefa6a36fa0c087321ff96f4ba0abb7d33cd41c70"
+  },
+  "preserved_v3_rule": "Retain all v3 probe rows and all non-evidence downstream rows verbatim; replace only evidence downstream rows.",
+  "prompt_audit": {
+    "failures": [],
+    "full_factorial_size": 32,
+    "high_information_option_balance": {
+      "behavior_eval": {
+        "option_a": 16,
+        "option_b": 16
+      },
+      "steering_eval": {
+        "option_a": 16,
+        "option_b": 16
+      }
+    },
+    "pass": true,
+    "record_count": 96,
+    "split_counts": {
+      "behavior_eval": 32,
+      "calibration": 16,
+      "collateral_eval": 16,
+      "steering_eval": 32
+    },
+    "tradeoff_fields": [
+      "high_information_option",
+      "cost_contrast",
+      "delay_contrast",
+      "stakes_contrast",
+      "option_order"
+    ]
+  },
+  "record_count": 2064,
+  "release_id": "wave1_preflight_v4",
+  "schema_version": "0.1.0",
+  "scope": "wave1_preflight_repaired_downstream_release",
+  "status": "frozen",
+  "v4_generation_source": {
+    "path": "/Users/ciaranwalsh/Documents/GitHub/realization-effect-project/results/benchmark/prompt_inventories/wave1_evidence_diagnosticity_v4_preflight_generation_repaired/evidence_diagnosticity.csv",
+    "sha256": "6b236cb980ff7ae79209e1240efc2b8b36ad8e8e92a4f4549858cb1f01bf6edd"
+  },
+  "wave": 1
+}

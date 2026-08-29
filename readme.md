@@ -8,11 +8,12 @@ models.
 
 The project is currently in **scientific protocol development and benchmark
 infrastructure implementation**. The shared multi-construct control plane is
-implemented. A completed API-generated vector/probe inventory and a
-realization real-model decode pilot are available as engineering/reference
-artifacts, while the generalized end-to-end measurement run is still under
-construction. The environment-independent numerical measurement core is
-implemented and fixture-tested.
+implemented. API-generated inventories, Mistral/Qwen Wave 1 model-side pilots,
+and a realization decode pilot are available as engineering/reference
+artifacts; they are non-confirmatory and include explicit release failures.
+The environment-independent numerical measurement core and the deterministic
+8--16-item model-side behavioral/accessibility preflight are implemented, but
+confirmatory end-to-end measurement remains gated.
 
 The original realization-effect behavioral pipeline is archived, while the
 activation-analysis prompt generator and activation primitives remain active.
@@ -167,6 +168,10 @@ Implemented control plane:
   refuses to run when a frozen prompt would be truncated;
 - separate behavior, steering, and calibration prompt-family validation plus
   pre-registered categorical schedules for balanced task factors;
+- the frozen 8--16-item model-side behavioral/accessibility preflight selector
+  and manifest/checksum validator in
+  `scripts/prepare_model_behavior_accessibility_preflight.py` and
+  `scripts/validate_model_behavior_accessibility_preflight.py`;
 - canonical combined prompt inventories with global IDs and construct-scoped
   pair validation;
 - shared-activation/construct-fan-out run manifests;
@@ -194,9 +199,10 @@ Implemented and fixture-tested, but not yet validated on a real model:
 
 Still not validated end to end:
 
-- real-model prompt-only behavior composition and real-run uncertainty
+- confirmatory real-model behavior composition and real-run uncertainty
   orchestration;
-- output-accessibility and collateral manipulation checks;
+- a passing model-side behavioral/accessibility preflight for every Wave 1
+  model/construct pair;
 - all-16 downstream parsers and behavior execution;
 - real-model validation of the steering traces and the Wave 1 experiments;
 - real-model validation of C1 causal interchange, including downstream parsed

@@ -14,6 +14,7 @@ from .model_loading import (
     load_tokenizer_or_processor,
     move_batch_to_device,
 )
+from .constrained_generation import build_numeric_logits_processor
 from .tokenization import (
     enforce_token_length_limit,
     format_model_prompt,
@@ -822,12 +823,20 @@ class ResidualSteeringGenerator:
             raise ValueError(f"position_mode must be one of: {supported}.")
         return steered
 
-    def format_prompt(self, prompt: str, *, prompt_format: str, system_prompt: str) -> str:
+    def format_prompt(
+        self,
+        prompt: str,
+        *,
+        prompt_format: str,
+        system_prompt: str,
+        enable_thinking: bool | None = None,
+    ) -> str:
         return format_model_prompt(
             self.tokenizer,
             prompt,
             prompt_format=prompt_format,
             system_prompt=system_prompt,
+            enable_thinking=enable_thinking,
         )
 
     def generate(
@@ -842,6 +851,9 @@ class ResidualSteeringGenerator:
         max_length: int = 1024,
         do_sample: bool = False,
         temperature: float = 0.0,
+        enable_thinking: bool | None = None,
+        parser_id: str | None = None,
+        constrained_numeric: bool = True,
         tracking_directions: Mapping[int, TrackingDirection | Path | str | Mapping[str, Any]] | None = None,
         return_trace: bool = False,
     ) -> tuple[str, SteeringVectorInfo | None] | tuple[str, SteeringVectorInfo | None, SteeringTrace | None]:
@@ -851,6 +863,7 @@ class ResidualSteeringGenerator:
             prompt,
             prompt_format=prompt_format,
             system_prompt=system_prompt,
+            enable_thinking=enable_thinking,
         )
         token_report = inspect_token_lengths(
             self.tokenizer,
@@ -880,6 +893,19 @@ class ResidualSteeringGenerator:
         }
         if do_sample:
             generation_kwargs["temperature"] = temperature
+        if constrained_numeric and parser_id:
+            numeric_processor = build_numeric_logits_processor(
+                self.tokenizer,
+                parser_id=parser_id,
+                start_length=input_length,
+            )
+            if numeric_processor is not None:
+                processor_list = getattr(self._transformers, "LogitsProcessorList", None)
+                generation_kwargs["logits_processor"] = (
+                    processor_list([numeric_processor])
+                    if callable(processor_list)
+                    else [numeric_processor]
+                )
 
         trace = None
         if steering_config is not None:

@@ -18,6 +18,7 @@ SPLIT_EXECUTION_SCOPE = {
     "behavior_eval": "construct_behavior_task",
     "steering_eval": "construct_steering_task",
     "calibration": "construct_calibration_task",
+    "collateral_eval": "construct_collateral_task",
 }
 
 SPLIT_PROMPT_ROLE = {
@@ -27,6 +28,7 @@ SPLIT_PROMPT_ROLE = {
     "behavior_eval": "behavior",
     "steering_eval": "steering",
     "calibration": "calibration",
+    "collateral_eval": "collateral",
 }
 
 

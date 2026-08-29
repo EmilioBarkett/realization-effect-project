@@ -23,7 +23,9 @@ from typing import Any, Mapping, Protocol, Sequence
 
 RUNPOD_API_KEY_ENV = "RUNPOD_2_API_KEY"
 RUNPOD_BASE_URL = "https://rest.runpod.io/v1"
-B300_GPU_TYPE = "NVIDIA B300"
+# RunPod's REST API uses the full hardware ID; keep the shorter name in
+# scientific run-configs and reports where it is only a human-facing label.
+B300_GPU_TYPE = "NVIDIA B300 SXM6 AC"
 B300_GPU_COUNT = 1
 MAX_CAMPAIGN_PODS = 1
 WORKSPACE_MOUNT_PATH = "/workspace"
@@ -515,13 +517,27 @@ class RunPodController:
         selected = normalize_pod_id(pod_id) if pod_id is not None else self._owned_pod_id()
         if selected is None:
             raise RunPodError("no campaign pod ID is recorded")
-        response = self._call("GET", f"/pods/{selected}")
+        # The REST detail response can omit the machine/GPU block while a pod
+        # is initializing. Request the expanded view so exact SKU validation
+        # does not mistake a valid assigned B300 for an unknown device.
+        response = self._call(
+            "GET",
+            f"/pods/{selected}",
+            query={"includeMachine": "true", "includeNetworkVolume": "true"},
+        )
         if not isinstance(response, Mapping):
             raise RunPodError("RunPod inspect response was not an object")
         summary = self._validate_exact_b300(response)
         desired = str(summary.get("lifecycle", {}).get("desired_status") or "").upper()
         actual = str(summary.get("lifecycle", {}).get("actual_status") or "").upper()
-        ready = desired == "RUNNING" and actual in {"RUNNING", "READY", "ACTIVE"}
+        # Some REST responses omit ``runtimeStatus`` after the container has
+        # started, while a public endpoint and expanded machine identity are
+        # already present. Treat that combination as ready; SSH/CUDA
+        # preflight remains the authoritative pod-side readiness check.
+        ready = desired == "RUNNING" and (
+            actual in {"RUNNING", "READY", "ACTIVE"}
+            or (not actual and bool(summary.get("endpoint_present")))
+        )
         result = {
             "status": "ready" if ready else "not_ready",
             "pod": summary,

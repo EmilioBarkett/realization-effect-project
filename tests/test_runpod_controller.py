@@ -130,7 +130,22 @@ def test_readiness_stop_and_durable_lifecycle_state(tmp_path: Path) -> None:
     assert saved["status"] == "stopped"
     assert saved["pod_id"] == "pod_test_123"
     assert transport.calls[1][0:2] == ("GET", "/pods/pod_test_123")
+    assert transport.calls[1][2] == {"includeMachine": "true", "includeNetworkVolume": "true"}
     assert transport.calls[2][0:2] == ("POST", "/pods/pod_test_123/stop")
+
+
+def test_endpoint_without_runtime_status_is_ready(tmp_path: Path) -> None:
+    payload = _pod()
+    payload.pop("status")
+    payload["publicIp"] = "203.0.113.10"
+    controller = RunPodController(
+        transport=FakeTransport([payload, {**payload, "publicIp": "203.0.113.10"}]),
+        state_path=tmp_path / "state.json",
+    )
+    controller.create_b300_pod(_spec())
+    inspected = controller.inspect_pod()
+    assert inspected["status"] == "ready"
+    assert inspected["runtime"]["ready"] is True
 
 
 def test_controller_refuses_recreate_after_stop(tmp_path: Path) -> None:

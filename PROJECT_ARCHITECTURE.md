@@ -5,9 +5,13 @@ all-16 construct specifications and paired-vector plans, calibration-aware
 downstream prompt-generation workflow, and environment-independent measurement
 core are implemented. Scalar injection/downstream trace instrumentation,
 prompt-only baseline execution, fail-closed tokenizer preflight, scoring, and
-the C1 matched-episode residual-interchange runner are also implemented;
-real-model validation, all-16 downstream behavior parsing, and
-output-accessibility/collateral checks remain.
+the C1 matched-episode residual-interchange runner are also implemented.
+Manifest-backed Mistral and Qwen Wave 1 engineering pilots now exist on the
+RunPod persistent volume; they remain non-confirmatory and have explicit
+behavioral/accessibility failures. A deterministic 8--16-item model-side
+behavioral/accessibility preflight is implemented as the release gate for any
+future large execution. Confirmatory real-model benchmark results remain
+unavailable.
 
 ## 1. Architectural principle
 
@@ -104,6 +108,7 @@ src/construct_benchmark/
 ├── behavior.py        Implemented strict Wave 1 parsing and primary effect metric
 ├── behavior_baseline.py Implemented manifest-backed prompt-only baseline
 ├── behavioral_variation.py Implemented prompt-only and zero-dose gates
+├── model_preflight.py Implemented frozen 8--16-item model-side release gate
 ├── steering.py        Implemented condition plans and control directions
 ├── manipulation.py    Implemented scalar injection and downstream checks
 ├── uncertainty.py      Implemented pair/item bootstrap interval primitives
@@ -111,11 +116,12 @@ src/construct_benchmark/
 └── storage.py          Implemented workspace, checksum, and archive helpers
 ```
 
-The remaining measurement layer should add real-run uncertainty orchestration,
-output-accessibility/collateral checks, and correspondence analysis as the
-two-construct vertical slice requires them. Prompt-only composition is now
-implemented as a separate baseline stage; it still needs real-model
-validation. C1 residual interchange is the first causal-pathway method; C2
+The remaining measurement layer should add real-run uncertainty orchestration
+and correspondence analysis after the model-side preflight and Wave 1 gates
+are resolved. Prompt-only composition, output-accessibility/collateral
+scoring, and the preflight validator are implemented but must be run as a
+frozen small release gate for each model/construct pair. C1 residual
+interchange is the first causal-pathway method; C2
 temporal tracing, C3 component/path patching, and C4 ablation remain later
 extensions and must not be inferred from the C1 output.
 The later profile layer can add:
@@ -280,7 +286,9 @@ all-16 vector review → human prompt audit → full frozen inventory
                                       ↓
                  one-hour activation/readout/steering smoke run
                                       ↓
-                          inspect artifacts and decide
+                 8--16 item model-side preflight per pair
+                                      ↓
+                   inspect exact failures and decide
                                       ↓
                         full inventory + full model run
 ```
@@ -309,7 +317,9 @@ tokenizer contract from `activation_analysis.tokenization`.
 3. Audit leakage-safe splits for every construct namespace.
 4. Run the manifest-backed prompt-only behavioral baseline per construct where
    its construct-specific parser and task execution are implemented; audit
-   compliance and outcome variation before interpreting steering effects.
+   compliance and outcome variation before interpreting steering effects, then
+   pass the frozen 8--16-item model-side preflight for every model/construct
+   pair before any larger run.
 5. Log activations once at all registered candidate layers, sites, and positions.
 6. Construct one direction per construct from training prompts only and select
    the layer using validation prompts only.
@@ -319,7 +329,9 @@ tokenizer contract from `activation_analysis.tokenization`.
 9. Run independent-task prefill-only steering with `[-1, -0.5, 0, 0.5, 1]`,
    shuffled, and three random controls.
 10. Check the recorded downstream persistence and injection arithmetic, then
-   add output accessibility, compliance, and collateral behavior checks.
+    add output accessibility, compliance, and collateral behavior checks. The
+    small preflight release gate must pass before scaling any model/construct
+    pair.
 11. Run C1 matched-episode residual interchange on the registered causal
     diagnosis subset, validate its complete manifest, and compare the
     bidirectional swaps with same-condition controls.

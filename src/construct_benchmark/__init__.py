@@ -27,6 +27,7 @@ from .behavior_baseline import (
     read_behavior_output,
     score_behavior_rows,
     select_behavior_records,
+    select_preflight_behavior_records,
     validate_behavior_output_manifest,
 )
 from .calibration import CalibrationResult, estimate_projection_scale, intervention_scale
@@ -181,6 +182,7 @@ __all__ = [
     "read_behavior_output",
     "score_behavior_rows",
     "select_behavior_records",
+    "select_preflight_behavior_records",
     "archive_destination",
     "prepare_run_directories",
     "resolve_archive_uri",

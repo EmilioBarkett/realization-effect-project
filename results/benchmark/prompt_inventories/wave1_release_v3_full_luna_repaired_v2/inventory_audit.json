@@ -1,0 +1,46 @@
+{
+  "collateral_correct_option_counts": {
+    "1": 64,
+    "2": 64
+  },
+  "counts_by_construct_split": {
+    "evidence_diagnosticity": {
+      "behavior_eval": 32,
+      "calibration": 32,
+      "collateral_eval": 32,
+      "direction_heldout": 80,
+      "direction_train": 200,
+      "direction_validation": 80,
+      "steering_eval": 32
+    },
+    "persistence_continuation": {
+      "behavior_eval": 80,
+      "calibration": 80,
+      "collateral_eval": 32,
+      "direction_heldout": 80,
+      "direction_train": 200,
+      "direction_validation": 80,
+      "steering_eval": 80
+    },
+    "realization_account_closure": {
+      "behavior_eval": 32,
+      "calibration": 32,
+      "collateral_eval": 32,
+      "direction_heldout": 80,
+      "direction_train": 200,
+      "direction_validation": 80,
+      "steering_eval": 32
+    },
+    "source_reliability": {
+      "behavior_eval": 32,
+      "calibration": 32,
+      "collateral_eval": 32,
+      "direction_heldout": 80,
+      "direction_train": 200,
+      "direction_validation": 80,
+      "steering_eval": 32
+    }
+  },
+  "failures": [],
+  "pass": true
+}

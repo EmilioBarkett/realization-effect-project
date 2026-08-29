@@ -159,6 +159,7 @@ def _build_manifest(
             "dtype": args.dtype,
             "device_map": args.device_map,
             "attn_implementation": args.attn_implementation,
+            "enable_thinking": args.enable_thinking,
         },
         "expected_record_ids": record_ids,
         "expected_request_count": len(request_ids),
@@ -265,6 +266,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--dtype", default="auto", choices=["auto", "bf16", "bfloat16", "fp16", "float16", "fp32", "float32"])
     parser.add_argument("--device-map")
     parser.add_argument("--attn-implementation")
+    parser.add_argument(
+        "--disable-thinking",
+        dest="enable_thinking",
+        action="store_false",
+        default=None,
+        help="Request a text-only response without hidden reasoning when the chat template supports it.",
+    )
     parser.add_argument("--block-path")
     parser.add_argument("--local-files-only", action="store_true")
     parser.add_argument("--trust-remote-code", action="store_true")
@@ -314,6 +322,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         model_id=loader.model_id,
         tokenizer_id=loader.tokenizer_id,
         revision=loader.revision,
+        enable_thinking=args.enable_thinking,
     )
     blocks = patcher.resolve_transformer_blocks()
     if args.all_layers:

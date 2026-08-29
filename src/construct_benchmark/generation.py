@@ -54,10 +54,10 @@ DOWNSTREAM_GENERIC_SETUP_MARKERS = (
     re.compile(r"\bfor the separate allocation problem\b"),
 )
 DOWNSTREAM_RESPONSE_MARKER = re.compile(
-    r"\b(?:return|respond|report|output|provide)\s+exactly\b"
+    r"\b(?:return|respond|report|output|provide|reply|answer)(?:\s+(?:with|as))?\s+exactly\b"
 )
 SINGLE_INTEGER_CHOICE_PATTERN = re.compile(
-    r"\b(?:1\s*(?:or|/)\s*2|one\s+or\s+two|1\s+for\b.{0,180}\b2\s+for\b)"
+    r"\b(?:1\s*(?:or|/)\s*2|one\s+or\s+two|1\s+(?:for|if)\b.{0,180}\b2\s+(?:for|if)\b)"
 )
 
 
@@ -187,12 +187,30 @@ def _string_list(value: Any, *, field_name: str) -> list[str]:
     return [item.strip() for item in value]
 
 
-def _category_balance(value: Any, *, field_name: str, count: int, spec: ConstructSpec) -> dict[str, list[Any]]:
+def _task_for_prompt_role(spec: ConstructSpec, prompt_role: str) -> Mapping[str, Any]:
+    if prompt_role == "collateral":
+        if spec.collateral_behavior_task is None:
+            raise ValueError(
+                f"Construct {spec.construct_id!r} does not define collateral_behavior_task."
+            )
+        return spec.collateral_behavior_task
+    return spec.independent_behavior_task
+
+
+def _category_balance(
+    value: Any,
+    *,
+    field_name: str,
+    count: int,
+    spec: ConstructSpec,
+    prompt_role: str,
+) -> dict[str, list[Any]]:
     if value is None:
         return {}
     if not isinstance(value, Mapping):
         raise ValueError(f"{field_name} must be an object mapping metadata fields to schedules.")
-    properties = dict(spec.independent_behavior_task["item_metadata_schema"]["properties"])
+    task = _task_for_prompt_role(spec, prompt_role)
+    properties = dict(task["item_metadata_schema"]["properties"])
     validated: dict[str, list[Any]] = {}
     for field_name_key, raw_schedule in value.items():
         field = _identifier(field_name_key, field_name=f"{field_name}.field")
@@ -464,6 +482,8 @@ def _apply_generation_plan_overrides(
         "calibration_factor_schedule",
         "downstream_pool_separation",
         "cells",
+        "content_pools",
+        "append_cells",
     }
     unknown = set(overrides) - allowed
     if unknown:
@@ -494,6 +514,22 @@ def _apply_generation_plan_overrides(
             if not isinstance(raw_override, Mapping):
                 raise ValueError(f"generation-plan override for {cell_id!r} must be an object.")
             cells_by_id[str(cell_id)].update(copy.deepcopy(dict(raw_override)))
+    if "content_pools" in overrides:
+        raw_pool_overrides = overrides["content_pools"]
+        if not isinstance(raw_pool_overrides, Mapping):
+            raise ValueError("generation-plan override content_pools must be an object.")
+        pools = effective.setdefault("content_pools", {})
+        if not isinstance(pools, dict):
+            raise ValueError("generation-plan override content_pools requires a base object.")
+        pools.update(copy.deepcopy(dict(raw_pool_overrides)))
+    if "append_cells" in overrides:
+        appended = overrides["append_cells"]
+        if not isinstance(appended, list) or any(not isinstance(cell, Mapping) for cell in appended):
+            raise ValueError("generation-plan override append_cells must be a list of objects.")
+        cells = effective.setdefault("cells", [])
+        if not isinstance(cells, list):
+            raise ValueError("generation-plan override append_cells requires a base cells list.")
+        cells.extend(copy.deepcopy(appended))
     return effective
 
 
@@ -613,7 +649,7 @@ def load_generation_plan(
         pool_key = _identifier(pool_id, field_name="content_pools key")
         pool = _mapping(raw_pool, field_name=f"content_pools.{pool_key}")
         pool_role = _text(pool.get("role"), field_name=f"content_pools.{pool_key}.role")
-        if pool_role not in {"probe", "behavior", "steering", "calibration"}:
+        if pool_role not in {"probe", "behavior", "steering", "calibration", "collateral"}:
             raise ValueError(f"content_pools.{pool_key}.role is unsupported: {pool_role!r}")
         _string_list(pool.get("domains"), field_name=f"content_pools.{pool_key}.domains")
         pools[pool_key] = pool
@@ -657,6 +693,7 @@ def load_generation_plan(
             field_name=f"cells[{index}].category_balance",
             count=count,
             spec=spec,
+            prompt_role=prompt_role,
         )
         if mode == "paired":
             cell["paired_metadata_schedule"] = _paired_metadata_schedule(
@@ -905,7 +942,8 @@ def response_schema_for_job(job: ConstructGenerationJob, spec: ConstructSpec) ->
             },
         }
     if job.mode == "single":
-        item_metadata_schema = dict(spec.independent_behavior_task["item_metadata_schema"])
+        task = _task_for_prompt_role(spec, job.prompt_role)
+        item_metadata_schema = dict(task["item_metadata_schema"])
         return {
             "type": "json_schema",
             "json_schema": {
@@ -962,7 +1000,7 @@ def build_generation_messages(spec: ConstructSpec, plan: Mapping[str, Any], job:
         for condition in spec.contrast_conditions
     ]
     cell = job.cell
-    task = spec.independent_behavior_task
+    task = _task_for_prompt_role(spec, job.prompt_role)
     assigned_domains = _assigned_content_domains(plan, job)
     scheduled_pair_requirements = [
         {
@@ -1266,7 +1304,7 @@ def _registered_response_instruction(task: Mapping[str, Any], expected_format: s
     """
 
     template = str(task.get("prompt_template", ""))
-    candidates = re.findall(r"(?i)(?:return|report|allocate|provide|enter)[^.?!]*[.?!]", template)
+    candidates = re.findall(r"(?i)(?:return|report|allocate|provide|enter|reply|answer)[^.?!]*[.?!]", template)
     for candidate in candidates:
         folded = candidate.casefold()
         if expected_format == "single_integer_1_or_2":
@@ -1306,7 +1344,7 @@ def _response_instruction_is_present(prompt_text: str, expected_format: str) -> 
     """Check whether a generated downstream prompt already has its parser request."""
 
     folded = prompt_text.casefold()
-    if not re.search(r"\b(?:return|report|allocate|provide|enter)\b", folded):
+    if not re.search(r"\b(?:return|report|allocate|provide|enter|reply|answer)\b", folded):
         return False
     if expected_format == "single_integer_1_or_2":
         return bool(
@@ -1454,7 +1492,8 @@ def _validate_metadata_schema(
 
 
 def _validate_task_metadata(value: Any, *, spec: ConstructSpec, job: ConstructGenerationJob) -> dict[str, Any]:
-    schema = dict(spec.independent_behavior_task["item_metadata_schema"])
+    task = _task_for_prompt_role(spec, job.prompt_role)
+    schema = dict(task["item_metadata_schema"])
     return _validate_metadata_schema(
         value,
         schema=schema,
@@ -1693,7 +1732,7 @@ def _records_from_response(
     generation_metadata = response.get("_generation_metadata")
     if generation_metadata is not None and not isinstance(generation_metadata, Mapping):
         raise ValueError(f"{job.job_id} response _generation_metadata must be an object.")
-    task = spec.independent_behavior_task
+    task = _task_for_prompt_role(spec, job.prompt_role)
     records: list[PromptRecord] = []
     if job.mode == "paired":
         paired_metadata_schema = _paired_metadata_schema(spec)

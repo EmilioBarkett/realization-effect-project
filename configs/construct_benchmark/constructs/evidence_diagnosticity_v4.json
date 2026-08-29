@@ -1,0 +1,234 @@
+{
+  "schema_version": "0.1.0",
+  "construct_id": "evidence_diagnosticity",
+  "version": "v4",
+  "family": "epistemic",
+  "title": "Evidence diagnosticity and crossed information-selection tradeoffs",
+  "description": "Whether an observation is represented as strongly or weakly discriminating between a focal hypothesis and alternatives, independently of its polarity, source reliability, and surface clarity.",
+  "contrast_conditions": [
+    {
+      "condition_id": "low_diagnosticity",
+      "label": "Weakly discriminating observation",
+      "definition": "The observation is represented as providing little separation between the focal hypothesis and its alternatives."
+    },
+    {
+      "condition_id": "high_diagnosticity",
+      "label": "Strongly discriminating observation",
+      "definition": "The observation is represented as sharply separating the focal hypothesis from its alternatives."
+    }
+  ],
+  "probe_prompt_template": "Read the following short epistemic scenario. Track how strongly the observation discriminates between the focal hypothesis and its alternatives separately from whether it supports or contradicts the hypothesis.\n\nScenario:\n{scenario}\n\nContinue processing the scenario.",
+  "independent_behavior_task": {
+    "task_id": "diagnostic_test_allocation_v4",
+    "task_family": "information_selection_allocation_with_tradeoffs",
+    "prompt_template": "For a separate decision, allocate 100 points between two possible tests. The item gives the expected diagnostic benefit, resource cost, delay, and consequence stakes of Option A and Option B. Weigh all four stated attributes together: a test with greater diagnostic benefit may also be more costly, slower, or associated with different stakes, and neither option should be treated as automatically dominant. Return exactly one integer from 0 to 100 representing the points assigned to Option A; the remaining points go to Option B. Use only this item's information.",
+    "primary_outcome": "high_information_test_allocation",
+    "secondary_outcomes": [
+      "other_test_allocation",
+      "compliance"
+    ],
+    "response_format": "single_integer_allocation_0_to_100",
+    "item_metadata_schema": {
+      "required": [
+        "diagnostic_benefit_contrast",
+        "cost_contrast",
+        "delay_contrast",
+        "stakes_contrast",
+        "option_order",
+        "high_information_option"
+      ],
+      "properties": {
+        "diagnostic_benefit_contrast": {
+          "type": "string",
+          "enum": [
+            "option_a_high",
+            "option_b_high",
+            "matched"
+          ]
+        },
+        "cost_contrast": {
+          "type": "string",
+          "enum": [
+            "option_a_low",
+            "option_b_low",
+            "matched"
+          ]
+        },
+        "delay_contrast": {
+          "type": "string",
+          "enum": [
+            "option_a_short",
+            "option_b_short",
+            "matched"
+          ]
+        },
+        "stakes_contrast": {
+          "type": "string",
+          "enum": [
+            "option_a_low",
+            "option_b_low",
+            "matched"
+          ]
+        },
+        "option_order": {
+          "type": "string",
+          "enum": [
+            "option_a_first",
+            "option_b_first"
+          ]
+        },
+        "high_information_option": {
+          "type": "string",
+          "enum": [
+            "option_a",
+            "option_b",
+            "matched"
+          ]
+        }
+      }
+    },
+    "independence_requirements": [
+      "Use new hypotheses, entities, and decision contexts not present in probe prompts.",
+      "Describe both options with concrete facts about expected diagnostic benefit, resource cost, delay, and consequence stakes; do not call either option targeted, routine, high-information, or low-information in the end-user prompt.",
+      "Fully cross the five registered factors in behavior and steering pools: high-information option identity, relative cost, relative delay, relative stakes, and narrative option order.",
+      "The high-information option must be Option A for half of the items and Option B for half. The cost, delay, stakes, and order factors must vary independently of it.",
+      "Do not make the high-benefit option automatically dominant: in half the cells it must carry the higher cost, longer delay, or higher stakes, with the converse cells also represented.",
+      "Calibration items must make diagnostic benefit matched and contain no construct labels or probe-state classification."
+    ]
+  },
+  "collateral_behavior_task": {
+    "task_id": "collateral_factual_choice_evidence_diagnosticity_v4",
+    "task_family": "unrelated_factual_two_option_choice",
+    "prompt_template": "Answer the unrelated factual question below. Choose the option that is factually correct. Return exactly one integer: 1 for option 1 or 2 for option 2. Use only the information in this item.",
+    "primary_outcome": "correct_option",
+    "secondary_outcomes": [
+      "choice_accuracy",
+      "compliance"
+    ],
+    "response_format": "single_integer_1_or_2",
+    "item_metadata_schema": {
+      "required": [
+        "correct_option",
+        "difficulty",
+        "option_order",
+        "domain_family"
+      ],
+      "properties": {
+        "correct_option": {
+          "type": "integer",
+          "enum": [
+            1,
+            2
+          ]
+        },
+        "difficulty": {
+          "type": "string",
+          "enum": [
+            "low",
+            "high"
+          ]
+        },
+        "option_order": {
+          "type": "string",
+          "enum": [
+            "option_1_first",
+            "option_2_first"
+          ]
+        },
+        "domain_family": {
+          "type": "string",
+          "enum": [
+            "domain_a",
+            "domain_b",
+            "domain_c",
+            "domain_d"
+          ]
+        }
+      }
+    },
+    "independence_requirements": [
+      "Use a concrete factual question unrelated to the construct probe and primary downstream task.",
+      "Do not ask the model to classify, describe, or reason about the target construct.",
+      "Make exactly one option factually correct and keep the alternative plausible but incorrect.",
+      "Use the registered metadata schedule exactly; option order must not change which integer is correct."
+    ]
+  },
+  "expected_direction": {
+    "readout": {
+      "positive_condition": "high_diagnosticity",
+      "negative_condition": "low_diagnosticity",
+      "estimand": "heldout_projection_margin"
+    },
+    "behavior": {
+      "outcome": "high_information_test_allocation",
+      "estimand": "diagnosticity_state_transfer_to_tradeoff_sensitive_information_selection",
+      "expected_at_fixed_task_factors": "A high-diagnosticity state increases allocation to the objectively more diagnostic option, conditional on crossed cost, delay, stakes, and order factors.",
+      "direction_status": "preregister_before_data_collection",
+      "warning": "This measures transfer to information selection under explicit tradeoffs, not an unrestricted belief-updating policy."
+    }
+  },
+  "parsing_rules": {
+    "parser_id": "single_integer_allocation_0_to_100_v1",
+    "valid_ranges": {
+      "high_information_test_allocation": [
+        0,
+        100
+      ]
+    },
+    "field_order": [
+      "high_information_test_allocation"
+    ],
+    "response_contract": "exactly one integer from 0 through 100 representing points assigned to Option A; orient to the high-information option using frozen task metadata",
+    "invalid_response_policy": "exclude_from_outcome_denominator_and_report_compliance",
+    "extra_text_policy": "invalid"
+  },
+  "required_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout",
+    "behavior_eval",
+    "steering_eval",
+    "calibration",
+    "collateral_eval"
+  ],
+  "paired_splits": [
+    "direction_train",
+    "direction_validation",
+    "direction_heldout"
+  ],
+  "controls": [
+    "supporting_and_contradicting_probe_polarity",
+    "independent_information_selection_task",
+    "crossed_cost_delay_stakes",
+    "option_identity_counterbalance",
+    "narrative_option_order_counterbalance",
+    "neutral_calibration",
+    "lexical_overlap_audit",
+    "shuffled_pair_labels",
+    "random_direction",
+    "behavioral_variation_gate"
+  ],
+  "metadata": {
+    "primary_question": "Does an evidence-diagnosticity direction transfer to selection of the more informative option when diagnostic benefit trades off against cost, delay, stakes, and order?",
+    "probe_state_is": "perceived_evidence_diagnosticity",
+    "belief_polarity_is": "a separate probe factor, not the downstream task definition",
+    "not_claimed_as": "belief polarity or unrestricted updating responsiveness",
+    "release_id": "wave1_preflight_v4",
+    "non_dominance_design": {
+      "factor_count": 5,
+      "factors": [
+        "high_information_option",
+        "cost_contrast",
+        "delay_contrast",
+        "stakes_contrast",
+        "option_order"
+      ],
+      "full_factorial_behavior_and_steering_cells": 32,
+      "high_information_option_balance": {
+        "option_a": 16,
+        "option_b": 16
+      },
+      "rule": "No option is always cheaper, faster, lower-stakes, or narrated first than the other."
+    }
+  }
+}

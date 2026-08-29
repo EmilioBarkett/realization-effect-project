@@ -1,0 +1,29 @@
+{
+  "failures": [],
+  "full_factorial_size": 32,
+  "high_information_option_balance": {
+    "behavior_eval": {
+      "option_a": 16,
+      "option_b": 16
+    },
+    "steering_eval": {
+      "option_a": 16,
+      "option_b": 16
+    }
+  },
+  "pass": true,
+  "record_count": 96,
+  "split_counts": {
+    "behavior_eval": 32,
+    "calibration": 16,
+    "collateral_eval": 16,
+    "steering_eval": 32
+  },
+  "tradeoff_fields": [
+    "high_information_option",
+    "cost_contrast",
+    "delay_contrast",
+    "stakes_contrast",
+    "option_order"
+  ]
+}

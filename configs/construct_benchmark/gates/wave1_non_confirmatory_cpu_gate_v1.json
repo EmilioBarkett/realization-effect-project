@@ -1,0 +1,64 @@
+{
+  "schema_version": "0.1.0",
+  "gate_id": "wave1_non_confirmatory_cpu_gate_v1",
+  "source_run_id": "wave1_four_construct_repaired_v2",
+  "base_snapshot_commit": "88e29f27ee027942c082994e866c42384149b98e",
+  "model": {
+    "model_id": "mistralai/Mistral-Small-24B-Instruct-2501",
+    "revision": "9527884be6e5616bdd54de542f9ae13384489724"
+  },
+  "construct_ids": [
+    "realization_account_closure",
+    "evidence_diagnosticity",
+    "source_reliability",
+    "persistence_continuation"
+  ],
+  "construct_families": {
+    "realization_account_closure": "decision",
+    "evidence_diagnosticity": "epistemic",
+    "source_reliability": "social",
+    "persistence_continuation": "agentic"
+  },
+  "stages": {
+    "B": "cpu_scored/behavior/summary.json",
+    "R": {
+      "realization_account_closure": "cpu_scored/readouts/realization_account_closure/summary.json",
+      "evidence_diagnosticity": "cpu_scored/readouts/evidence_diagnosticity/summary.json",
+      "source_reliability": "cpu_scored/readouts/source_reliability/summary.json",
+      "persistence_continuation": "cpu_scored/readouts/persistence_continuation/summary.json"
+    },
+    "C": "cpu_scored/causal_768/summary.json",
+    "S": {
+      "realization_account_closure": "cpu_scored/steering/realization_account_closure/summary.json",
+      "evidence_diagnosticity": "cpu_scored/steering/evidence_diagnosticity/summary.json",
+      "source_reliability": "cpu_scored/steering/source_reliability/summary.json",
+      "persistence_continuation": "cpu_scored/steering/persistence_continuation/summary.json"
+    }
+  },
+  "controls": {
+    "realization_account_closure": "cpu_scored/controls/realization_account_closure.json",
+    "evidence_diagnosticity": "cpu_scored/controls/evidence_diagnosticity.json",
+    "source_reliability": "cpu_scored/controls/source_reliability.json",
+    "persistence_continuation": "cpu_scored/controls/persistence_continuation.json"
+  },
+  "manifests": {
+    "activation": "../wave1_four_construct_repaired_v2/activations/manifest.json",
+    "behavior": "../wave1_four_construct_repaired_v2/raw/behavior_prompt_only_chat_strict.jsonl.manifest.json",
+    "causal": "../wave1_four_construct_repaired_v2/causal_768/residual_interchange_full_768.jsonl.manifest.json",
+    "steering": {
+      "realization_account_closure": "../wave1_four_construct_repaired_v2/constructs/realization_account_closure/steering/steering_generations.jsonl.manifest.json",
+      "evidence_diagnosticity": "../wave1_four_construct_repaired_v2/constructs/evidence_diagnosticity/steering/steering_generations.jsonl.manifest.json",
+      "source_reliability": "../wave1_four_construct_repaired_v2/constructs/source_reliability/steering/steering_generations.jsonl.manifest.json",
+      "persistence_continuation": "../wave1_four_construct_repaired_v2/constructs/persistence_continuation/steering/steering_generations.jsonl.manifest.json"
+    }
+  },
+  "precision_report": "precision_simulation.json",
+  "storage": {
+    "raw_volume_path": "/workspace/realization-effect-project/results/benchmark/wave1_four_construct_repaired_v2",
+    "raw_activations_local_sync": false,
+    "raw_generations_local_sync": false,
+    "residual_observations_local_sync": false,
+    "checksummed": true,
+    "archive_status": "not_configured"
+  }
+}

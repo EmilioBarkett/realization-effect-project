@@ -8,12 +8,13 @@ remain governed by [`PROJECT_DIRECTION.md`](../PROJECT_DIRECTION.md) and
 [`SCIENTIFIC_PROTOCOL.md`](../SCIENTIFIC_PROTOCOL.md); detailed command shapes
 and artifact rules remain in [`RUNPOD_EXECUTION.md`](RUNPOD_EXECUTION.md).
 
-The next run is an end-to-end, full-inventory Wave 1 engineering campaign with
-a short engineering gate at the beginning. The gate is a subset of the same
-campaign, not a separate scientific pilot and not the final result. If it
-passes, Codex should continue into the complete frozen inventory without
-changing prompts, layers, signs, doses, outcomes, or analysis rules in response
-to the gate results.
+The next paid run is only the non-confirmatory model-side Wave 1 preflight. It
+loads each registered model once and runs the frozen 16-item behavior,
+collateral, and tiny steering checks for every Wave 1 construct. It must not
+run representation logging, C1, or a full inventory. If any model/construct
+pair fails, stop the pod promptly, preserve the outputs, and revise locally.
+Passing the preflight releases only that pair for a separately reviewed
+affected-cell rerun; it does not authorize automatic full execution.
 
 The selected inventory manifest is currently `confirmatory=false`. Executing
 all of its rows does not silently convert it into confirmatory evidence. Unless
@@ -50,22 +51,27 @@ the private run metadata. Never record credential values.
 ## Frozen Wave 1 inputs
 
 - Prompt inventory:
-  `results/benchmark/prompt_inventories/wave1_repaired_v2_full_openai_luna_normalized/combined.csv`
-- Primary run configuration:
-  `configs/construct_benchmark/run_configs/wave1_four_construct_repaired_v2.json`
+  `results/benchmark/prompt_inventories/wave1_preflight_v4_luna/combined.csv`
+- Prompt release manifest:
+  `results/benchmark/prompt_inventories/wave1_preflight_v4_luna/inventory_manifest.json`
+- Model-side gate:
+  `configs/construct_benchmark/gates/model_behavior_accessibility_preflight_v2_diagnostic_repair.json`
+- Model run configurations:
+  `configs/construct_benchmark/run_configs/wave1_four_construct_mistral_supplemental_v3.json`
+  and `configs/construct_benchmark/run_configs/wave1_four_construct_qwen38_27b_supplemental_v3.json`
 - Analysis specification:
   `configs/construct_benchmark/analysis_specs/rsc_benchmark_core_v1.json`
 - Constructs: realization/account closure, evidence diagnosticity, source
   reliability, and persistence/continuation.
-- Primary model: `mistralai/Mistral-Small-24B-Instruct-2501` at the exact
-  revision pinned in the run configuration.
-- Qwen is a separate replication run using
-  `wave1_four_construct_qwen38_27b_repaired_v2.json`. Do not mix its layers,
-  activations, outputs, or manifests with the primary Mistral run.
+- Models: Mistral Small 24B and Qwen3.8 27B at the exact revisions pinned in
+  their run configurations. Do not mix model outputs, directions, activations,
+  or manifests.
 
-The repaired Wave 1 inventory contains 1,824 frozen engineering rows. Do not
-mix it with the older 1,650-row composition or any review-generation output.
-Hash the selected inventory and configuration snapshot before model execution.
+The v3 release remains preserved as historical engineering provenance. The
+preflight inventory is a separate frozen v4 release with 2,064 rows; it is
+non-confirmatory and replaces only the evidence-diagnosticity downstream rows
+with the Luna-audited trade-off design. Hash the inventory, gate, specs, run
+configuration, and selection manifest before model execution.
 
 ## Codex execution sequence
 
@@ -76,9 +82,9 @@ Hash the selected inventory and configuration snapshot before model execution.
    `RUNPOD_2_API_KEY` is non-empty. Refuse B300 provisioning if it is absent.
    Do not print it and do not substitute `RUNPOD_API_KEY`.
 3. **Finish local gates before billing GPU time.** Run the narrow validation
-   commands, the fake vertical slice, the complete local test suite, prompt
-   inventory/config cross-validation, and the deterministic test selection.
-   Resolve failures before provisioning unless they require the exact B300
+   commands, the fake vertical slice, the complete local test suite, v4 prompt
+   audit, v2 gate validation, and the deterministic per-model selections.
+   Resolve failures before provisioning unless they require the exact model
    tokenizer or runtime.
 4. **Provision one B300.** Use `RUNPOD_2_API_KEY`, attach persistent storage at
    `/workspace`, and select a recent CUDA/PyTorch image capable of recognizing
@@ -87,27 +93,36 @@ Hash the selected inventory and configuration snapshot before model execution.
    PyTorch CUDA availability, model loader, pinned tokenizer/revision,
    no-truncation tokenizer preflight, residual hook path, and a writable
    persistent run directory before starting the campaign.
-6. **Run the engineering gate.** Execute the deterministic pair-preserving
-   `test` selection using the registered one-hour guard. Validate manifests,
-   output parsing, non-constant zero-dose behavior, direction construction,
-   candidate-layer readout, injection arithmetic, and storage/runtime
-   estimates. Test artifacts remain explicitly non-confirmatory.
-7. **Continue to full-inventory Wave 1 if the gate passes.** Use every frozen
-   row. Before execution, ensure the execution config truthfully preserves the
-   inventory's non-confirmatory status; create a versioned execution copy
-   rather than mutating the frozen source config. Run the prompt-only
-   behavioral baseline, shared activation logging, train-only direction
-   construction, validation-only layer selection, held-out readout, frozen
-   steering plan and controls, steering execution, manipulation checks, and
-   scoring. Preserve construct namespaces throughout.
-8. **Run causal diagnosis as a separate output.** Perform the registered C1
-   matched-episode residual interchange after the B/R prerequisites pass.
-   Treat it as contextual causal sufficiency, not proof of necessity or a
-   unique circuit. Component/path patching and ablation are later extensions.
+6. **Freeze v2 selections.** Run
+   `scripts/prepare_model_behavior_accessibility_preflight.py` once per model
+   using the v4 inventory, all four registered specs, and the v2 gate. Derive a
+   construct-pure steering preflight plan for each construct with
+   `scripts/prepare_model_steering_preflight.py`; do not edit the full plan.
+7. **Run only the model-side preflight.** For each model, run prompt-only
+   `behavior_eval` and `collateral_eval` from the frozen selection, then the
+   derived steering plan for each construct. Use chat formatting, explicit
+   no-thinking mode where supported, max 8 new tokens, min 1, and the shared
+   constrained numeric response channel. Do not log activations, construct
+   directions, residual interchange, or C1.
+8. **Validate immediately.** Run
+   `scripts/validate_model_behavior_accessibility_preflight.py` with the v2
+   gate. Require 100% valid behavior, three outcomes, SD >= 2, no dominant
+   floor/ceiling, collateral >=95% valid and >=75% correct, steering >=95%
+   valid, correct injection sign, and nonzero dose response. Any failure holds
+   all larger work.
 9. **Finalize and stop compute.** Validate completeness and hashes, sync to the
    configured durable archive if available, retain receipts, and terminate
    idle pods. A failed stage must leave resumable artifacts and a truthful
    status rather than an apparently complete result.
+
+## After the preflight
+
+Only after the relevant model/construct pairs pass may the project rerun the
+affected Wave 1 behavior, steering, and collateral cells using the valid probe
+activations and directions. C1 may resume only after behavioral validity is
+restored. Waves 2--4 receive the same 16-item model-side preflight before any
+larger execution. A preflight pass never retroactively upgrades earlier
+engineering outputs to confirmatory evidence.
 
 ## Scaling beyond the first B300
 

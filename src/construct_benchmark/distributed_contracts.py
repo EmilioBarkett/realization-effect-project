@@ -21,8 +21,8 @@ from typing import Any
 
 DISTRIBUTED_SCHEMA_VERSION = "1.0.0"
 UNSPECIFIED_RUN_CONFIG_HASH = "UNSPECIFIED"
-_VERSION_TOKEN_RE = re.compile(r"(?<![a-z0-9])v([12])(?=$|[^a-z0-9])", re.IGNORECASE)
-_VERSION_TOKEN_RE_ALT = re.compile(r"(?:^|[_-])v([12])(?:$|[_-])", re.IGNORECASE)
+_VERSION_TOKEN_RE = re.compile(r"(?<![a-z0-9])v([0-9]+)(?=$|[^a-z0-9])", re.IGNORECASE)
+_VERSION_TOKEN_RE_ALT = re.compile(r"(?:^|[_-])v([0-9]+)(?:$|[_-])", re.IGNORECASE)
 
 # Task/parser/output-format versions describe the consumer of a prompt, not
 # the prompt inventory family.  Only fields that identify prompt, inventory,
@@ -103,15 +103,49 @@ def stable_digest(seed: int | str, *parts: object) -> str:
 
 
 def provenance_version_families(value: Any) -> frozenset[str]:
-    """Return v1/v2 markers from prompt/inventory provenance fields only.
+    """Return version markers from prompt/inventory provenance fields only.
 
-    Benchmark prompts can legitimately use a v2 prompt inventory with a v1
-    task or parser implementation.  Scanning every ``*_id`` field therefore
-    produces false contamination failures.  This traversal intentionally
+    An explicit inventory version is authoritative for an execution copy. It
+    may point back to mixed historical source artifacts, but those source
+    versions are lineage metadata rather than the version family being run.
+    When no explicit inventory version is present, the traversal intentionally
     ignores task IDs, parser IDs, expected output-format IDs, and prompt text.
     """
 
     families: set[str] = set()
+
+    def explicit_inventory_versions(node: Any) -> set[str]:
+        found: set[str] = set()
+        if isinstance(node, Mapping):
+            for nested_key, nested_value in node.items():
+                normalized = str(nested_key).strip().casefold().replace("-", "_")
+                if normalized in {"inventory_version", "prompt_inventory_version"}:
+                    values = nested_value if isinstance(nested_value, (list, tuple)) else [nested_value]
+                    for item in values:
+                        if isinstance(item, str):
+                            found.update(
+                                f"v{match.lower()}"
+                                for match in [
+                                    *_VERSION_TOKEN_RE.findall(item),
+                                    *_VERSION_TOKEN_RE_ALT.findall(item),
+                                ]
+                            )
+                found.update(explicit_inventory_versions(nested_value))
+        elif isinstance(node, (list, tuple)):
+            for item in node:
+                found.update(explicit_inventory_versions(item))
+        elif isinstance(node, str) and node.strip().startswith(("{", "[")):
+            try:
+                parsed = json.loads(node)
+            except json.JSONDecodeError:
+                parsed = None
+            if isinstance(parsed, (Mapping, list, tuple)):
+                found.update(explicit_inventory_versions(parsed))
+        return found
+
+    explicit = explicit_inventory_versions(value)
+    if explicit:
+        return frozenset(explicit)
 
     def visit(node: Any, key: str = "") -> None:
         if isinstance(node, Mapping):

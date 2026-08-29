@@ -62,10 +62,22 @@ def main() -> None:
         if value is not None
     }
     parsed_rows, summary = score_behavior_rows(raw_rows, construct_specs)
-    variation = {
-        construct_id: audit_prompt_only_variation(raw_rows, spec, thresholds=overrides)
-        for construct_id, spec in construct_specs.items()
-    }
+    split = str(manifest.get("split", "behavior_eval"))
+    if split == "collateral_eval":
+        variation = {
+            construct_id: {
+                "construct_id": construct_id,
+                "status": "not_applicable",
+                "pass": True,
+                "reason": "Collateral tasks are scored for unrelated-task correctness, not prompt-only construct variation.",
+            }
+            for construct_id in construct_specs
+        }
+    else:
+        variation = {
+            construct_id: audit_prompt_only_variation(raw_rows, spec, thresholds=overrides)
+            for construct_id, spec in construct_specs.items()
+        }
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     parsed_path = args.output_dir / "parsed_generations.csv"

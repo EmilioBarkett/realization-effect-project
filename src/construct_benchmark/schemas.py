@@ -23,6 +23,7 @@ KNOWN_SPLITS = frozenset(
         "behavior_eval",
         "steering_eval",
         "calibration",
+        "collateral_eval",
     }
 )
 DEFAULT_REQUIRED_SPLITS = (
@@ -32,7 +33,7 @@ DEFAULT_REQUIRED_SPLITS = (
     "behavior_eval",
     "steering_eval",
 )
-PROMPT_ROLES = frozenset({"probe", "behavior", "steering", "calibration"})
+PROMPT_ROLES = frozenset({"probe", "behavior", "steering", "calibration", "collateral"})
 _ID_PATTERN = re.compile(r"^[a-z][a-z0-9_]*$")
 SUPPORTED_SCHEMA_VERSIONS = frozenset({SCHEMA_VERSION})
 DEFAULT_STORAGE_SETTINGS = {
@@ -223,6 +224,45 @@ def _condition_ids(conditions: tuple[dict[str, Any], ...]) -> tuple[str, ...]:
     return tuple(str(condition["condition_id"]) for condition in conditions)
 
 
+def _validate_behavior_task(value: Any, *, field_name: str) -> dict[str, Any]:
+    task = _mapping(value, field_name=field_name)
+    for name in ("task_id", "prompt_template", "primary_outcome", "response_format"):
+        _nonempty_string(task.get(name), field_name=f"{field_name}.{name}")
+    item_schema = _mapping(
+        task.get("item_metadata_schema"),
+        field_name=f"{field_name}.item_metadata_schema",
+    )
+    properties = _mapping(
+        item_schema.get("properties"),
+        field_name=f"{field_name}.item_metadata_schema.properties",
+    )
+    required = _string_list(
+        item_schema.get("required"),
+        field_name=f"{field_name}.item_metadata_schema.required",
+        allow_empty=False,
+    )
+    if set(required) != set(properties):
+        raise ValueError(
+            f"{field_name}.item_metadata_schema must require every declared property exactly once."
+        )
+    for property_name, raw_property in properties.items():
+        _validate_id(property_name, field_name="item_metadata_schema property")
+        property_schema = _mapping(
+            raw_property,
+            field_name=f"{field_name}.item_metadata_schema.properties.{property_name}",
+        )
+        property_type = _nonempty_string(
+            property_schema.get("type"),
+            field_name=f"{field_name}.item_metadata_schema.properties.{property_name}.type",
+        )
+        if property_type not in {"string", "integer", "number", "boolean"}:
+            raise ValueError(f"Unsupported item metadata type={property_type!r}.")
+    item_schema["required"] = list(required)
+    item_schema["properties"] = properties
+    task["item_metadata_schema"] = item_schema
+    return task
+
+
 @dataclass(frozen=True)
 class ConstructSpec:
     """Scientific definition of one construct and its independent task."""
@@ -237,6 +277,7 @@ class ConstructSpec:
     independent_behavior_task: dict[str, Any]
     expected_direction: dict[str, Any]
     parsing_rules: dict[str, Any]
+    collateral_behavior_task: dict[str, Any] | None = None
     required_splits: tuple[str, ...] = DEFAULT_REQUIRED_SPLITS
     paired_splits: tuple[str, ...] = (
         "direction_train",
@@ -282,44 +323,19 @@ class ConstructSpec:
         probe_prompt_template = _nonempty_string(
             payload.get("probe_prompt_template"), field_name="probe_prompt_template"
         )
-        behavior_task = _mapping(
-            payload.get("independent_behavior_task"), field_name="independent_behavior_task"
+        behavior_task = _validate_behavior_task(
+            payload.get("independent_behavior_task"),
+            field_name="independent_behavior_task",
         )
-        for field_name in ("task_id", "prompt_template", "primary_outcome", "response_format"):
-            _nonempty_string(
-                behavior_task.get(field_name),
-                field_name=f"independent_behavior_task.{field_name}",
+        raw_collateral_task = payload.get("collateral_behavior_task")
+        collateral_task = (
+            None
+            if raw_collateral_task is None
+            else _validate_behavior_task(
+                raw_collateral_task,
+                field_name="collateral_behavior_task",
             )
-        item_metadata_schema = _mapping(
-            behavior_task.get("item_metadata_schema"),
-            field_name="independent_behavior_task.item_metadata_schema",
         )
-        item_metadata_properties = _mapping(
-            item_metadata_schema.get("properties"),
-            field_name="independent_behavior_task.item_metadata_schema.properties",
-        )
-        item_metadata_required = _string_list(
-            item_metadata_schema.get("required"),
-            field_name="independent_behavior_task.item_metadata_schema.required",
-            allow_empty=False,
-        )
-        if set(item_metadata_required) != set(item_metadata_properties):
-            raise ValueError("item_metadata_schema must require every declared property exactly once.")
-        for property_name, raw_property in item_metadata_properties.items():
-            _validate_id(property_name, field_name="item_metadata_schema property")
-            property_schema = _mapping(
-                raw_property,
-                field_name=f"item_metadata_schema.properties.{property_name}",
-            )
-            property_type = _nonempty_string(
-                property_schema.get("type"),
-                field_name=f"item_metadata_schema.properties.{property_name}.type",
-            )
-            if property_type not in {"string", "integer", "number", "boolean"}:
-                raise ValueError(f"Unsupported item metadata type={property_type!r}.")
-        item_metadata_schema["required"] = list(item_metadata_required)
-        item_metadata_schema["properties"] = item_metadata_properties
-        behavior_task["item_metadata_schema"] = item_metadata_schema
 
         expected_direction = _mapping(payload.get("expected_direction"), field_name="expected_direction")
         readout_direction = _mapping(
@@ -379,6 +395,7 @@ class ConstructSpec:
             independent_behavior_task=behavior_task,
             expected_direction=expected_direction,
             parsing_rules=parsing_rules,
+            collateral_behavior_task=collateral_task,
             required_splits=required_splits,
             paired_splits=paired_splits,
             controls=controls,
@@ -399,7 +416,7 @@ class ConstructSpec:
         return str(self.expected_direction["readout"]["negative_condition"])
 
     def to_mapping(self) -> dict[str, Any]:
-        return {
+        result = {
             "schema_version": self.schema_version,
             "construct_id": self.construct_id,
             "version": self.version,
@@ -416,6 +433,9 @@ class ConstructSpec:
             "controls": list(self.controls),
             "metadata": dict(self.metadata or {}),
         }
+        if self.collateral_behavior_task is not None:
+            result["collateral_behavior_task"] = dict(self.collateral_behavior_task)
+        return result
 
 
 @dataclass(frozen=True)

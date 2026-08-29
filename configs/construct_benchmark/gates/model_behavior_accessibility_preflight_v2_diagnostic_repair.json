@@ -1,0 +1,106 @@
+{
+  "schema_version": "0.1.0",
+  "gate_id": "model_behavior_accessibility_preflight_v2_diagnostic_repair",
+  "supersedes": "model_behavior_accessibility_preflight_v1",
+  "purpose": "Non-confirmatory repair gate derived from the stopped Wave 1 diagnostic bundle",
+  "confirmatory": false,
+  "selection_informed_by_outcomes": false,
+  "models": [
+    {
+      "model_id": "mistralai/Mistral-Small-24B-Instruct-2501",
+      "revision_required": true
+    },
+    {
+      "model_id": "Qwen/Qwen3.8-27B",
+      "revision_required": true
+    }
+  ],
+  "construct_ids": [
+    "realization_account_closure",
+    "evidence_diagnosticity",
+    "source_reliability",
+    "persistence_continuation"
+  ],
+  "item_bounds": {
+    "minimum": 8,
+    "target": 16,
+    "maximum": 16
+  },
+  "prompt_repair": {
+    "frozen_inventory_to_preserve": "wave1_release_v3_full_luna_repaired_v2",
+    "new_inventory_required_before_large_execution": true,
+    "do_not_edit_frozen_v3_in_place": true,
+    "independent_downstream_prompts": true,
+    "evidence_diagnosticity": {
+      "reason": "The Qwen baseline produced only two outcomes with a dominant 0.96875 share.",
+      "required_revision": "Regenerate independent items with balanced information contrast, cost, stakes, time pressure, and option order; do not seed a target answer.",
+      "pilot_release_rule": "The real-model preflight must observe at least three distinct valid directed outcomes and sample SD at least 2.0 before scaling."
+    },
+    "other_constructs": {
+      "required_revision": "Retain the registered task semantics and independently vary domains, entities, narrative order, and nuisance factors; do not reuse probe or steering wording.",
+      "pilot_release_rule": "Do not release a construct with inaccessible or saturated responses even if its vector readout is strong."
+    }
+  },
+  "parser_repair": {
+    "policy": "strict_registered_parser_no_salvage",
+    "extra_text_is_invalid": true,
+    "reasoning_text_is_invalid": true,
+    "out_of_range_values_are_invalid": true,
+    "disable_thinking_when_supported": true,
+    "max_new_tokens": 8,
+    "min_new_tokens": 1,
+    "required_prompt_format": "chat",
+    "interpretation": "Mistral's extra-text failures are an accessibility failure, not permission to relax the parser. Re-run through an explicit no-thinking/text-only adapter and keep exact integer parsing."
+  },
+  "release_thresholds": {
+    "behavior_minimum_valid_rate": 1.0,
+    "behavior_maximum_invalid_items": 0,
+    "behavior_minimum_distinct_outcomes": 3,
+    "behavior_minimum_sample_sd": 2.0,
+    "behavior_maximum_ceiling_share": 0.8,
+    "behavior_maximum_floor_share": 0.8,
+    "collateral_minimum_valid_rate": 0.95,
+    "collateral_minimum_correctness_rate": 0.75,
+    "steering_minimum_valid_rate": 0.95,
+    "steering_required_direction_kinds": [
+      "target",
+      "shuffled",
+      "random"
+    ],
+    "steering_required_target_doses": [
+      -1.0,
+      0.0,
+      1.0
+    ],
+    "steering_intervention_timing": "prefill_only",
+    "steering_requires_nonzero_target_injection": true,
+    "steering_require_correct_injection_sign": true,
+    "steering_minimum_mean_abs_injection_shift": 0.000001,
+    "steering_minimum_target_dose_response_span": 0.000001
+  },
+  "failure_policy": {
+    "any_model_construct_failure_blocks_large_execution": true,
+    "preserve_failed_rows_and_samples": true,
+    "waves2_4_status": "not_started",
+    "next_allowed_action": "run_and_pass_the_frozen_v2_model_behavior_accessibility_preflight"
+  },
+  "prompt_release": {
+    "required_inventory_version": "wave1_preflight_v4",
+    "required_path_tokens": [
+      "wave1_preflight_v4",
+      "luna"
+    ],
+    "forbidden_path_tokens": [
+      "wave1_release_v3_full_luna_repaired_v2"
+    ],
+    "preserved_prior_release": "wave1_release_v3_full_luna_repaired_v2"
+  },
+  "execution_contract": {
+    "prompt_format": "chat",
+    "constrained_numeric_generation": true,
+    "disable_thinking_when_supported": true,
+    "max_new_tokens": 8,
+    "min_new_tokens": 1,
+    "steering_intervention_timing": "prefill_only"
+  }
+}

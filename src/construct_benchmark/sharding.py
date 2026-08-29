@@ -45,6 +45,7 @@ _SPLIT_ROLE = {
     "behavior_eval": "behavior",
     "steering_eval": "steering",
     "calibration": "calibration",
+    "collateral_eval": "collateral",
 }
 _ID_ALIASES = {
     "request_id": ("request_id", "prompt_id", "record_id", "id"),

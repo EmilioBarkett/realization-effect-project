@@ -71,6 +71,15 @@ frozen prompt-preparation artifacts, not real-model empirical results. The
 older 1,650-row composition remains historical provenance and must not be
 mixed with repaired v2.
 
+The later Wave 1 release-v3 inventory and model-side pilots are likewise
+engineering artifacts. Mistral and Qwen residual/readout/steering outputs and
+the Qwen C1 diagnostic are stored on the RunPod persistent volume with
+manifest-backed summaries; they do not release a confirmatory claim. The
+model-side behavioral/accessibility preflight in
+`agents/MODEL_BEHAVIOR_ACCESSIBILITY_PREFLIGHT.md` is now the required gate
+before any future large execution, and must pass separately for every model
+and construct on a frozen 8--16-item subset.
+
 For the eventual expansion, Waves 2–4 are organized as three separate
 four-construct runs rather than one twelve-construct execution. Each run
 shares one activation pass across its wave and fans out by construct. The
@@ -350,14 +359,17 @@ implementation:
 - prompt-role/family separation, pre-registered category schedules, validation
   layer selection, and pair/item bootstrap interval primitives are implemented
   and fixture-tested;
+- the outcome-independent 8--16-item model-side behavioral/accessibility
+  preflight selection and validator are implemented; real-model preflight
+  release remains pending until each model/construct pair passes;
 - a deterministic `scripts/run_fake_benchmark.py` exercises the vertical slice
   without APIs, model weights, or a GPU; its outputs are explicitly
   non-empirical;
-- real-model execution, prompt-only behavior composition, real-run uncertainty
-  reporting, all-16 downstream parsers and behavior execution, output-
-  accessibility/collateral checks, and correspondence analysis remain
-  unvalidated end to end; the prompt-only runner/scorer and tokenizer
-  preflight are implemented but have not yet been exercised on a real model;
+- real-model confirmatory execution, real-run uncertainty reporting, all-16
+  downstream parsers and behavior execution, and correspondence analysis
+  remain unvalidated end to end; Wave 1 engineering pilots exposed model- and
+  construct-specific parser/accessibility blockers, and the preflight must
+  resolve those blockers before scaling;
 - the tracked activation iterator now lives in
   `activation_analysis.activation_store` and passes the clean Python 3.11
   `make check` suite; real-run validation remains pending;
@@ -380,7 +392,9 @@ Before the first real measurement:
    iterator/filtering/region/memory-map regression tests;
 4. run the local fake vertical slice and validate the manifest-backed
    prompt-only baseline, tokenizer preflight, and zero-dose variation gate;
-5. validate the implemented projection, calibration, parsing, steering trace,
+5. freeze and run the model-side behavioral/accessibility preflight on 8--16
+   real items per model/construct pair; hold any pair that fails;
+6. validate the implemented projection, calibration, parsing, steering trace,
    downstream-persistence, and C1 residual-interchange adapters on a
    representative model run, then add output-accessibility and collateral
    checks.
