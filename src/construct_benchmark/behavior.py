@@ -55,9 +55,16 @@ _POSITIONED_SUM_TASK_OUTCOMES = {
 }
 _ALLOCATION_TASK_OUTCOMES = {
     "goal_renewal_allocation_v2": "existing_goal_allocation",
+    # The repaired Wave 1 specifications retain the same response contract
+    # while carrying versioned task IDs.  Keep the aliases explicit so the
+    # strict parser does not silently return only the generic allocation
+    # field for those frozen tasks.
+    "goal_renewal_allocation_v4": "established_goal_allocation",
     "realization_risk_allocation_v2": "risky_allocation",
+    "realization_risk_allocation_v4": "risky_allocation",
     "diagnostic_test_allocation_v2": "high_information_test_allocation",
     "diagnostic_test_allocation_v4": "high_information_test_allocation",
+    "diagnostic_test_allocation_v5": "high_information_test_allocation",
     "source_evidence_allocation_v2": "source_weight_allocation",
 }
 

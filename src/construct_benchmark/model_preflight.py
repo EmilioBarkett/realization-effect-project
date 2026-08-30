@@ -669,10 +669,28 @@ def _behavior_stats(
     entry["mean_correctness"] = (
         entry.get("outcome_mean") if collateral else None
     )
-    valid_outcomes = [
-        float(row["outcome"])
+    entry["parser_failure_examples"] = [
+        {
+            "record_id": row.get("record_id"),
+            "prompt_id": row.get("prompt_id"),
+            "parser_valid": bool(row.get("parser_valid")),
+            "primary_valid": bool(row.get("primary_valid")),
+            "error": str(row.get("error") or "invalid or unscorable response"),
+        }
         for row in parsed_rows
-        if row.get("primary_valid") and row.get("outcome") is not None
+        if not row.get("primary_valid")
+    ][:8]
+    entry["parser_failure_count"] = sum(
+        not bool(row.get("primary_valid")) for row in parsed_rows
+    )
+    valid_outcomes = [
+        # Variation gates are defined on the directed primary outcome.  Using
+        # the raw parser outcome here would make loss-valence or other
+        # reversed cells disagree with the scored mean/SD and could report a
+        # false gate result.
+        float(row["directed_outcome"])
+        for row in parsed_rows
+        if row.get("primary_valid") and row.get("directed_outcome") is not None
     ]
     outcome_frequency: dict[str, int] = {}
     for value in valid_outcomes:
