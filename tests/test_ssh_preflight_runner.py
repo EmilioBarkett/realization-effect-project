@@ -560,12 +560,13 @@ def test_baseline_gate_preserves_per_construct_failure_matrix(
 def test_discover_plans_resolves_inherited_wrapper_specs(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    """Steering discovery must resolve versioned overlay specs before IDs."""
+    """Discovery accepts the registered schema from the dedicated staging root."""
 
     module = _load_runner(monkeypatch, tmp_path)
     module.CHECKOUT = ROOT
-    module.VOLUME = tmp_path / "volume"
-    module.VOLUME.mkdir()
+    plan_root = module.RUN_ROOT / "steering_plans"
+    plan_root.mkdir(parents=True)
+    monkeypatch.delenv(module.STEERING_PLAN_ROOT_ENV, raising=False)
     config = ROOT / "configs/construct_benchmark/run_configs/wave1_four_construct_qwen_model_preflight_repaired_v4.json"
     spec_paths = [
         ROOT / "configs/construct_benchmark/constructs/realization_account_closure_v4.json",
@@ -573,30 +574,130 @@ def test_discover_plans_resolves_inherited_wrapper_specs(
         ROOT / "configs/construct_benchmark/constructs/source_reliability_v3.json",
         ROOT / "configs/construct_benchmark/constructs/persistence_continuation_v4.json",
     ]
-    from construct_benchmark.config import load_construct_specs
+    from construct_benchmark.config import load_construct_specs, load_run_config
     from construct_benchmark.manifests import canonical_hash
 
     loaded_specs = load_construct_specs(spec_paths)
-    config_hash = canonical_hash(json.loads(config.read_text(encoding="utf-8")))
+    config_hash = canonical_hash(load_run_config(config).to_mapping())
     for construct_id in loaded_specs:
         plan = {
+            # This is the actual plan_construct_steering schema.  In
+            # particular, it has no top-level ``prefill_only`` key; the
+            # prefill-only invariant is expressed by these timing fields.
+            "schema_version": "0.1.0",
             "plan_type": "construct_steering_conditions",
-            "model": {"model_id": module.MODEL_ID, "revision": module.REVISION},
-            "prefill_only": True,
+            "run_id": "registered-source-run",
+            "mode": "full",
+            "purpose": "model_behavior_accessibility",
+            "confirmatory": False,
+            "construct_id": construct_id,
+            "model": {
+                "model_id": module.MODEL_ID,
+                "revision": module.REVISION,
+                "tokenizer_id": module.MODEL_ID,
+            },
+            "candidate_layers": [16, 32, 48],
+            "layer": 16,
+            "tracking_layers": [16],
+            "tracking_directions": {
+                "16": {
+                    "layer": 16,
+                    "direction_id": f"{construct_id}__injected_direction__layer_16",
+                    "path": str(plan_root / "directions" / f"{construct_id}_target.npy"),
+                    "source": "injection_direction_train_only",
+                    "role": "injection_immediate",
+                    "source_split": "direction_train",
+                    "direction_sha256": "fixture-direction-sha",
+                    "calibration": {"projection_scale": 1.0},
+                }
+            },
+            "layer_selection": {"selection": "validation_max_margin"},
+            "activation_site": "resid_post",
             "position_mode": "last",
             "intervention_timing": "prefill_only",
+            "fixed_window": None,
+            "calibration": {"projection_scale": 1.0},
+            "direction_storage_dtype": "float16",
+            "direction_paths": {
+                "target": str(plan_root / "directions" / f"{construct_id}_target.npy"),
+                "shuffled": str(plan_root / "directions" / f"{construct_id}_shuffled.npy"),
+                "random": [
+                    str(plan_root / "directions" / f"{construct_id}_random_{index:02d}.npy")
+                    for index in range(3)
+                ],
+            },
+            "condition_count": 1,
+            "conditions": [
+                {
+                    "condition_id": f"{construct_id}__target__dose_0",
+                    "prompt_id": f"{construct_id}__steering_000",
+                    "direction_kind": "target",
+                    "direction_index": 0,
+                    "dose": 0.0,
+                    "physical_scale": 0.0,
+                    "intervention_timing": "prefill_only",
+                    "order": 0,
+                    "seed": 1729,
+                }
+            ],
             "provenance": {"run_config_hash": config_hash},
-            "construct_id": construct_id,
         }
-        (module.VOLUME / f"{construct_id}_steering_plan.json").write_text(
+        (plan_root / f"{construct_id}.json").write_text(
             json.dumps(plan, sort_keys=True) + "\n", encoding="utf-8"
         )
 
     report = module.discover_plans(config, spec_paths, tmp_path / "plan_discovery.json")
 
     assert report["pass"] is True
+    assert report["search_root"] == str(plan_root)
+    assert report["search_root_source"] == "default"
+    assert report["run_config_hash_method"].startswith("canonical_hash(load_run_config")
+    assert report["rejected_by_reason"] == {}
     assert report["expected_construct_ids"] == list(loaded_specs)
     assert set(report["selected"]) == set(loaded_specs)
+
+
+def test_discover_plans_rejects_explicit_non_prefill_plan(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """An explicit false timing marker cannot bypass the prefill-only gate."""
+
+    module = _load_runner(monkeypatch, tmp_path)
+    module.CHECKOUT = ROOT
+    plan_root = tmp_path / "registered_steering_plans"
+    plan_root.mkdir()
+    monkeypatch.setenv(module.STEERING_PLAN_ROOT_ENV, str(plan_root))
+    config = ROOT / "configs/construct_benchmark/run_configs/wave1_four_construct_qwen_model_preflight_repaired_v4.json"
+    spec_paths = [
+        ROOT / "configs/construct_benchmark/constructs/realization_account_closure_v4.json",
+        ROOT / "configs/construct_benchmark/constructs/evidence_diagnosticity_v5.json",
+        ROOT / "configs/construct_benchmark/constructs/source_reliability_v3.json",
+        ROOT / "configs/construct_benchmark/constructs/persistence_continuation_v4.json",
+    ]
+    from construct_benchmark.config import load_construct_specs, load_run_config
+    from construct_benchmark.manifests import canonical_hash
+
+    construct_id = next(iter(load_construct_specs(spec_paths)))
+    config_hash = canonical_hash(load_run_config(config).to_mapping())
+    plan = {
+        "plan_type": "construct_steering_conditions",
+        "model": {"model_id": module.MODEL_ID, "revision": module.REVISION},
+        "prefill_only": False,
+        "position_mode": "last",
+        "intervention_timing": "prefill_only",
+        "provenance": {"run_config_hash": config_hash},
+        "construct_id": construct_id,
+    }
+    (plan_root / "not_prefill.json").write_text(
+        json.dumps(plan, sort_keys=True) + "\n", encoding="utf-8"
+    )
+
+    with pytest.raises(module.RunnerFailure, match="registered steering plans are missing"):
+        module.discover_plans(config, spec_paths, tmp_path / "plan_discovery.json")
+
+    report = json.loads((tmp_path / "plan_discovery.json").read_text(encoding="utf-8"))
+    assert report["pass"] is False
+    assert report["rejected_by_reason"] == {"not_prefill_only": 1}
 
 
 @pytest.mark.parametrize(

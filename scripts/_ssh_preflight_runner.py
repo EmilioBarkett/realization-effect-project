@@ -88,6 +88,8 @@ RUN_ROOT.mkdir(parents=True, exist_ok=True)
 STATE.mkdir(parents=True, exist_ok=True)
 MODEL_CACHE.mkdir(parents=True, exist_ok=True)
 RUNTIME_VENV = RUN_ROOT / "runtime-venv"
+STEERING_PLAN_ROOT_ENV = "RSC_STEERING_PLAN_ROOT"
+STEERING_ARTIFACT_MANIFEST_ENV = "RSC_STEERING_ARTIFACT_MANIFEST"
 ENV = os.environ.copy()
 ENV.update(
     {
@@ -1293,56 +1295,163 @@ def baseline_gate(
 
 def discover_plans(config_path, specs, report_path):
     sys.path.insert(0, str(CHECKOUT / "src"))
-    from construct_benchmark.config import load_construct_specs
+    from construct_benchmark.config import load_construct_specs, load_run_config
     from construct_benchmark.manifests import canonical_hash
 
-    config_hash = canonical_hash(json.loads(config_path.read_text(encoding="utf-8")))
-    blocked = {"superseded", "failed", "interrupted", "historical", "archive", "repo", "model-cache", "huggingface"}
+    # ``plan_construct_steering.py`` records the canonical hash of the parsed
+    # RunConfig mapping.  Hash the same normalized representation here rather
+    # than the raw JSON, whose optional/default fields and ordering can differ.
+    loaded_config = load_run_config(config_path)
+    config_hash = canonical_hash(loaded_config.to_mapping())
+    raw_config_hash = canonical_hash(json.loads(config_path.read_text(encoding="utf-8")))
+    configured_root = os.environ.get(STEERING_PLAN_ROOT_ENV)
+    if configured_root:
+        search_root = Path(configured_root)
+        if not search_root.is_absolute():
+            search_root = VOLUME / search_root
+        search_root_source = "environment"
+    else:
+        # Plans and their direction artifacts are a per-run staging input, not
+        # repository files.  Keep the default deterministic and isolated from
+        # old runs, caches, and the checkout itself.  The launcher may override
+        # this with an absolute RSC_STEERING_PLAN_ROOT when using a shared
+        # persistent workspace.
+        search_root = RUN_ROOT / "steering_plans"
+        search_root_source = "default"
+
     candidates = []
-    for current, dirs, files in os.walk(VOLUME):
-        dirs[:] = [name for name in dirs if name.casefold() not in blocked]
-        for name in files:
-            if not name.casefold().endswith(".json") or not any(token in name.casefold() for token in ("steering", "condition", "plan")):
-                continue
-            path = Path(current) / name
-            try:
-                raw = json.loads(path.read_text(encoding="utf-8"))
-            except Exception:
-                continue
-            if raw.get("plan_type") != "construct_steering_conditions":
-                continue
-            model = raw.get("model")
-            provenance = raw.get("provenance")
-            if not isinstance(model, dict) or model.get("model_id") != MODEL_ID or model.get("revision") != REVISION:
-                continue
-            if raw.get("prefill_only") is not True or raw.get("position_mode") != "last" or raw.get("intervention_timing") != "prefill_only":
-                continue
-            if not isinstance(provenance, dict) or provenance.get("run_config_hash") != config_hash:
-                continue
-            construct_id = raw.get("construct_id")
-            if isinstance(construct_id, str):
-                candidates.append((construct_id, str(path), hashlib.sha256(path.read_bytes()).hexdigest()))
+    rejected: dict[str, int] = {}
+
+    def reject(reason: str) -> None:
+        rejected[reason] = rejected.get(reason, 0) + 1
+
+    if search_root.is_dir():
+        plan_paths = sorted(path for path in search_root.rglob("*.json") if path.is_file())
+    else:
+        plan_paths = []
+    for path in plan_paths:
+        try:
+            raw = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            reject("invalid_json")
+            continue
+        if not isinstance(raw, dict):
+            reject("non_object")
+            continue
+        if raw.get("plan_type") != "construct_steering_conditions":
+            reject("plan_type")
+            continue
+        model = raw.get("model")
+        provenance = raw.get("provenance")
+        if not isinstance(model, dict) or model.get("model_id") != MODEL_ID or model.get("revision") != REVISION:
+            reject("model_or_revision")
+            continue
+        # The registered plan schema expresses this invariant through
+        # intervention_timing and does not include a top-level prefill_only
+        # field.  Accept that schema, while rejecting an explicit false (or
+        # malformed) value so a broad staging directory cannot weaken timing.
+        if "prefill_only" in raw and raw.get("prefill_only") is not True:
+            reject("not_prefill_only")
+            continue
+        if raw.get("position_mode") != "last" or raw.get("intervention_timing") != "prefill_only":
+            reject("steering_timing")
+            continue
+        if not isinstance(provenance, dict) or provenance.get("run_config_hash") != config_hash:
+            reject("run_config_hash")
+            continue
+        construct_id = raw.get("construct_id")
+        if not isinstance(construct_id, str) or not construct_id:
+            reject("construct_id")
+            continue
+        candidates.append((construct_id, str(path), hashlib.sha256(path.read_bytes()).hexdigest()))
     selected = {}
+    duplicates: dict[str, list[str]] = {}
     for construct_id, path, digest in sorted(candidates):
-        selected.setdefault(construct_id, {"path": path, "sha256": digest})
+        if construct_id in selected:
+            duplicates.setdefault(construct_id, [selected[construct_id]["path"]]).append(path)
+            continue
+        selected[construct_id] = {"path": path, "sha256": digest}
     # Wave specs may be versioned overlays.  Their raw JSON intentionally has
     # ``base_spec_path`` rather than a duplicated top-level construct_id; use
     # the same inheritance-aware loader as the rest of the runner.
     expected = list(load_construct_specs(specs))
     report = {
-        "pass": set(expected).issubset(selected),
+        "pass": set(expected).issubset(selected) and not duplicates,
         "model_id": MODEL_ID,
         "revision": REVISION,
         "run_config_hash": config_hash,
+        "run_config_hash_method": "canonical_hash(load_run_config(config).to_mapping())",
+        "raw_run_config_hash": raw_config_hash,
+        "search_root": str(search_root),
+        "search_root_source": search_root_source,
+        "search_root_exists": search_root.is_dir(),
         "expected_construct_ids": expected,
         "selected": selected,
         "missing": sorted(set(expected) - set(selected)),
         "candidate_count": len(candidates),
+        "rejected_by_reason": rejected,
+        "duplicates": duplicates,
     }
     report_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     if not report["pass"]:
+        if not report["search_root_exists"]:
+            raise RunnerFailure(
+                "registered steering plan staging root is missing: "
+                + str(search_root)
+                + "; stage model-matched plans there before starting steering"
+            )
+        if duplicates:
+            raise RunnerFailure("registered steering plans are ambiguous: " + str(sorted(duplicates)))
         raise RunnerFailure("registered steering plans are missing: " + str(report["missing"]))
     return report
+
+
+def stage_steering_artifacts(wave: int, wave_root: Path) -> Path | None:
+    """Stage one model/wave B/R bundle before steering-plan discovery.
+
+    The preflight deliberately does not log representations or invent a
+    direction.  If the executor provides a hash-bound source bundle through
+    ``RSC_STEERING_ARTIFACT_MANIFEST``, this hook invokes the offline staging
+    validator into an isolated per-wave root and points discovery there.  A
+    manifest may use ``{wave}`` and ``{alias}`` placeholders, or the variable
+    may name a directory containing ``wave{wave}_{alias}.json``.  Without a
+    manifest, an explicitly configured ``RSC_STEERING_PLAN_ROOT`` remains
+    supported for an already-staged bundle.
+    """
+
+    raw_manifest = os.environ.get(STEERING_ARTIFACT_MANIFEST_ENV)
+    if not raw_manifest:
+        return None
+    manifest_value = raw_manifest.format(wave=wave, alias=ALIAS, model_alias=ALIAS)
+    manifest_path = Path(manifest_value).expanduser()
+    if manifest_path.is_dir():
+        manifest_path = manifest_path / f"wave{wave}_{ALIAS}.json"
+    if not manifest_path.is_file():
+        raise RunnerFailure(
+            "registered steering artifact manifest is missing for "
+            f"wave={wave}, alias={ALIAS}: {manifest_path}"
+        )
+    staged_root = (wave_root / "steering_plans").resolve()
+    CURRENT.update({"phase": "steering_artifact_staging", "construct": "all"})
+    status_file()
+    run(
+        [
+            RUNTIME_PYTHON,
+            str(CHECKOUT / "scripts/stage_model_steering_preflight.py"),
+            "--manifest",
+            manifest_path,
+            "--output-root",
+            staged_root,
+        ],
+        wave_root / "steering_artifact_staging.log",
+        cwd=CHECKOUT,
+    )
+    # Discovery reads the process environment, while child commands inherit
+    # the explicit ENV mapping used by ``run``.  Set both so this remains
+    # deterministic when the runner is exercised from a test harness.
+    os.environ[STEERING_PLAN_ROOT_ENV] = str(staged_root)
+    ENV[STEERING_PLAN_ROOT_ENV] = str(staged_root)
+    return staged_root
 
 
 def run_wave(wave: int, config, inventory, selection, gate, specs, wave_root):
@@ -1521,6 +1630,7 @@ def run_wave(wave: int, config, inventory, selection, gate, specs, wave_root):
         )
     CURRENT.update({"phase": "steering_plan_discovery", "construct": "all"})
     status_file()
+    stage_steering_artifacts(wave, wave_root)
     discovery = discover_plans(config, specs, wave_root / "plan_discovery.json")
     outputs = []
     for spec_path, loaded_spec in zip(specs, loaded_specs.values()):
