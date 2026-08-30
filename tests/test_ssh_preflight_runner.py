@@ -557,6 +557,48 @@ def test_baseline_gate_preserves_per_construct_failure_matrix(
     assert '"diagnostic_version":"wave1_baseline_collateral_gate_v1"' in streamed
 
 
+def test_discover_plans_resolves_inherited_wrapper_specs(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Steering discovery must resolve versioned overlay specs before IDs."""
+
+    module = _load_runner(monkeypatch, tmp_path)
+    module.CHECKOUT = ROOT
+    module.VOLUME = tmp_path / "volume"
+    module.VOLUME.mkdir()
+    config = ROOT / "configs/construct_benchmark/run_configs/wave1_four_construct_qwen_model_preflight_repaired_v4.json"
+    spec_paths = [
+        ROOT / "configs/construct_benchmark/constructs/realization_account_closure_v4.json",
+        ROOT / "configs/construct_benchmark/constructs/evidence_diagnosticity_v5.json",
+        ROOT / "configs/construct_benchmark/constructs/source_reliability_v3.json",
+        ROOT / "configs/construct_benchmark/constructs/persistence_continuation_v4.json",
+    ]
+    from construct_benchmark.config import load_construct_specs
+    from construct_benchmark.manifests import canonical_hash
+
+    loaded_specs = load_construct_specs(spec_paths)
+    config_hash = canonical_hash(json.loads(config.read_text(encoding="utf-8")))
+    for construct_id in loaded_specs:
+        plan = {
+            "plan_type": "construct_steering_conditions",
+            "model": {"model_id": module.MODEL_ID, "revision": module.REVISION},
+            "prefill_only": True,
+            "position_mode": "last",
+            "intervention_timing": "prefill_only",
+            "provenance": {"run_config_hash": config_hash},
+            "construct_id": construct_id,
+        }
+        (module.VOLUME / f"{construct_id}_steering_plan.json").write_text(
+            json.dumps(plan, sort_keys=True) + "\n", encoding="utf-8"
+        )
+
+    report = module.discover_plans(config, spec_paths, tmp_path / "plan_discovery.json")
+
+    assert report["pass"] is True
+    assert report["expected_construct_ids"] == list(loaded_specs)
+    assert set(report["selected"]) == set(loaded_specs)
+
+
 @pytest.mark.parametrize(
     ("task_id", "primary_outcome"),
     [

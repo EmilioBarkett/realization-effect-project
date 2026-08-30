@@ -1293,6 +1293,7 @@ def baseline_gate(
 
 def discover_plans(config_path, specs, report_path):
     sys.path.insert(0, str(CHECKOUT / "src"))
+    from construct_benchmark.config import load_construct_specs
     from construct_benchmark.manifests import canonical_hash
 
     config_hash = canonical_hash(json.loads(config_path.read_text(encoding="utf-8")))
@@ -1324,7 +1325,10 @@ def discover_plans(config_path, specs, report_path):
     selected = {}
     for construct_id, path, digest in sorted(candidates):
         selected.setdefault(construct_id, {"path": path, "sha256": digest})
-    expected = [json.loads(path.read_text(encoding="utf-8"))["construct_id"] for path in specs]
+    # Wave specs may be versioned overlays.  Their raw JSON intentionally has
+    # ``base_spec_path`` rather than a duplicated top-level construct_id; use
+    # the same inheritance-aware loader as the rest of the runner.
+    expected = list(load_construct_specs(specs))
     report = {
         "pass": set(expected).issubset(selected),
         "model_id": MODEL_ID,
@@ -1519,8 +1523,8 @@ def run_wave(wave: int, config, inventory, selection, gate, specs, wave_root):
     status_file()
     discovery = discover_plans(config, specs, wave_root / "plan_discovery.json")
     outputs = []
-    for spec in specs:
-        construct_id = json.loads(spec.read_text(encoding="utf-8"))["construct_id"]
+    for spec_path, loaded_spec in zip(specs, loaded_specs.values()):
+        construct_id = loaded_spec.construct_id
         CURRENT.update({"phase": "steering_preparation", "construct": construct_id, "completed_rows": completed, "total_rows": baseline_total})
         status_file()
         source = Path(discovery["selected"][construct_id]["path"])
@@ -1582,7 +1586,7 @@ def run_wave(wave: int, config, inventory, selection, gate, specs, wave_root):
                 "--raw-generations",
                 raw_output,
                 "--construct-spec",
-                spec,
+                spec_path,
                 "--output-dir",
                 score_dir,
                 "--bootstrap-resamples",
