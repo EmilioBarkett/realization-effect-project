@@ -33,6 +33,7 @@ CONTROLLER_SCHEMA_VERSION = "runpod_b300_controller_v1"
 _POD_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$")
 _SECRET_KEY_PATTERN = re.compile(r"(?:api[_-]?key|access[_-]?token|secret|password|credential)", re.I)
 _PLACEHOLDER_PATTERN = re.compile(r"(?:REPLACE|REVIEW|TODO|CHANGEME)", re.I)
+_FORBIDDEN_RUNPOD_ENV_NAMES = frozenset({"RUNPOD_API_KEY", "RUNPOD_CONFIG", RUNPOD_API_KEY_ENV})
 
 
 class RunPodError(RuntimeError):
@@ -100,6 +101,27 @@ def _first_value(*values: Any) -> Any:
         if value not in (None, ""):
             return value
     return None
+
+
+def _validate_response_pod_id(
+    summary: dict[str, Any],
+    *,
+    expected: str | None = None,
+    allow_missing: bool = False,
+) -> str | None:
+    raw = summary.get("pod_id")
+    if raw is None:
+        if allow_missing:
+            return None
+        raise RunPodError("RunPod response did not include a pod ID")
+    try:
+        pod_id = normalize_pod_id(raw)
+    except ValueError:
+        raise RunPodError("RunPod response contained an invalid pod ID") from None
+    if expected is not None and pod_id != expected:
+        raise RunPodError("RunPod response pod ID did not match the requested pod")
+    summary["pod_id"] = pod_id
+    return pod_id
 
 
 def sanitize_pod(payload: Mapping[str, Any]) -> dict[str, Any]:
@@ -197,7 +219,7 @@ def _reject_secret_fields(value: Any, *, path: str = "spec") -> None:
     if isinstance(value, Mapping):
         for key, nested in value.items():
             key_text = str(key)
-            if key_text == RUNPOD_API_KEY_ENV or _SECRET_KEY_PATTERN.search(key_text):
+            if key_text.upper() in _FORBIDDEN_RUNPOD_ENV_NAMES or _SECRET_KEY_PATTERN.search(key_text):
                 raise ValueError(f"{path}.{key_text} is a credential-bearing field and is not allowed")
             _reject_secret_fields(nested, path=f"{path}.{key_text}")
     elif isinstance(value, (list, tuple)):
@@ -215,9 +237,11 @@ class UrllibRunPodTransport:
         base_url: str = RUNPOD_BASE_URL,
         timeout_seconds: float = 30.0,
     ) -> None:
-        credential = api_key if api_key is not None else os.environ.get(RUNPOD_API_KEY_ENV, "")
+        credential = os.environ.get(RUNPOD_API_KEY_ENV, "")
         if not str(credential).strip():
             raise RuntimeError(f"{RUNPOD_API_KEY_ENV} is not set")
+        if api_key is not None and str(api_key) != str(credential):
+            raise RuntimeError(f"{RUNPOD_API_KEY_ENV} is the only accepted RunPod credential")
         self._api_key = str(credential)
         self.base_url = str(base_url).rstrip("/")
         self.timeout_seconds = _finite_positive(timeout_seconds, field="timeout_seconds")
@@ -366,8 +390,12 @@ class RunPodController:
 
     def _owned_pod_id(self) -> str | None:
         state = self._read_state()
-        raw = state.get("pod_id")
-        return normalize_pod_id(raw) if raw else None
+        if "pod_id" not in state:
+            return None
+        try:
+            return normalize_pod_id(state["pod_id"])
+        except ValueError:
+            raise RunPodError("controller state contains an invalid pod ID") from None
 
     def list_pods(self, *, gpu_type_id: str = B300_GPU_TYPE, data_center_ids: Sequence[str] | None = None) -> list[dict[str, Any]]:
         if gpu_type_id != B300_GPU_TYPE:
@@ -387,7 +415,14 @@ class RunPodController:
             raw_pods = response
         if not isinstance(raw_pods, list):
             raise RunPodError("RunPod pod listing did not return a list")
-        return [sanitize_pod(item) for item in raw_pods if isinstance(item, Mapping)]
+        summaries: list[dict[str, Any]] = []
+        for item in raw_pods:
+            if not isinstance(item, Mapping):
+                continue
+            summary = sanitize_pod(item)
+            _validate_response_pod_id(summary)
+            summaries.append(summary)
+        return summaries
 
     def query_availability(
         self,
@@ -466,8 +501,15 @@ class RunPodController:
                 body[target] = normalized[source]
         return body
 
-    def _validate_exact_b300(self, payload: Mapping[str, Any], *, expected_volume_id: str | None = None) -> dict[str, Any]:
+    def _validate_exact_b300(
+        self,
+        payload: Mapping[str, Any],
+        *,
+        expected_volume_id: str | None = None,
+        expected_pod_id: str | None = None,
+    ) -> dict[str, Any]:
         summary = sanitize_pod(payload)
+        _validate_response_pod_id(summary, expected=expected_pod_id)
         if summary.get("gpu_type") != B300_GPU_TYPE:
             raise RunPodError(
                 f"RunPod returned GPU SKU {summary.get('gpu_type')!r}; refusing non-{B300_GPU_TYPE} pod"
@@ -507,9 +549,17 @@ class RunPodController:
         response = self._call("POST", "/pods", body=body)
         if not isinstance(response, Mapping):
             raise RunPodError("RunPod create response was not an object")
-        summary = self._validate_exact_b300(response, expected_volume_id=str(normalized["network_volume_id"]))
-        if not summary.get("pod_id"):
-            raise RunPodError("RunPod create response did not include a pod ID")
+        try:
+            summary = self._validate_exact_b300(response, expected_volume_id=str(normalized["network_volume_id"]))
+        except RunPodError:
+            # A provider may have created a pod before returning a response
+            # that fails the exact-topology contract. Preserve only a
+            # validated ID so the same durable state path can recover it via
+            # stop_pod without permitting a second create.
+            recovery_summary = sanitize_pod(response)
+            _validate_response_pod_id(recovery_summary)
+            self._record_state(status="recovery_required", summary=recovery_summary, spec=normalized)
+            raise
         self._record_state(status="created", summary=summary, spec=normalized)
         return {"status": "created", **summary}
 
@@ -527,7 +577,7 @@ class RunPodController:
         )
         if not isinstance(response, Mapping):
             raise RunPodError("RunPod inspect response was not an object")
-        summary = self._validate_exact_b300(response)
+        summary = self._validate_exact_b300(response, expected_pod_id=selected)
         desired = str(summary.get("lifecycle", {}).get("desired_status") or "").upper()
         actual = str(summary.get("lifecycle", {}).get("actual_status") or "").upper()
         # Some REST responses omit ``runtimeStatus`` after the container has
@@ -563,7 +613,10 @@ class RunPodController:
         if selected != owned:
             raise RunPodError("refusing to stop a pod outside this campaign's durable controller state")
         response = self._call("POST", f"/pods/{selected}/stop")
-        summary = sanitize_pod(response) if isinstance(response, Mapping) else {}
+        if not isinstance(response, Mapping):
+            raise RunPodError("RunPod stop response was not an object")
+        summary = sanitize_pod(response)
+        _validate_response_pod_id(summary, expected=selected, allow_missing=True)
         if summary.get("pod_id") is None:
             summary["pod_id"] = selected
         self._record_state(status="stopped", summary=summary)

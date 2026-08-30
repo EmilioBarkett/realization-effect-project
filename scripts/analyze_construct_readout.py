@@ -193,6 +193,8 @@ def main() -> None:
     storage_dtype = _numpy_storage_dtype(args.storage_dtype)
     np.save(direction_path, estimate.direction.astype(storage_dtype, copy=False))
     np.save(pair_differences_path, estimate.pair_differences.astype(storage_dtype, copy=False))
+    direction_sha256 = file_sha256(direction_path)
+    pair_differences_sha256 = file_sha256(pair_differences_path)
     write_csv(
         args.output_dir / "heldout_pair_margins.csv",
         [asdict(margin) for margin in readout.margins],
@@ -228,6 +230,8 @@ def main() -> None:
             "norm": float(np.linalg.norm(estimate.direction)),
             "path": str(direction_path),
             "pair_differences_path": str(pair_differences_path),
+            "direction_sha256": direction_sha256,
+            "pair_differences_sha256": pair_differences_sha256,
         },
         "calibration": asdict(calibration),
         "storage_dtype": args.storage_dtype,

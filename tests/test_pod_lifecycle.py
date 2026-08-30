@@ -73,6 +73,32 @@ def test_terminal_shutdown_records_nonzero_and_timeout_without_raising() -> None
     assert timed_out["error"] == "shutdown command exceeded its timeout"
 
 
+@pytest.mark.parametrize("timeout", [float("nan"), float("inf"), -float("inf")])
+def test_terminal_shutdown_rejects_non_finite_timeout(timeout: float) -> None:
+    with pytest.raises(ValueError, match="finite positive"):
+        run_terminal_shutdown(["shutdown-tool"], context={}, timeout_seconds=timeout)
+
+
+def test_terminal_shutdown_scrubs_legacy_runpod_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: dict[str, object] = {}
+
+    def runner(_argv: list[str], **kwargs: object) -> SimpleNamespace:
+        captured.update(kwargs)
+        return SimpleNamespace(returncode=0)
+
+    monkeypatch.setenv("RUNPOD_2_API_KEY", "active-secret")
+    monkeypatch.setenv("RUNPOD_API_KEY", "legacy-secret")
+    monkeypatch.setenv("RUNPOD_CONFIG", "/tmp/legacy-runpod-config")
+    result = run_terminal_shutdown(["shutdown-tool"], context={}, runner=runner)
+
+    assert result["status"] == "succeeded"
+    child_env = captured["env"]
+    assert isinstance(child_env, dict)
+    assert child_env["RUNPOD_2_API_KEY"] == "active-secret"
+    assert "RUNPOD_API_KEY" not in child_env
+    assert "RUNPOD_CONFIG" not in child_env
+
+
 def test_terminal_command_rejects_empty_and_nul_arguments() -> None:
     with pytest.raises(ValueError, match="executable"):
         normalize_terminal_command([])

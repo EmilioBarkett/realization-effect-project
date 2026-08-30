@@ -28,9 +28,14 @@ def _spec() -> dict[str, object]:
     }
 
 
-def _pod(*, gpu_type: str = B300_GPU_TYPE, gpu_count: int = 1) -> dict[str, object]:
+def _pod(
+    *,
+    gpu_type: str = B300_GPU_TYPE,
+    gpu_count: int = 1,
+    pod_id: str = "pod_test_123",
+) -> dict[str, object]:
     return {
-        "id": "pod_test_123",
+        "id": pod_id,
         "name": "controller-test-b300",
         "gpu": {"id": gpu_type, "count": gpu_count, "memoryInGb": 192},
         "machine": {"gpuTypeId": gpu_type, "id": "machine_test"},
@@ -101,6 +106,22 @@ def test_controller_refuses_wrong_gpu_sku_and_count(tmp_path: Path) -> None:
             ).create_b300_pod(_spec())
 
 
+def test_controller_preserves_recovery_path_after_topology_failure(tmp_path: Path) -> None:
+    state = tmp_path / "state.json"
+    transport = FakeTransport([_pod(gpu_type="NVIDIA B200"), {}])
+    controller = RunPodController(transport=transport, state_path=state)
+    with pytest.raises(RunPodError, match="GPU SKU"):
+        controller.create_b300_pod(_spec())
+
+    failed = json.loads(state.read_text(encoding="utf-8"))
+    assert failed["status"] == "recovery_required"
+    assert failed["pod_id"] == "pod_test_123"
+
+    stopped = controller.stop_pod()
+    assert stopped["status"] == "stopped"
+    assert transport.calls[-1][0:2] == ("POST", "/pods/pod_test_123/stop")
+
+
 def test_controller_refuses_credential_fields_and_never_serializes_values() -> None:
     spec = _spec()
     spec[RUNPOD_API_KEY_ENV] = "new-secret"
@@ -109,11 +130,29 @@ def test_controller_refuses_credential_fields_and_never_serializes_values() -> N
     assert "new-secret" not in str(error.value)
 
 
+def test_controller_refuses_runpod_config_in_pod_environment() -> None:
+    spec = _spec()
+    spec["env"] = {"RUNPOD_CONFIG": "/tmp/legacy-config"}
+    with pytest.raises(ValueError, match="credential-bearing") as error:
+        RunPodController(transport=FakeTransport([])).create_b300_pod(spec)
+    assert "legacy-config" not in str(error.value)
+
+
 def test_default_transport_accepts_only_new_key(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv(RUNPOD_API_KEY_ENV, raising=False)
     monkeypatch.setenv("RUNPOD_API_KEY", "legacy-secret")
     with pytest.raises(RuntimeError, match=RUNPOD_API_KEY_ENV):
         UrllibRunPodTransport()
+
+
+def test_transport_cannot_bypass_active_credential_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv(RUNPOD_API_KEY_ENV, raising=False)
+    with pytest.raises(RuntimeError, match=RUNPOD_API_KEY_ENV):
+        UrllibRunPodTransport(api_key="explicit-secret")
+
+    monkeypatch.setenv(RUNPOD_API_KEY_ENV, "active-secret")
+    with pytest.raises(RuntimeError, match="only accepted"):
+        UrllibRunPodTransport(api_key="legacy-secret")
 
 
 def test_readiness_stop_and_durable_lifecycle_state(tmp_path: Path) -> None:
@@ -146,6 +185,55 @@ def test_endpoint_without_runtime_status_is_ready(tmp_path: Path) -> None:
     inspected = controller.inspect_pod()
     assert inspected["status"] == "ready"
     assert inspected["runtime"]["ready"] is True
+
+
+def test_controller_rejects_invalid_create_response_pod_id(tmp_path: Path) -> None:
+    state = tmp_path / "state.json"
+    controller = RunPodController(
+        transport=FakeTransport([_pod(pod_id="../not-a-pod")]),
+        state_path=state,
+    )
+    with pytest.raises(RunPodError, match="invalid pod ID"):
+        controller.create_b300_pod(_spec())
+    assert not state.exists()
+
+
+def test_controller_rejects_invalid_availability_pod_id() -> None:
+    controller = RunPodController(transport=FakeTransport([{"pods": [_pod(pod_id="bad/id")]}]))
+    with pytest.raises(RunPodError, match="invalid pod ID"):
+        controller.list_pods()
+
+
+def test_controller_inspect_requires_response_to_match_owned_pod(tmp_path: Path) -> None:
+    state = tmp_path / "state.json"
+    controller = RunPodController(
+        transport=FakeTransport([_pod(), _pod(pod_id="pod_other")]),
+        state_path=state,
+    )
+    controller.create_b300_pod(_spec())
+    with pytest.raises(RunPodError, match="did not match"):
+        controller.inspect_pod()
+    saved = json.loads(state.read_text(encoding="utf-8"))
+    assert saved["status"] == "created"
+    assert saved["pod_id"] == "pod_test_123"
+
+
+@pytest.mark.parametrize("stop_response", [{"id": "pod_other"}, None])
+def test_controller_does_not_mark_stop_success_for_invalid_response(
+    tmp_path: Path,
+    stop_response: object,
+) -> None:
+    state = tmp_path / "state.json"
+    controller = RunPodController(
+        transport=FakeTransport([_pod(), stop_response]),
+        state_path=state,
+    )
+    controller.create_b300_pod(_spec())
+    with pytest.raises(RunPodError):
+        controller.stop_pod()
+    saved = json.loads(state.read_text(encoding="utf-8"))
+    assert saved["status"] == "created"
+    assert saved["pod_id"] == "pod_test_123"
 
 
 def test_controller_refuses_recreate_after_stop(tmp_path: Path) -> None:

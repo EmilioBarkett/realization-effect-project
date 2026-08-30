@@ -4,10 +4,12 @@ from __future__ import annotations
 import gc
 import hashlib
 import json
+import math
 import os
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 from typing import Mapping
@@ -108,9 +110,845 @@ GATE_DIAGNOSTIC_VERSION = "wave1_baseline_collateral_gate_v1"
 RUNTIME_PYTHON = sys.executable
 RUNTIME_PROBE: dict[str, object] | None = None
 
+# This is deliberately a fixed, dependency-free lifecycle launcher.  It does
+# not know how to load a model or derive a representation: the caller supplies
+# a reviewed command in the launch manifest.  Keeping this payload literal and
+# validating it before writing the remote file avoids the nested Python source
+# replacement failure recorded in the Qwen no-start postmortem.
+REMOTE_BR_LAUNCHER_PAYLOAD = r'''#!/usr/bin/env python3
+from __future__ import annotations
+
+import hashlib
+import math
+import json
+import os
+import subprocess
+import sys
+import tempfile
+import time
+from pathlib import Path
+
+
+SCHEMA_VERSION = "remote_br_launch_v1"
+
+
+def _now() -> str:
+    return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
+
+def _canonical(value: object) -> str:
+    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+
+
+def _command_digest(command: list[str]) -> str:
+    return hashlib.sha256(_canonical(command).encode("utf-8")).hexdigest()
+
+
+def _atomic_json(path: Path, payload: object) -> None:
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary_name = tempfile.mkstemp(prefix=f".{path.name}.", dir=str(path.parent))
+    descriptor_open = True
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+            descriptor_open = False
+            handle.write(_canonical(payload) + "\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary_name, path)
+        try:
+            directory = os.open(path.parent, os.O_RDONLY)
+        except OSError:
+            pass
+        else:
+            try:
+                os.fsync(directory)
+            finally:
+                os.close(directory)
+    finally:
+        if descriptor_open:
+            os.close(descriptor)
+        try:
+            os.unlink(temporary_name)
+        except FileNotFoundError:
+            pass
+
+
+def _load_manifest(path: Path) -> dict[str, object]:
+    value = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise ValueError("launch manifest must be a JSON object")
+    return value
+
+
+def _state(manifest: dict[str, object], *, status: str, pid: int | None, **extra: object) -> dict[str, object]:
+    payload = {
+        "schema_version": SCHEMA_VERSION,
+        "manifest_type": manifest.get("manifest_type"),
+        "run_id": manifest.get("run_id"),
+        "model_alias": manifest.get("model_alias"),
+        "model_id": manifest.get("model_id"),
+        "model_revision": manifest.get("model_revision"),
+        "repo_sha": manifest.get("repo_sha"),
+        "command_digest": manifest.get("command_digest"),
+        "status": status,
+        "pid": pid,
+        "launcher_pid": os.getpid(),
+        "timestamp": _now(),
+    }
+    payload.update(extra)
+    return payload
+
+
+def _write_failed(manifest: dict[str, object], error: str) -> None:
+    status_path = Path(str(manifest["status_path"]))
+    _atomic_json(
+        status_path,
+        _state(manifest, status="FAILED", pid=None, error=error),
+    )
+
+
+def main() -> int:
+    if len(sys.argv) != 2:
+        print("usage: remote_br_launcher.py MANIFEST", file=sys.stderr)
+        return 2
+    manifest_path = Path(sys.argv[1])
+    try:
+        manifest = _load_manifest(manifest_path)
+        if manifest.get("manifest_type") != "remote_br_launch":
+            raise ValueError("unexpected launch manifest type")
+        if manifest.get("schema_version") != SCHEMA_VERSION:
+            raise ValueError("unsupported launch manifest schema")
+        if manifest.get("preflight_only") is not True or manifest.get("run_mode") != "test":
+            raise ValueError("remote handoff refuses full or production mode")
+        if manifest.get("resumable") is not True:
+            raise ValueError("launch manifest is not marked resumable")
+        command = manifest.get("command")
+        if not isinstance(command, list) or not command or any(
+            not isinstance(value, str) or not value or "\x00" in value for value in command
+        ):
+            raise ValueError("launch command must be a non-empty argv list")
+        if manifest.get("command_digest") != _command_digest(command):
+            raise ValueError("launch command digest mismatch")
+        heartbeat_interval = float(manifest.get("heartbeat_interval_seconds"))
+        if not math.isfinite(heartbeat_interval) or heartbeat_interval <= 0:
+            raise ValueError("heartbeat interval must be finite and positive")
+        status_path = Path(str(manifest["status_path"]))
+        heartbeat_path = Path(str(manifest["heartbeat_path"]))
+        pid_path = Path(str(manifest["pid_path"]))
+        child_log_path = Path(str(manifest["child_log_path"]))
+    except Exception as exc:
+        print(f"remote launcher manifest validation failed: {type(exc).__name__}: {exc}", file=sys.stderr)
+        return 1
+
+    try:
+        _atomic_json(status_path, _state(manifest, status="STARTING", pid=None))
+        child_log_path.parent.mkdir(parents=True, exist_ok=True)
+        with child_log_path.open("ab", buffering=0) as child_log:
+            child = subprocess.Popen(
+                command,
+                cwd=str(manifest.get("cwd") or manifest_path.parent),
+                stdin=subprocess.DEVNULL,
+                stdout=child_log,
+                stderr=subprocess.STDOUT,
+                start_new_session=True,
+                close_fds=True,
+            )
+            pid = int(child.pid)
+            _atomic_json(pid_path, _state(manifest, status="RUNNING", pid=pid))
+            _atomic_json(
+                status_path,
+                _state(manifest, status="RUNNING", pid=pid, child_pid=pid),
+            )
+            heartbeat_sequence = 1
+            _atomic_json(
+                heartbeat_path,
+                _state(
+                    manifest,
+                    status="RUNNING",
+                    pid=pid,
+                    child_pid=pid,
+                    heartbeat_sequence=heartbeat_sequence,
+                ),
+            )
+            print(
+                json.dumps(
+                    {"pid": pid, "status": "RUNNING", "heartbeat_sequence": heartbeat_sequence},
+                    sort_keys=True,
+                ),
+                flush=True,
+            )
+            while True:
+                returncode = child.poll()
+                if returncode is not None:
+                    terminal_status = "COMPLETED" if returncode == 0 else "FAILED"
+                    _atomic_json(
+                        status_path,
+                        _state(
+                            manifest,
+                            status=terminal_status,
+                            pid=pid,
+                            child_pid=pid,
+                            returncode=returncode,
+                        ),
+                    )
+                    _atomic_json(
+                        heartbeat_path,
+                        _state(
+                            manifest,
+                            status=terminal_status,
+                            pid=pid,
+                            child_pid=pid,
+                            heartbeat_sequence=heartbeat_sequence,
+                            returncode=returncode,
+                        ),
+                    )
+                    return 0 if returncode == 0 else 1
+                time.sleep(float(manifest.get("heartbeat_interval_seconds", 5.0)))
+                heartbeat_sequence += 1
+                _atomic_json(
+                    heartbeat_path,
+                    _state(
+                        manifest,
+                        status="RUNNING",
+                        pid=pid,
+                        child_pid=pid,
+                        heartbeat_sequence=heartbeat_sequence,
+                    ),
+                )
+    except Exception as exc:
+        error = f"{type(exc).__name__}: {exc}"
+        try:
+            _write_failed(manifest, error)
+        except Exception as state_error:
+            print(
+                f"remote launcher failed while recording status: {type(state_error).__name__}: {state_error}",
+                file=sys.stderr,
+            )
+        print(f"remote launcher failed: {error}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+'''
+REMOTE_BR_LAUNCHER_PAYLOAD_SHA256 = hashlib.sha256(REMOTE_BR_LAUNCHER_PAYLOAD.encode("utf-8")).hexdigest()
+
 
 class RunnerFailure(RuntimeError):
     pass
+
+
+def _atomic_write_bytes(path: Path, content: bytes, *, mode: int = 0o600) -> None:
+    """Durably replace one file without exposing a partially written payload."""
+
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary_name = tempfile.mkstemp(prefix=f".{path.name}.", dir=str(path.parent))
+    descriptor_open = True
+    try:
+        with os.fdopen(descriptor, "wb") as handle:
+            descriptor_open = False
+            handle.write(content)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.chmod(temporary_name, mode)
+        os.replace(temporary_name, path)
+        try:
+            directory = os.open(path.parent, os.O_RDONLY)
+        except OSError:
+            pass
+        else:
+            try:
+                os.fsync(directory)
+            finally:
+                os.close(directory)
+    finally:
+        if descriptor_open:
+            os.close(descriptor)
+        try:
+            os.unlink(temporary_name)
+        except FileNotFoundError:
+            pass
+
+
+def _atomic_write_json(path: Path, payload: object, *, mode: int = 0o600) -> None:
+    """Atomically persist canonical JSON and make the replacement durable."""
+
+    content = json.dumps(payload, indent=2, sort_keys=True) + "\n"
+    _atomic_write_bytes(Path(path), content.encode("utf-8"), mode=mode)
+
+
+def _absolute_path_without_following_final_symlink(path: Path) -> Path:
+    """Normalize a path while refusing a symlink at its final component."""
+
+    candidate = Path(path).expanduser()
+    if candidate.is_symlink():
+        raise RunnerFailure("refusing a symlink path for remote B/R handoff: " + str(candidate))
+    # abspath normalizes relative components without resolving the final
+    # component, so a dangling link cannot be followed accidentally.
+    absolute = Path(os.path.abspath(os.fspath(candidate)))
+    if absolute.is_symlink():
+        raise RunnerFailure("refusing a symlink path for remote B/R handoff: " + str(candidate))
+    return absolute
+
+
+def _finite_positive(value: object, *, label: str) -> float:
+    if isinstance(value, bool):
+        raise RunnerFailure(f"{label} must be finite and positive")
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError) as exc:
+        raise RunnerFailure(f"{label} must be finite and positive") from exc
+    if not math.isfinite(numeric) or numeric <= 0:
+        raise RunnerFailure(f"{label} must be finite and positive")
+    return numeric
+
+
+def validate_remote_launcher_payload(
+    payload: str = REMOTE_BR_LAUNCHER_PAYLOAD,
+    *,
+    expected_sha256: str | None = None,
+) -> dict[str, object]:
+    """Syntax-check a fixed launcher before it can be written/transferred.
+
+    This checks Python syntax and the small lifecycle markers that make the
+    payload a launcher rather than accepting arbitrary executable source.  It
+    intentionally does not execute or interpret model-side B/R semantics.
+    """
+
+    if not isinstance(payload, str) or not payload.strip():
+        raise RunnerFailure("remote launcher payload is empty")
+    try:
+        compile(payload, "<remote-br-launcher>", "exec")
+    except SyntaxError as exc:
+        raise RunnerFailure(f"remote launcher payload syntax check failed: {exc}") from exc
+    required_markers = (
+        'manifest.get("manifest_type")',
+        'manifest.get("command_digest")',
+        "start_new_session=True",
+        "heartbeat_path",
+        "_atomic_json",
+    )
+    missing = [marker for marker in required_markers if marker not in payload]
+    if missing:
+        raise RunnerFailure("remote launcher payload is missing lifecycle markers: " + ", ".join(missing))
+    digest = hashlib.sha256(payload.encode("utf-8")).hexdigest()
+    if expected_sha256 is not None and digest != expected_sha256:
+        raise RunnerFailure("remote launcher payload digest does not match the reviewed fixed payload")
+    return {
+        "syntax_checked": True,
+        "sha256": digest,
+        "bytes": len(payload.encode("utf-8")),
+        "schema_version": "remote_br_launch_v1",
+    }
+
+
+def write_remote_launcher(path: Path, *, payload: str = REMOTE_BR_LAUNCHER_PAYLOAD) -> dict[str, object]:
+    """Validate and atomically stage the reviewed launcher payload."""
+
+    metadata = validate_remote_launcher_payload(payload, expected_sha256=REMOTE_BR_LAUNCHER_PAYLOAD_SHA256)
+    target = _absolute_path_without_following_final_symlink(Path(path))
+    if target.exists():
+        if target.is_symlink() or not target.is_file():
+            raise RunnerFailure("remote launcher path is not a regular file: " + str(target))
+        if target.read_text(encoding="utf-8") != payload:
+            raise RunnerFailure("refusing to overwrite a different remote launcher payload: " + str(target))
+    else:
+        _atomic_write_bytes(target, payload.encode("utf-8"), mode=0o700)
+    if not target.is_file() or hashlib.sha256(target.read_bytes()).hexdigest() != metadata["sha256"]:
+        raise RunnerFailure("remote launcher payload verification failed after staging: " + str(target))
+    os.chmod(target, 0o700)
+    return {"path": str(target), **metadata}
+
+
+def _normalise_launch_command(command: object) -> list[str]:
+    if isinstance(command, (str, bytes)) or not isinstance(command, (list, tuple)) or not command:
+        raise RunnerFailure("remote launch command must be a non-empty argv list")
+    normalized = []
+    for value in command:
+        if not isinstance(value, str) or not value or "\x00" in value:
+            raise RunnerFailure("remote launch command entries must be non-empty strings without NUL bytes")
+        normalized.append(value)
+    return normalized
+
+
+def _command_digest(command: list[str]) -> str:
+    canonical = json.dumps(command, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def _normalise_input_hashes(input_hashes: object) -> dict[str, str]:
+    if not isinstance(input_hashes, Mapping) or not input_hashes:
+        raise RunnerFailure("remote B/R handoff requires at least one named input SHA-256")
+    normalized: dict[str, str] = {}
+    for name, digest in input_hashes.items():
+        if not isinstance(name, str) or not name.strip():
+            raise RunnerFailure("remote B/R input hash names must be non-empty strings")
+        if not isinstance(digest, str) or len(digest) != 64 or any(
+            character not in "0123456789abcdefABCDEF" for character in digest
+        ):
+            raise RunnerFailure(f"remote B/R input hash is not a SHA-256 digest: {name}")
+        normalized[name] = digest.lower()
+    return dict(sorted(normalized.items()))
+
+
+def _require_launch_scope(*, run_mode: str, preflight_only: bool) -> None:
+    if preflight_only is not True or run_mode != "test":
+        raise RunnerFailure("remote B/R handoff is preflight-only and refuses full/production mode")
+
+
+def _require_current_identity(*, model_id: str, revision: str, repo_sha: str) -> None:
+    if model_id != MODEL_ID or revision != REVISION or repo_sha != REPO_SHA:
+        raise RunnerFailure("remote B/R handoff identity does not match the runner's pinned model/revision/repository")
+
+
+def build_remote_br_launch_manifest(
+    command: list[str] | tuple[str, ...],
+    *,
+    manifest_path: Path,
+    launcher_path: Path,
+    input_hashes: Mapping[str, str],
+    model_id: str = MODEL_ID,
+    revision: str = REVISION,
+    repo_sha: str = REPO_SHA,
+    run_id: str = RUN_ID,
+    model_alias: str = ALIAS,
+    run_mode: str = "test",
+    preflight_only: bool = True,
+    resumable: bool = True,
+    status_path: Path | None = None,
+    heartbeat_path: Path | None = None,
+    pid_path: Path | None = None,
+    child_log_path: Path | None = None,
+    launcher_log_path: Path | None = None,
+    cwd: Path | None = None,
+    heartbeat_interval_seconds: float = 5.0,
+) -> dict[str, object]:
+    """Build a protocol-only, hash-bound detached-child launch manifest."""
+
+    _require_launch_scope(run_mode=run_mode, preflight_only=preflight_only)
+    if not resumable:
+        raise RunnerFailure("remote B/R handoff requires a resumable child contract")
+    if not all(isinstance(value, str) and value for value in (run_id, model_alias, model_id, revision, repo_sha)):
+        raise RunnerFailure("remote B/R handoff identity fields must be non-empty strings")
+    heartbeat_interval = _finite_positive(
+        heartbeat_interval_seconds,
+        label="remote B/R heartbeat interval",
+    )
+    normalized_command = _normalise_launch_command(command)
+    normalized_inputs = _normalise_input_hashes(input_hashes)
+    manifest = _absolute_path_without_following_final_symlink(Path(manifest_path))
+    launcher = _absolute_path_without_following_final_symlink(Path(launcher_path))
+    state_path = _absolute_path_without_following_final_symlink(Path(status_path or manifest.with_name("br_status.json")))
+    first_heartbeat_path = _absolute_path_without_following_final_symlink(
+        Path(heartbeat_path or manifest.with_name("br_heartbeat.json"))
+    )
+    process_path = _absolute_path_without_following_final_symlink(Path(pid_path or manifest.with_name("br_pid.json")))
+    child_log = _absolute_path_without_following_final_symlink(Path(child_log_path or manifest.with_name("br_child.log")))
+    launcher_log = _absolute_path_without_following_final_symlink(
+        Path(launcher_log_path or manifest.with_name("br_launcher.log"))
+    )
+    command_digest = _command_digest(normalized_command)
+    requested_at = now_iso()
+    return {
+        "schema_version": "remote_br_launch_v1",
+        "manifest_type": "remote_br_launch",
+        "protocol_only": True,
+        "semantic_runner": "caller_supplied_reviewed_command",
+        "run_id": run_id,
+        "model_alias": model_alias,
+        "model_id": model_id,
+        "model_revision": revision,
+        "repo_sha": repo_sha,
+        "repository_sha": repo_sha,
+        "input_hashes": normalized_inputs,
+        "command": normalized_command,
+        "command_digest": command_digest,
+        "command_digest_method": "sha256(canonical_json(argv))",
+        "launcher_path": str(launcher),
+        "launcher_payload_sha256": REMOTE_BR_LAUNCHER_PAYLOAD_SHA256,
+        "manifest_path": str(manifest),
+        "status_path": str(state_path),
+        "heartbeat_path": str(first_heartbeat_path),
+        "pid_path": str(process_path),
+        "child_log_path": str(child_log),
+        "launcher_log_path": str(launcher_log),
+        "cwd": str(Path(cwd).resolve()) if cwd is not None else str(manifest.parent),
+        "run_mode": run_mode,
+        "preflight_only": True,
+        "no_full_production": True,
+        "resumable": True,
+        "heartbeat_interval_seconds": heartbeat_interval,
+        "status": "PLANNED",
+        "start_timestamp": requested_at,
+        "launch_requested_at": requested_at,
+        "resume_count": 0,
+        "provenance": {
+            "model_id": model_id,
+            "revision": revision,
+            "repo_sha": repo_sha,
+            "input_hashes": normalized_inputs,
+        },
+    }
+
+
+def _load_json_object(path: Path) -> dict[str, object]:
+    try:
+        value = json.loads(Path(path).read_text(encoding="utf-8"))
+    except Exception as exc:
+        raise RunnerFailure(f"invalid JSON at {path}: {type(exc).__name__}: {exc}") from exc
+    if not isinstance(value, dict):
+        raise RunnerFailure("JSON state must be an object: " + str(path))
+    return value
+
+
+def _validate_launch_manifest(manifest: Mapping[str, object]) -> None:
+    if manifest.get("manifest_type") != "remote_br_launch" or manifest.get("schema_version") != "remote_br_launch_v1":
+        raise RunnerFailure("invalid remote B/R launch manifest type or schema")
+    _require_launch_scope(
+        run_mode=str(manifest.get("run_mode", "")),
+        preflight_only=manifest.get("preflight_only") is True,
+    )
+    if manifest.get("resumable") is not True or manifest.get("protocol_only") is not True:
+        raise RunnerFailure("remote B/R launch manifest must remain resumable and protocol-only")
+    _finite_positive(
+        manifest.get("heartbeat_interval_seconds"),
+        label="remote B/R heartbeat interval",
+    )
+    _require_current_identity(
+        model_id=str(manifest.get("model_id", "")),
+        revision=str(manifest.get("model_revision", "")),
+        repo_sha=str(manifest.get("repo_sha", "")),
+    )
+    command = _normalise_launch_command(manifest.get("command"))
+    if manifest.get("command_digest") != _command_digest(command):
+        raise RunnerFailure("remote B/R launch command digest mismatch")
+    _normalise_input_hashes(manifest.get("input_hashes"))
+    if manifest.get("launcher_payload_sha256") != REMOTE_BR_LAUNCHER_PAYLOAD_SHA256:
+        raise RunnerFailure("remote B/R launcher payload is not the reviewed fixed payload")
+    for key in ("launcher_path", "status_path", "heartbeat_path", "pid_path", "child_log_path", "launcher_log_path"):
+        if not isinstance(manifest.get(key), str) or not manifest[key]:
+            raise RunnerFailure("remote B/R launch manifest is missing " + key)
+
+
+def _manifest_identity(manifest: Mapping[str, object]) -> dict[str, object]:
+    return {
+        "model_id": manifest.get("model_id"),
+        "model_revision": manifest.get("model_revision"),
+        "repo_sha": manifest.get("repo_sha"),
+        "input_hashes": manifest.get("input_hashes"),
+        "command": manifest.get("command"),
+        "command_digest": manifest.get("command_digest"),
+        "run_mode": manifest.get("run_mode"),
+        "preflight_only": manifest.get("preflight_only"),
+        "resumable": manifest.get("resumable"),
+        "protocol_only": manifest.get("protocol_only"),
+    }
+
+
+def _pid_is_alive(pid: object) -> bool:
+    try:
+        value = int(pid)
+    except (TypeError, ValueError):
+        return False
+    if value <= 0:
+        return False
+    try:
+        os.kill(value, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    except OSError:
+        return False
+    return True
+
+
+def _existing_manifest_has_live_child(manifest: Mapping[str, object]) -> bool:
+    try:
+        pid_state = _load_json_object(Path(str(manifest["pid_path"])))
+    except RunnerFailure:
+        return False
+    return _pid_is_alive(pid_state.get("pid"))
+
+
+def prepare_remote_br_launch_handoff(
+    command: list[str] | tuple[str, ...],
+    *,
+    manifest_path: Path,
+    input_hashes: Mapping[str, str],
+    launcher_path: Path | None = None,
+    model_id: str = MODEL_ID,
+    revision: str = REVISION,
+    repo_sha: str = REPO_SHA,
+    run_id: str = RUN_ID,
+    model_alias: str = ALIAS,
+    run_mode: str = "test",
+    preflight_only: bool = True,
+    resume: bool = False,
+    status_path: Path | None = None,
+    heartbeat_path: Path | None = None,
+    pid_path: Path | None = None,
+    child_log_path: Path | None = None,
+    launcher_log_path: Path | None = None,
+    cwd: Path | None = None,
+    heartbeat_interval_seconds: float = 5.0,
+    launcher_payload: str = REMOTE_BR_LAUNCHER_PAYLOAD,
+) -> dict[str, object]:
+    """Stage the fixed launcher and atomically persist its pre-spawn manifest.
+
+    This is the reusable handoff boundary.  It deliberately does not launch a
+    model, construct a direction, or claim that the supplied command performs
+    B/R; a reviewed model-side command remains an explicit caller concern.
+    """
+
+    validate_remote_launcher_payload(launcher_payload, expected_sha256=REMOTE_BR_LAUNCHER_PAYLOAD_SHA256)
+    _require_launch_scope(run_mode=run_mode, preflight_only=preflight_only)
+    _require_current_identity(model_id=model_id, revision=revision, repo_sha=repo_sha)
+    manifest_target = _absolute_path_without_following_final_symlink(Path(manifest_path))
+    launcher_target = _absolute_path_without_following_final_symlink(
+        Path(launcher_path or manifest_target.with_name("remote_br_launcher.py"))
+    )
+    candidate = build_remote_br_launch_manifest(
+        command,
+        manifest_path=manifest_target,
+        launcher_path=launcher_target,
+        input_hashes=input_hashes,
+        model_id=model_id,
+        revision=revision,
+        repo_sha=repo_sha,
+        run_id=run_id,
+        model_alias=model_alias,
+        run_mode=run_mode,
+        preflight_only=preflight_only,
+        status_path=status_path,
+        heartbeat_path=heartbeat_path,
+        pid_path=pid_path,
+        child_log_path=child_log_path,
+        launcher_log_path=launcher_log_path,
+        cwd=cwd,
+        heartbeat_interval_seconds=heartbeat_interval_seconds,
+    )
+    if manifest_target.exists():
+        if not resume:
+            raise RunnerFailure("refusing to overwrite existing remote B/R launch manifest: " + str(manifest_target))
+        existing = _load_json_object(manifest_target)
+        _validate_launch_manifest(existing)
+        if _manifest_identity(existing) != _manifest_identity(candidate):
+            raise RunnerFailure("remote B/R resume manifest identity mismatch")
+        if _existing_manifest_has_live_child(existing):
+            raise RunnerFailure("remote B/R resume refused while the recorded child is still alive")
+        candidate["start_timestamp"] = existing.get("start_timestamp", candidate["start_timestamp"])
+        candidate["resume_count"] = int(existing.get("resume_count", 0)) + 1
+        candidate["previous_manifest_sha256"] = hashlib.sha256(
+            manifest_target.read_bytes()
+        ).hexdigest()
+        candidate["launch_requested_at"] = now_iso()
+    launcher_metadata = write_remote_launcher(launcher_target, payload=launcher_payload)
+    candidate["launcher_payload_sha256"] = launcher_metadata["sha256"]
+    _atomic_write_json(manifest_target, candidate, mode=0o600)
+    persisted = _load_json_object(manifest_target)
+    _validate_launch_manifest(persisted)
+    return persisted
+
+
+def verify_remote_br_handoff(manifest_path: Path, *, require_live: bool = True) -> dict[str, object]:
+    """Verify the child PID and first durable heartbeat for a prepared handoff."""
+
+    manifest_target = _absolute_path_without_following_final_symlink(Path(manifest_path))
+    manifest = _load_json_object(manifest_target)
+    _validate_launch_manifest(manifest)
+    if _absolute_path_without_following_final_symlink(Path(str(manifest.get("manifest_path", "")))) != manifest_target:
+        raise RunnerFailure("remote B/R manifest path self-check failed")
+    launcher_path = _absolute_path_without_following_final_symlink(Path(str(manifest["launcher_path"])))
+    if not launcher_path.is_file():
+        raise RunnerFailure("remote B/R launcher file is missing or unsafe")
+    launcher_payload = launcher_path.read_text(encoding="utf-8")
+    validate_remote_launcher_payload(launcher_payload, expected_sha256=REMOTE_BR_LAUNCHER_PAYLOAD_SHA256)
+    pid_state = _load_json_object(Path(str(manifest["pid_path"])))
+    status_state = _load_json_object(Path(str(manifest["status_path"])))
+    heartbeat_state = _load_json_object(Path(str(manifest["heartbeat_path"])))
+    pid = pid_state.get("pid")
+    try:
+        pid_value = int(pid)
+    except (TypeError, ValueError) as exc:
+        raise RunnerFailure("remote B/R PID is missing or invalid") from exc
+    if pid_value <= 0 or status_state.get("pid") != pid_value or heartbeat_state.get("pid") != pid_value:
+        raise RunnerFailure("remote B/R PID was not consistently recorded")
+    if status_state.get("status") != "RUNNING" or heartbeat_state.get("status") != "RUNNING":
+        raise RunnerFailure("remote B/R first status/heartbeat is not RUNNING")
+    if status_state.get("command_digest") != manifest.get("command_digest") or heartbeat_state.get("command_digest") != manifest.get("command_digest"):
+        raise RunnerFailure("remote B/R state command digest mismatch")
+    if not isinstance(heartbeat_state.get("heartbeat_sequence"), int) or heartbeat_state["heartbeat_sequence"] < 1:
+        raise RunnerFailure("remote B/R first heartbeat sequence is missing")
+    if require_live and not _pid_is_alive(pid_value):
+        raise RunnerFailure("remote B/R child PID is not alive after first heartbeat")
+    return {
+        "manifest_path": str(manifest_target),
+        "pid": pid_value,
+        "pid_verified": True,
+        "status_path": str(manifest["status_path"]),
+        "heartbeat_path": str(manifest["heartbeat_path"]),
+        "status": status_state,
+        "heartbeat": heartbeat_state,
+        "first_heartbeat_verified": True,
+        "resumable": True,
+        "protocol_only": True,
+        "semantic_runner": "caller_supplied_reviewed_command",
+    }
+
+
+def _wait_for_remote_br_first_heartbeat(
+    manifest_path: Path,
+    launcher_process: object,
+    *,
+    timeout_seconds: float,
+    poll_interval_seconds: float,
+) -> dict[str, object]:
+    deadline = time.monotonic() + timeout_seconds
+    last_error = "state files are not complete"
+    while time.monotonic() < deadline:
+        try:
+            return verify_remote_br_handoff(manifest_path)
+        except RunnerFailure as exc:
+            last_error = str(exc)
+        poll = getattr(launcher_process, "poll", None)
+        if callable(poll):
+            returncode = poll()
+            if returncode is not None:
+                status_path = _load_json_object(manifest_path).get("status_path")
+                raise RunnerFailure(
+                    "remote B/R launcher exited before first heartbeat: "
+                    + str(returncode)
+                    + "; last_check="
+                    + last_error
+                    + ("; status=" + str(status_path) if status_path else "")
+                )
+        time.sleep(min(poll_interval_seconds, max(0.0, deadline - time.monotonic())))
+    raise RunnerFailure(
+        "remote B/R launcher did not emit a live PID and first heartbeat within "
+        + f"{timeout_seconds:.1f}s; last_check={last_error}"
+    )
+
+
+def launch_remote_br_handoff(
+    command: list[str] | tuple[str, ...],
+    *,
+    manifest_path: Path,
+    input_hashes: Mapping[str, str],
+    launcher_path: Path | None = None,
+    model_id: str = MODEL_ID,
+    revision: str = REVISION,
+    repo_sha: str = REPO_SHA,
+    run_id: str = RUN_ID,
+    model_alias: str = ALIAS,
+    run_mode: str = "test",
+    preflight_only: bool = True,
+    resume: bool = False,
+    first_heartbeat_timeout_seconds: float = 30.0,
+    poll_interval_seconds: float = 0.25,
+    status_path: Path | None = None,
+    heartbeat_path: Path | None = None,
+    pid_path: Path | None = None,
+    child_log_path: Path | None = None,
+    launcher_log_path: Path | None = None,
+    cwd: Path | None = None,
+    heartbeat_interval_seconds: float = 5.0,
+    launcher_payload: str = REMOTE_BR_LAUNCHER_PAYLOAD,
+) -> dict[str, object]:
+    """Prepare, detach, and verify a caller-supplied resumable child."""
+
+    first_heartbeat_timeout = _finite_positive(
+        first_heartbeat_timeout_seconds,
+        label="remote B/R first-heartbeat timeout",
+    )
+    poll_interval = _finite_positive(
+        poll_interval_seconds,
+        label="remote B/R poll interval",
+    )
+    manifest_target = _absolute_path_without_following_final_symlink(Path(manifest_path))
+    manifest = prepare_remote_br_launch_handoff(
+        command,
+        manifest_path=manifest_target,
+        input_hashes=input_hashes,
+        launcher_path=launcher_path,
+        model_id=model_id,
+        revision=revision,
+        repo_sha=repo_sha,
+        run_id=run_id,
+        model_alias=model_alias,
+        run_mode=run_mode,
+        preflight_only=preflight_only,
+        resume=resume,
+        status_path=status_path,
+        heartbeat_path=heartbeat_path,
+        pid_path=pid_path,
+        child_log_path=child_log_path,
+        launcher_log_path=launcher_log_path,
+        cwd=cwd,
+        heartbeat_interval_seconds=heartbeat_interval_seconds,
+        launcher_payload=launcher_payload,
+    )
+    launcher_path_value = Path(str(manifest["launcher_path"]))
+    launcher_log_path_value = Path(str(manifest["launcher_log_path"]))
+    launcher_log_path_value.parent.mkdir(parents=True, exist_ok=True)
+    launcher_command = [RUNTIME_PYTHON or sys.executable, str(launcher_path_value), str(manifest_target)]
+    try:
+        with launcher_log_path_value.open("ab") as launcher_log:
+            launcher_process = subprocess.Popen(
+                launcher_command,
+                cwd=str(manifest_target.parent),
+                env=ENV,
+                stdin=subprocess.DEVNULL,
+                stdout=launcher_log,
+                stderr=subprocess.STDOUT,
+                start_new_session=True,
+                close_fds=True,
+            )
+    except Exception as exc:
+        failed = dict(manifest)
+        failed.update({"status": "SPAWN_FAILED", "error": f"{type(exc).__name__}: {exc}"})
+        _atomic_write_json(manifest_target, failed, mode=0o600)
+        raise RunnerFailure("remote B/R launcher spawn failed: " + str(exc)) from exc
+    try:
+        result = _wait_for_remote_br_first_heartbeat(
+            manifest_target,
+            launcher_process,
+            timeout_seconds=first_heartbeat_timeout,
+            poll_interval_seconds=poll_interval,
+        )
+    except RunnerFailure as exc:
+        failed = dict(manifest)
+        failed.update({"status": "VERIFY_FAILED", "verification_error": str(exc), "launcher_pid": launcher_process.pid})
+        _atomic_write_json(manifest_target, failed, mode=0o600)
+        raise
+    verified_manifest = dict(manifest)
+    verified_manifest.update(
+        {
+            "status": "RUNNING",
+            "pid": result["pid"],
+            "launcher_pid": launcher_process.pid,
+            "first_heartbeat_verified": True,
+            "first_heartbeat_timestamp": result["heartbeat"].get("timestamp"),
+        }
+    )
+    _atomic_write_json(manifest_target, verified_manifest, mode=0o600)
+    result.update(
+        {
+            "launcher_command": launcher_command,
+            "launcher_pid": launcher_process.pid,
+            "command_digest": manifest["command_digest"],
+            "manifest_status": "RUNNING",
+        }
+    )
+    print("[RSC_BR_LAUNCH] " + json.dumps(result, sort_keys=True, separators=(",", ":")), flush=True)
+    return result
+
+
+# Keep the validation name discoverable to callers that use the explicit
+# B/R terminology while retaining the shorter public helper above.
+validate_remote_br_launcher_payload = validate_remote_launcher_payload
 
 
 def _write_json(path: Path, payload: object) -> None:

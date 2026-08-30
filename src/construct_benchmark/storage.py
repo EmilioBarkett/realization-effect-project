@@ -15,11 +15,12 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import subprocess
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any
 from urllib.parse import urlparse
 
@@ -33,6 +34,7 @@ ARCHIVE_RECEIPT_FILENAME = "archive_receipt.json"
 _NON_ARTIFACT_FILENAMES = frozenset(
     {CHECKSUMS_FILENAME, STORAGE_MANIFEST_FILENAME, ARCHIVE_RECEIPT_FILENAME, "run_status.json"}
 )
+_SHA256_DIGEST_RE = re.compile(r"[0-9a-fA-F]{64}")
 
 
 @dataclass(frozen=True)
@@ -284,6 +286,7 @@ def verify_checksums(run_root: str | Path) -> dict[str, Any]:
         raise FileNotFoundError(f"Missing checksum file: {checksum_path}")
     checked = 0
     failures: list[str] = []
+    entries: dict[str, str] = {}
     for line_number, line in enumerate(checksum_path.read_text(encoding="utf-8").splitlines(), start=1):
         if not line.strip():
             continue
@@ -291,9 +294,52 @@ def verify_checksums(run_root: str | Path) -> dict[str, Any]:
             expected, relative = line.split("  ", 1)
         except ValueError as exc:
             raise ValueError(f"Invalid checksum line {line_number} in {checksum_path}.") from exc
+        if _SHA256_DIGEST_RE.fullmatch(expected) is None:
+            raise ValueError(f"Invalid SHA-256 digest on line {line_number} in {checksum_path}.")
+
+        posix_path = PurePosixPath(relative)
+        windows_path = PureWindowsPath(relative)
+        if (
+            Path(relative).is_absolute()
+            or posix_path.is_absolute()
+            or windows_path.is_absolute()
+            or windows_path.root
+            or windows_path.drive
+        ):
+            raise ValueError(f"Checksum path on line {line_number} is absolute: {relative!r}.")
+        if ".." in posix_path.parts or ".." in windows_path.parts:
+            raise ValueError(f"Checksum path on line {line_number} contains traversal: {relative!r}.")
+
         target = root / relative
-        checked += 1
-        if not target.is_file() or file_sha256(target) != expected:
+        try:
+            target.resolve().relative_to(root)
+        except ValueError as exc:
+            raise ValueError(f"Checksum path on line {line_number} escapes the run root: {relative!r}.") from exc
+        if relative in entries:
+            raise ValueError(f"Duplicate checksum path on line {line_number}: {relative!r}.")
+        entries[relative] = expected.lower()
+
+    artifact_paths = {
+        path.relative_to(root).as_posix()
+        for path in _artifact_paths(root)
+    }
+    listed_paths = set(entries)
+    missing_entries = sorted(artifact_paths - listed_paths)
+    if missing_entries:
+        raise ValueError(
+            f"Checksum file {checksum_path} is missing expected artifact entries for unlisted artifact files: "
+            f"{missing_entries}."
+        )
+    missing_artifacts = sorted(listed_paths - artifact_paths)
+    if missing_artifacts:
+        raise ValueError(
+            f"Checksum file {checksum_path} lists missing or non-artifact files: {missing_artifacts}."
+        )
+
+    checked = len(entries)
+    for relative, expected in entries.items():
+        target = root / relative
+        if file_sha256(target) != expected:
             failures.append(relative)
     return {"run_root": str(root), "checked_files": checked, "failures": failures, "valid": not failures}
 

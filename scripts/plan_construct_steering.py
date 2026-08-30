@@ -30,13 +30,102 @@ from construct_benchmark.steering import (  # noqa: E402
 def _existing_artifact_path(raw_path: str | Path, *, summary_path: Path) -> Path:
     """Resolve an artifact path stored in a readout summary."""
 
-    path = Path(raw_path)
-    if path.is_file():
-        return path
-    relative_to_summary = summary_path.parent / path
-    if relative_to_summary.is_file():
-        return relative_to_summary
+    try:
+        path = Path(raw_path)
+    except TypeError as exc:
+        raise SystemExit(f"Readout summary references an invalid artifact path: {raw_path!r}") from exc
+    candidates = [path]
+    if not path.is_absolute():
+        candidates.append(summary_path.parent / path)
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate.resolve()
     raise SystemExit(f"Readout summary references a missing direction artifact: {raw_path}")
+
+
+def _declared_sha256(value: object, *, label: str) -> str:
+    if not isinstance(value, str) or len(value) != 64 or any(character not in "0123456789abcdef" for character in value):
+        raise SystemExit(f"{label} must declare a 64-character lowercase SHA-256 hash.")
+    return value
+
+
+def _validate_selected_artifact_binding(
+    *,
+    summary: dict,
+    summary_path: Path,
+    supplied_direction: Path,
+    supplied_pair_differences: Path,
+) -> tuple[Path, Path]:
+    """Bind supplied steering inputs to the selected train-only readout artifacts."""
+
+    selected = summary.get("direction")
+    if not isinstance(selected, dict):
+        raise SystemExit("Readout summary is missing its selected direction artifact record.")
+    if selected.get("source_split") != "direction_train":
+        raise SystemExit("Readout summary selected artifacts must be sourced from direction_train.")
+
+    declared_direction = _existing_artifact_path(
+        selected.get("path", ""),
+        summary_path=summary_path,
+    )
+    declared_pair_differences = _existing_artifact_path(
+        selected.get("pair_differences_path", ""),
+        summary_path=summary_path,
+    )
+    expected_direction_hash = _declared_sha256(
+        selected.get("direction_sha256"),
+        label="Readout summary selected direction",
+    )
+    expected_pair_differences_hash = _declared_sha256(
+        selected.get("pair_differences_sha256"),
+        label="Readout summary selected pair differences",
+    )
+    if file_sha256(declared_direction) != expected_direction_hash:
+        raise SystemExit("Selected direction artifact hash does not match the readout summary.")
+    if file_sha256(declared_pair_differences) != expected_pair_differences_hash:
+        raise SystemExit("Selected pair-differences artifact hash does not match the readout summary.")
+
+    supplied_direction = _existing_artifact_path(supplied_direction, summary_path=summary_path)
+    supplied_pair_differences = _existing_artifact_path(supplied_pair_differences, summary_path=summary_path)
+    if supplied_direction != declared_direction:
+        raise SystemExit("Supplied target direction does not match the readout summary's selected artifact path.")
+    if supplied_pair_differences != declared_pair_differences:
+        raise SystemExit(
+            "Supplied pair-differences artifact does not match the readout summary's selected artifact path."
+        )
+    if file_sha256(supplied_direction) != expected_direction_hash:
+        raise SystemExit("Supplied target direction hash does not match the readout summary.")
+    if file_sha256(supplied_pair_differences) != expected_pair_differences_hash:
+        raise SystemExit("Supplied pair-differences hash does not match the readout summary.")
+    return supplied_direction, supplied_pair_differences
+
+
+def _load_validated_array(path: Path, *, label: str, dimensions: int) -> np.ndarray:
+    """Load one numeric steering artifact with fail-closed shape/value checks."""
+
+    try:
+        value = np.load(path, allow_pickle=False)
+    except (OSError, ValueError) as exc:
+        raise SystemExit(f"{label} could not be loaded as a NumPy array: {exc}") from exc
+    if not isinstance(value, np.ndarray):
+        raise SystemExit(f"{label} must be a NumPy array.")
+    if value.ndim != dimensions or value.size == 0:
+        raise SystemExit(f"{label} must be a non-empty {dimensions}-dimensional array.")
+    if not np.issubdtype(value.dtype, np.number) or np.iscomplexobj(value):
+        raise SystemExit(f"{label} must contain real numeric values.")
+    if not np.isfinite(value).all():
+        raise SystemExit(f"{label} must contain only finite values.")
+    if not np.any(value != 0):
+        raise SystemExit(f"{label} must not be all zero.")
+    try:
+        converted = value.astype(np.float32, copy=False)
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise SystemExit(f"{label} could not be converted to float32: {exc}") from exc
+    if not np.isfinite(converted).all():
+        raise SystemExit(f"{label} must remain finite after float32 conversion.")
+    if not np.any(converted != 0):
+        raise SystemExit(f"{label} must remain non-zero after float32 conversion.")
+    return converted
 
 
 def _build_tracking_directions(
@@ -169,8 +258,24 @@ def main() -> None:
         raise SystemExit("Readout selected a layer that is not registered in the run configuration.")
     calibration = CalibrationResult(**summary["calibration"])
     steering = run_config.steering
-    target_direction = np.load(args.direction).astype(np.float32, copy=False)
-    pair_differences = np.load(args.pair_differences).astype(np.float32, copy=False)
+    direction_path, pair_differences_path = _validate_selected_artifact_binding(
+        summary=summary,
+        summary_path=args.readout_summary,
+        supplied_direction=args.direction,
+        supplied_pair_differences=args.pair_differences,
+    )
+    target_direction = _load_validated_array(
+        direction_path,
+        label="Target direction",
+        dimensions=1,
+    )
+    pair_differences = _load_validated_array(
+        pair_differences_path,
+        label="Pair differences",
+        dimensions=2,
+    )
+    if pair_differences.shape[0] < 2:
+        raise SystemExit("Pair differences must contain at least two pair rows.")
     if pair_differences.ndim != 2 or pair_differences.shape[1] != target_direction.shape[0]:
         raise SystemExit("Pair differences and target direction have incompatible shapes.")
     tracking_layers, tracking_directions = _build_tracking_directions(
@@ -179,7 +284,7 @@ def main() -> None:
         run_config=run_config,
         construct_id=spec.construct_id,
         selected_layer=selected_layer,
-        injection_direction=args.direction,
+        injection_direction=direction_path,
     )
     args.direction_output_dir.mkdir(parents=True, exist_ok=True)
     storage_dtype = np.float16 if args.storage_dtype == "float16" else np.float32
@@ -230,7 +335,7 @@ def main() -> None:
         "calibration": asdict(calibration),
         "direction_storage_dtype": args.storage_dtype,
         "direction_paths": {
-            "target": str(args.direction),
+            "target": str(direction_path),
             "shuffled": str(shuffled_path),
             "random": [str(path) for path in random_paths],
         },
@@ -241,8 +346,8 @@ def main() -> None:
             "construct_spec_hash": canonical_hash(spec.to_mapping()),
             "prompt_inventory_sha256": file_sha256(args.prompt_inventory),
             "readout_summary_sha256": file_sha256(args.readout_summary),
-            "direction_sha256": file_sha256(args.direction),
-            "pair_differences_sha256": file_sha256(args.pair_differences),
+            "direction_sha256": file_sha256(direction_path),
+            "pair_differences_sha256": file_sha256(pair_differences_path),
             "tracking_direction_hashes": {
                 layer: entry["direction_sha256"] for layer, entry in tracking_directions.items()
             },

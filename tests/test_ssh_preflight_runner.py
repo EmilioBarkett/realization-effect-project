@@ -3,7 +3,10 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import json
+import os
+import signal
 import sys
+import time
 import types
 from pathlib import Path
 
@@ -918,3 +921,185 @@ def test_run_wave_streams_and_preserves_gate_failure_before_raising(
     streamed = capsys.readouterr().out
     assert "[RSC_GATE_REPORT] {" in streamed
     assert "behavior_variation" in streamed
+
+
+def test_remote_launcher_payload_is_syntax_checked_before_staging(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    module = _load_runner(monkeypatch, tmp_path)
+    launcher = tmp_path / "remote" / "remote_br_launcher.py"
+
+    metadata = module.validate_remote_br_launcher_payload()
+    staged = module.write_remote_launcher(launcher)
+
+    assert metadata["syntax_checked"] is True
+    assert metadata["sha256"] == module.REMOTE_BR_LAUNCHER_PAYLOAD_SHA256
+    assert staged["sha256"] == metadata["sha256"]
+    assert launcher.read_text(encoding="utf-8") == module.REMOTE_BR_LAUNCHER_PAYLOAD
+    assert launcher.stat().st_mode & 0o111
+
+    invalid_launcher = tmp_path / "remote" / "invalid_launcher.py"
+    with pytest.raises(module.RunnerFailure, match="syntax check"):
+        module.write_remote_launcher(invalid_launcher, payload=module.REMOTE_BR_LAUNCHER_PAYLOAD + "\nif (")
+    assert not invalid_launcher.exists()
+
+
+def test_remote_launcher_rejects_existing_and_dangling_symlinks_before_resolution(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    module = _load_runner(monkeypatch, tmp_path)
+    real_launcher = tmp_path / "remote" / "real_launcher.py"
+    real_launcher.parent.mkdir(parents=True)
+    real_launcher.write_text("sentinel\n", encoding="utf-8")
+
+    linked_launcher = tmp_path / "remote" / "linked_launcher.py"
+    linked_launcher.symlink_to(real_launcher)
+    with pytest.raises(module.RunnerFailure, match="symlink"):
+        module.write_remote_launcher(linked_launcher)
+    assert real_launcher.read_text(encoding="utf-8") == "sentinel\n"
+
+    dangling_launcher = tmp_path / "remote" / "dangling_launcher.py"
+    dangling_launcher.symlink_to(tmp_path / "remote" / "missing_launcher.py")
+    with pytest.raises(module.RunnerFailure, match="symlink"):
+        module.write_remote_launcher(dangling_launcher)
+
+    dangling_manifest = tmp_path / "remote" / "dangling_manifest.json"
+    dangling_manifest.symlink_to(tmp_path / "remote" / "missing_manifest.json")
+    with pytest.raises(module.RunnerFailure, match="symlink"):
+        module.prepare_remote_br_launch_handoff(
+            [sys.executable, "-c", "pass"],
+            manifest_path=dangling_manifest,
+            input_hashes={"inventory": "a" * 64},
+        )
+
+
+@pytest.mark.parametrize("value", [0.0, -1.0, float("nan"), float("inf"), float("-inf")])
+def test_remote_br_handoff_requires_finite_positive_heartbeat_interval(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, value: float
+) -> None:
+    module = _load_runner(monkeypatch, tmp_path)
+    with pytest.raises(module.RunnerFailure, match="finite and positive"):
+        module.build_remote_br_launch_manifest(
+            [sys.executable, "-c", "pass"],
+            manifest_path=tmp_path / "handoff" / "manifest.json",
+            launcher_path=tmp_path / "handoff" / "launcher.py",
+            input_hashes={"inventory": "b" * 64},
+            heartbeat_interval_seconds=value,
+        )
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("first_heartbeat_timeout_seconds", 0.0),
+        ("first_heartbeat_timeout_seconds", -1.0),
+        ("first_heartbeat_timeout_seconds", float("nan")),
+        ("first_heartbeat_timeout_seconds", float("inf")),
+        ("first_heartbeat_timeout_seconds", float("-inf")),
+        ("poll_interval_seconds", 0.0),
+        ("poll_interval_seconds", -1.0),
+        ("poll_interval_seconds", float("nan")),
+        ("poll_interval_seconds", float("inf")),
+        ("poll_interval_seconds", float("-inf")),
+    ],
+)
+def test_remote_br_handoff_rejects_nonfinite_or_nonpositive_wait_values(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, field: str, value: float
+) -> None:
+    module = _load_runner(monkeypatch, tmp_path)
+    kwargs = {field: value}
+    with pytest.raises(module.RunnerFailure, match="finite and positive"):
+        module.launch_remote_br_handoff(
+            [sys.executable, "-c", "pass"],
+            manifest_path=tmp_path / "handoff" / "manifest.json",
+            input_hashes={"inventory": "c" * 64},
+            **kwargs,
+        )
+    assert not (tmp_path / "handoff" / "manifest.json").exists()
+
+
+def test_remote_br_handoff_persists_manifest_before_detached_spawn_and_verifies_first_heartbeat(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    module = _load_runner(monkeypatch, tmp_path)
+    manifest_path = tmp_path / "handoff" / "br_launch_manifest.json"
+    command = [sys.executable, "-c", "import time; time.sleep(3)"]
+    input_hashes = {"direction_train": "a" * 64, "prompt_inventory": "b" * 64}
+    observed: dict[str, object] = {}
+    real_popen = module.subprocess.Popen
+
+    def recording_popen(argv, **kwargs):
+        observed["manifest_before_spawn"] = json.loads(manifest_path.read_text(encoding="utf-8"))
+        observed["argv"] = list(argv)
+        observed["kwargs"] = kwargs
+        return real_popen(argv, **kwargs)
+
+    monkeypatch.setattr(module.subprocess, "Popen", recording_popen)
+    result: dict[str, object] | None = None
+    try:
+        result = module.launch_remote_br_handoff(
+            command,
+            manifest_path=manifest_path,
+            input_hashes=input_hashes,
+            first_heartbeat_timeout_seconds=5.0,
+            poll_interval_seconds=0.05,
+            heartbeat_interval_seconds=0.05,
+        )
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        status = json.loads(Path(manifest["status_path"]).read_text(encoding="utf-8"))
+        heartbeat = json.loads(Path(manifest["heartbeat_path"]).read_text(encoding="utf-8"))
+    finally:
+        if result is not None:
+            for key in ("pid", "launcher_pid"):
+                try:
+                    os.kill(int(result[key]), signal.SIGTERM)
+                except (ProcessLookupError, PermissionError):
+                    pass
+        time.sleep(0.1)
+
+    before_spawn = observed["manifest_before_spawn"]
+    assert isinstance(before_spawn, dict)
+    assert before_spawn["status"] == "PLANNED"
+    assert before_spawn["model_id"] == module.MODEL_ID
+    assert before_spawn["model_revision"] == module.REVISION
+    assert before_spawn["repo_sha"] == module.REPO_SHA
+    assert before_spawn["input_hashes"] == input_hashes
+    assert before_spawn["command_digest"] == module._command_digest(command)
+    assert before_spawn["preflight_only"] is True
+    assert before_spawn["resumable"] is True
+    assert before_spawn["protocol_only"] is True
+    assert observed["argv"][-2:] == [str(before_spawn["launcher_path"]), str(manifest_path)]
+    assert observed["kwargs"]["start_new_session"] is True
+
+    assert result is not None
+    assert result["pid_verified"] is True
+    assert result["first_heartbeat_verified"] is True
+    assert result["protocol_only"] is True
+    assert result["semantic_runner"] == "caller_supplied_reviewed_command"
+    assert manifest["status"] == "RUNNING"
+    assert manifest["pid"] == result["pid"]
+    assert manifest["launcher_pid"] == result["launcher_pid"]
+    assert status["status"] == "RUNNING"
+    assert heartbeat["status"] == "RUNNING"
+    assert status["pid"] == result["pid"]
+    assert heartbeat["pid"] == result["pid"]
+    assert heartbeat["heartbeat_sequence"] >= 1
+
+
+def test_remote_br_handoff_preserves_preflight_only_guard_before_any_write(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    module = _load_runner(monkeypatch, tmp_path)
+    manifest_path = tmp_path / "handoff" / "br_launch_manifest.json"
+    command = [sys.executable, "-c", "import time; time.sleep(1)"]
+
+    with pytest.raises(module.RunnerFailure, match="preflight-only"):
+        module.launch_remote_br_handoff(
+            command,
+            manifest_path=manifest_path,
+            input_hashes={"inventory": "c" * 64},
+            run_mode="full",
+        )
+
+    assert not manifest_path.exists()
+    assert not (manifest_path.parent / "remote_br_launcher.py").exists()

@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
+import os
 import shlex
 import subprocess
 from typing import Any, Callable, Mapping, Sequence
@@ -18,6 +20,7 @@ from typing import Any, Callable, Mapping, Sequence
 
 DEFAULT_SHUTDOWN_TIMEOUT_SECONDS = 30.0
 _TOKEN_NAMES = ("status", "reason", "campaign", "output", "terminal_report")
+_INHERITED_RUNPOD_ENV_TO_REMOVE = ("RUNPOD_API_KEY", "RUNPOD_CONFIG")
 
 
 def normalize_terminal_command(command: str | Sequence[str] | None) -> tuple[str, ...] | None:
@@ -86,11 +89,14 @@ def run_terminal_shutdown(
         timeout = float(timeout_seconds)
     except (TypeError, ValueError) as exc:
         raise ValueError("shutdown timeout must be a finite positive number.") from exc
-    if timeout <= 0:
+    if not math.isfinite(timeout) or timeout <= 0:
         raise ValueError("shutdown timeout must be a finite positive number.")
 
     argv = _command_with_context(normalized, context)
     digest = _command_hash(argv)
+    child_env = dict(os.environ)
+    for name in _INHERITED_RUNPOD_ENV_TO_REMOVE:
+        child_env.pop(name, None)
     result: dict[str, Any] = {
         "configured": True,
         "attempted": True,
@@ -112,6 +118,7 @@ def run_terminal_shutdown(
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             timeout=timeout,
+            env=child_env,
         )
         return_code = getattr(completed, "returncode", completed if isinstance(completed, int) else None)
         result["return_code"] = return_code
