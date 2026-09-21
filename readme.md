@@ -365,8 +365,32 @@ analysis itself is performed in FP16.
 
 ## Historical reference
 
-The original paper is available at
-[`reports/Realization_Effect_in_Language_Models____Ciaran____Emilio.pdf`](reports/Realization_Effect_in_Language_Models____Ciaran____Emilio.pdf).
+The project grew out of
+[*Representation Without Control: Testing the Realization Effect in Language Models*](https://arxiv.org/abs/2605.25151)
+(Walsh & Barkett, 2026). The paper is also included in this repository at
+[`reports/Realization_Effect_in_Language_Models____Ciaran____Emilio.pdf`](reports/Realization_Effect_in_Language_Models____Ciaran____Emilio.pdf),
+and its original behavioral pipeline is archived under
+[`archive/realization_effect/`](archive/realization_effect/).
 Its main lesson motivates the new benchmark: a model can show behavioral
 sensitivity and contain a linearly decodable signal without that signal being
 a reliable causal handle on downstream behavior.
+
+## Citation
+
+To cite the original realization-effect work:
+
+```bibtex
+@misc{walsh2026representation,
+  title         = {Representation Without Control: Testing the Realization Effect in Language Models},
+  author        = {Walsh, Ciar{\'a}n and Barkett, Emilio},
+  year          = {2026},
+  eprint        = {2605.25151},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.AI}
+}
+```
+
+## Project team
+
+- **Ciarán Walsh**, Columbia University
+- **Emilio Barkett**, Columbia University
